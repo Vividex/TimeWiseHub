@@ -4,9 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
+type AccountType = 'personal' | 'org_owner'
+
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [accountType, setAccountType] = useState<AccountType>('personal')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -17,7 +20,14 @@ export default function RegisterPage() {
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { account_type: accountType },
+        emailRedirectTo: `${location.origin}/auth/callback`,
+      },
+    })
 
     if (error) {
       setError(error.message)
@@ -48,6 +58,38 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create your account</h1>
 
         <form onSubmit={handleRegister} className="space-y-4">
+
+          {/* Account type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">I am signing up as</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setAccountType('personal')}
+                className={`rounded-lg border-2 p-3 text-sm font-medium text-left transition-colors ${
+                  accountType === 'personal'
+                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold">Personal</div>
+                <div className="text-xs mt-0.5 font-normal opacity-75">Individual use</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType('org_owner')}
+                className={`rounded-lg border-2 p-3 text-sm font-medium text-left transition-colors ${
+                  accountType === 'org_owner'
+                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold">Business</div>
+                <div className="text-xs mt-0.5 font-normal opacity-75">I own or manage a team</div>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input

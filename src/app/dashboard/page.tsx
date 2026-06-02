@@ -1,21 +1,62 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import SignOutButton from '@/components/SignOutButton'
+import InviteMember from '@/components/InviteMember'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/login')
+
+  // Load profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  // Load org membership
+  const { data: membership } = await supabase
+    .from('organisation_members')
+    .select('role, organisations(id, name)')
+    .eq('user_id', user.id)
+    .single()
+
+  const org = membership?.organisations as unknown as { id: string; name: string } | null
+  const role = membership?.role
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <div className="max-w-2xl mx-auto space-y-6">
+
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-1">Signed in as <strong>{user.email}</strong></p>
+          </div>
           <SignOutButton />
         </div>
-        <p className="text-sm text-gray-500">Signed in as <strong>{user.email}</strong></p>
+
+        {/* Org info */}
+        {org ? (
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">{org.name}</h2>
+            <p className="text-sm text-gray-500 capitalize">Your role: {role}</p>
+
+            {(role === 'owner' || role === 'admin') && (
+              <div className="mt-6">
+                <InviteMember orgId={org.id} />
+              </div>
+            )}
+          </div>
+        ) : profile?.account_type === 'org_owner' ? (
+          <div className="bg-white rounded-2xl shadow p-6 text-center">
+            <p className="text-sm text-gray-500 mb-3">You haven't set up your organisation yet.</p>
+            <a href="/onboarding" className="text-blue-600 text-sm underline">Set up organisation</a>
+          </div>
+        ) : null}
+
       </div>
     </div>
   )
