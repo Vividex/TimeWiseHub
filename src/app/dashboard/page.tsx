@@ -41,6 +41,14 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Quick links */}
+        <div className="grid grid-cols-2 gap-4">
+          <a href="/dashboard/time" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Time tracking</p>
+            <p className="text-sm text-gray-900 font-medium">Log &amp; track hours →</p>
+          </a>
+        </div>
+
         {/* Org info */}
         {org ? (
           <div className="bg-white rounded-2xl shadow p-6">
