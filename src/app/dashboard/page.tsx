@@ -47,6 +47,10 @@ export default async function DashboardPage() {
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Time tracking</p>
             <p className="text-sm text-gray-900 font-medium">Log &amp; track hours →</p>
           </a>
+          <a href="/dashboard/expenses" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expenses</p>
+            <p className="text-sm text-gray-900 font-medium">Log &amp; manage costs →</p>
+          </a>
         </div>
 
         {/* Org info */}
