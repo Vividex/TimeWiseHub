@@ -67,40 +67,53 @@
 
 ---
 
-## Phase 5 — Task Management & To-Do List
-> Goal: A prioritised task system that integrates with the calendar and triggers focus prompts.
+## Phase 5 — Projects, Tasks & Smart Nudges
+> Goal: A project-centric workspace where each project is a digital pigeonhole containing tasks, documents, and deadlines. Smart alerts surface priority shifts and approaching deadlines.
 
-- [ ] 5.1 — Create, edit, delete tasks (title, due date, priority, notes)
-- [ ] 5.2 — Priority levels (urgent, high, normal, low)
-- [ ] 5.3 — Task status (to-do, in progress, done)
-- [ ] 5.4 — Assign tasks to self or (org admins) to employees
-- [ ] 5.5 — Focus prompts — notify user when a high-priority task needs attention
-- [ ] 5.6 — Task list views (today, upcoming, by priority, by project)
-- [ ] 5.7 — Link tasks to time entries
+### Projects
+- [ ] 5.1 — Create, edit, archive projects (name, description, colour/icon, due date)
+- [ ] 5.2 — Project list view — active (inbox) and completed (outbox) separated
+- [ ] 5.3 — Assign projects to self or (org admins) to employees
+- [ ] 5.4 — Project document uploads — attach files, PDFs, images to a project
+- [ ] 5.5 — Project-level deadline with countdown indicator
+
+### Tasks (inside projects)
+- [ ] 5.6 — Create, edit, delete tasks within a project (title, due date, priority, notes)
+- [ ] 5.7 — Priority levels (urgent, high, normal, low)
+- [ ] 5.8 — Task status: to-do → in progress → done (moves to completed list)
+- [ ] 5.9 — Assign tasks to self or org members
+- [ ] 5.10 — Link tasks to time entries
+
+### Smart Nudges & Alerts
+- [ ] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
+- [ ] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
+- [ ] 5.13 — Idle nudge — prompt user to resume work if no activity logged against an active project
+- [ ] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
 
 ---
 
 ## Phase 6 — Calendar
-> Goal: A scheduling layer that surfaces deadlines, meetings, and focus-shift prompts.
+> Goal: A scheduling layer that surfaces project deadlines, task due dates, meetings, and focus-shift prompts in one view.
 
 - [ ] 6.1 — Calendar view (day, week, month)
 - [ ] 6.2 — Create and manage calendar events
-- [ ] 6.3 — Task due dates appear on calendar
-- [ ] 6.4 — Focus-shift alerts — prompt user to switch to upcoming important items
+- [ ] 6.3 — Project and task due dates appear on calendar automatically
+- [ ] 6.4 — Focus-shift alerts — prompt user to switch to upcoming high-priority items
 - [ ] 6.5 — (Optional) Google Calendar / Outlook sync
-- [ ] 6.6 — Org shared calendar (team events, deadlines)
+- [ ] 6.6 — Org shared calendar (team events, project deadlines)
 
 ---
 
 ## Phase 7 — Productivity Insights & Reporting
-> Goal: Analytics that help users and managers understand time use and output.
+> Goal: Analytics that help users and managers understand time use, project progress, and output.
 
 - [ ] 7.1 — Individual dashboard (hours logged, tasks completed, expenses this period)
 - [ ] 7.2 — Productivity trends (daily/weekly/monthly charts)
 - [ ] 7.3 — Time-by-project breakdown
-- [ ] 7.4 — Org dashboard — aggregate employee hours, expenses, task completion
-- [ ] 7.5 — Idle time and active time ratio reporting
-- [ ] 7.6 — Scheduled reports (weekly email summary)
+- [ ] 7.4 — Project health view — active vs completed tasks, time logged, deadline status per project
+- [ ] 7.5 — Org dashboard — aggregate employee hours, expenses, task and project completion
+- [ ] 7.6 — Idle time and active time ratio reporting
+- [ ] 7.7 — Scheduled reports (weekly email summary)
 
 ---
 
