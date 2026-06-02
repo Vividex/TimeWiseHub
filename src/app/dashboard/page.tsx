@@ -55,9 +55,13 @@ export default async function DashboardPage() {
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expenses</p>
             <p className="text-sm text-gray-900 font-medium">Log &amp; manage costs →</p>
           </a>
-          <a href="/dashboard/projects" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow col-span-2">
+          <a href="/dashboard/projects" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Projects</p>
             <p className="text-sm text-gray-900 font-medium">Manage tasks &amp; deadlines →</p>
+          </a>
+          <a href="/dashboard/calendar" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Calendar</p>
+            <p className="text-sm text-gray-900 font-medium">Events &amp; deadlines →</p>
           </a>
         </div>
 
