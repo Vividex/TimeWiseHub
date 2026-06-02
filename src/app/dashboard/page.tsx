@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import SignOutButton from '@/components/SignOutButton'
 import InviteMember from '@/components/InviteMember'
+import NudgeBanner from '@/components/NudgeBanner'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -41,6 +42,9 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Smart nudges */}
+        <NudgeBanner userId={user.id} />
+
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-4">
           <a href="/dashboard/time" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
@@ -50,6 +54,10 @@ export default async function DashboardPage() {
           <a href="/dashboard/expenses" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expenses</p>
             <p className="text-sm text-gray-900 font-medium">Log &amp; manage costs →</p>
+          </a>
+          <a href="/dashboard/projects" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow col-span-2">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Projects</p>
+            <p className="text-sm text-gray-900 font-medium">Manage tasks &amp; deadlines →</p>
           </a>
         </div>
 
