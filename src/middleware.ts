@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/reset-password')
-  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding')
+  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding') || pathname.startsWith('/settings')
 
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -41,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/login', '/register', '/reset-password'],
+  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/settings/:path*', '/settings', '/login', '/register', '/reset-password'],
 }

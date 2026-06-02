@@ -35,7 +35,10 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-sm text-gray-500 mt-1">Signed in as <strong>{user.email}</strong></p>
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-4">
+            <a href="/settings" className="text-sm text-gray-500 hover:text-gray-900">Settings</a>
+            <SignOutButton />
+          </div>
         </div>
 
         {/* Org info */}
