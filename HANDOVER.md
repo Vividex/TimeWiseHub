@@ -114,6 +114,52 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+### Session 4 — 2026-06-04
+**Agent:** Claude + Codex
+
+**Files Inspected:**
+- All src/app and src/components files
+- supabase/schema-*.sql
+- .env.local
+
+**Files Created:**
+- `src/app/dashboard/layout.tsx` — dashboard layout wrapper (Codex)
+- `src/components/DashboardShell.tsx` — sidebar navigation component (Codex)
+
+**Files Modified:**
+- All 37 component and page files — UI redesign (Codex)
+- `src/app/page.tsx` — replaced placeholder with redirect to /login
+- `src/app/globals.css` — removed dark mode override causing white input text
+- `src/app/dashboard/projects/page.tsx` — fixed query to use eq() for personal users
+- `src/components/expenses/ExpenseList.tsx` — added useEffect to sync state from props
+- `src/components/time/TimeEntryList.tsx` — added useEffect to sync state from props
+- `src/proxy.ts` — renamed from middleware.ts; export renamed to proxy (Next.js 16)
+
+**Summary of Findings:**
+- Root page was default Next.js placeholder — replaced with redirect
+- Dark mode CSS variable was causing near-white input text — removed
+- Multiple RLS infinite recursion bugs fixed via Supabase SQL editor:
+  - organisation_members SELECT policy (get_my_org_ids helper)
+  - project_members SELECT policy (self-referential)
+- schema-007 (recurring expense columns) had not been applied — run this session
+- projects page used .or() for personal users which failed silently — fixed to .eq()
+- ExpenseList and TimeEntryList used useState(props) without useEffect — lists didn't update after form submission
+- UI fully redesigned by Codex: bold blue/white theme, sidebar navigation
+
+**Tests Performed:**
+- pnpm run build — passes cleanly
+- Vercel production deployment — successful
+- Manual testing: account registration, expenses, projects, calendar
+
+**Risk Level:** Low — no schema changes this session. RLS fixes applied directly in Supabase.
+
+**Next Recommended Action:**
+- Phase 7 — Productivity Insights & Reporting
+- Verify expense and project list fixes are working on live site
+- Consider adding useEffect state sync to any remaining list components
+
+---
+
 ## Product Definition (Reference)
 
 | Feature | Detail |
