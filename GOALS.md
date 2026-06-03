@@ -21,8 +21,12 @@
 - [ ] 1.2 — Set up monorepo or multi-repo structure
 - [ ] 1.3 — Configure version control (git, branching strategy)
 - [ ] 1.4 — Set up CI/CD pipeline (build, test, deploy)
-- [ ] 1.5 — Provision cloud infrastructure (hosting, database, storage for receipts)
-- [ ] 1.6 — Configure environment variables and secrets management
+- [~] 1.5 — Provision cloud infrastructure (hosting, database, storage for receipts)
+  - Supabase project created — URL and anon key in .env.local
+  - Vercel not yet set up (needed before deployment)
+- [~] 1.6 — Configure environment variables and secrets management
+  - .env.local created with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - SUPABASE_SERVICE_ROLE_KEY still needs to be filled in
 - [ ] 1.7 — Establish local dev environment documentation
 
 ---
@@ -30,40 +34,40 @@
 ## Phase 2 — Authentication & Account System
 > Goal: Secure login and the org/employee account model before any feature is built on top.
 
-- [ ] 2.1 — User registration and login (email + password)
-- [ ] 2.2 — Password reset and email verification flows
-- [ ] 2.3 — JWT or session-based auth with refresh tokens
-- [ ] 2.4 — Organisation (parent) account creation
-- [ ] 2.5 — Employee (sub) account creation and invitation flow
-- [ ] 2.6 — Role-based access control (admin, manager, employee, individual)
-- [ ] 2.7 — Data isolation — confirm no cross-account data leakage
-- [ ] 2.8 — Account settings (profile, timezone, notification preferences)
+- [x] 2.1 — User registration and login (email + password)
+- [x] 2.2 — Password reset and email verification flows
+- [x] 2.3 — JWT or session-based auth with refresh tokens
+- [x] 2.4 — Organisation (parent) account creation
+- [x] 2.5 — Employee (sub) account creation and invitation flow
+- [x] 2.6 — Role-based access control (admin, manager, employee, individual)
+- [x] 2.7 — Data isolation — confirm no cross-account data leakage
+- [x] 2.8 — Account settings (profile, timezone, notification preferences)
 
 ---
 
 ## Phase 3 — Time Tracking (MVP)
 > Goal: Core work hour logging that individuals and employees can use immediately.
 
-- [ ] 3.1 — Manual time entry (start time, end time, description, project/tag)
-- [ ] 3.2 — Timer (start/stop/pause) with live elapsed display
-- [ ] 3.3 — Idle detection — alert user after configurable inactivity period
-- [ ] 3.4 — Edit and delete time entries
-- [ ] 3.5 — Daily/weekly time summary view
-- [ ] 3.6 — Export time logs (CSV, PDF)
-- [ ] 3.7 — Manager view — see employee time logs within org
+- [x] 3.1 — Manual time entry (start time, end time, description, project/tag)
+- [x] 3.2 — Timer (start/stop/pause) with live elapsed display
+- [x] 3.3 — Idle detection — alert user after configurable inactivity period
+- [x] 3.4 — Edit and delete time entries
+- [x] 3.5 — Daily/weekly time summary view
+- [x] 3.6 — Export time logs (CSV, PDF)
+- [x] 3.7 — Manager view — see employee time logs within org
 
 ---
 
 ## Phase 4 — Expense Management
 > Goal: Let users log, categorise, and upload receipts for business expenses.
 
-- [ ] 4.1 — Create expense entry (amount, currency, category, date, notes)
-- [ ] 4.2 — Receipt image upload (photo or PDF)
-- [ ] 4.3 — Receipt storage with secure, user-scoped access
-- [ ] 4.4 — Expense categories (configurable per org)
-- [ ] 4.5 — Expense list view with filters (date range, category, status)
-- [ ] 4.6 — Approval workflow — employee submits, manager approves/rejects
-- [ ] 4.7 — Export expense reports (CSV, PDF)
+- [x] 4.1 — Create expense entry (amount, currency, category, date, notes)
+- [x] 4.2 — Receipt image upload (photo or PDF)
+- [x] 4.3 — Receipt storage with secure, user-scoped access
+- [x] 4.4 — Expense categories (configurable per org)
+- [x] 4.5 — Expense list view with filters (date range, category, status)
+- [x] 4.6 — Approval workflow — employee submits, manager approves/rejects
+- [x] 4.7 — Export expense reports (CSV, PDF)
 
 ---
 
@@ -71,36 +75,37 @@
 > Goal: A project-centric workspace where each project is a digital pigeonhole containing tasks, documents, and deadlines. Smart alerts surface priority shifts and approaching deadlines.
 
 ### Projects
-- [ ] 5.1 — Create, edit, archive projects (name, description, colour/icon, due date)
-- [ ] 5.2 — Project list view — active (inbox) and completed (outbox) separated
-- [ ] 5.3 — Assign projects to self or (org admins) to employees
-- [ ] 5.4 — Project document uploads — attach files, PDFs, images to a project
-- [ ] 5.5 — Project-level deadline with countdown indicator
+- [x] 5.1 — Create, edit, archive projects (name, description, colour/icon, due date)
+- [x] 5.2 — Project list view — active (inbox) and completed (outbox) separated
+- [x] 5.3 — Assign projects to self or (org admins) to employees
+- [x] 5.4 — Project document uploads — attach files, PDFs, images to a project
+- [x] 5.5 — Project-level deadline with countdown indicator
 
 ### Tasks (inside projects)
-- [ ] 5.6 — Create, edit, delete tasks within a project (title, due date, priority, notes)
-- [ ] 5.7 — Priority levels (urgent, high, normal, low)
-- [ ] 5.8 — Task status: to-do → in progress → done (moves to completed list)
-- [ ] 5.9 — Assign tasks to self or org members
+- [x] 5.6 — Create, edit, delete tasks within a project (title, due date, priority, notes)
+- [x] 5.7 — Priority levels (urgent, high, normal, low)
+- [x] 5.8 — Task status: to-do → in progress → done (moves to completed list)
+- [x] 5.9 — Assign tasks to self or org members
 - [ ] 5.10 — Link tasks to time entries
 
 ### Smart Nudges & Alerts
-- [ ] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
-- [ ] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
-- [ ] 5.13 — Idle nudge — prompt user to resume work if no activity logged against an active project
-- [ ] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
+- [x] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
+- [x] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
+- [x] 5.13 — Idle nudge — prompt user to resume work if no activity logged against an active project
+- [~] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
+  - Preference setting exists (notification_preferences.daily_digest); email sending not yet implemented
 
 ---
 
 ## Phase 6 — Calendar
 > Goal: A scheduling layer that surfaces project deadlines, task due dates, meetings, and focus-shift prompts in one view.
 
-- [ ] 6.1 — Calendar view (day, week, month)
-- [ ] 6.2 — Create and manage calendar events
+- [x] 6.1 — Calendar view (day, week, month)
+- [x] 6.2 — Create and manage calendar events
 - [ ] 6.3 — Project and task due dates appear on calendar automatically
 - [ ] 6.4 — Focus-shift alerts — prompt user to switch to upcoming high-priority items
 - [ ] 6.5 — (Optional) Google Calendar / Outlook sync
-- [ ] 6.6 — Org shared calendar (team events, project deadlines)
+- [x] 6.6 — Org shared calendar (team events, project deadlines)
 
 ---
 
