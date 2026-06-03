@@ -19,14 +19,8 @@ export default async function ExpensesPage() {
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
-          <a href="/dashboard" className="text-sm text-blue-600 hover:underline">Back to dashboard</a>
-        </div>
-
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-5xl space-y-6">
         <ExpenseForm categories={categories ?? []} userId={user.id} orgId={membership?.org_id ?? null} />
         <SubscriptionsView userId={user.id} />
         <ExpenseList initialExpenses={expenses ?? []} categories={categories ?? []} userId={user.id} />

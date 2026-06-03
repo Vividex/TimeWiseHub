@@ -19,7 +19,7 @@ export default function ArchiveButton({ projectId, currentStatus }: { projectId:
 
   return (
     <button onClick={toggle} disabled={loading}
-      className="text-xs text-gray-400 hover:text-gray-700 underline disabled:opacity-50">
+      className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
       {loading ? '...' : currentStatus === 'active' ? 'Move to outbox' : 'Restore to inbox'}
     </button>
   )

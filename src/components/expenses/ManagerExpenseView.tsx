@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 
 type Expense = {
@@ -21,9 +21,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
   const [reviewing, setReviewing] = useState<string | null>(null)
   const [note, setNote] = useState('')
 
-  useEffect(() => { loadExpenses() }, [orgId])
-
-  async function loadExpenses() {
+  const loadExpenses = useCallback(async function loadExpenses() {
     const supabase = createClient()
     const { data: members } = await supabase
       .from('organisation_members')
@@ -42,7 +40,12 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
 
     setExpenses((data ?? []) as unknown as Expense[])
     setLoading(false)
-  }
+  }, [orgId])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadExpenses()
+  }, [loadExpenses])
 
   async function handleReview(id: string, action: 'approved' | 'rejected') {
     const supabase = createClient()
@@ -68,32 +71,32 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Pending approvals</h2>
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Pending approvals</h2>
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm font-semibold text-gray-500">Loading...</p>
       ) : expenses.length === 0 ? (
-        <p className="text-sm text-gray-400">No expenses pending review.</p>
+        <p className="text-sm font-semibold text-gray-500">No expenses pending review.</p>
       ) : (
         <ul className="space-y-4">
           {expenses.map(expense => (
-            <li key={expense.id} className="border border-gray-100 rounded-xl p-4">
+            <li key={expense.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900">
                     {expense.currency} {expense.amount.toFixed(2)}
-                    {expense.expense_categories && <span className="ml-2 text-xs font-normal text-gray-400">{expense.expense_categories.name}</span>}
+                    {expense.expense_categories && <span className="ml-2 text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>}
                   </p>
-                  <p className="text-xs text-gray-500">{expense.profiles?.email} · {new Date(expense.expense_date).toLocaleDateString()}</p>
-                  {expense.description && <p className="text-sm text-gray-600 mt-1">{expense.description}</p>}
+                  <p className="text-xs font-semibold text-gray-500">{expense.profiles?.email} · {new Date(expense.expense_date).toLocaleDateString()}</p>
+                  {expense.description && <p className="mt-1 text-sm font-medium text-gray-500">{expense.description}</p>}
                   {expense.receipt_path && (
-                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="text-xs text-blue-500 hover:underline mt-1">View receipt</button>
+                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="mt-1 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">View receipt</button>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => setReviewing(reviewing === expense.id ? null : expense.id)}
-                    className="text-xs text-gray-500 hover:text-gray-800 underline">
+                    className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
                     Review
                   </button>
                 </div>
@@ -102,14 +105,14 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
               {reviewing === expense.id && (
                 <div className="mt-3 space-y-2">
                   <input type="text" placeholder="Add a note (optional)" value={note} onChange={e => setNote(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   <div className="flex gap-2">
                     <button onClick={() => handleReview(expense.id, 'approved')}
-                      className="bg-green-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-green-700">
+                      className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
                       Approve
                     </button>
                     <button onClick={() => handleReview(expense.id, 'rejected')}
-                      className="bg-red-500 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-red-600">
+                      className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
                       Reject
                     </button>
                   </div>

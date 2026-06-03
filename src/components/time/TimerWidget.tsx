@@ -79,10 +79,10 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Timer</h2>
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Timer</h2>
 
-      <div className="text-5xl font-mono font-bold text-gray-900 mb-6 tabular-nums">
+      <div className="mb-6 rounded-2xl bg-gray-50 p-6 text-5xl font-black tabular-nums tracking-tight text-gray-900">
         {formatElapsed(elapsed)}
       </div>
 
@@ -92,7 +92,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
         value={description}
         onChange={e => setDescription(e.target.value)}
         disabled={running}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+        className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
       />
 
       <div className="flex gap-2">
@@ -100,7 +100,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
           <button
             onClick={handleStart}
             disabled={loading}
-            className="bg-blue-600 text-white rounded-lg px-6 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             Start
           </button>
@@ -109,14 +109,14 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
             <button
               onClick={handlePause}
               disabled={loading}
-              className="bg-yellow-500 text-white rounded-lg px-6 py-2 text-sm font-medium hover:bg-yellow-600 disabled:opacity-50"
+              className="rounded-xl bg-orange-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700 disabled:opacity-50"
             >
               Pause
             </button>
             <button
               onClick={handleStop}
               disabled={loading}
-              className="bg-red-500 text-white rounded-lg px-6 py-2 text-sm font-medium hover:bg-red-600 disabled:opacity-50"
+              className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
             >
               Stop
             </button>

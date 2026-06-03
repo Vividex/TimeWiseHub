@@ -31,12 +31,8 @@ export default async function CalendarPage() {
   ])
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-          <a href="/dashboard" className="text-sm text-blue-600 hover:underline">Back to dashboard</a>
-        </div>
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
         <CalendarView
           userId={user.id}
           orgId={membership?.org_id ?? null}

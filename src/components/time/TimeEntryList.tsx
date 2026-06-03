@@ -30,7 +30,10 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
   const [entries, setEntries] = useState(initialEntries)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  useEffect(() => { setEntries(initialEntries) }, [initialEntries])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEntries(initialEntries)
+  }, [initialEntries])
   const [editDescription, setEditDescription] = useState('')
 
   async function handleDelete(id: string) {
@@ -55,40 +58,40 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
   const completed = entries.filter(e => e.ended_at)
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Today's entries</h2>
+        <h2 className="text-xl font-bold text-gray-900">Today&apos;s entries</h2>
         <ExportButton userId={userId} />
       </div>
 
       {completed.length === 0 ? (
-        <p className="text-sm text-gray-400">No completed entries yet today.</p>
+        <p className="text-sm font-semibold text-gray-500">No completed entries yet today.</p>
       ) : (
         <ul className="space-y-3">
           {completed.map(entry => (
-            <li key={entry.id} className="flex items-start justify-between gap-4 py-3 border-b border-gray-100 last:border-0">
+            <li key={entry.id} className="flex items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
               <div className="flex-1 min-w-0">
                 {editingId === entry.id ? (
                   <div className="flex gap-2">
                     <input
                       value={editDescription}
                       onChange={e => setEditDescription(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button onClick={() => saveEdit(entry.id)} className="text-xs text-blue-600 hover:underline">Save</button>
-                    <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                    <button onClick={() => saveEdit(entry.id)} className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">Save</button>
+                    <button onClick={() => setEditingId(null)} className="px-3 py-2 text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Cancel</button>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-800 truncate">{entry.description || <span className="text-gray-400 italic">No description</span>}</p>
+                  <p className="truncate text-sm font-semibold text-gray-900">{entry.description || <span className="italic text-gray-500">No description</span>}</p>
                 )}
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="mt-1 text-xs font-medium text-gray-500">
                   {formatTime(entry.started_at)} – {entry.ended_at ? formatTime(entry.ended_at) : 'running'}
                   {entry.duration_seconds ? ` · ${formatDuration(entry.duration_seconds)}` : ''}
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => startEdit(entry)} className="text-xs text-gray-400 hover:text-gray-700">Edit</button>
-                <button onClick={() => handleDelete(entry.id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                <button onClick={() => startEdit(entry)} className="text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Edit</button>
+                <button onClick={() => handleDelete(entry.id)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
               </div>
             </li>
           ))}

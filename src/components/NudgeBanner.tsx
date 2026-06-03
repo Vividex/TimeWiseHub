@@ -75,14 +75,14 @@ export default function NudgeBanner({ userId }: { userId: string }) {
 
   if (nudges.length === 0 || dismissed) return null
 
-  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-800', priority: 'bg-orange-50 border-orange-200 text-orange-800', idle: 'bg-yellow-50 border-yellow-200 text-yellow-800' }
+  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-600', priority: 'bg-orange-50 border-orange-200 text-orange-600', idle: 'bg-orange-50 border-orange-200 text-orange-600' }
 
   return (
     <div className="space-y-2">
       {nudges.map((nudge, i) => (
-        <div key={i} className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-medium ${COLOURS[nudge.type]}`}>
+        <div key={i} className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-bold shadow-sm ${COLOURS[nudge.type]}`}>
           <span>{nudge.message}</span>
-          <button onClick={() => setDismissed(true)} className="opacity-50 hover:opacity-100 text-xs shrink-0">Dismiss</button>
+          <button onClick={() => setDismissed(true)} className="shrink-0 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Dismiss</button>
         </div>
       ))}
     </div>

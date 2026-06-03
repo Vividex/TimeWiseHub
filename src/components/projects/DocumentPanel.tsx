@@ -65,30 +65,30 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Documents</h2>
-        <label className={`text-sm text-blue-600 hover:underline cursor-pointer font-medium ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <h2 className="text-xl font-bold text-gray-900">Documents</h2>
+        <label className={`cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           {uploading ? 'Uploading...' : '+ Upload'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
       </div>
 
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
       {docs.length === 0 ? (
-        <p className="text-sm text-gray-400">No documents uploaded yet.</p>
+        <p className="text-sm font-semibold text-gray-500">No documents uploaded yet.</p>
       ) : (
         <ul className="space-y-2">
           {docs.map(doc => (
-            <li key={doc.id} className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-0">
+            <li key={doc.id} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-800 truncate">{doc.name}</p>
-                <p className="text-xs text-gray-400">{formatBytes(doc.size_bytes)} · {new Date(doc.created_at).toLocaleDateString()}</p>
+                <p className="truncate text-sm font-semibold text-gray-900">{doc.name}</p>
+                <p className="text-xs font-medium text-gray-500">{formatBytes(doc.size_bytes)} · {new Date(doc.created_at).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-3 shrink-0">
-                <button onClick={() => handleView(doc.storage_path)} className="text-xs text-blue-500 hover:underline">View</button>
-                <button onClick={() => handleDelete(doc)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                <button onClick={() => handleView(doc.storage_path)} className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">View</button>
+                <button onClick={() => handleDelete(doc)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
               </div>
             </li>
           ))}

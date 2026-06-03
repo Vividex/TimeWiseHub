@@ -47,7 +47,7 @@ export default function ExportExpensesButton({ userId }: { userId: string }) {
 
   return (
     <button onClick={handleExport} disabled={loading}
-      className="text-xs text-gray-500 hover:text-gray-800 underline disabled:opacity-50">
+      className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
       {loading ? 'Exporting...' : 'Export CSV (90 days)'}
     </button>
   )

@@ -10,14 +10,14 @@ function formatDuration(seconds: number) {
 
 export default function TimeSummary({ todaySeconds, weekSeconds }: { todaySeconds: number; weekSeconds: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-white rounded-2xl shadow p-5">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Today</p>
-        <p className="text-3xl font-bold text-gray-900">{formatDuration(todaySeconds)}</p>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Today</p>
+        <p className="text-4xl font-black tracking-tight text-gray-900">{formatDuration(todaySeconds)}</p>
       </div>
-      <div className="bg-white rounded-2xl shadow p-5">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">This week</p>
-        <p className="text-3xl font-bold text-gray-900">{formatDuration(weekSeconds)}</p>
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">This week</p>
+        <p className="text-4xl font-black tracking-tight text-gray-900">{formatDuration(weekSeconds)}</p>
       </div>
     </div>
   )

@@ -24,23 +24,17 @@ export default async function ProjectsPage() {
   const archived = (projects ?? []).filter(p => p.status === 'archived')
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-          <a href="/dashboard" className="text-sm text-blue-600 hover:underline">Back to dashboard</a>
-        </div>
-
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl space-y-8">
         <ProjectForm userId={user.id} orgId={membership?.org_id ?? null} />
 
         {/* Inbox — active */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">
             Inbox — Active ({active.length})
           </h2>
           {active.length === 0 ? (
-            <p className="text-sm text-gray-400">No active projects. Create one above.</p>
+            <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm font-semibold text-gray-500 shadow-sm">No active projects. Create one above.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {active.map(p => <ProjectCard key={p.id} project={p} />)}
@@ -51,7 +45,7 @@ export default async function ProjectsPage() {
         {/* Outbox — archived */}
         {archived.length > 0 && (
           <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h2 className="mb-4 text-xl font-bold text-gray-900">
               Outbox — Completed ({archived.length})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

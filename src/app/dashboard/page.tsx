@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-import SignOutButton from '@/components/SignOutButton'
 import InviteMember from '@/components/InviteMember'
 import NudgeBanner from '@/components/NudgeBanner'
 
@@ -27,49 +27,41 @@ export default async function DashboardPage() {
   const role = membership?.role
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Signed in as <strong>{user.email}</strong></p>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="/settings" className="text-sm text-gray-500 hover:text-gray-900">Settings</a>
-            <SignOutButton />
-          </div>
-        </div>
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl space-y-8">
 
         {/* Smart nudges */}
         <NudgeBanner userId={user.id} />
 
         {/* Quick links */}
-        <div className="grid grid-cols-2 gap-4">
-          <a href="/dashboard/time" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Time tracking</p>
-            <p className="text-sm text-gray-900 font-medium">Log &amp; track hours →</p>
-          </a>
-          <a href="/dashboard/expenses" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expenses</p>
-            <p className="text-sm text-gray-900 font-medium">Log &amp; manage costs →</p>
-          </a>
-          <a href="/dashboard/projects" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Projects</p>
-            <p className="text-sm text-gray-900 font-medium">Manage tasks &amp; deadlines →</p>
-          </a>
-          <a href="/dashboard/calendar" className="bg-white rounded-2xl shadow p-5 hover:shadow-md transition-shadow">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Calendar</p>
-            <p className="text-sm text-gray-900 font-medium">Events &amp; deadlines →</p>
-          </a>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Link href="/dashboard/time" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Time tracking</p>
+            <p className="text-xl font-black text-gray-900">Log &amp; track hours</p>
+            <p className="mt-3 text-sm font-semibold text-gray-500">Open time workspace</p>
+          </Link>
+          <Link href="/dashboard/expenses" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Expenses</p>
+            <p className="text-xl font-black text-gray-900">Log &amp; manage costs</p>
+            <p className="mt-3 text-sm font-semibold text-gray-500">Review spending</p>
+          </Link>
+          <Link href="/dashboard/projects" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Projects</p>
+            <p className="text-xl font-black text-gray-900">Manage tasks</p>
+            <p className="mt-3 text-sm font-semibold text-gray-500">Track deadlines</p>
+          </Link>
+          <Link href="/dashboard/calendar" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Calendar</p>
+            <p className="text-xl font-black text-gray-900">Events &amp; deadlines</p>
+            <p className="mt-3 text-sm font-semibold text-gray-500">See the schedule</p>
+          </Link>
         </div>
 
         {/* Org info */}
         {org ? (
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">{org.name}</h2>
-            <p className="text-sm text-gray-500 capitalize">Your role: {role}</p>
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900">{org.name}</h2>
+            <p className="mt-1 text-sm font-semibold capitalize text-gray-500">Your role: {role}</p>
 
             {(role === 'owner' || role === 'admin') && (
               <div className="mt-6">
@@ -78,9 +70,9 @@ export default async function DashboardPage() {
             )}
           </div>
         ) : profile?.account_type === 'org_owner' ? (
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <p className="text-sm text-gray-500 mb-3">You haven't set up your organisation yet.</p>
-            <a href="/onboarding" className="text-blue-600 text-sm underline">Set up organisation</a>
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
+            <p className="mb-4 text-sm font-semibold text-gray-500">You haven&apos;t set up your organisation yet.</p>
+            <a href="/onboarding" className="inline-flex rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">Set up organisation</a>
           </div>
         ) : null}
 

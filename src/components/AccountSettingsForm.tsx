@@ -82,38 +82,38 @@ export default function AccountSettingsForm({
     <form onSubmit={handleSave} className="space-y-6">
 
       {/* Profile */}
-      <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-        <h2 className="text-base font-semibold text-gray-900">Profile</h2>
+      <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900">Profile</h2>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="mb-1 block text-sm font-semibold text-gray-900">Email</label>
           <input
             type="email"
             value={email}
             disabled
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+          <label className="mb-1 block text-sm font-semibold text-gray-900">Full name</label>
           <input
             type="text"
             value={fullName}
             onChange={e => setFullName(e.target.value)}
             placeholder="Your name"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Timezone */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Timezone</h2>
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-bold text-gray-900">Timezone</h2>
         <select
           value={timezone}
           onChange={e => setTimezone(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {TIMEZONES.map(tz => (
             <option key={tz} value={tz}>{tz}</option>
@@ -122,8 +122,8 @@ export default function AccountSettingsForm({
       </div>
 
       {/* Notifications */}
-      <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-        <h2 className="text-base font-semibold text-gray-900">Notifications</h2>
+      <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900">Notifications</h2>
 
         {(
           [
@@ -133,10 +133,10 @@ export default function AccountSettingsForm({
             { key: 'idle_alerts', label: 'Idle alerts', description: 'Prompt me to resume work if no activity is logged' },
           ] as { key: keyof NotificationPreferences; label: string; description: string }[]
         ).map(({ key, label, description }) => (
-          <div key={key} className="flex items-start justify-between gap-4">
+          <div key={key} className="flex items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
             <div>
-              <p className="text-sm font-medium text-gray-800">{label}</p>
-              <p className="text-xs text-gray-500">{description}</p>
+              <p className="text-sm font-bold text-gray-900">{label}</p>
+              <p className="text-xs font-medium text-gray-500">{description}</p>
             </div>
             <button
               type="button"
@@ -155,12 +155,12 @@ export default function AccountSettingsForm({
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? 'Saving...' : saved ? 'Saved!' : 'Save settings'}
       </button>

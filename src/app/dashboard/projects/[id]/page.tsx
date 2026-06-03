@@ -27,37 +27,36 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) notFound()
 
   const days = project.due_date ? daysUntil(project.due_date) : null
-  const deadlineColour = days === null ? 'text-gray-400' : days < 0 ? 'text-red-600' : days <= 3 ? 'text-orange-500' : days <= 7 ? 'text-yellow-600' : 'text-gray-500'
+  const deadlineColour = days === null ? 'text-gray-500' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-orange-600' : 'text-gray-500'
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-5xl space-y-6">
 
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-4 h-4 rounded-full mt-1 shrink-0" style={{ backgroundColor: project.colour }} />
+              <div className="mt-1 h-5 w-5 shrink-0 rounded-full shadow-sm" style={{ backgroundColor: project.colour }} />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-                {project.description && <p className="text-sm text-gray-500 mt-1">{project.description}</p>}
+                <h1 className="text-3xl font-black tracking-tight text-gray-900">{project.name}</h1>
+                {project.description && <p className="mt-2 text-sm font-semibold text-gray-500">{project.description}</p>}
                 {days !== null && (
-                  <p className={`text-sm font-medium mt-2 ${deadlineColour}`}>
+                  <p className={`mt-3 text-sm font-bold ${deadlineColour}`}>
                     {days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'Due today' : `${days} days until deadline`}
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <a href="/dashboard/projects" className="text-sm text-blue-600 hover:underline">← Projects</a>
+            <div className="shrink-0">
               <ArchiveButton projectId={project.id} currentStatus={project.status} />
             </div>
           </div>
         </div>
 
         {/* Tasks */}
-        <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">Tasks</h2>
+        <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900">Tasks</h2>
           <TaskForm projectId={project.id} assigneeId={user.id} />
           <TaskList initialTasks={tasks ?? []} projectId={project.id} currentUserId={user.id} />
         </div>

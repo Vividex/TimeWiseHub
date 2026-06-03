@@ -55,18 +55,18 @@ export default function ManagerTimeView({ orgId }: { orgId: string }) {
   }, [orgId])
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Team time (today)</h2>
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Team time (today)</h2>
       {loading ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm font-semibold text-gray-500">Loading...</p>
       ) : (
         <ul className="space-y-3">
           {members.map(m => (
-            <li key={m.email} className="flex items-center justify-between text-sm">
-              <span className="text-gray-700 truncate">{m.email}</span>
+            <li key={m.email} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm">
+              <span className="truncate font-semibold text-gray-900">{m.email}</span>
               <div className="text-right shrink-0 ml-4">
                 <span className="font-medium text-gray-900">{formatDuration(m.todaySeconds)}</span>
-                <span className="text-gray-400 text-xs ml-2">/ {formatDuration(m.weekSeconds)} this week</span>
+                <span className="ml-2 text-xs font-medium text-gray-500">/ {formatDuration(m.weekSeconds)} this week</span>
               </div>
             </li>
           ))}

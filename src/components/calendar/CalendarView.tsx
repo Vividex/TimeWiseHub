@@ -28,7 +28,7 @@ function toDateStr(d: Date) {
 function buildItems(events: CalEvent[], projects: Project[], tasks: Task[]): CalendarItem[] {
   const items: CalendarItem[] = []
   events.forEach(e => items.push({ key: `e-${e.id}`, date: e.start_at.slice(0, 10), label: e.title, type: 'event', colour: '#7c3aed', id: e.id }))
-  projects.forEach(p => items.push({ key: `p-${p.id}`, date: p.due_date, label: `📁 ${p.name}`, type: 'project', colour: p.colour, id: p.id }))
+  projects.forEach(p => items.push({ key: `p-${p.id}`, date: p.due_date, label: p.name, type: 'project', colour: p.colour, id: p.id }))
   tasks.forEach(t => items.push({ key: `t-${t.id}`, date: t.due_date, label: t.title, type: 'task', colour: PRIORITY_COLOURS[t.priority] ?? '#2563eb', priority: t.priority, id: t.id }))
   return items
 }
@@ -77,19 +77,19 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
     <div className="space-y-4">
 
       {/* Month navigation */}
-      <div className="bg-white rounded-2xl shadow p-4 flex items-center justify-between">
-        <button onClick={prevMonth} className="text-gray-400 hover:text-gray-700 text-xl px-2">‹</button>
-        <h2 className="text-base font-semibold text-gray-900">
+      <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <button onClick={prevMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600">‹</button>
+        <h2 className="text-xl font-bold text-gray-900">
           {current.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </h2>
-        <button onClick={nextMonth} className="text-gray-400 hover:text-gray-700 text-xl px-2">›</button>
+        <button onClick={nextMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600">›</button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {/* Day headers */}
         <div className="grid grid-cols-7 border-b border-gray-100">
           {DAYS.map(d => (
-            <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400">{d}</div>
+            <div key={d} className="py-3 text-center text-xs font-bold uppercase tracking-wide text-gray-500">{d}</div>
           ))}
         </div>
 
@@ -104,13 +104,13 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
             return (
               <div key={i}
                 onClick={() => date && setSelected(isSelected ? null : dateStr)}
-                className={`min-h-[80px] p-1.5 border-b border-r border-gray-50 cursor-pointer transition-colors ${
+                className={`min-h-[96px] cursor-pointer border-b border-r border-gray-100 p-2 transition-colors ${
                   !date ? 'bg-gray-50' : isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}>
                 {date && (
                   <>
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                         isToday ? 'bg-blue-600 text-white' : 'text-gray-700'
                       }`}>
                         {date.getDate()}
@@ -118,13 +118,13 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
                     </div>
                     <div className="space-y-0.5">
                       {dayItems.slice(0, 3).map(item => (
-                        <div key={item.key} className="text-xs px-1 py-0.5 rounded truncate text-white font-medium"
+                        <div key={item.key} className="truncate rounded-xl px-2 py-1 text-xs font-bold text-white"
                           style={{ backgroundColor: item.colour }}>
                           {item.label}
                         </div>
                       ))}
                       {dayItems.length > 3 && (
-                        <div className="text-xs text-gray-400 pl-1">+{dayItems.length - 3} more</div>
+                        <div className="pl-1 text-xs font-semibold text-gray-500">+{dayItems.length - 3} more</div>
                       )}
                     </div>
                   </>
@@ -159,7 +159,7 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
       {/* Add event button */}
       {!showForm && (
         <button onClick={() => openNewEvent(today)}
-          className="w-full bg-white rounded-2xl shadow p-4 text-sm text-blue-600 font-semibold hover:shadow-md transition-shadow text-left">
+          className="w-full rounded-2xl border border-gray-100 bg-blue-600 p-4 text-left text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">
           + Add event
         </button>
       )}

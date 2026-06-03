@@ -95,18 +95,18 @@ export default function AcceptInvitePage() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-500">Loading invitation...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-sm font-semibold text-gray-500">Loading invitation...</p>
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow p-8 text-center">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Invalid invitation</h1>
-          <p className="text-sm text-gray-500">This invite link is invalid or has already been used.</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <h1 className="mb-2 text-2xl font-black tracking-tight text-gray-900">Invalid invitation</h1>
+          <p className="text-sm font-medium text-gray-500">This invite link is invalid or has already been used.</p>
         </div>
       </div>
     )
@@ -114,54 +114,55 @@ export default function AcceptInvitePage() {
 
   if (expired) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow p-8 text-center">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Invitation expired</h1>
-          <p className="text-sm text-gray-500">This invite link has expired. Ask your admin to send a new one.</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <h1 className="mb-2 text-2xl font-black tracking-tight text-gray-900">Invitation expired</h1>
+          <p className="text-sm font-medium text-gray-500">This invite link has expired. Ask your admin to send a new one.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">You've been invited</h1>
-        <p className="text-sm text-gray-500 mb-6">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+        <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">You&apos;ve been invited</h1>
+        <p className="mb-8 text-sm font-medium text-gray-500">
           Join <strong>{invitation?.organisations.name}</strong> as <strong>{invitation?.role}</strong>.
         </p>
 
-        <form onSubmit={handleAccept} className="space-y-4">
+        <form onSubmit={handleAccept} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="mb-1 block text-sm font-semibold text-gray-900">Email</label>
             <input
               type="email"
               value={invitation?.email ?? ''}
               disabled
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500"
             />
           </div>
 
           {!existingUser && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Choose a password</label>
+              <label className="mb-1 block text-sm font-semibold text-gray-900">Choose a password</label>
               <input
                 type="password"
                 required
                 minLength={8}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Joining...' : existingUser ? 'Join organisation' : 'Create account & join'}
           </button>

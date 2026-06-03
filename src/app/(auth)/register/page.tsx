@@ -41,10 +41,10 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
-          <p className="text-gray-500 text-sm">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">Check your email</h1>
+          <p className="text-sm font-medium text-gray-500">
             We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
           </p>
         </div>
@@ -53,23 +53,24 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create your account</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+      <div className="w-full max-w-xl rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+        <h1 className="mb-8 text-3xl font-black tracking-tight text-gray-900">Create your account</h1>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-5">
 
           {/* Account type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">I am signing up as</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-900">I am signing up as</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setAccountType('personal')}
-                className={`rounded-lg border-2 p-3 text-sm font-medium text-left transition-colors ${
+                className={`rounded-2xl border-2 p-4 text-left text-sm font-semibold transition-colors ${
                   accountType === 'personal'
                     ? 'border-blue-600 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    : 'border-gray-200 text-gray-500 hover:border-blue-200 hover:bg-gray-50'
                 }`}
               >
                 <div className="font-semibold">Personal</div>
@@ -78,10 +79,10 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setAccountType('org_owner')}
-                className={`rounded-lg border-2 p-3 text-sm font-medium text-left transition-colors ${
+                className={`rounded-2xl border-2 p-4 text-left text-sm font-semibold transition-colors ${
                   accountType === 'org_owner'
                     ? 'border-blue-600 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    : 'border-gray-200 text-gray-500 hover:border-blue-200 hover:bg-gray-50'
                 }`}
               >
                 <div className="font-semibold">Business</div>
@@ -91,42 +92,42 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="mb-1 block text-sm font-semibold text-gray-900">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="mb-1 block text-sm font-semibold text-gray-900">Password</label>
             <input
               type="password"
               required
               minLength={8}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-center text-gray-500">
+        <p className="mt-6 text-center text-sm font-medium text-gray-500">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline">
+          <Link href="/login" className="font-semibold text-blue-600 hover:underline">
             Sign in
           </Link>
         </p>

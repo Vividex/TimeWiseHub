@@ -54,10 +54,10 @@ export default function ManualEntryForm() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <button
         onClick={() => setOpen(o => !o)}
-        className="text-sm font-semibold text-blue-600 hover:underline"
+        className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
       >
         {open ? 'Cancel manual entry' : '+ Add manual entry'}
       </button>
@@ -66,32 +66,32 @@ export default function ManualEntryForm() {
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Date</label>
               <input type="date" required value={date} onChange={e => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Start</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Start</label>
               <input type="time" required value={startTime} onChange={e => setStartTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">End</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">End</label>
               <input type="time" required value={endTime} onChange={e => setEndTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">Description</label>
             <input type="text" placeholder="What did you work on?" value={description} onChange={e => setDescription(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
           <button type="submit" disabled={loading}
-            className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
             {loading ? 'Saving...' : 'Save entry'}
           </button>
         </form>
