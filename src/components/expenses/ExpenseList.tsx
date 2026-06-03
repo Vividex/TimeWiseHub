@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ExportExpensesButton from './ExportExpensesButton'
@@ -36,6 +36,8 @@ export default function ExpenseList({
   const router = useRouter()
   const [expenses, setExpenses] = useState(initialExpenses)
   const [statusFilter, setStatusFilter] = useState('all')
+
+  useEffect(() => { setExpenses(initialExpenses) }, [initialExpenses])
   const [loading, setLoading] = useState<string | null>(null)
 
   const filtered = statusFilter === 'all' ? expenses : expenses.filter(e => e.status === statusFilter)

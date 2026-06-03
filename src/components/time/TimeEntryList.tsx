@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ExportButton from './ExportButton'
@@ -29,6 +29,8 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
   const router = useRouter()
   const [entries, setEntries] = useState(initialEntries)
   const [editingId, setEditingId] = useState<string | null>(null)
+
+  useEffect(() => { setEntries(initialEntries) }, [initialEntries])
   const [editDescription, setEditDescription] = useState('')
 
   async function handleDelete(id: string) {
