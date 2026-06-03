@@ -14,11 +14,11 @@ export default async function ProjectsPage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('*, tasks(id, status)')
-    .or(`owner_id.eq.${user.id}${membership?.org_id ? `,org_id.eq.${membership.org_id}` : ''}`)
-    .order('created_at', { ascending: false })
+  const { data: projects } = await (
+    membership?.org_id
+      ? supabase.from('projects').select('*, tasks(id, status)').or(`owner_id.eq.${user.id},org_id.eq.${membership.org_id}`).order('created_at', { ascending: false })
+      : supabase.from('projects').select('*, tasks(id, status)').eq('owner_id', user.id).order('created_at', { ascending: false })
+  )
 
   const active   = (projects ?? []).filter(p => p.status === 'active')
   const archived = (projects ?? []).filter(p => p.status === 'archived')
