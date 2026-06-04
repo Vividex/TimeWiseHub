@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Expenses', href: '/dashboard/expenses' },
   { label: 'Projects', href: '/dashboard/projects' },
   { label: 'Calendar', href: '/dashboard/calendar' },
+  { label: 'Insights', href: '/dashboard/insights' },
   { label: 'Settings', href: '/settings' },
 ]
 
@@ -19,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/expenses': 'Expenses',
   '/dashboard/projects': 'Projects',
   '/dashboard/calendar': 'Calendar',
+  '/dashboard/insights': 'Insights',
 }
 
 function getTitle(pathname: string) {

@@ -112,13 +112,13 @@
 ## Phase 7 — Productivity Insights & Reporting
 > Goal: Analytics that help users and managers understand time use, project progress, and output.
 
-- [ ] 7.1 — Individual dashboard (hours logged, tasks completed, expenses this period)
-- [ ] 7.2 — Productivity trends (daily/weekly/monthly charts)
-- [ ] 7.3 — Time-by-project breakdown
-- [ ] 7.4 — Project health view — active vs completed tasks, time logged, deadline status per project
-- [ ] 7.5 — Org dashboard — aggregate employee hours, expenses, task and project completion
-- [ ] 7.6 — Idle time and active time ratio reporting
-- [ ] 7.7 — Scheduled reports (weekly email summary)
+- [x] 7.1 — Individual dashboard (hours logged, tasks completed, expenses this period)
+- [x] 7.2 — Productivity trends (daily/weekly/monthly charts)
+- [x] 7.3 — Time-by-project breakdown
+- [x] 7.4 — Project health view — active vs completed tasks, time logged, deadline status per project
+- [x] 7.5 — Org dashboard — aggregate employee hours, expenses, task and project completion
+- [x] 7.6 — Idle time and active time ratio reporting
+- [!] 7.7 — Scheduled reports (weekly email summary) — blocked on email service setup
 
 ---
 

@@ -114,6 +114,48 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+### Session 6 — 2026-06-04
+**Agent:** Claude
+
+**Files Inspected:**
+- `GOALS.md`, `HANDOVER.md`, all schema files, DashboardShell, projects page
+
+**Files Created:**
+- `supabase/schema-012-profile-org-visibility.sql` — RLS policy for managers to read member profiles
+- `src/app/dashboard/insights/page.tsx` — full Phase 7 insights page (server component)
+- `src/components/insights/StatCard.tsx`
+- `src/components/insights/BarChart.tsx`
+- `src/components/insights/ActivityRatio.tsx`
+- `src/components/insights/ProjectBreakdown.tsx`
+- `src/components/insights/ProjectHealthTable.tsx`
+- `src/components/insights/OrgStatsPanel.tsx`
+
+**Files Modified:**
+- `src/components/DashboardShell.tsx` — added Insights to nav
+- `GOALS.md` — Phase 7 items 7.1–7.6 marked complete; 7.7 marked blocked
+
+**Summary of Findings:**
+- Phase 7 fully implemented at /dashboard/insights using pure CSS/flex charts (no chart library dependency)
+- Stat cards: today's hours, this week's hours, tasks done this week, expenses this month
+- Daily bar chart: last 7 days
+- Activity ratio: work week coverage (hours / 40h) with active-days counter
+- Time by project: horizontal bars from task-linked entries (requires task_id on time_entries)
+- Project health table: tasks done/total, progress bar, hours, deadline countdown
+- Org stats panel: per-member hours/expenses/tasks for managers/admins/owners
+- schema-012 is required before org stats panel will return member names (profiles RLS)
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly, 17 routes
+
+**Risk Level:** Low. schema-012 must be run in Supabase SQL Editor before deploying if org stats are needed.
+
+**Next Recommended Action:**
+- Run `schema-012-profile-org-visibility.sql` in Supabase SQL Editor
+- Deploy (git push triggers Vercel auto-deploy)
+- Phase 8 — Monetisation & Subscription System
+
+---
+
 ### Session 5 — 2026-06-04
 **Agent:** Claude
 
