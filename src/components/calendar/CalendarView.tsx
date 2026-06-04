@@ -4,15 +4,16 @@ import { useState } from 'react'
 import EventForm from './EventForm'
 import DayPanel from './DayPanel'
 
-type CalEvent = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean; description: string | null; org_id: string | null; created_by: string }
-type Project  = { id: string; name: string; colour: string; due_date: string }
-type Task     = { id: string; title: string; due_date: string; priority: string; status: string; project_id: string }
+type CalEvent     = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean; description: string | null; org_id: string | null; created_by: string }
+type Project      = { id: string; name: string; colour: string; due_date: string }
+type Task         = { id: string; title: string; due_date: string; priority: string; status: string; project_id: string }
+type LeaveRequest = { id: string; leave_type: string; start_date: string; end_date: string; half_day: boolean; user_id: string }
 
 export type CalendarItem = {
   key: string
   date: string
   label: string
-  type: 'event' | 'project' | 'task'
+  type: 'event' | 'project' | 'task' | 'leave'
   colour: string
   priority?: string
   id: string
@@ -22,6 +23,11 @@ export type CalendarItem = {
   allDay?: boolean
 }
 
+const LEAVE_LABELS: Record<string, string> = {
+  annual: 'Annual leave', sick: 'Sick leave', personal: 'Personal leave',
+  public_holiday: 'Public holiday', unpaid: 'Unpaid leave', other: 'Leave',
+}
+
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const PRIORITY_COLOURS: Record<string, string> = { urgent: '#dc2626', high: '#ea580c', normal: '#2563eb', low: '#6b7280' }
 
@@ -29,7 +35,7 @@ function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
-function buildItems(events: CalEvent[], projects: Project[], tasks: Task[]): CalendarItem[] {
+function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leaveRequests: LeaveRequest[]): CalendarItem[] {
   const items: CalendarItem[] = []
   events.forEach(e => items.push({
     key: `e-${e.id}`,
@@ -45,15 +51,38 @@ function buildItems(events: CalEvent[], projects: Project[], tasks: Task[]): Cal
   }))
   projects.forEach(p => items.push({ key: `p-${p.id}`, date: p.due_date, label: p.name, type: 'project', colour: p.colour, id: p.id }))
   tasks.forEach(t => items.push({ key: `t-${t.id}`, date: t.due_date, label: t.title, type: 'task', colour: PRIORITY_COLOURS[t.priority] ?? '#2563eb', priority: t.priority, id: t.id }))
+
+  // Expand multi-day leave requests into individual day entries
+  leaveRequests.forEach(l => {
+    const cur = new Date(l.start_date + 'T00:00:00')
+    const end = new Date(l.end_date + 'T00:00:00')
+    let i = 0
+    while (cur <= end) {
+      const dateStr = cur.toISOString().slice(0, 10)
+      items.push({
+        key: `l-${l.id}-${i}`,
+        date: dateStr,
+        label: LEAVE_LABELS[l.leave_type] ?? 'Leave',
+        type: 'leave',
+        colour: '#f59e0b',
+        id: l.id,
+        description: l.half_day ? 'Half day' : undefined,
+      })
+      cur.setDate(cur.getDate() + 1)
+      i++
+    }
+  })
+
   return items
 }
 
-export default function CalendarView({ userId, orgId, initialEvents, projects, tasks }: {
+export default function CalendarView({ userId, orgId, initialEvents, projects, tasks, leaveRequests = [] }: {
   userId: string
   orgId: string | null
   initialEvents: CalEvent[]
   projects: Project[]
   tasks: Task[]
+  leaveRequests?: LeaveRequest[]
 }) {
   const [events, setEvents] = useState(initialEvents)
   const [current, setCurrent] = useState(new Date())
@@ -74,7 +103,7 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
     return dayNum >= 1 && dayNum <= daysInMonth ? new Date(year, month, dayNum) : null
   })
 
-  const items = buildItems(events, projects, tasks)
+  const items = buildItems(events, projects, tasks, leaveRequests)
   const byDate: Record<string, CalendarItem[]> = {}
   items.forEach(item => { (byDate[item.date] ??= []).push(item) })
 

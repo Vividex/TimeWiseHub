@@ -14,8 +14,7 @@ export default async function CalendarPage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  // Fetch all data sources for the calendar
-  const [{ data: events }, { data: projects }, { data: tasks }] = await Promise.all([
+  const [{ data: events }, { data: projects }, { data: tasks }, { data: leave }] = await Promise.all([
     supabase.from('calendar_events')
       .select('*')
       .or(`created_by.eq.${user.id}${membership?.org_id ? `,org_id.eq.${membership.org_id}` : ''}`)
@@ -29,6 +28,10 @@ export default async function CalendarPage() {
       .eq('assignee_id', user.id)
       .not('due_date', 'is', null)
       .neq('status', 'done'),
+    supabase.from('leave_requests')
+      .select('id, leave_type, start_date, end_date, half_day, user_id')
+      .eq('user_id', user.id)
+      .eq('status', 'approved'),
   ])
 
   return (
@@ -41,6 +44,7 @@ export default async function CalendarPage() {
           initialEvents={events ?? []}
           projects={projects ?? []}
           tasks={tasks ?? []}
+          leaveRequests={leave ?? []}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import type { CalendarItem } from './CalendarView'
 
-const TYPE_LABELS: Record<string, string> = { event: 'Event', project: 'Project deadline', task: 'Task due' }
+const TYPE_LABELS: Record<string, string> = { event: 'Event', project: 'Project deadline', task: 'Task due', leave: 'Approved leave' }
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
