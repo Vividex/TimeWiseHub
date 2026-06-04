@@ -125,13 +125,13 @@
 ## Phase 8 — Monetisation & Subscription System
 > Goal: Implement billing before public launch.
 
-- [ ] 8.1 — Define tier limits (free, pro, team/org — features and seat caps)
-- [ ] 8.2 — Integrate payment provider (Stripe or equivalent)
-- [ ] 8.3 — Subscription management (upgrade, downgrade, cancel)
-- [ ] 8.4 — Billing history and invoice downloads
-- [ ] 8.5 — Trial period logic (freemium gate enforcement)
-- [ ] 8.6 — Org seat billing (per-user monthly)
-- [ ] 8.7 — Grace period and dunning (failed payment handling)
+- [x] 8.1 — Define tier limits (free: 3 projects/30d history; pro: unlimited; team: per-seat)
+- [x] 8.2 — Integrate Stripe (checkout sessions, customer portal, webhook handler)
+- [x] 8.3 — Subscription management (upgrade, downgrade, cancel via Stripe portal)
+- [ ] 8.4 — Billing history and invoice downloads (available in Stripe portal; no custom page)
+- [x] 8.5 — Trial period logic (freemium gate via subscription.plan check)
+- [x] 8.6 — Org seat billing (Team plan at $7.99/seat/month)
+- [x] 8.7 — Grace period and dunning (past_due status + warning banner + portal redirect)
 
 ---
 
