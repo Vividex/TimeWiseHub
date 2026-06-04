@@ -57,14 +57,14 @@ export default function EventForm({ userId, orgId, initialDate, onSave, onCancel
           <label className="mb-1 block text-xs font-semibold text-gray-500">Title</label>
           <input type="text" required value={title} onChange={e => setTitle(e.target.value)}
             placeholder="Event title"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Date</label>
             <input type="date" required value={date} onChange={e => setDate(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
           <div className="flex items-end pb-1">
             <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-500">
@@ -79,12 +79,12 @@ export default function EventForm({ userId, orgId, initialDate, onSave, onCancel
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Start</label>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">End</label>
               <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
             </div>
           </div>
         )}
@@ -92,7 +92,7 @@ export default function EventForm({ userId, orgId, initialDate, onSave, onCancel
         <div>
           <label className="mb-1 block text-xs font-semibold text-gray-500">Description (optional)</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
-            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
         </div>
 
         {orgId && (
@@ -106,7 +106,7 @@ export default function EventForm({ userId, orgId, initialDate, onSave, onCancel
 
         <div className="flex gap-2">
           <button type="submit" disabled={loading}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
             {loading ? 'Saving...' : 'Save event'}
           </button>
           <button type="button" onClick={onCancel}
@@ -118,3 +118,4 @@ export default function EventForm({ userId, orgId, initialDate, onSave, onCancel
     </div>
   )
 }
+

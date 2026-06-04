@@ -1,7 +1,7 @@
 const COLOURS = {
-  blue:   'text-blue-600',
+  blue:   'text-cyan-600',
   green:  'text-green-600',
-  orange: 'text-orange-600',
+  orange: 'text-amber-600',
   purple: 'text-purple-600',
 }
 
@@ -19,3 +19,4 @@ export default function StatCard({ label, value, sub, colour = 'blue' }: {
     </div>
   )
 }
+

@@ -36,9 +36,10 @@ export default function DayPanel({ date, items, onAddEvent, onClose }: {
       )}
 
       <button onClick={onAddEvent}
-        className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+        className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
         + Add event on this day
       </button>
     </div>
   )
 }
+

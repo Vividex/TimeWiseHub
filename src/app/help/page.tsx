@@ -111,12 +111,12 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/dashboard" className="mb-8 inline-block text-sm font-bold text-blue-600 hover:underline">← Dashboard</Link>
+        <Link href="/dashboard" className="mb-8 inline-block text-sm font-bold text-cyan-600 hover:underline">← Dashboard</Link>
 
         <div className="mb-8">
-          <p className="text-xs font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Help Centre</h1>
-          <p className="mt-2 text-sm font-semibold text-gray-500">Can&apos;t find an answer? Email <a href="mailto:abbotts.automotive@gmail.com" className="text-blue-600 hover:underline">abbotts.automotive@gmail.com</a></p>
+          <p className="mt-2 text-sm font-semibold text-gray-500">Can&apos;t find an answer? Email <a href="mailto:abbotts.automotive@gmail.com" className="text-cyan-600 hover:underline">abbotts.automotive@gmail.com</a></p>
         </div>
 
         <div className="space-y-8">
@@ -135,11 +135,12 @@ export default function HelpPage() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50 p-6">
-          <p className="text-sm font-bold text-blue-900">Still need help?</p>
-          <p className="mt-1 text-sm text-blue-700">Email us at <a href="mailto:abbotts.automotive@gmail.com" className="font-bold underline">abbotts.automotive@gmail.com</a> and we&apos;ll get back to you within 1 business day.</p>
+        <div className="mt-8 rounded-2xl border border-cyan-100 bg-cyan-50 p-6">
+          <p className="text-sm font-bold text-slate-900">Still need help?</p>
+          <p className="mt-1 text-sm text-cyan-700">Email us at <a href="mailto:abbotts.automotive@gmail.com" className="font-bold underline">abbotts.automotive@gmail.com</a> and we&apos;ll get back to you within 1 business day.</p>
         </div>
       </div>
     </div>
   )
 }
+

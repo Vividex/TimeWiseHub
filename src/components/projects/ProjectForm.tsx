@@ -52,7 +52,7 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+      <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
         {open ? 'Cancel' : '+ New project'}
       </button>
 
@@ -62,21 +62,21 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
             <label className="mb-1 block text-xs font-semibold text-gray-500">Project name</label>
             <input type="text" required value={name} onChange={e => setName(e.target.value)}
               placeholder="e.g. Website Redesign"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Description (optional)</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)}
               rows={2} placeholder="What is this project about?"
-              className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Due date (optional)</label>
               <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
             </div>
             <div>
               <label className="mb-2 block text-xs font-semibold text-gray-500">Colour</label>
@@ -94,7 +94,7 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
           <button type="submit" disabled={loading}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
             {loading ? 'Creating...' : 'Create project'}
           </button>
         </form>
@@ -102,3 +102,4 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
     </div>
   )
 }
+

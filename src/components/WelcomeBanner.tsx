@@ -20,28 +20,30 @@ export default function WelcomeBanner({ firstName }: { firstName: string }) {
   const name = firstName || 'there'
 
   return (
-    <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
+    <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h2 className="text-lg font-black text-blue-900">Welcome to TimeWiseHub, {name}! 👋</h2>
-          <p className="mt-1 text-sm font-semibold text-blue-700">Get started in seconds — pick one of the quick actions below.</p>
+          <h2 className="text-lg font-black text-slate-900">Welcome to TimeWiseHub, {name}! 👋</h2>
+          <p className="mt-1 text-sm font-semibold text-cyan-700">Get started in seconds — pick one of the quick actions below.</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href="/dashboard/time"
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700">
+              className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600">
               Log your first time entry
             </Link>
             <Link href="/dashboard/projects"
-              className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-blue-700 transition-colors hover:bg-blue-50">
+              className="rounded-xl border border-cyan-200 bg-white px-4 py-2 text-sm font-bold text-cyan-700 transition-colors hover:bg-cyan-50">
               Create a project
             </Link>
             <Link href="/help"
-              className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-blue-700 transition-colors hover:bg-blue-50">
+              className="rounded-xl border border-cyan-200 bg-white px-4 py-2 text-sm font-bold text-cyan-700 transition-colors hover:bg-cyan-50">
               Browse help centre
             </Link>
           </div>
         </div>
-        <button onClick={dismiss} className="shrink-0 text-blue-400 hover:text-blue-600 text-lg font-black">✕</button>
+        <button onClick={dismiss} className="shrink-0 text-slate-400 hover:text-cyan-600 text-lg font-black">✕</button>
       </div>
     </div>
   )
 }
+
+

@@ -126,7 +126,7 @@ export default function AcceptInvitePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
         <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">You&apos;ve been invited</h1>
         <p className="mb-8 text-sm font-medium text-gray-500">
           Join <strong>{invitation?.organisations.name}</strong> as <strong>{invitation?.role}</strong>.
@@ -152,7 +152,7 @@ export default function AcceptInvitePage() {
                 minLength={8}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
             </div>
           )}
@@ -162,7 +162,7 @@ export default function AcceptInvitePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
           >
             {loading ? 'Joining...' : existingUser ? 'Join organisation' : 'Create account & join'}
           </button>
@@ -171,3 +171,4 @@ export default function AcceptInvitePage() {
     </div>
   )
 }
+

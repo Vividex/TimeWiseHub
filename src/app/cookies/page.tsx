@@ -6,11 +6,11 @@ export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/" className="mb-8 inline-block text-sm font-bold text-blue-600 hover:underline">← Back</Link>
+        <Link href="/" className="mb-8 inline-block text-sm font-bold text-cyan-600 hover:underline">← Back</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm space-y-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-blue-600">TimeWiseHub by Vividex</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub by Vividex</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Cookie Policy</h1>
             <p className="mt-2 text-sm text-gray-500">Last updated: 4 June 2026</p>
           </div>
@@ -62,9 +62,10 @@ export default function CookiesPage() {
             <p className="text-sm text-gray-600 leading-relaxed">We also use browser local storage to store your notification and UI preferences (such as dismissing banners). This data stays on your device and is never sent to our servers.</p>
           </section>
 
-          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-blue-600 hover:underline">abbotts.automotive@gmail.com</a></p>
+          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-cyan-600 hover:underline">abbotts.automotive@gmail.com</a></p>
         </div>
       </div>
     </div>
   )
 }
+

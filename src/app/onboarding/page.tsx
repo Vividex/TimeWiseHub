@@ -56,7 +56,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+        <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
         <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">Set up your organisation</h1>
         <p className="mb-8 text-sm font-medium text-gray-500">You can invite team members after setup.</p>
 
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Vividex"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
             {name && (
               <p className="mt-2 text-xs font-semibold text-gray-500">URL slug: {slugify(name)}</p>
@@ -81,7 +81,7 @@ export default function OnboardingPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create organisation'}
           </button>
@@ -90,3 +90,4 @@ export default function OnboardingPage() {
     </div>
   )
 }
+

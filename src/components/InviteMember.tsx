@@ -58,12 +58,12 @@ export default function InviteMember({ orgId }: { orgId: string }) {
           placeholder="Email address"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
         />
         <select
           value={role}
           onChange={e => setRole(e.target.value as Role)}
-          className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
         >
           <option value="employee">Employee</option>
           <option value="manager">Manager</option>
@@ -72,7 +72,7 @@ export default function InviteMember({ orgId }: { orgId: string }) {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
         >
           {loading ? 'Generating...' : 'Generate invite'}
         </button>
@@ -87,7 +87,7 @@ export default function InviteMember({ orgId }: { orgId: string }) {
             <p className="text-xs text-gray-700 truncate flex-1 font-mono">{inviteLink}</p>
             <button
               onClick={copyLink}
-              className="shrink-0 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+              className="shrink-0 rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-cyan-600"
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
@@ -97,3 +97,4 @@ export default function InviteMember({ orgId }: { orgId: string }) {
     </div>
   )
 }
+

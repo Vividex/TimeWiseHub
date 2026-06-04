@@ -26,7 +26,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   const pct   = total > 0 ? Math.round((done / total) * 100) : 0
 
   const days = project.due_date ? daysUntil(project.due_date) : null
-  const deadlineColour = days === null ? '' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-orange-600' : 'text-gray-500'
+  const deadlineColour = days === null ? '' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-amber-600' : 'text-gray-500'
 
   return (
     <Link href={`/dashboard/projects/${project.id}`}
@@ -61,3 +61,4 @@ export default function ProjectCard({ project }: { project: Project }) {
     </Link>
   )
 }
+

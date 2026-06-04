@@ -22,7 +22,7 @@ export function UpgradeButton({ plan, seats = 1, label }: { plan: Plan; seats?: 
 
   return (
     <button onClick={handleClick} disabled={loading}
-      className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
+      className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
       {loading ? 'Redirecting...' : label}
     </button>
   )
@@ -47,3 +47,4 @@ export function ManageButton() {
     </button>
   )
 }
+

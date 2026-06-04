@@ -110,7 +110,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
         value={description}
         onChange={e => setDescription(e.target.value)}
         disabled={running}
-        className="mb-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+        className="mb-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:bg-gray-50 disabled:text-gray-500"
       />
 
       {openTasks.length > 0 && (
@@ -118,7 +118,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
           value={taskId}
           onChange={e => setTaskId(e.target.value)}
           disabled={running}
-          className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+          className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:bg-gray-50 disabled:text-gray-500"
         >
           <option value="">— Link to task (optional) —</option>
           {openTasks.map(t => (
@@ -132,7 +132,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
           <button
             onClick={handleStart}
             disabled={loading}
-            className="rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-xl bg-cyan-500 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
           >
             Start
           </button>
@@ -141,7 +141,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
             <button
               onClick={handlePause}
               disabled={loading}
-              className="rounded-xl bg-orange-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700 disabled:opacity-50"
+              className="rounded-xl bg-amber-500 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
             >
               Pause
             </button>
@@ -158,3 +158,4 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
     </div>
   )
 }
+

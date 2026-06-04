@@ -27,7 +27,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) notFound()
 
   const days = project.due_date ? daysUntil(project.due_date) : null
-  const deadlineColour = days === null ? 'text-gray-500' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-orange-600' : 'text-gray-500'
+  const deadlineColour = days === null ? 'text-gray-500' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-amber-600' : 'text-gray-500'
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -68,3 +68,4 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     </div>
   )
 }
+

@@ -19,7 +19,7 @@ type Expense = {
 
 const STATUS_COLOURS: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-600',
-  submitted: 'bg-orange-50 text-orange-600',
+  submitted: 'bg-amber-50 text-amber-600',
   approved: 'bg-green-50 text-green-600',
   rejected: 'bg-red-50 text-red-600',
 }
@@ -76,7 +76,7 @@ export default function ExpenseList({
         <h2 className="text-xl font-bold text-gray-900">My expenses</h2>
         <div className="flex items-center gap-3">
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
             <option value="all">All</option>
             <option value="draft">Draft</option>
             <option value="submitted">Submitted</option>
@@ -111,11 +111,11 @@ export default function ExpenseList({
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   {expense.receipt_path && (
-                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">View receipt</button>
+                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View receipt</button>
                   )}
                   {expense.status === 'draft' && (
                     <button onClick={() => handleSubmit(expense.id)} disabled={loading === expense.id}
-                      className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700 disabled:opacity-50">
+                      className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 disabled:opacity-50">
                       Submit
                     </button>
                   )}
@@ -138,3 +138,4 @@ export default function ExpenseList({
     </div>
   )
 }
+

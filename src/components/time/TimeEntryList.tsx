@@ -77,9 +77,9 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
                     <input
                       value={editDescription}
                       onChange={e => setEditDescription(e.target.value)}
-                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                     />
-                    <button onClick={() => saveEdit(entry.id)} className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">Save</button>
+                    <button onClick={() => saveEdit(entry.id)} className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">Save</button>
                     <button onClick={() => setEditingId(null)} className="px-3 py-2 text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Cancel</button>
                   </div>
                 ) : (
@@ -90,7 +90,7 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
                   {entry.duration_seconds ? ` · ${formatDuration(entry.duration_seconds)}` : ''}
                 </p>
                 {entry.tasks && (
-                  <p className="mt-1 text-xs font-semibold text-blue-600">{entry.tasks.title}</p>
+                  <p className="mt-1 text-xs font-semibold text-cyan-600">{entry.tasks.title}</p>
                 )}
               </div>
               <div className="flex gap-2 shrink-0">
@@ -104,3 +104,4 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
     </div>
   )
 }
+

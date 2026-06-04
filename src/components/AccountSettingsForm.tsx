@@ -102,7 +102,7 @@ export default function AccountSettingsForm({
             value={fullName}
             onChange={e => setFullName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function AccountSettingsForm({
         <select
           value={timezone}
           onChange={e => setTimezone(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
         >
           {TIMEZONES.map(tz => (
             <option key={tz} value={tz}>{tz}</option>
@@ -142,7 +142,7 @@ export default function AccountSettingsForm({
               type="button"
               onClick={() => toggleNotification(key)}
               className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none ${
-                notifications[key] ? 'bg-blue-600' : 'bg-gray-200'
+                notifications[key] ? 'bg-cyan-500' : 'bg-gray-200'
               }`}
             >
               <span
@@ -160,10 +160,11 @@ export default function AccountSettingsForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
       >
         {loading ? 'Saving...' : saved ? 'Saved!' : 'Save settings'}
       </button>
     </form>
   )
 }
+

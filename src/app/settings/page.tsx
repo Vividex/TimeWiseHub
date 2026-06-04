@@ -17,7 +17,7 @@ export default async function SettingsPage() {
     <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <p className="text-sm font-bold uppercase tracking-wide text-blue-600">TimeWiseHub</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Account settings</h1>
           <p className="mt-2 text-sm font-semibold text-gray-500">{user.email}</p>
         </div>
@@ -47,3 +47,4 @@ export default async function SettingsPage() {
     </div>
   )
 }
+

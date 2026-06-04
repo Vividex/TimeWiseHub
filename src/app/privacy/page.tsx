@@ -6,18 +6,18 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/" className="mb-8 inline-block text-sm font-bold text-blue-600 hover:underline">← Back</Link>
+        <Link href="/" className="mb-8 inline-block text-sm font-bold text-cyan-600 hover:underline">← Back</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm space-y-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-blue-600">TimeWiseHub by Vividex</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub by Vividex</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Privacy Policy</h1>
             <p className="mt-2 text-sm text-gray-500">Last updated: 4 June 2026</p>
           </div>
 
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-gray-900">1. Who we are</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">TimeWiseHub is operated by Vividex. We provide a cloud-based productivity platform for tracking work hours, managing expenses, and organising projects. You can contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-blue-600 hover:underline">abbotts.automotive@gmail.com</a>.</p>
+            <p className="text-sm text-gray-600 leading-relaxed">TimeWiseHub is operated by Vividex. We provide a cloud-based productivity platform for tracking work hours, managing expenses, and organising projects. You can contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-cyan-600 hover:underline">abbotts.automotive@gmail.com</a>.</p>
           </section>
 
           <section className="space-y-3">
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-gray-900">8. Cookies</h2>
-            <p className="text-sm text-gray-600">We use essential session cookies for authentication. See our <Link href="/cookies" className="text-blue-600 hover:underline">Cookie Policy</Link> for details.</p>
+            <p className="text-sm text-gray-600">We use essential session cookies for authentication. See our <Link href="/cookies" className="text-cyan-600 hover:underline">Cookie Policy</Link> for details.</p>
           </section>
 
           <section className="space-y-3">
@@ -87,9 +87,10 @@ export default function PrivacyPage() {
             <p className="text-sm text-gray-600 leading-relaxed">We may update this policy from time to time. Material changes will be notified by email. Continued use of the service after changes constitutes acceptance.</p>
           </section>
 
-          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-blue-600 hover:underline">abbotts.automotive@gmail.com</a></p>
+          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-cyan-600 hover:underline">abbotts.automotive@gmail.com</a></p>
         </div>
       </div>
     </div>
   )
 }
+

@@ -78,11 +78,11 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
 
       {/* Month navigation */}
       <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-        <button onClick={prevMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600">‹</button>
+        <button onClick={prevMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-cyan-50 hover:text-cyan-600">‹</button>
         <h2 className="text-xl font-bold text-gray-900">
           {current.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </h2>
-        <button onClick={nextMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600">›</button>
+        <button onClick={nextMonth} className="rounded-xl bg-gray-50 px-3 py-2 text-xl font-bold text-gray-500 transition-colors hover:bg-cyan-50 hover:text-cyan-600">›</button>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -105,13 +105,13 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
               <div key={i}
                 onClick={() => date && setSelected(isSelected ? null : dateStr)}
                 className={`min-h-[96px] cursor-pointer border-b border-r border-gray-100 p-2 transition-colors ${
-                  !date ? 'bg-gray-50' : isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  !date ? 'bg-gray-50' : isSelected ? 'bg-cyan-50' : 'hover:bg-gray-50'
                 }`}>
                 {date && (
                   <>
                     <div className="flex items-center justify-between mb-1">
                       <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                        isToday ? 'bg-blue-600 text-white' : 'text-gray-700'
+                        isToday ? 'bg-cyan-500 text-white' : 'text-gray-700'
                       }`}>
                         {date.getDate()}
                       </span>
@@ -159,10 +159,11 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
       {/* Add event button */}
       {!showForm && (
         <button onClick={() => openNewEvent(today)}
-          className="w-full rounded-2xl border border-gray-100 bg-blue-600 p-4 text-left text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">
+          className="w-full rounded-2xl border border-gray-100 bg-cyan-500 p-4 text-left text-sm font-semibold text-white shadow-sm transition-colors hover:bg-cyan-600">
           + Add event
         </button>
       )}
     </div>
   )
 }
+

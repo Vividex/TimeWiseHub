@@ -87,7 +87,7 @@ export default function ExpenseForm({
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+      <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
         {open ? 'Cancel' : '+ Add expense'}
       </button>
 
@@ -98,12 +98,12 @@ export default function ExpenseForm({
               <label className="mb-1 block text-xs font-semibold text-gray-500">Amount</label>
               <input type="number" required min="0.01" step="0.01" value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Currency</label>
               <select value={currency} onChange={e => setCurrency(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 {CURRENCIES.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
@@ -113,12 +113,12 @@ export default function ExpenseForm({
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Date</label>
               <input type="date" required value={date} onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Category</label>
               <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 <option value="">Select category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -129,7 +129,7 @@ export default function ExpenseForm({
             <label className="mb-1 block text-xs font-semibold text-gray-500">Description</label>
             <input type="text" value={description} onChange={e => setDescription(e.target.value)}
               placeholder="What was this expense for?"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 
           {/* Recurring toggle */}
@@ -139,7 +139,7 @@ export default function ExpenseForm({
               <p className="text-xs font-medium text-gray-500">Repeats on a fixed schedule</p>
             </div>
             <button type="button" onClick={() => setIsRecurring(r => !r)}
-              className={`relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none ${isRecurring ? 'bg-blue-600' : 'bg-gray-200'}`}>
+              className={`relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none ${isRecurring ? 'bg-cyan-500' : 'bg-gray-200'}`}>
               <span className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transform transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </button>
           </div>
@@ -148,7 +148,7 @@ export default function ExpenseForm({
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Billing frequency</label>
               <select value={recurrenceInterval} onChange={e => setRecurrenceInterval(e.target.value as RecurrenceInterval)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 <option value="weekly">Weekly</option>
                 <option value="fortnightly">Fortnightly</option>
                 <option value="monthly">Monthly</option>
@@ -165,13 +165,13 @@ export default function ExpenseForm({
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Receipt (optional)</label>
             <input type="file" accept="image/*,.pdf" onChange={e => setReceipt(e.target.files?.[0] ?? null)}
-              className="w-full text-sm font-medium text-gray-500 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100" />
+              className="w-full text-sm font-medium text-gray-500 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-cyan-600 hover:file:bg-cyan-100" />
           </div>
 
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
           <button type="submit" disabled={loading}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
             {loading ? 'Saving...' : 'Save expense'}
           </button>
         </form>
@@ -179,3 +179,4 @@ export default function ExpenseForm({
     </div>
   )
 }
+

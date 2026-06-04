@@ -22,15 +22,16 @@ export default function CookieBanner() {
       <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-gray-700">
           We use essential cookies to keep you signed in.{' '}
-          <Link href="/cookies" className="text-blue-600 hover:underline">Cookie Policy</Link>
+          <Link href="/cookies" className="text-cyan-600 hover:underline">Cookie Policy</Link>
           {' · '}
-          <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
+          <Link href="/privacy" className="text-cyan-600 hover:underline">Privacy Policy</Link>
         </p>
         <button onClick={accept}
-          className="shrink-0 rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700">
+          className="shrink-0 rounded-xl bg-cyan-500 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600">
           Accept
         </button>
       </div>
     </div>
   )
 }
+

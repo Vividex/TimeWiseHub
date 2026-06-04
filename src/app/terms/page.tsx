@@ -6,11 +6,11 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/" className="mb-8 inline-block text-sm font-bold text-blue-600 hover:underline">← Back</Link>
+        <Link href="/" className="mb-8 inline-block text-sm font-bold text-cyan-600 hover:underline">← Back</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm space-y-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-blue-600">TimeWiseHub by Vividex</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub by Vividex</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Terms of Service</h1>
             <p className="mt-2 text-sm text-gray-500">Last updated: 4 June 2026</p>
           </div>
@@ -55,7 +55,7 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-gray-900">5. Your data</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">You own your data. We only use it to provide the service as described in our <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>. You can export or delete your data at any time.</p>
+            <p className="text-sm text-gray-600 leading-relaxed">You own your data. We only use it to provide the service as described in our <Link href="/privacy" className="text-cyan-600 hover:underline">Privacy Policy</Link>. You can export or delete your data at any time.</p>
           </section>
 
           <section className="space-y-3">
@@ -83,9 +83,10 @@ export default function TermsPage() {
             <p className="text-sm text-gray-600 leading-relaxed">We may update these Terms. Material changes will be notified by email at least 14 days in advance. Continued use of the service after changes constitutes acceptance.</p>
           </section>
 
-          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-blue-600 hover:underline">abbotts.automotive@gmail.com</a></p>
+          <p className="text-sm text-gray-400 border-t border-gray-100 pt-6">Questions? Contact us at <a href="mailto:abbotts.automotive@gmail.com" className="text-cyan-600 hover:underline">abbotts.automotive@gmail.com</a></p>
         </div>
       </div>
     </div>
   )
 }
+

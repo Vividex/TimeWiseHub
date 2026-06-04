@@ -38,7 +38,7 @@ export default function ProjectHealthTable({ projects }: { projects: ProjectHeal
               const deadlineColour = days === null
                 ? 'text-gray-400'
                 : days < 0 ? 'text-red-600'
-                : days <= 7 ? 'text-orange-600'
+                : days <= 7 ? 'text-amber-600'
                 : 'text-gray-500'
               const deadlineText = days === null ? '—'
                 : days < 0 ? `${Math.abs(days)}d overdue`
@@ -59,7 +59,7 @@ export default function ProjectHealthTable({ projects }: { projects: ProjectHeal
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
-                        <div className="h-2 rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
+                        <div className="h-2 rounded-full bg-cyan-500" style={{ width: `${pct}%` }} />
                       </div>
                       <span className="w-9 text-right text-xs font-bold text-gray-500">{pct}%</span>
                     </div>
@@ -75,3 +75,4 @@ export default function ProjectHealthTable({ projects }: { projects: ProjectHeal
     </div>
   )
 }
+

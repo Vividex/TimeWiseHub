@@ -46,22 +46,22 @@ export default async function DashboardPage() {
         {/* Quick links */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Link href="/dashboard/time" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Time tracking</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Time tracking</p>
             <p className="text-xl font-black text-gray-900">Log &amp; track hours</p>
             <p className="mt-3 text-sm font-semibold text-gray-500">Open time workspace</p>
           </Link>
           <Link href="/dashboard/expenses" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Expenses</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Expenses</p>
             <p className="text-xl font-black text-gray-900">Log &amp; manage costs</p>
             <p className="mt-3 text-sm font-semibold text-gray-500">Review spending</p>
           </Link>
           <Link href="/dashboard/projects" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Projects</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Projects</p>
             <p className="text-xl font-black text-gray-900">Manage tasks</p>
             <p className="mt-3 text-sm font-semibold text-gray-500">Track deadlines</p>
           </Link>
           <Link href="/dashboard/calendar" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-600">Calendar</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Calendar</p>
             <p className="text-xl font-black text-gray-900">Events &amp; deadlines</p>
             <p className="mt-3 text-sm font-semibold text-gray-500">See the schedule</p>
           </Link>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
         ) : profile?.account_type === 'org_owner' ? (
           <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
             <p className="mb-4 text-sm font-semibold text-gray-500">You haven&apos;t set up your organisation yet.</p>
-            <a href="/onboarding" className="inline-flex rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">Set up organisation</a>
+            <a href="/onboarding" className="inline-flex rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">Set up organisation</a>
           </div>
         ) : null}
 
@@ -90,3 +90,4 @@ export default async function DashboardPage() {
     </div>
   )
 }
+

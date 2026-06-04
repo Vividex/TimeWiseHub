@@ -75,7 +75,7 @@ export default function NudgeBanner({ userId }: { userId: string }) {
 
   if (nudges.length === 0 || dismissed) return null
 
-  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-600', priority: 'bg-orange-50 border-orange-200 text-orange-600', idle: 'bg-orange-50 border-orange-200 text-orange-600' }
+  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-600', priority: 'bg-amber-50 border-amber-200 text-amber-600', idle: 'bg-amber-50 border-amber-200 text-amber-600' }
 
   return (
     <div className="space-y-2">
@@ -88,3 +88,4 @@ export default function NudgeBanner({ userId }: { userId: string }) {
     </div>
   )
 }
+

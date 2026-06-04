@@ -4,7 +4,7 @@ export default function ActivityRatio({ hoursThisWeek, activeDays }: {
 }) {
   const TARGET_HOURS = 40
   const pct = Math.min(Math.round((hoursThisWeek / TARGET_HOURS) * 100), 100)
-  const colour = pct >= 75 ? 'bg-green-500' : pct >= 40 ? 'bg-blue-600' : 'bg-orange-500'
+  const colour = pct >= 75 ? 'bg-green-500' : pct >= 40 ? 'bg-cyan-500' : 'bg-amber-500'
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -33,3 +33,4 @@ export default function ActivityRatio({ hoursThisWeek, activeDays }: {
     </div>
   )
 }
+

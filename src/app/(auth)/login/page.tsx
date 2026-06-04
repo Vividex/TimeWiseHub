@@ -31,68 +31,72 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:grid-cols-[1fr_1.05fr]">
-        <div className="hidden bg-blue-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl font-black text-blue-600">T</div>
-            <h1 className="text-4xl font-black tracking-tight">TimeWiseHub</h1>
-            <p className="mt-4 text-lg font-semibold text-blue-100">Track time, projects, expenses, and deadlines from one focused workspace.</p>
-          </div>
-          <p className="text-sm font-semibold text-blue-100">Bold planning for teams that move fast.</p>
+    <div className="flex min-h-screen bg-white">
+      <div className="hidden min-h-screen w-1/2 bg-slate-900 px-12 py-10 lg:flex lg:items-center lg:justify-center">
+        <div className="max-w-md">
+          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl bg-cyan-500 text-2xl font-black text-white">T</div>
+          <h1 className="font-['Poppins'] text-3xl font-black tracking-tight text-white">TimeWiseHub</h1>
+          <p className="mt-3 text-sm font-semibold text-cyan-400">Track Time. Control Costs. Grow Smarter.</p>
+          <ul className="mt-10 space-y-4 text-sm font-medium text-slate-300">
+            <li>Log time with one click</li>
+            <li>Track expenses and receipts</li>
+            <li>Hit every project deadline</li>
+          </ul>
         </div>
+      </div>
 
-        <div className="p-8 sm:p-10">
-          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-blue-600">Welcome back</p>
-          <h1 className="mb-8 text-3xl font-black tracking-tight text-gray-900">Sign in to TimeWiseHub</h1>
+      <div className="flex min-h-screen w-full items-center justify-center bg-white px-4 py-10 lg:w-1/2">
+        <div className="w-full max-w-md">
+          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600">Welcome back</p>
+          <h1 className="mb-8 text-3xl font-black tracking-tight text-slate-900">Sign in to TimeWiseHub</h1>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-900">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-900">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              />
+            </div>
+
+            {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="mt-6 space-y-3 text-center text-sm">
+            <p>
+              <Link href="/reset-password" className="font-semibold text-cyan-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
+            <p className="font-medium text-gray-500">
+              No account?{' '}
+              <Link href="/register" className="font-semibold text-cyan-600 hover:underline">
+                Sign up
+              </Link>
+            </p>
           </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-
-        <div className="mt-6 space-y-3 text-center text-sm">
-          <p>
-            <Link href="/reset-password" className="font-semibold text-blue-600 hover:underline">
-              Forgot your password?
-            </Link>
-          </p>
-          <p className="font-medium text-gray-500">
-            No account?{' '}
-            <Link href="/register" className="font-semibold text-blue-600 hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </div>
         </div>
       </div>
     </div>

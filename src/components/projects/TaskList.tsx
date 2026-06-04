@@ -17,8 +17,8 @@ type Task = {
 
 const PRIORITY_COLOURS: Record<string, string> = {
   urgent: 'bg-red-50 text-red-600',
-  high:   'bg-orange-50 text-orange-600',
-  normal: 'bg-blue-50 text-blue-600',
+  high:   'bg-amber-50 text-amber-600',
+  normal: 'bg-cyan-50 text-cyan-600',
   low:    'bg-gray-100 text-gray-500',
 }
 
@@ -106,7 +106,7 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
                     <div className="flex flex-col gap-1 shrink-0 items-end">
                       {status !== 'done' && (
                         <button onClick={() => advanceStatus(task)}
-                          className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">
+                          className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">
                           {status === 'todo' ? 'Start' : 'Done'}
                         </button>
                       )}
@@ -131,3 +131,4 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
     </div>
   )
 }
+

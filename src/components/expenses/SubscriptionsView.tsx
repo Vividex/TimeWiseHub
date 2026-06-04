@@ -57,7 +57,7 @@ export default function SubscriptionsView({ userId }: { userId: string }) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Subscriptions</h2>
         {subs.length > 0 && (
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-gray-500">
+          <span className="rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-gray-500">
             ~<strong className="text-gray-900">AUD {totalMonthly.toFixed(2)}</strong>/mo
           </span>
         )}
@@ -71,7 +71,7 @@ export default function SubscriptionsView({ userId }: { userId: string }) {
         <ul className="space-y-3">
           {subs.map(sub => {
             const days = daysUntil(sub.next_billing_date)
-            const urgency = days <= 3 ? 'text-red-600' : days <= 7 ? 'text-orange-600' : 'text-gray-500'
+            const urgency = days <= 3 ? 'text-red-600' : days <= 7 ? 'text-amber-600' : 'text-gray-500'
             return (
               <li key={sub.id} className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
                 <div className="flex-1 min-w-0">
@@ -98,3 +98,4 @@ export default function SubscriptionsView({ userId }: { userId: string }) {
     </div>
   )
 }
+

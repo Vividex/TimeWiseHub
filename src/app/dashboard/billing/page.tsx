@@ -7,7 +7,7 @@ import { UpgradeButton, ManageButton } from '@/components/billing/BillingClient'
 function PlanBadge({ plan }: { plan: string }) {
   const colours: Record<string, string> = {
     free:   'bg-gray-100 text-gray-600',
-    pro:    'bg-blue-100 text-blue-700',
+    pro:    'bg-cyan-100 text-cyan-700',
     team:   'bg-purple-100 text-purple-700',
   }
   return (
@@ -59,7 +59,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <PlanBadge plan={sub.plan} />
               </div>
               {sub.status === 'trialing' && sub.trial_end && (
-                <p className="mt-1 text-sm font-semibold text-blue-600">Trial ends {fmtDate(sub.trial_end)}</p>
+                <p className="mt-1 text-sm font-semibold text-cyan-600">Trial ends {fmtDate(sub.trial_end)}</p>
               )}
               {active && sub.current_period_end && (
                 <p className="mt-1 text-sm font-semibold text-gray-500">
@@ -102,7 +102,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             </div>
 
             {/* Team */}
-            <div className="rounded-2xl border-2 border-blue-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border-2 border-cyan-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-lg font-black text-gray-900">Team</p>
                 <PlanBadge plan="team" />
@@ -138,3 +138,4 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     </div>
   )
 }
+

@@ -91,12 +91,12 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
                   <p className="text-xs font-semibold text-gray-500">{expense.profiles?.email} · {new Date(expense.expense_date).toLocaleDateString()}</p>
                   {expense.description && <p className="mt-1 text-sm font-medium text-gray-500">{expense.description}</p>}
                   {expense.receipt_path && (
-                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="mt-1 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">View receipt</button>
+                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="mt-1 text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View receipt</button>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => setReviewing(reviewing === expense.id ? null : expense.id)}
-                    className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
+                    className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
                     Review
                   </button>
                 </div>
@@ -105,7 +105,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
               {reviewing === expense.id && (
                 <div className="mt-3 space-y-2">
                   <input type="text" placeholder="Add a note (optional)" value={note} onChange={e => setNote(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
                   <div className="flex gap-2">
                     <button onClick={() => handleReview(expense.id, 'approved')}
                       className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
@@ -125,3 +125,4 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
     </div>
   )
 }
+

@@ -16,7 +16,7 @@ export default function BarChart({ days, title }: { days: DayBar[]; title: strin
               </span>
               <div className="flex w-full items-end rounded-xl bg-gray-50" style={{ height: '96px' }}>
                 <div
-                  className="w-full rounded-xl bg-blue-600 transition-all"
+                  className="w-full rounded-xl bg-cyan-500 transition-all"
                   style={{ height: `${day.hours > 0 ? Math.max(pct, 6) : 0}%` }}
                 />
               </div>
@@ -28,3 +28,4 @@ export default function BarChart({ days, title }: { days: DayBar[]; title: strin
     </div>
   )
 }
+

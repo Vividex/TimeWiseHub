@@ -68,7 +68,7 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Documents</h2>
-        <label className={`cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <label className={`cursor-pointer rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           {uploading ? 'Uploading...' : '+ Upload'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
@@ -87,7 +87,7 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
                 <p className="text-xs font-medium text-gray-500">{formatBytes(doc.size_bytes)} · {new Date(doc.created_at).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-3 shrink-0">
-                <button onClick={() => handleView(doc.storage_path)} className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700">View</button>
+                <button onClick={() => handleView(doc.storage_path)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View</button>
                 <button onClick={() => handleDelete(doc)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
               </div>
             </li>
@@ -97,3 +97,4 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
     </div>
   )
 }
+
