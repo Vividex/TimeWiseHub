@@ -15,6 +15,8 @@ export default function ManualEntryForm() {
   const [description, setDescription] = useState('')
   const [taskId, setTaskId] = useState('')
   const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
+  const [billable, setBillable] = useState(true)
+  const [billableRate, setBillableRate] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -56,6 +58,8 @@ export default function ManualEntryForm() {
       ended_at: endedAt.toISOString(),
       description: description || null,
       task_id: taskId || null,
+      billable,
+      billable_rate: billableRate ? Number(billableRate) : null,
     })
 
     if (error) {
@@ -68,6 +72,8 @@ export default function ManualEntryForm() {
     setEndTime('')
     setDescription('')
     setTaskId('')
+    setBillableRate('')
+    setBillable(true)
     setOpen(false)
     setLoading(false)
     router.refresh()
@@ -120,6 +126,22 @@ export default function ManualEntryForm() {
               </select>
             </div>
           )}
+
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={billable} onChange={e => setBillable(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-cyan-500" />
+              <span className="text-sm font-semibold text-gray-700">Billable</span>
+            </label>
+            {billable && (
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-gray-500">Rate (optional)</label>
+                <input type="number" min="0" step="0.01" value={billableRate} onChange={e => setBillableRate(e.target.value)}
+                  placeholder="$/hr"
+                  className="w-24 rounded-xl border border-gray-200 px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+              </div>
+            )}
+          </div>
 
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
