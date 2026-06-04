@@ -23,6 +23,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
   const [taskId, setTaskId] = useState(activeEntry?.task_id ?? '')
   const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -51,18 +52,21 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
 
   async function handleStart() {
     setLoading(true)
+    setError(null)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setLoading(false); return }
 
     const now = new Date().toISOString()
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('time_entries')
       .insert({ user_id: user.id, started_at: now, description: description || null, task_id: taskId || null })
       .select()
       .single()
 
-    if (!error && data) {
+    if (insertError) {
+      setError(insertError.message)
+    } else if (data) {
       setEntryId(data.id)
       setElapsed(0)
       setRunning(true)
@@ -98,11 +102,15 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-bold text-gray-900">Timer</h2>
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Clock In / Out</h2>
 
       <div className="mb-6 rounded-2xl bg-gray-50 p-6 text-5xl font-black tabular-nums tracking-tight text-gray-900">
         {formatElapsed(elapsed)}
       </div>
+
+      {error && (
+        <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>
+      )}
 
       <input
         type="text"
@@ -134,7 +142,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
             disabled={loading}
             className="rounded-xl bg-cyan-500 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
           >
-            Start
+            Clock In
           </button>
         ) : (
           <>
@@ -150,7 +158,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
               disabled={loading}
               className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
             >
-              Stop
+              Clock Out
             </button>
           </>
         )}
