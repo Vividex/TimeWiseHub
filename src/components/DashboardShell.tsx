@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Insights', href: '/dashboard/insights' },
   { label: 'Activity', href: '/dashboard/activity' },
   { label: 'Billing', href: '/dashboard/billing' },
+  { label: 'Help', href: '/help' },
   { label: 'Settings', href: '/settings' },
 ]
 

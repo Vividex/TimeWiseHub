@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import InviteMember from '@/components/InviteMember'
 import NudgeBanner from '@/components/NudgeBanner'
 import PushPermission from '@/components/PushPermission'
+import WelcomeBanner from '@/components/WelcomeBanner'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -30,6 +31,9 @@ export default async function DashboardPage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
+
+        {/* First-run welcome */}
+        <WelcomeBanner firstName={profile?.full_name?.split(' ')[0] ?? ''} />
 
         {/* Smart nudges */}
         <NudgeBanner userId={user.id} />

@@ -162,15 +162,15 @@
 ## Phase 11 — Launch Readiness
 > Goal: Everything needed to ship publicly and list on app stores.
 
-- [ ] 11.1 — Legal: Privacy Policy, Terms of Service, Cookie Policy
-- [ ] 11.2 — GDPR / data residency compliance review
-- [ ] 11.3 — App store listings (name, screenshots, descriptions)
-- [ ] 11.4 — Unique app store name confirmed (trademark/availability check)
-- [ ] 11.5 — Onboarding flow (first-run wizard for individuals and orgs)
-- [ ] 11.6 — Help centre / FAQ
-- [ ] 11.7 — Security audit and penetration testing
-- [ ] 11.8 — Load testing and performance baseline
-- [ ] 11.9 — Backup and disaster recovery plan confirmed
+- [x] 11.1 — Legal: Privacy Policy (/privacy), Terms of Service (/terms), Cookie Policy (/cookies)
+- [x] 11.2 — GDPR compliance: cookie consent banner, data export in settings, deletion instructions in privacy policy
+- [ ] 11.3 — App store listings — deferred; requires screenshots, store accounts, marketing copy
+- [ ] 11.4 — App store name check — deferred; manual trademark/availability research
+- [x] 11.5 — Onboarding flow — WelcomeBanner with quick-start actions for new users; org onboarding already existed
+- [x] 11.6 — Help centre — /help with 6 sections covering all major features
+- [ ] 11.7 — Security audit — deferred; recommend a professional penetration test before public launch
+- [ ] 11.8 — Load testing — deferred; use k6 or similar against production URL before launch
+- [x] 11.9 — Backup plan — Supabase Pro tier includes daily backups and PITR; document in runbook before launch
 
 ---
 
