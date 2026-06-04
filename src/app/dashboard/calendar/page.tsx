@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import CalendarView from '@/components/calendar/CalendarView'
 import NudgeBanner from '@/components/NudgeBanner'
+import { getAustralianPublicHolidays, type AustralianState } from '@/lib/australian-public-holidays'
 
 export default async function CalendarPage() {
   const supabase = await createClient()
@@ -14,7 +15,9 @@ export default async function CalendarPage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const [{ data: events }, { data: projects }, { data: tasks }, { data: leave }] = await Promise.all([
+  const year = new Date().getFullYear()
+
+  const [{ data: events }, { data: projects }, { data: tasks }, { data: leave }, { data: profile }] = await Promise.all([
     supabase.from('calendar_events')
       .select('*')
       .or(`created_by.eq.${user.id}${membership?.org_id ? `,org_id.eq.${membership.org_id}` : ''}`)
@@ -32,7 +35,25 @@ export default async function CalendarPage() {
       .select('id, leave_type, start_date, end_date, half_day, user_id')
       .eq('user_id', user.id)
       .eq('status', 'approved'),
+    supabase.from('profiles')
+      .select('au_state')
+      .eq('id', user.id)
+      .single(),
   ])
+
+  const holidays = profile?.au_state
+    ? [year - 1, year, year + 1].flatMap(holidayYear =>
+      getAustralianPublicHolidays(holidayYear, profile.au_state as AustralianState).map(holiday => ({
+        id: `public-holiday-${holiday.state}-${holiday.date}`,
+        leave_type: 'public_holiday',
+        start_date: holiday.date,
+        end_date: holiday.date,
+        half_day: false,
+        user_id: user.id,
+        holiday_name: holiday.name,
+      })),
+    )
+    : []
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -44,7 +65,7 @@ export default async function CalendarPage() {
           initialEvents={events ?? []}
           projects={projects ?? []}
           tasks={tasks ?? []}
-          leaveRequests={leave ?? []}
+          leaveRequests={[...(leave ?? []), ...holidays]}
         />
       </div>
     </div>

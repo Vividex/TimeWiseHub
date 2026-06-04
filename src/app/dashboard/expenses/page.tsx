@@ -22,7 +22,7 @@ export default async function ExpensesPage() {
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <ExpenseForm categories={categories ?? []} userId={user.id} orgId={membership?.org_id ?? null} />
-        <SubscriptionsView userId={user.id} />
+        <SubscriptionsView userId={user.id} orgId={membership?.org_id ?? null} categories={categories ?? []} />
         <ExpenseList initialExpenses={expenses ?? []} categories={categories ?? []} userId={user.id} />
         {isManager && membership?.org_id && <ManagerExpenseView orgId={membership.org_id} />}
 

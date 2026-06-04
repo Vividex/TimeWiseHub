@@ -32,6 +32,41 @@ function decimalHours(seconds: number): string {
   return (seconds / 3600).toFixed(2)
 }
 
+function dateKey(iso: string) {
+  return new Date(iso).toISOString().slice(0, 10)
+}
+
+function weekKey(iso: string) {
+  const date = new Date(iso)
+  date.setHours(0, 0, 0, 0)
+  const day = date.getDay()
+  date.setDate(date.getDate() + (day === 0 ? -6 : 1 - day))
+  return date.toISOString().slice(0, 10)
+}
+
+function isWeekend(iso: string) {
+  const day = new Date(iso).getDay()
+  return day === 0 || day === 6
+}
+
+function awardFlags({
+  startedAt,
+  seconds,
+  previousWeekSeconds,
+  publicHolidayDates,
+}: {
+  startedAt: string
+  seconds: number
+  previousWeekSeconds: number
+  publicHolidayDates: Set<string>
+}) {
+  const flags: string[] = []
+  if (previousWeekSeconds >= 38 * 3600 || previousWeekSeconds + seconds > 38 * 3600) flags.push('Over 38h/week')
+  if (isWeekend(startedAt)) flags.push('Weekend')
+  if (publicHolidayDates.has(dateKey(startedAt))) flags.push('Public holiday')
+  return flags.join('; ')
+}
+
 function workingDays(start: string, end: string, halfDay: boolean): number {
   const s = new Date(start + 'T00:00:00')
   const e = new Date(end + 'T00:00:00')
@@ -123,18 +158,39 @@ export default function ReportsClient({ userId, orgId, isManager }: {
   // ── Individual: time log ─────────────────────────────────────
   async function downloadTimeLog() {
     setLoading('time')
-    const { data } = await supabase
+    const [{ data }, { data: publicHolidays }] = await Promise.all([
+      supabase
       .from('time_entries')
       .select('started_at, ended_at, duration_seconds, description, tasks(title, projects(name))')
       .eq('user_id', userId)
       .not('ended_at', 'is', null)
       .gte('started_at', timeFrom + 'T00:00:00')
       .lte('started_at', timeTo + 'T23:59:59')
-      .order('started_at')
+      .order('started_at'),
+      supabase
+        .from('leave_requests')
+        .select('start_date, end_date')
+        .eq('user_id', userId)
+        .eq('leave_type', 'public_holiday')
+        .eq('status', 'approved')
+        .lte('start_date', timeTo)
+        .gte('end_date', timeFrom),
+    ])
+
+    const publicHolidayDates = new Set<string>()
+    ;(publicHolidays ?? []).forEach(holiday => {
+      const current = new Date(`${holiday.start_date}T00:00:00`)
+      const end = new Date(`${holiday.end_date}T00:00:00`)
+      while (current <= end) {
+        publicHolidayDates.add(current.toISOString().slice(0, 10))
+        current.setDate(current.getDate() + 1)
+      }
+    })
 
     const rows: (string | number | null)[][] = [
-      ['Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Hours (hm)', 'Task', 'Project', 'Description'],
+      ['Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Hours (hm)', 'Award Flags', 'Task', 'Project', 'Description'],
     ]
+    const weeklyTotals: Record<string, number> = {}
     ;(data ?? []).forEach(e => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const task = (e as any).tasks as { title: string; projects: { name: string } | null } | null
@@ -142,10 +198,18 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       const day = d.toLocaleDateString('en-AU', { weekday: 'long' })
       const secs = e.duration_seconds ?? 0
       const hm = `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`
+      const week = weekKey(e.started_at)
+      const flags = awardFlags({
+        startedAt: e.started_at,
+        seconds: secs,
+        previousWeekSeconds: weeklyTotals[week] ?? 0,
+        publicHolidayDates,
+      })
+      weeklyTotals[week] = (weeklyTotals[week] ?? 0) + secs
       rows.push([
         fmtDate(e.started_at), day,
         fmtTime(e.started_at), fmtTime(e.ended_at!),
-        decimalHours(secs), hm,
+        decimalHours(secs), hm, flags,
         task?.title ?? '', task?.projects?.name ?? '',
         e.description ?? '',
       ])
@@ -153,7 +217,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     // Totals row
     const totalSecs = (data ?? []).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
     rows.push([])
-    rows.push(['TOTAL', '', '', '', decimalHours(totalSecs), `${Math.floor(totalSecs / 3600)}h ${Math.floor((totalSecs % 3600) / 60)}m`, '', '', ''])
+    rows.push(['TOTAL', '', '', '', decimalHours(totalSecs), `${Math.floor(totalSecs / 3600)}h ${Math.floor((totalSecs % 3600) / 60)}m`, '', '', '', ''])
 
     downloadCSV(rows, `time-log-${timeFrom}-to-${timeTo}.csv`)
     setLoading(null)
@@ -229,9 +293,80 @@ export default function ReportsClient({ userId, orgId, isManager }: {
   // ── Org: team hours ───────────────────────────────────────────
   async function downloadOrgTime() {
     setLoading('orgtime')
+    const [{ data }, { data: publicHolidays }] = await Promise.all([
+      supabase
+        .from('time_entries')
+        .select('user_id, started_at, ended_at, duration_seconds, description, profiles(full_name, email)')
+        .not('ended_at', 'is', null)
+        .gte('started_at', orgTimeFrom + 'T00:00:00')
+        .lte('started_at', orgTimeTo + 'T23:59:59')
+        .order('profiles(full_name)', { ascending: true })
+        .order('started_at'),
+      supabase
+        .from('leave_requests')
+        .select('start_date, end_date')
+        .eq('org_id', orgId)
+        .eq('leave_type', 'public_holiday')
+        .eq('status', 'approved')
+        .lte('start_date', orgTimeTo)
+        .gte('end_date', orgTimeFrom),
+    ])
+
+    const publicHolidayDates = new Set<string>()
+    ;(publicHolidays ?? []).forEach(holiday => {
+      const current = new Date(`${holiday.start_date}T00:00:00`)
+      const end = new Date(`${holiday.end_date}T00:00:00`)
+      while (current <= end) {
+        publicHolidayDates.add(current.toISOString().slice(0, 10))
+        current.setDate(current.getDate() + 1)
+      }
+    })
+
+    const rows: (string | number | null)[][] = [
+      ['Employee', 'Email', 'Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Award Flags', 'Description'],
+    ]
+    const totals: Record<string, number> = {}
+    const weeklyTotals: Record<string, number> = {}
+    ;(data ?? []).forEach(e => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const p = (e as any).profiles as { full_name: string | null; email: string } | null
+      const name = p?.full_name ?? p?.email ?? e.user_id
+      const secs = e.duration_seconds ?? 0
+      const day = new Date(e.started_at).toLocaleDateString('en-AU', { weekday: 'long' })
+      const employeeWeek = `${e.user_id}:${weekKey(e.started_at)}`
+      const flags = awardFlags({
+        startedAt: e.started_at,
+        seconds: secs,
+        previousWeekSeconds: weeklyTotals[employeeWeek] ?? 0,
+        publicHolidayDates,
+      })
+      weeklyTotals[employeeWeek] = (weeklyTotals[employeeWeek] ?? 0) + secs
+      rows.push([
+        name, p?.email ?? '',
+        fmtDate(e.started_at), day,
+        fmtTime(e.started_at), fmtTime(e.ended_at!),
+        decimalHours(secs), flags, e.description ?? '',
+      ])
+      totals[name] = (totals[name] ?? 0) + secs
+    })
+    rows.push([])
+    rows.push(['SUMMARY BY EMPLOYEE', '', '', '', '', '', '', '', ''])
+    rows.push(['Employee', '', '', '', '', '', 'Total Hours', '', ''])
+    Object.entries(totals).sort().forEach(([name, secs]) => {
+      rows.push([name, '', '', '', '', '', decimalHours(secs), '', ''])
+    })
+
+    downloadCSV(rows, `team-hours-${orgTimeFrom}-to-${orgTimeTo}.csv`)
+    setLoading(null)
+  }
+
+  async function downloadXeroTime() {
+    if (!orgId) return
+
+    setLoading('xero')
     const { data } = await supabase
       .from('time_entries')
-      .select('user_id, started_at, ended_at, duration_seconds, description, profiles(full_name, email)')
+      .select('user_id, started_at, duration_seconds, description, profiles(full_name, email), tasks(title, projects(name))')
       .not('ended_at', 'is', null)
       .gte('started_at', orgTimeFrom + 'T00:00:00')
       .lte('started_at', orgTimeTo + 'T23:59:59')
@@ -239,31 +374,26 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       .order('started_at')
 
     const rows: (string | number | null)[][] = [
-      ['Employee', 'Email', 'Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Description'],
+      ['Employee Name', 'Date', 'Status', 'Total Hours', 'Employee Rate', 'Tracking Item', 'Description'],
     ]
-    const totals: Record<string, number> = {}
-    ;(data ?? []).forEach(e => {
+
+    ;(data ?? []).forEach(entry => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const p = (e as any).profiles as { full_name: string | null; email: string } | null
-      const name = p?.full_name ?? p?.email ?? e.user_id
-      const secs = e.duration_seconds ?? 0
-      const day = new Date(e.started_at).toLocaleDateString('en-AU', { weekday: 'long' })
+      const profile = (entry as any).profiles as { full_name: string | null; email: string } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const task = (entry as any).tasks as { title: string; projects: { name: string } | null } | null
       rows.push([
-        name, p?.email ?? '',
-        fmtDate(e.started_at), day,
-        fmtTime(e.started_at), fmtTime(e.ended_at!),
-        decimalHours(secs), e.description ?? '',
+        profile?.full_name ?? profile?.email ?? entry.user_id,
+        fmtDate(entry.started_at),
+        'DRAFT',
+        decimalHours(entry.duration_seconds ?? 0),
+        'Regular Pay',
+        task?.projects?.name ?? '',
+        entry.description ?? task?.title ?? '',
       ])
-      totals[name] = (totals[name] ?? 0) + secs
-    })
-    rows.push([])
-    rows.push(['SUMMARY BY EMPLOYEE', '', '', '', '', '', '', ''])
-    rows.push(['Employee', '', '', '', '', '', 'Total Hours', ''])
-    Object.entries(totals).sort().forEach(([name, secs]) => {
-      rows.push([name, '', '', '', '', '', decimalHours(secs), ''])
     })
 
-    downloadCSV(rows, `team-hours-${orgTimeFrom}-to-${orgTimeTo}.csv`)
+    downloadCSV(rows, `xero-timesheets-${orgTimeFrom}-to-${orgTimeTo}.csv`)
     setLoading(null)
   }
 
@@ -362,7 +492,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
 
           <ReportCard
             title="Time Log"
-            description="All time entries for the selected period — includes hours (decimal for payroll), task, and project.">
+            description="All time entries for the selected period — includes decimal hours, task, project, and payroll flags for overtime, weekends, and public holidays.">
             <DateRange from={timeFrom} to={timeTo} onFrom={setTimeFrom} onTo={setTimeTo} />
             <DownloadBtn onClick={downloadTimeLog} loading={loading === 'time'} label="Download Time Log CSV" />
           </ReportCard>
@@ -398,9 +528,12 @@ export default function ReportsClient({ userId, orgId, isManager }: {
 
             <ReportCard
               title="Team Hours"
-              description="All employees' time entries for the period — includes decimal hours and a per-employee summary at the bottom.">
+              description="All employees' time entries for the period — includes decimal hours, award flags, and a per-employee summary at the bottom.">
               <DateRange from={orgTimeFrom} to={orgTimeTo} onFrom={setOrgTimeFrom} onTo={setOrgTimeTo} />
-              <DownloadBtn onClick={downloadOrgTime} loading={loading === 'orgtime'} label="Download Team Hours CSV" />
+              <div className="flex flex-wrap gap-2">
+                <DownloadBtn onClick={downloadOrgTime} loading={loading === 'orgtime'} label="Download Team Hours CSV" />
+                <DownloadBtn onClick={downloadXeroTime} loading={loading === 'xero'} label="Download Xero CSV" />
+              </div>
             </ReportCard>
 
             <ReportCard

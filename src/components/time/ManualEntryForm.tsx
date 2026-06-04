@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
 type OpenTask = { id: string; title: string }
+type TimeSettings = { hourlyRate: number | null; roundingMinutes: number }
+
+function roundedEndTime(start: Date, end: Date, roundingMinutes: number) {
+  if (roundingMinutes !== 15) return end
+
+  const durationMinutes = (end.getTime() - start.getTime()) / 60000
+  const roundedMinutes = Math.max(roundingMinutes, Math.round(durationMinutes / roundingMinutes) * roundingMinutes)
+  return new Date(start.getTime() + roundedMinutes * 60000)
+}
 
 export default function ManualEntryForm() {
   const router = useRouter()
@@ -15,6 +24,7 @@ export default function ManualEntryForm() {
   const [description, setDescription] = useState('')
   const [taskId, setTaskId] = useState('')
   const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>({ hourlyRate: null, roundingMinutes: 0 })
   const [billable, setBillable] = useState(true)
   const [billableRate, setBillableRate] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -31,6 +41,21 @@ export default function ManualEntryForm() {
         .neq('status', 'done')
         .order('due_date', { ascending: true, nullsFirst: false })
         .then(({ data }) => setOpenTasks(data ?? []))
+
+      supabase
+        .from('organisation_members')
+        .select('hourly_rate, organisations(time_rounding_minutes)')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          const organisation = data?.organisations as unknown as { time_rounding_minutes: number } | null
+          const hourlyRate = data?.hourly_rate ?? null
+          setTimeSettings({
+            hourlyRate,
+            roundingMinutes: organisation?.time_rounding_minutes ?? 0,
+          })
+          if (hourlyRate !== null) setBillableRate(String(hourlyRate))
+        })
     })
   }, [])
 
@@ -40,13 +65,15 @@ export default function ManualEntryForm() {
     setLoading(true)
 
     const startedAt = new Date(`${date}T${startTime}`)
-    const endedAt = new Date(`${date}T${endTime}`)
+    const rawEndedAt = new Date(`${date}T${endTime}`)
 
-    if (endedAt <= startedAt) {
+    if (rawEndedAt <= startedAt) {
       setError('End time must be after start time.')
       setLoading(false)
       return
     }
+
+    const endedAt = roundedEndTime(startedAt, rawEndedAt, timeSettings.roundingMinutes)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -72,7 +99,7 @@ export default function ManualEntryForm() {
     setEndTime('')
     setDescription('')
     setTaskId('')
-    setBillableRate('')
+    setBillableRate(timeSettings.hourlyRate?.toString() ?? '')
     setBillable(true)
     setOpen(false)
     setLoading(false)
@@ -154,4 +181,3 @@ export default function ManualEntryForm() {
     </div>
   )
 }
-

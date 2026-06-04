@@ -1,17 +1,41 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import AccountSettingsForm from '@/components/AccountSettingsForm'
+import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, timezone, notification_preferences')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, { data: membership }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, timezone, au_state, notification_preferences')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('organisation_members')
+      .select('role, org_id')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ])
+
+  const isOrgAdmin = ['owner', 'admin'].includes(membership?.role ?? '')
+  const [{ data: organisation }, { data: members }] = isOrgAdmin && membership?.org_id
+    ? await Promise.all([
+      supabase
+        .from('organisations')
+        .select('time_rounding_minutes')
+        .eq('id', membership.org_id)
+        .single(),
+      supabase
+        .from('organisation_members')
+        .select('id, role, hourly_rate, profiles(email, full_name)')
+        .eq('org_id', membership.org_id)
+        .order('role', { ascending: true }),
+    ])
+    : [{ data: null }, { data: null }]
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-8">
@@ -46,6 +70,7 @@ export default async function SettingsPage() {
           email={user.email ?? ''}
           initialFullName={profile?.full_name ?? ''}
           initialTimezone={profile?.timezone ?? 'UTC'}
+          initialAuState={profile?.au_state ?? ''}
           initialNotifications={profile?.notification_preferences ?? {
             deadline_alerts: true,
             priority_nudges: true,
@@ -53,8 +78,15 @@ export default async function SettingsPage() {
             idle_alerts: true,
           }}
         />
+
+        {isOrgAdmin && membership?.org_id && (
+          <OrgBillingSettingsForm
+            orgId={membership.org_id}
+            initialRoundingMinutes={organisation?.time_rounding_minutes ?? 0}
+            initialMembers={(members ?? []) as unknown as Parameters<typeof OrgBillingSettingsForm>[0]['initialMembers']}
+          />
+        )}
       </div>
     </div>
   )
 }
-

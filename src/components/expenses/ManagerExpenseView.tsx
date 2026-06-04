@@ -15,6 +15,14 @@ type Expense = {
   expense_categories: { name: string } | null
 }
 
+function notifyApprovedExpense(id: string) {
+  fetch('/api/notifications/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'expense', id }),
+  }).catch(error => console.error('Expense notification failed', error))
+}
+
 export default function ManagerExpenseView({ orgId }: { orgId: string }) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
@@ -52,16 +60,19 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    await supabase.from('expenses').update({
+    const { error } = await supabase.from('expenses').update({
       status: action,
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
       review_note: note || null,
     }).eq('id', id)
 
-    setExpenses(prev => prev.filter(e => e.id !== id))
-    setReviewing(null)
-    setNote('')
+    if (!error) {
+      if (action === 'approved') notifyApprovedExpense(id)
+      setExpenses(prev => prev.filter(e => e.id !== id))
+      setReviewing(null)
+      setNote('')
+    }
   }
 
   async function viewReceipt(path: string) {

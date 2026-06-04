@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 
 type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null; task_id: string | null }
 type OpenTask = { id: string; title: string }
+type TimeSettings = { hourlyRate: number | null; roundingMinutes: number }
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -19,6 +20,15 @@ function fmtDuration(startIso: string) {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+function roundedEndTime(startIso: string, end: Date, roundingMinutes: number) {
+  if (roundingMinutes !== 15) return end.toISOString()
+
+  const start = new Date(startIso)
+  const durationMinutes = (end.getTime() - start.getTime()) / 60000
+  const roundedMinutes = Math.max(roundingMinutes, Math.round(durationMinutes / roundingMinutes) * roundingMinutes)
+  return new Date(start.getTime() + roundedMinutes * 60000).toISOString()
+}
+
 export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null }) {
   const router = useRouter()
   const [running, setRunning] = useState(!!activeEntry)
@@ -27,6 +37,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
   const [description, setDescription] = useState(activeEntry?.description ?? '')
   const [taskId, setTaskId] = useState(activeEntry?.task_id ?? '')
   const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>({ hourlyRate: null, roundingMinutes: 0 })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [, setTick] = useState(0)
@@ -39,6 +50,19 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
         .eq('assignee_id', user.id).neq('status', 'done')
         .order('due_date', { ascending: true, nullsFirst: false })
         .then(({ data }) => setOpenTasks(data ?? []))
+
+      supabase
+        .from('organisation_members')
+        .select('hourly_rate, organisations(time_rounding_minutes)')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          const organisation = data?.organisations as unknown as { time_rounding_minutes: number } | null
+          setTimeSettings({
+            hourlyRate: data?.hourly_rate ?? null,
+            roundingMinutes: organisation?.time_rounding_minutes ?? 0,
+          })
+        })
     })
   }, [])
 
@@ -59,7 +83,14 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
     const now = new Date().toISOString()
     const { data, error: insertError } = await supabase
       .from('time_entries')
-      .insert({ user_id: user.id, started_at: now, description: description || null, task_id: taskId || null })
+      .insert({
+        user_id: user.id,
+        started_at: now,
+        description: description || null,
+        task_id: taskId || null,
+        billable: true,
+        billable_rate: timeSettings.hourlyRate,
+      })
       .select().single()
 
     if (insertError) {
@@ -76,8 +107,9 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
     if (!entryId) return
     setLoading(true)
     const supabase = createClient()
+    const endedAt = startedAt ? roundedEndTime(startedAt, new Date(), timeSettings.roundingMinutes) : new Date().toISOString()
     await supabase.from('time_entries')
-      .update({ ended_at: new Date().toISOString(), description: description || null })
+      .update({ ended_at: endedAt, description: description || null })
       .eq('id', entryId)
 
     setRunning(false)

@@ -21,6 +21,14 @@ const TYPE_LABELS: Record<string, string> = {
   public_holiday: 'Public Holiday', unpaid: 'Unpaid', other: 'Other',
 }
 
+function notifyLeaveReview(id: string) {
+  fetch('/api/notifications/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'leave', id }),
+  }).catch(error => console.error('Leave notification failed', error))
+}
+
 function fmtDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
@@ -35,11 +43,12 @@ export default function ManagerLeaveView({ pending }: { pending: LeaveReq[] }) {
     setProcessing(id)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('leave_requests').update({
+    const { error } = await supabase.from('leave_requests').update({
       status: 'approved',
       reviewed_by: user?.id,
       reviewed_at: new Date().toISOString(),
     }).eq('id', id)
+    if (!error) notifyLeaveReview(id)
     setProcessing(null)
     router.refresh()
   }
@@ -48,12 +57,13 @@ export default function ManagerLeaveView({ pending }: { pending: LeaveReq[] }) {
     setProcessing(id)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('leave_requests').update({
+    const { error } = await supabase.from('leave_requests').update({
       status: 'rejected',
       reviewed_by: user?.id,
       reviewed_at: new Date().toISOString(),
       review_note: rejectNote[id] || null,
     }).eq('id', id)
+    if (!error) notifyLeaveReview(id)
     setProcessing(null)
     setRejectOpen(null)
     router.refresh()

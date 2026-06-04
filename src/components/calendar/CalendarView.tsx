@@ -7,7 +7,7 @@ import DayPanel from './DayPanel'
 type CalEvent     = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean; description: string | null; org_id: string | null; created_by: string }
 type Project      = { id: string; name: string; colour: string; due_date: string }
 type Task         = { id: string; title: string; due_date: string; priority: string; status: string; project_id: string }
-type LeaveRequest = { id: string; leave_type: string; start_date: string; end_date: string; half_day: boolean; user_id: string }
+type LeaveRequest = { id: string; leave_type: string; start_date: string; end_date: string; half_day: boolean; user_id: string; holiday_name?: string }
 
 export type CalendarItem = {
   key: string
@@ -62,7 +62,7 @@ function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leav
       items.push({
         key: `l-${l.id}-${i}`,
         date: dateStr,
-        label: LEAVE_LABELS[l.leave_type] ?? 'Leave',
+        label: l.holiday_name ?? LEAVE_LABELS[l.leave_type] ?? 'Leave',
         type: 'leave',
         colour: '#f59e0b',
         id: l.id,
@@ -210,4 +210,3 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
     </div>
   )
 }
-

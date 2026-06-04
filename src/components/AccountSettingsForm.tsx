@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { AU_STATES, type AustralianState } from '@/lib/australian-public-holidays'
 
 const TIMEZONES = [
   'UTC',
@@ -33,6 +34,7 @@ type Props = {
   email: string
   initialFullName: string
   initialTimezone: string
+  initialAuState: AustralianState | ''
   initialNotifications: NotificationPreferences
 }
 
@@ -40,10 +42,12 @@ export default function AccountSettingsForm({
   email,
   initialFullName,
   initialTimezone,
+  initialAuState,
   initialNotifications,
 }: Props) {
   const [fullName, setFullName] = useState(initialFullName)
   const [timezone, setTimezone] = useState(initialTimezone)
+  const [auState, setAuState] = useState<AustralianState | ''>(initialAuState)
   const [notifications, setNotifications] = useState<NotificationPreferences>(initialNotifications)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +69,7 @@ export default function AccountSettingsForm({
 
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, timezone, notification_preferences: notifications })
+      .update({ full_name: fullName, timezone, au_state: auState || null, notification_preferences: notifications })
       .eq('id', user.id)
 
     if (error) {
@@ -119,6 +123,21 @@ export default function AccountSettingsForm({
             <option key={tz} value={tz}>{tz}</option>
           ))}
         </select>
+      </div>
+
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-bold text-gray-900">Australian public holidays</h2>
+        <select
+          value={auState}
+          onChange={e => setAuState(e.target.value as AustralianState | '')}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        >
+          <option value="">Do not auto-add public holidays</option>
+          {AU_STATES.map(state => (
+            <option key={state.value} value={state.value}>{state.label}</option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs font-medium text-gray-500">Used to show state-specific public holidays in the calendar and payroll exports.</p>
       </div>
 
       {/* Notifications */}
