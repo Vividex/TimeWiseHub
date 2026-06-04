@@ -87,6 +87,19 @@ export async function POST(req: Request) {
       }
       break
     }
+
+    case 'checkout.session.completed': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const session = event.data.object as any
+      const invoiceId = session.metadata?.invoice_id
+      if (invoiceId && session.metadata?.type === 'invoice') {
+        await service.from('invoices').update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+        }).eq('id', invoiceId)
+      }
+      break
+    }
   }
 
   return NextResponse.json({ received: true })

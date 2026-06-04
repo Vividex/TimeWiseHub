@@ -1,0 +1,23 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase-server'
+import NewInvoiceForm from '@/components/invoices/NewInvoiceForm'
+
+export default async function NewInvoicePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: membership } = await supabase
+    .from('organisation_members')
+    .select('org_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  return (
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-3xl">
+        <NewInvoiceForm orgId={membership?.org_id ?? null} />
+      </div>
+    </div>
+  )
+}
