@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Calendar', href: '/dashboard/calendar' },
   { label: 'Leave', href: '/dashboard/leave' },
   { label: 'Insights', href: '/dashboard/insights' },
+  { label: 'Reports', href: '/dashboard/reports' },
   { label: 'Activity', href: '/dashboard/activity' },
   { label: 'Billing', href: '/dashboard/billing' },
   { label: 'Help', href: '/help' },
@@ -26,6 +27,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/calendar': 'Calendar',
   '/dashboard/leave': 'Leave',
   '/dashboard/insights': 'Insights',
+  '/dashboard/reports': 'Reports',
   '/dashboard/activity': 'Activity',
   '/dashboard/billing': 'Billing',
 }
