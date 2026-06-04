@@ -151,11 +151,11 @@
 ## Phase 10 — Accountability & Transparency Tools
 > Goal: Features that build trust between employees and organisations.
 
-- [ ] 10.1 — Activity log — timestamped record of logins, time entries, edits
-- [ ] 10.2 — Idle detection transparency report (visible to both user and manager)
-- [ ] 10.3 — Screenshot or activity capture (optional, opt-in, privacy-respecting)
-- [ ] 10.4 — Audit trail for expense approvals
-- [ ] 10.5 — Data export for employees (GDPR/right-to-access compliance)
+- [x] 10.1 — Activity log — Postgres triggers on time_entries, expenses, tasks, projects; timeline view at /dashboard/activity
+- [x] 10.2 — Idle detection transparency report — 5-week heatmap with active/idle/weekend day breakdown
+- [ ] 10.3 — Screenshot or activity capture — deferred; requires desktop app (Tauri/Phase 9.6)
+- [x] 10.4 — Audit trail for expense approvals — activity log captures expense status changes; visible in activity feed
+- [x] 10.5 — Data export for employees — /api/export returns full JSON download (GDPR); "Download my data" in settings
 
 ---
 

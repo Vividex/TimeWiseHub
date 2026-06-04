@@ -22,6 +22,16 @@ export default async function SettingsPage() {
           <p className="mt-2 text-sm font-semibold text-gray-500">{user.email}</p>
         </div>
 
+        {/* GDPR data export */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-900">Your data</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500">Download a copy of all your data — time entries, expenses, projects, tasks, and activity log.</p>
+          <a href="/api/export" download
+            className="mt-4 inline-flex rounded-xl bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-gray-700">
+            Download my data
+          </a>
+        </div>
+
         <AccountSettingsForm
           email={user.email ?? ''}
           initialFullName={profile?.full_name ?? ''}
