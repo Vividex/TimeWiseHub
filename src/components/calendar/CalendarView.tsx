@@ -16,6 +16,10 @@ export type CalendarItem = {
   colour: string
   priority?: string
   id: string
+  description?: string | null
+  startTime?: string | null
+  endTime?: string | null
+  allDay?: boolean
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -27,7 +31,18 @@ function toDateStr(d: Date) {
 
 function buildItems(events: CalEvent[], projects: Project[], tasks: Task[]): CalendarItem[] {
   const items: CalendarItem[] = []
-  events.forEach(e => items.push({ key: `e-${e.id}`, date: e.start_at.slice(0, 10), label: e.title, type: 'event', colour: '#7c3aed', id: e.id }))
+  events.forEach(e => items.push({
+    key: `e-${e.id}`,
+    date: e.start_at.slice(0, 10),
+    label: e.title,
+    type: 'event',
+    colour: '#7c3aed',
+    id: e.id,
+    description: e.description,
+    startTime: e.all_day ? null : e.start_at,
+    endTime: e.all_day ? null : e.end_at,
+    allDay: e.all_day,
+  }))
   projects.forEach(p => items.push({ key: `p-${p.id}`, date: p.due_date, label: p.name, type: 'project', colour: p.colour, id: p.id }))
   tasks.forEach(t => items.push({ key: `t-${t.id}`, date: t.due_date, label: t.title, type: 'task', colour: PRIORITY_COLOURS[t.priority] ?? '#2563eb', priority: t.priority, id: t.id }))
   return items
