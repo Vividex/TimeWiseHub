@@ -138,13 +138,13 @@
 ## Phase 9 — Cross-Platform & Mobile
 > Goal: Extend the web app to native or PWA mobile and Windows.
 
-- [ ] 9.1 — Confirm cross-platform approach (PWA vs React Native vs Flutter vs Electron)
-- [ ] 9.2 — Responsive web — fully usable on mobile browser
-- [ ] 9.3 — Progressive Web App (PWA) packaging
-- [ ] 9.4 — Android app (Play Store submission)
-- [ ] 9.5 — iOS app (App Store submission — requires macOS/Xcode)
-- [ ] 9.6 — Windows desktop app (if warranted)
-- [ ] 9.7 — Push notifications (task reminders, idle alerts, focus prompts)
+- [x] 9.1 — Confirm cross-platform approach (PWA now; Capacitor for Android/iOS later; Tauri for Windows)
+- [x] 9.2 — Responsive web — fixed non-responsive grids in ManualEntryForm and ExpenseForm
+- [x] 9.3 — Progressive Web App (PWA) packaging — manifest, service worker, icons generated
+- [ ] 9.4 — Android app (Play Store submission) — deferred; requires Capacitor + Android Studio
+- [ ] 9.5 — iOS app (App Store submission) — deferred; requires macOS + Xcode + Apple Developer account
+- [ ] 9.6 — Windows desktop app — deferred; requires Tauri
+- [x] 9.7 — Push notifications — VAPID keys, service worker push handler, subscribe/unsubscribe API, PushPermission component on dashboard
 
 ---
 

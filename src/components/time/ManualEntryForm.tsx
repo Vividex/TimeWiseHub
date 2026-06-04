@@ -84,7 +84,7 @@ export default function ManualEntryForm() {
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Date</label>
               <input type="date" required value={date} onChange={e => setDate(e.target.value)}

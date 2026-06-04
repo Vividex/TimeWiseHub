@@ -1,6 +1,5 @@
-const CACHE = 'timewisehub-v1'
+const CACHE = 'timewisehub-v2'
 
-// On install — cache nothing; we use network-first for a server-rendered app
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -11,10 +10,9 @@ self.addEventListener('activate', event => {
   self.clients.claim()
 })
 
-// Network-first: try the network, fall back to cache for offline resilience
+// Network-first with cache fallback
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return
-
   event.respondWith(
     fetch(event.request)
       .then(response => {
@@ -23,5 +21,31 @@ self.addEventListener('fetch', event => {
         return response
       })
       .catch(() => caches.match(event.request))
+  )
+})
+
+// Push notifications
+self.addEventListener('push', event => {
+  const data = event.data?.json() ?? {}
+  event.waitUntil(
+    self.registration.showNotification(data.title ?? 'TimeWiseHub', {
+      body: data.body ?? '',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag ?? 'timewisehub',
+      data: { url: data.url ?? '/dashboard' },
+    })
+  )
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const target = data?.url ?? '/dashboard'
+      const existing = list.find(c => c.url.includes(target))
+      if (existing) return existing.focus()
+      return clients.openWindow(target)
+    })
   )
 })

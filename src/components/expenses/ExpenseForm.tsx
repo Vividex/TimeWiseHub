@@ -93,7 +93,7 @@ export default function ExpenseForm({
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Amount</label>
               <input type="number" required min="0.01" step="0.01" value={amount} onChange={e => setAmount(e.target.value)}
@@ -109,7 +109,7 @@ export default function ExpenseForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Date</label>
               <input type="date" required value={date} onChange={e => setDate(e.target.value)}

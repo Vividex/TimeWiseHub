@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import InviteMember from '@/components/InviteMember'
 import NudgeBanner from '@/components/NudgeBanner'
+import PushPermission from '@/components/PushPermission'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -32,6 +33,11 @@ export default async function DashboardPage() {
 
         {/* Smart nudges */}
         <NudgeBanner userId={user.id} />
+
+        {/* Push notifications opt-in */}
+        <div className="flex justify-end">
+          <PushPermission />
+        </div>
 
         {/* Quick links */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
