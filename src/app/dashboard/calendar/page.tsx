@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import CalendarView from '@/components/calendar/CalendarView'
+import NudgeBanner from '@/components/NudgeBanner'
 
 export default async function CalendarPage() {
   const supabase = await createClient()
@@ -33,6 +34,7 @@ export default async function CalendarPage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
+        <NudgeBanner userId={user.id} />
         <CalendarView
           userId={user.id}
           orgId={membership?.org_id ?? null}

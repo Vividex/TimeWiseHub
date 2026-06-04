@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null }
+type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null; task_id: string | null }
+type OpenTask = { id: string; title: string }
 
 function formatElapsed(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -19,8 +20,24 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
   const [elapsed, setElapsed] = useState(0)
   const [description, setDescription] = useState(activeEntry?.description ?? '')
   const [entryId, setEntryId] = useState(activeEntry?.id ?? null)
+  const [taskId, setTaskId] = useState(activeEntry?.task_id ?? '')
+  const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
   const [loading, setLoading] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('tasks')
+        .select('id, title')
+        .eq('assignee_id', user.id)
+        .neq('status', 'done')
+        .order('due_date', { ascending: true, nullsFirst: false })
+        .then(({ data }) => setOpenTasks(data ?? []))
+    })
+  }, [])
 
   useEffect(() => {
     if (running && activeEntry) {
@@ -41,7 +58,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
     const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('time_entries')
-      .insert({ user_id: user.id, started_at: now, description: description || null })
+      .insert({ user_id: user.id, started_at: now, description: description || null, task_id: taskId || null })
       .select()
       .single()
 
@@ -70,6 +87,7 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
     setElapsed(0)
     setEntryId(null)
     setDescription('')
+    setTaskId('')
     setLoading(false)
     router.refresh()
   }
@@ -92,8 +110,22 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
         value={description}
         onChange={e => setDescription(e.target.value)}
         disabled={running}
-        className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+        className="mb-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
       />
+
+      {openTasks.length > 0 && (
+        <select
+          value={taskId}
+          onChange={e => setTaskId(e.target.value)}
+          disabled={running}
+          className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+        >
+          <option value="">— Link to task (optional) —</option>
+          {openTasks.map(t => (
+            <option key={t.id} value={t.id}>{t.title}</option>
+          ))}
+        </select>
+      )}
 
       <div className="flex gap-2">
         {!running ? (

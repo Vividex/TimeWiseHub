@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+
+type OpenTask = { id: string; title: string }
 
 export default function ManualEntryForm() {
   const router = useRouter()
@@ -11,8 +13,24 @@ export default function ManualEntryForm() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [description, setDescription] = useState('')
+  const [taskId, setTaskId] = useState('')
+  const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('tasks')
+        .select('id, title')
+        .eq('assignee_id', user.id)
+        .neq('status', 'done')
+        .order('due_date', { ascending: true, nullsFirst: false })
+        .then(({ data }) => setOpenTasks(data ?? []))
+    })
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +55,7 @@ export default function ManualEntryForm() {
       started_at: startedAt.toISOString(),
       ended_at: endedAt.toISOString(),
       description: description || null,
+      task_id: taskId || null,
     })
 
     if (error) {
@@ -48,6 +67,7 @@ export default function ManualEntryForm() {
     setStartTime('')
     setEndTime('')
     setDescription('')
+    setTaskId('')
     setOpen(false)
     setLoading(false)
     router.refresh()
@@ -87,6 +107,19 @@ export default function ManualEntryForm() {
             <input type="text" placeholder="What did you work on?" value={description} onChange={e => setDescription(e.target.value)}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+
+          {openTasks.length > 0 && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Link to task (optional)</label>
+              <select value={taskId} onChange={e => setTaskId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— No task —</option>
+                {openTasks.map(t => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 

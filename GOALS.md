@@ -86,14 +86,14 @@
 - [x] 5.7 — Priority levels (urgent, high, normal, low)
 - [x] 5.8 — Task status: to-do → in progress → done (moves to completed list)
 - [x] 5.9 — Assign tasks to self or org members
-- [ ] 5.10 — Link tasks to time entries
+- [x] 5.10 — Link tasks to time entries
 
 ### Smart Nudges & Alerts
 - [x] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
 - [x] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
 - [x] 5.13 — Idle nudge — prompt user to resume work if no activity logged against an active project
-- [~] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
-  - Preference setting exists (notification_preferences.daily_digest); email sending not yet implemented
+- [!] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
+  - Preference setting exists (notification_preferences.daily_digest); email sending blocked on email service setup (Resend/SendGrid)
 
 ---
 
@@ -102,8 +102,8 @@
 
 - [x] 6.1 — Calendar view (day, week, month)
 - [x] 6.2 — Create and manage calendar events
-- [ ] 6.3 — Project and task due dates appear on calendar automatically
-- [ ] 6.4 — Focus-shift alerts — prompt user to switch to upcoming high-priority items
+- [x] 6.3 — Project and task due dates appear on calendar automatically
+- [x] 6.4 — Focus-shift alerts — prompt user to switch to upcoming high-priority items
 - [ ] 6.5 — (Optional) Google Calendar / Outlook sync
 - [x] 6.6 — Org shared calendar (team events, project deadlines)
 

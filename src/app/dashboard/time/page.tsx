@@ -16,9 +16,9 @@ export default async function TimePage() {
   const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).toISOString()
 
   const [{ data: todayEntries }, { data: weekEntries }, { data: activeEntry }, { data: membership }] = await Promise.all([
-    supabase.from('time_entries').select('*').eq('user_id', user.id).gte('started_at', todayStart).order('started_at', { ascending: false }),
+    supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).gte('started_at', todayStart).order('started_at', { ascending: false }),
     supabase.from('time_entries').select('duration_seconds').eq('user_id', user.id).gte('started_at', weekStart).not('ended_at', 'is', null),
-    supabase.from('time_entries').select('*').eq('user_id', user.id).is('ended_at', null).maybeSingle(),
+    supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).is('ended_at', null).maybeSingle(),
     supabase.from('organisation_members').select('role, org_id').eq('user_id', user.id).maybeSingle(),
   ])
 

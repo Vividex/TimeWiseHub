@@ -114,6 +114,42 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+### Session 5 — 2026-06-04
+**Agent:** Claude
+
+**Files Inspected:**
+- `GOALS.md`, `HANDOVER.md`
+- All time, calendar, and project source files
+
+**Files Created:**
+- `supabase/schema-011-task-time-link.sql` — adds `task_id` FK to `time_entries`
+
+**Files Modified:**
+- `src/components/time/ManualEntryForm.tsx` — added task selector (fetches open tasks client-side, optional link on insert)
+- `src/components/time/TimerWidget.tsx` — added task selector (disabled while running, initialises from active entry)
+- `src/components/time/TimeEntryList.tsx` — updated Entry type to include `tasks` join; shows task title in blue under each entry
+- `src/app/dashboard/time/page.tsx` — updated `todayEntries` and `activeEntry` queries to include `tasks(title)` join
+- `src/app/dashboard/calendar/page.tsx` — added `NudgeBanner` at top of calendar page
+- `GOALS.md` — marked 5.10, 6.3, 6.4 complete; 5.14 status changed to blocked
+
+**Summary of Findings:**
+- 6.3 was already fully implemented (CalendarView already had buildItems rendering projects and tasks) — GOALS.md was just stale
+- 6.4 closed by adding NudgeBanner to the calendar page (priority escalation + deadline nudges surface when viewing calendar)
+- 5.10 required a new schema migration (schema-011) plus UI changes to both time entry forms and the entry list
+- 5.14 remains blocked — needs an email service (Resend/SendGrid) before it can be wired up
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly, no TypeScript errors
+
+**Risk Level:** Low. schema-011 must be run in Supabase SQL Editor before deploying. It is a safe nullable column addition.
+
+**Next Recommended Action:**
+- Run `schema-011-task-time-link.sql` in Supabase SQL Editor
+- Deploy to Vercel (auto-deploy via GitHub push, or `vercel --prod`)
+- Phase 7 — Productivity Insights & Reporting
+
+---
+
 ### Session 4 — 2026-06-04
 **Agent:** Claude + Codex
 

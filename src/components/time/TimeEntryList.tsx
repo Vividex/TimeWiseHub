@@ -11,6 +11,8 @@ type Entry = {
   started_at: string
   ended_at: string | null
   duration_seconds: number | null
+  task_id: string | null
+  tasks: { title: string } | null
 }
 
 function formatDuration(seconds: number) {
@@ -31,7 +33,6 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
   const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntries(initialEntries)
   }, [initialEntries])
   const [editDescription, setEditDescription] = useState('')
@@ -88,6 +89,9 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
                   {formatTime(entry.started_at)} – {entry.ended_at ? formatTime(entry.ended_at) : 'running'}
                   {entry.duration_seconds ? ` · ${formatDuration(entry.duration_seconds)}` : ''}
                 </p>
+                {entry.tasks && (
+                  <p className="mt-1 text-xs font-semibold text-blue-600">{entry.tasks.title}</p>
+                )}
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => startEdit(entry)} className="text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Edit</button>
