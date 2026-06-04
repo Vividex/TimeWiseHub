@@ -10,7 +10,7 @@ type LineItem = { key: string; description: string; quantity: number; unit_price
 function today() { return new Date().toISOString().slice(0, 10) }
 function monthStart() { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10) }
 
-export default function NewInvoiceForm({ orgId }: { orgId: string | null }) {
+export default function NewInvoiceForm({ orgId, userId }: { orgId: string | null; userId: string }) {
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
   const [clientId, setClientId] = useState('')
@@ -28,14 +28,14 @@ export default function NewInvoiceForm({ orgId }: { orgId: string | null }) {
 
   useEffect(() => {
     const q = orgId
-      ? supabase.from('clients').select('id, name, default_rate, currency').or(`owner_id.eq.${orgId}`).eq('archived', false).order('name')
-      : supabase.from('clients').select('id, name, default_rate, currency').eq('archived', false).order('name')
+      ? supabase.from('clients').select('id, name, default_rate, currency').or(`owner_id.eq.${userId},org_id.eq.${orgId}`).eq('archived', false).order('name')
+      : supabase.from('clients').select('id, name, default_rate, currency').eq('owner_id', userId).eq('archived', false).order('name')
     q.then(({ data }) => {
       setClients(data ?? [])
       if (data?.[0]) { setClientId(data[0].id); setCurrency(data[0].currency) }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId])
+  }, [orgId, userId])
 
   async function loadEntries() {
     if (!clientId) return

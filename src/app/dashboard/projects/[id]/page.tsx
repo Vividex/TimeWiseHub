@@ -17,15 +17,26 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: project }, { data: tasks }, { data: documents }, { data: orgMembers }, { data: timeEntries }] = await Promise.all([
+  const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }] = await Promise.all([
     supabase.from('projects').select('*, clients(name)').eq('id', id).single(),
     supabase.from('tasks').select('*').eq('project_id', id).order('created_at', { ascending: true }),
     supabase.from('project_documents').select('*').eq('project_id', id).order('created_at', { ascending: false }),
-    supabase.from('organisation_members').select('user_id, profiles(id, email, full_name)').eq('org_id', user.id),
-    supabase.from('time_entries').select('duration_seconds, billable, billable_rate').eq('task_id', id).not('ended_at', 'is', null),
+    supabase.from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle(),
   ])
 
   if (!project) notFound()
+
+  const taskIds = (tasks ?? []).map(t => t.id)
+  const orgId = membership?.org_id ?? null
+
+  const orgMembers = orgId
+    ? (await supabase.from('organisation_members').select('user_id, profiles(id, email, full_name)').eq('org_id', orgId)).data
+    : null
+
+  // Time entries linked via tasks, not directly by project id
+  const timeEntries = taskIds.length > 0
+    ? (await supabase.from('time_entries').select('duration_seconds, billable, billable_rate').in('task_id', taskIds).not('ended_at', 'is', null)).data
+    : null
 
   const days = project.due_date ? daysUntil(project.due_date) : null
   const deadlineColour = days === null ? 'text-gray-500' : days < 0 ? 'text-red-600' : days <= 7 ? 'text-amber-600' : 'text-gray-500'

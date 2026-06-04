@@ -21,12 +21,12 @@
 - [ ] 1.2 — Set up monorepo or multi-repo structure
 - [ ] 1.3 — Configure version control (git, branching strategy)
 - [ ] 1.4 — Set up CI/CD pipeline (build, test, deploy)
-- [~] 1.5 — Provision cloud infrastructure (hosting, database, storage for receipts)
-  - Supabase project created — URL and anon key in .env.local
-  - Vercel not yet set up (needed before deployment)
-- [~] 1.6 — Configure environment variables and secrets management
-  - .env.local created with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-  - SUPABASE_SERVICE_ROLE_KEY still needs to be filled in
+- [x] 1.5 — Provision cloud infrastructure (hosting, database, storage for receipts)
+  - Supabase project connected — URL, anon key, service role key all in .env.local and Vercel env vars
+  - Vercel (Hobby) deployed at https://timewisehub.vercel.app; auto-deploys on push to master
+- [x] 1.6 — Configure environment variables and secrets management
+  - .env.local: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, STRIPE_*, RESEND_*
+  - All vars mirrored in Vercel environment variables
 - [ ] 1.7 — Establish local dev environment documentation
 
 ---

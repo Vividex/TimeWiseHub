@@ -51,16 +51,26 @@ export default async function ActivityPage() {
     if (activeDates.has(d.toISOString().slice(0, 10))) activeDays++
   }
 
-  // Org member activity (managers)
+  // Org member activity (managers) — scoped explicitly to org member IDs
   let orgLogs: typeof logs = []
   if (isManager && membership?.org_id) {
-    const { data } = await supabase
-      .from('activity_log')
-      .select('id, event_type, entity_type, metadata, created_at, user_id, profiles(email, full_name)')
+    const { data: members } = await supabase
+      .from('organisation_members')
+      .select('user_id')
+      .eq('org_id', membership.org_id)
       .neq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
-    orgLogs = data ?? []
+
+    const memberIds = (members ?? []).map(m => m.user_id)
+
+    if (memberIds.length > 0) {
+      const { data } = await supabase
+        .from('activity_log')
+        .select('id, event_type, entity_type, metadata, created_at, user_id, profiles(email, full_name)')
+        .in('user_id', memberIds)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      orgLogs = data ?? []
+    }
   }
 
   return (

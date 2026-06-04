@@ -19,6 +19,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
   if (invoice.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (invoice.status !== 'draft') return NextResponse.json({ error: 'Invoice already sent' }, { status: 409 })
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
@@ -30,10 +31,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     line_items: items.map((item: { description: string; quantity: number; unit_price: number }) => ({
       price_data: {
         currency: invoice.currency.toLowerCase(),
-        unit_amount: Math.round(item.unit_price * 100),
+        // quantity * unit_price expressed as a single total in cents; Stripe quantity must be integer
+        unit_amount: Math.round(item.quantity * item.unit_price * 100),
         product_data: { name: item.description },
       },
-      quantity: item.quantity,
+      quantity: 1,
     })),
     success_url: `${baseUrl}/dashboard/invoices/${id}?paid=1`,
     cancel_url: `${baseUrl}/dashboard/invoices/${id}`,

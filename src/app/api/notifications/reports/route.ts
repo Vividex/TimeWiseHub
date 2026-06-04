@@ -17,8 +17,10 @@ function toDateString(date: Date) {
 
 function isAuthorized(req: Request) {
   const secret = process.env.CRON_SECRET
-  if (!secret) return process.env.NODE_ENV !== 'production'
-
+  if (!secret) {
+    // Allow unauthenticated only in local dev (Vercel sets VERCEL=1 on all deployments)
+    return process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production'
+  }
   const auth = req.headers.get('authorization')
   const cronSecret = req.headers.get('x-cron-secret')
   return auth === `Bearer ${secret}` || cronSecret === secret

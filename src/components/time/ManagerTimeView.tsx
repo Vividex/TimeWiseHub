@@ -26,7 +26,9 @@ export default function ManagerTimeView({ orgId }: { orgId: string }) {
       const supabase = createClient()
       const now = new Date()
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).toISOString()
+      const dayOfWeek = now.getDay() // 0=Sun … 6=Sat
+      const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToMonday).toISOString()
 
       const { data: orgMembers } = await supabase
         .from('organisation_members')

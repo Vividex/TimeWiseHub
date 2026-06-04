@@ -16,7 +16,7 @@ export default async function NewInvoicePage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <NewInvoiceForm orgId={membership?.org_id ?? null} />
+        <NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} />
       </div>
     </div>
   )

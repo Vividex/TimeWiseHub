@@ -114,6 +114,51 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+### Session 7 — 2026-06-05
+**Agent:** Claude
+
+**Files Inspected:**
+- All src/app, src/components, src/lib, and supabase/schema-* files
+
+**Files Created:**
+- `supabase/schema-024-fix-project-storage.sql` — replaces overly permissive storage policies on project-documents bucket
+- `supabase/schema-025-invoice-number-unique.sql` — UNIQUE constraint on (owner_id, invoice_number) to prevent duplicates
+
+**Files Modified:**
+- `src/app/dashboard/projects/[id]/page.tsx` — fixed two bugs: org members query used `user.id` against `org_id` (always empty); time entries queried by `task_id = project_id` (always empty; now queries by task IDs belonging to the project)
+- `src/app/api/invoices/route.ts` — added `.eq('user_id', user.id)` guard when marking time entries as invoiced
+- `src/app/api/invoices/[id]/send/route.ts` — fixed Stripe `quantity` from float hours to integer (1) with total in `unit_amount`; added 409 guard to prevent re-sending already-sent invoices
+- `src/app/dashboard/activity/page.tsx` — team activity query now explicitly filters to org member IDs instead of relying on `neq('user_id', user.id)` alone
+- `src/app/dashboard/invoices/new/page.tsx` — pass `userId` prop to NewInvoiceForm
+- `src/components/invoices/NewInvoiceForm.tsx` — added `userId` prop; fixed client query: org context was filtering `owner_id = orgId` (wrong); now `owner_id = userId OR org_id = orgId`
+- `src/components/time/ManagerTimeView.tsx` — fixed week start to use Monday (was using `getDay()` giving Sunday for Sunday users)
+- `src/app/api/notifications/daily/route.ts` — fixed auth bypass: added VERCEL=1 check so unauthenticated requests are blocked on all Vercel deployments, not just NODE_ENV=production
+- `src/app/api/notifications/reports/route.ts` — same auth bypass fix as above
+- `src/lib/email-notifications.ts` — added ownership check for personal records (orgId=null): only the record owner can trigger review notifications
+- `GOALS.md` — corrected 1.5 and 1.6 from [~] to [x] (completed in Session 3, GOALS.md was stale)
+
+**Summary of Findings:**
+- Comprehensive review of Phases 3–8, 10, 11 found 2 critical, 4 high, 8 medium issues
+- Critical issue 1: project-documents bucket granted full read/write to any authenticated user — fixed via schema-024
+- Critical issue 2: project detail page org member query used wrong UUID column — silently returned empty member lists
+- High issues: budget tracking on project pages was broken (zero values); Stripe checkout threw on fractional hour quantities; activity page team logs had no explicit org scope; invoice time-entry ownership not verified
+- Medium issues: client loading in invoice form returned empty for org users; week start wrong for Sunday users; cron endpoints exploitable without secret on Vercel preview deployments; review notifications callable by any authenticated user for personal records
+- Remaining unfixed (noted, not critical for current usage): invitations `using(true)` RLS policy in schema-002 (requires checking invite accept flow before changing); invoice number race condition mitigated by UNIQUE constraint but route doesn't retry on conflict
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly, 38 routes, no TypeScript errors
+
+**Risk Level:** Low. All schema changes are additive (new policies, new constraint). No data is modified. Schema-024 and schema-025 must be run in Supabase SQL Editor before deploying.
+
+**Next Recommended Action:**
+- Run `schema-024-fix-project-storage.sql` in Supabase SQL Editor (drop old policies, create new)
+- Run `schema-025-invoice-number-unique.sql` (first check for existing duplicates per the comment in the file)
+- Add `ANTHROPIC_API_KEY` to Vercel env vars and `.env.local` to enable the in-app assistant
+- Deploy (git push triggers Vercel auto-deploy)
+- Remaining known issue: schema-002 `using(true)` on invitations — review `/invite/[token]/page.tsx` server component and move the token lookup to service-role to allow the policy to be tightened
+
+---
+
 ### Session 6 — 2026-06-04
 **Agent:** Claude
 

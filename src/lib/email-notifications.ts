@@ -118,7 +118,9 @@ export async function sendReviewNotification(
   const { data: record, error } = await (service as any).from(table).select(select).eq('id', id).single()
   if (error || !record) throw new Error(`${kind} record not found`)
 
+  const recordUserId = (record as unknown as { user_id: string }).user_id
   const orgId = (record as unknown as { org_id: string | null }).org_id
+
   if (orgId) {
     const { data: membership } = await service
       .from('organisation_members')
@@ -129,6 +131,9 @@ export async function sendReviewNotification(
       .maybeSingle()
 
     if (!membership) throw new Error('Forbidden')
+  } else if (reviewerId !== recordUserId) {
+    // Personal records can only be notified by the record owner
+    throw new Error('Forbidden')
   }
 
   const profile = normaliseProfile((record as unknown as { profiles?: unknown }).profiles)

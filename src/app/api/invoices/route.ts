@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   ]
   const uniqueEntryIds = [...new Set(allEntryIds)] as string[]
   if (uniqueEntryIds.length > 0) {
-    await service.from('time_entries').update({ invoice_id: invoice.id }).in('id', uniqueEntryIds)
+    await service.from('time_entries').update({ invoice_id: invoice.id }).in('id', uniqueEntryIds).eq('user_id', user.id)
   }
 
   return NextResponse.json({ id: invoice.id, invoice_number: invoiceNumber })
