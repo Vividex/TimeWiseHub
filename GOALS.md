@@ -92,8 +92,8 @@
 - [x] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
 - [x] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
 - [x] 5.13 — Idle nudge — prompt user to resume work if no activity logged against an active project
-- [!] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
-  - Preference setting exists (notification_preferences.daily_digest); email sending blocked on email service setup (Resend/SendGrid)
+- [x] 5.14 — Daily digest — optional morning summary of today's deadlines and top priorities
+  - Resend-backed cron route added at /api/notifications/daily; controlled by notification_preferences.daily_digest
 
 ---
 
@@ -118,7 +118,8 @@
 - [x] 7.4 — Project health view — active vs completed tasks, time logged, deadline status per project
 - [x] 7.5 — Org dashboard — aggregate employee hours, expenses, task and project completion
 - [x] 7.6 — Idle time and active time ratio reporting
-- [!] 7.7 — Scheduled reports (weekly email summary) — blocked on email service setup
+- [x] 7.7 — Scheduled reports (weekly email summary)
+  - Resend-backed weekly report route added at /api/notifications/reports; controlled by notification_preferences.scheduled_reports
 
 ---
 
@@ -141,8 +142,8 @@
 - [x] 9.1 — Confirm cross-platform approach (PWA now; Capacitor for Android/iOS later; Tauri for Windows)
 - [x] 9.2 — Responsive web — fixed non-responsive grids in ManualEntryForm and ExpenseForm
 - [x] 9.3 — Progressive Web App (PWA) packaging — manifest, service worker, icons generated
-- [ ] 9.4 — Android app (Play Store submission) — deferred; requires Capacitor + Android Studio
-- [ ] 9.5 — iOS app (App Store submission) — deferred; requires macOS + Xcode + Apple Developer account
+- [!] 9.4 — Android app (Play Store submission) — external/deferred; requires Capacitor + Android Studio, store assets, and Play Console submission
+- [!] 9.5 — iOS app (App Store submission) — external/deferred; requires macOS + Xcode, Apple Developer account, store assets, and App Store Connect submission
 - [ ] 9.6 — Windows desktop app — deferred; requires Tauri
 - [x] 9.7 — Push notifications — VAPID keys, service worker push handler, subscribe/unsubscribe API, PushPermission component on dashboard
 
@@ -153,7 +154,7 @@
 
 - [x] 10.1 — Activity log — Postgres triggers on time_entries, expenses, tasks, projects; timeline view at /dashboard/activity
 - [x] 10.2 — Idle detection transparency report — 5-week heatmap with active/idle/weekend day breakdown
-- [ ] 10.3 — Screenshot or activity capture — deferred; requires desktop app (Tauri/Phase 9.6)
+- [!] 10.3 — Screenshot or activity capture — external/deferred; requires desktop app support (Tauri/Phase 9.6)
 - [x] 10.4 — Audit trail for expense approvals — activity log captures expense status changes; visible in activity feed
 - [x] 10.5 — Data export for employees — /api/export returns full JSON download (GDPR); "Download my data" in settings
 
@@ -168,8 +169,8 @@
 - [ ] 11.4 — App store name check — deferred; manual trademark/availability research
 - [x] 11.5 — Onboarding flow — WelcomeBanner with quick-start actions for new users; org onboarding already existed
 - [x] 11.6 — Help centre — /help with 6 sections covering all major features
-- [ ] 11.7 — Security audit — deferred; recommend a professional penetration test before public launch
-- [ ] 11.8 — Load testing — deferred; use k6 or similar against production URL before launch
+- [!] 11.7 — Security audit — external/deferred; recommend a professional penetration test before public launch
+- [!] 11.8 — Load testing — external/deferred; use k6 or similar against production URL before launch
 - [x] 11.9 — Backup plan — Supabase Pro tier includes daily backups and PITR; document in runbook before launch
 
 ---

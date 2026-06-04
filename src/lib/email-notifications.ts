@@ -4,6 +4,7 @@ type NotificationPreferences = {
   deadline_alerts?: boolean
   priority_nudges?: boolean
   daily_digest?: boolean
+  scheduled_reports?: boolean
   idle_alerts?: boolean
 }
 
@@ -53,6 +54,10 @@ function formatDuration(seconds: number) {
   if (h === 0) return `${m}m`
   if (m === 0) return `${h}h`
   return `${h}h ${m}m`
+}
+
+function money(amount: number, currency = 'AUD') {
+  return `${currency} ${amount.toFixed(2)}`
 }
 
 function normaliseProfile(profile: unknown): Profile | null {
@@ -256,6 +261,129 @@ export async function sendTimesheetDueReminder(
   return sendEmail({
     to: profile.email,
     subject: 'Timesheet due reminder',
+    text: lines.join('\n\n'),
+    html: paragraph(lines),
+  })
+}
+
+export async function sendScheduledReportEmail(
+  service: SupabaseClient,
+  profile: Profile,
+  fromDate: string,
+  toDate: string
+) {
+  if (!profile.email || !isEnabled(profile, 'scheduled_reports')) return { skipped: true }
+
+  const { data: membership } = await service
+    .from('organisation_members')
+    .select('org_id, role, organisations(name)')
+    .eq('user_id', profile.id)
+    .maybeSingle()
+
+  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const orgId = membership?.org_id as string | undefined
+  const subject = isManager ? `${APP_NAME} weekly team report` : `${APP_NAME} weekly report`
+  const lines = [
+    `Hi ${greeting(profile)},`,
+    `Here is your weekly report for ${formatDate(fromDate)} to ${formatDate(toDate)}.`,
+  ]
+
+  if (isManager && orgId) {
+    const { data: members } = await service
+      .from('organisation_members')
+      .select('user_id')
+      .eq('org_id', orgId)
+
+    const userIds = (members ?? []).map(member => member.user_id)
+    if (userIds.length === 0) return { skipped: true }
+
+    const [{ data: timeEntries }, { data: expenses }, { data: completedTasks }, { data: leaveRequests }] = await Promise.all([
+      service
+        .from('time_entries')
+        .select('duration_seconds')
+        .in('user_id', userIds)
+        .gte('started_at', `${fromDate}T00:00:00`)
+        .lt('started_at', `${toDate}T23:59:59`),
+      service
+        .from('expenses')
+        .select('amount, currency')
+        .in('user_id', userIds)
+        .eq('status', 'approved')
+        .gte('expense_date', fromDate)
+        .lte('expense_date', toDate),
+      service
+        .from('tasks')
+        .select('id')
+        .in('assignee_id', userIds)
+        .eq('status', 'done')
+        .gte('completed_at', `${fromDate}T00:00:00`)
+        .lt('completed_at', `${toDate}T23:59:59`),
+      service
+        .from('leave_requests')
+        .select('id')
+        .in('user_id', userIds)
+        .eq('status', 'approved')
+        .lte('start_date', toDate)
+        .gte('end_date', fromDate),
+    ])
+
+    const totalSeconds = (timeEntries ?? []).reduce((sum, entry) => sum + (entry.duration_seconds ?? 0), 0)
+    const expenseTotal = (expenses ?? []).reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0)
+    const currency = expenses?.[0]?.currency ?? 'AUD'
+    const orgName = (membership?.organisations as { name?: string } | null)?.name ?? 'your team'
+
+    lines.push(
+      `Team: ${orgName}`,
+      `Tracked time: ${formatDuration(totalSeconds)}`,
+      `Completed tasks: ${completedTasks?.length ?? 0}`,
+      `Approved expenses: ${money(expenseTotal, currency)}`,
+      `Approved leave bookings overlapping the week: ${leaveRequests?.length ?? 0}`,
+      `Open team reports: ${APP_URL}/dashboard/reports`
+    )
+  } else {
+    const [{ data: timeEntries }, { data: expenses }, { data: completedTasks }, { data: activeProjects }] = await Promise.all([
+      service
+        .from('time_entries')
+        .select('duration_seconds')
+        .eq('user_id', profile.id)
+        .gte('started_at', `${fromDate}T00:00:00`)
+        .lt('started_at', `${toDate}T23:59:59`),
+      service
+        .from('expenses')
+        .select('amount, currency')
+        .eq('user_id', profile.id)
+        .gte('expense_date', fromDate)
+        .lte('expense_date', toDate),
+      service
+        .from('tasks')
+        .select('id')
+        .eq('assignee_id', profile.id)
+        .eq('status', 'done')
+        .gte('completed_at', `${fromDate}T00:00:00`)
+        .lt('completed_at', `${toDate}T23:59:59`),
+      service
+        .from('projects')
+        .select('id')
+        .eq('owner_id', profile.id)
+        .eq('status', 'active'),
+    ])
+
+    const totalSeconds = (timeEntries ?? []).reduce((sum, entry) => sum + (entry.duration_seconds ?? 0), 0)
+    const expenseTotal = (expenses ?? []).reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0)
+    const currency = expenses?.[0]?.currency ?? 'AUD'
+
+    lines.push(
+      `Tracked time: ${formatDuration(totalSeconds)}`,
+      `Completed tasks: ${completedTasks?.length ?? 0}`,
+      `Expenses logged: ${money(expenseTotal, currency)}`,
+      `Active projects: ${activeProjects?.length ?? 0}`,
+      `Open reports: ${APP_URL}/dashboard/reports`
+    )
+  }
+
+  return sendEmail({
+    to: profile.email,
+    subject,
     text: lines.join('\n\n'),
     html: paragraph(lines),
   })

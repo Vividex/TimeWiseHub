@@ -75,6 +75,7 @@ export default async function SettingsPage() {
             deadline_alerts: true,
             priority_nudges: true,
             daily_digest: true,
+            scheduled_reports: true,
             idle_alerts: true,
           }}
         />

@@ -27,6 +27,7 @@ type NotificationPreferences = {
   deadline_alerts: boolean
   priority_nudges: boolean
   daily_digest: boolean
+  scheduled_reports: boolean
   idle_alerts: boolean
 }
 
@@ -149,6 +150,7 @@ export default function AccountSettingsForm({
             { key: 'deadline_alerts', label: 'Deadline alerts', description: 'Notify me when a project or task deadline is approaching' },
             { key: 'priority_nudges', label: 'Priority nudges', description: 'Alert me when a higher-priority task needs attention' },
             { key: 'daily_digest', label: 'Daily digest', description: 'Morning summary of today\'s deadlines and priorities' },
+            { key: 'scheduled_reports', label: 'Scheduled reports', description: 'Weekly email summary of time, tasks, expenses, and leave' },
             { key: 'idle_alerts', label: 'Idle alerts', description: 'Prompt me to resume work if no activity is logged' },
           ] as { key: keyof NotificationPreferences; label: string; description: string }[]
         ).map(({ key, label, description }) => (
