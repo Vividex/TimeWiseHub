@@ -283,6 +283,44 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+
+### Session 8 — 2026-06-05
+**Agent:** Codex
+
+**Files Inspected:**
+- `README.md`
+- `GOALS.md`
+- `HANDOVER.md`
+- `TECHSTACK.md`
+- `package.json`
+- `.env.local` (keys only used to create `.env.local.example`; values were not copied)
+
+**Files Created:**
+- `CONTRIBUTING.md` — local setup, branching strategy, PR/build guidance
+- `.env.local.example` — placeholder values for all local environment keys
+- `.github/workflows/ci.yml` — GitHub Actions build workflow for pushes and PRs targeting `master`
+
+**Files Modified:**
+- `README.md` — replaced scaffold text with project summary, live URL, tech stack, TECHSTACK link, and CI badge
+- `GOALS.md` — marked Phase 1 items 1.3, 1.4, and 1.7 complete
+- `.gitignore` — allowed `.env.local.example` to be committed while keeping real env files ignored
+- `HANDOVER.md` — added this session entry
+
+**Summary of Findings:**
+- Project uses Next.js 16.2.6, TypeScript, Tailwind CSS, Supabase, Stripe, and Vercel.
+- CI only builds; tests and deployment are intentionally omitted because no tests exist yet and Vercel handles deployment.
+- GitHub Actions uses repository secrets for `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_APP_URL`; these were set with the authenticated GitHub CLI.
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly
+
+**Risk Level:** Low — documentation and CI configuration only.
+
+**Next Recommended Action:**
+- Push changes to trigger the first workflow run.
+
+---
+
 ## Product Definition (Reference)
 
 | Feature | Detail |

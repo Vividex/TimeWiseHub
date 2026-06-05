@@ -19,15 +19,15 @@
   - Desktop (later): Tauri wrapping Next.js web app
   - See TECHSTACK.md for full reference
 - [ ] 1.2 — Set up monorepo or multi-repo structure
-- [ ] 1.3 — Configure version control (git, branching strategy)
-- [ ] 1.4 — Set up CI/CD pipeline (build, test, deploy)
+- [x] 1.3 — Configure version control (git, branching strategy)
+- [x] 1.4 — Set up CI/CD pipeline (build, test, deploy)
 - [x] 1.5 — Provision cloud infrastructure (hosting, database, storage for receipts)
   - Supabase project connected — URL, anon key, service role key all in .env.local and Vercel env vars
   - Vercel (Hobby) deployed at https://timewisehub.vercel.app; auto-deploys on push to master
 - [x] 1.6 — Configure environment variables and secrets management
   - .env.local: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, STRIPE_*, RESEND_*
   - All vars mirrored in Vercel environment variables
-- [ ] 1.7 — Establish local dev environment documentation
+- [x] 1.7 — Establish local dev environment documentation
 
 ---
 
@@ -181,3 +181,4 @@
 - AI-powered productivity suggestions
 - Multi-currency and multi-language support
 - White-label / reseller option
+
