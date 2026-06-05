@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   return (
     <DashboardShell email={user.email ?? ''}>
       {children}
-      <AssistantWidget />
+      <AssistantWidget userEmail={user.email ?? ''} />
     </DashboardShell>
   )
 }

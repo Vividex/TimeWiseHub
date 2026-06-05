@@ -18,7 +18,11 @@ TimeWiseHub features include:
 - Billing: manage subscription plans, trials, checkout, customer portal access, and plan limits.
 - Reports and insights: review activity, productivity ratios, project health, time and expense summaries, organisation stats, exports, and business performance trends.
 
-Help users understand how to use TimeWiseHub, troubleshoot common workflow issues, and choose the next best action inside the app. Be concise, practical, and specific. If a user asks for private account data you cannot see, explain what page or feature they should open.`
+Help users understand how to use TimeWiseHub, troubleshoot common workflow issues, and choose the next best action inside the app. Be concise, practical, and specific. If a user asks for private account data you cannot see, explain what page or feature they should open.
+
+Bug and error handling:
+- If a user reports something that is not working correctly, first try to help them resolve it (e.g. wrong page, missing step, browser cache).
+- If you cannot resolve it and it appears to be a genuine application bug (something broken, data not saving, page erroring), tell the user clearly: "This sounds like a bug. Please use the 'Report a bug' button below to send a report to our support team — include a description of what you were doing and what went wrong." Do not speculate beyond your knowledge. Keep the message short and action-focused.`
 
 export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
