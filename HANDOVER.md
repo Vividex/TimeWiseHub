@@ -358,6 +358,47 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+### Session 11 — 2026-06-06
+**Agent:** Claude
+
+**Files Inspected:**
+- `HANDOVER.md`, `src/components/DashboardShell.tsx`, `src/app/(auth)/login/page.tsx`, `src/proxy.ts`
+
+**Files Created:**
+- `public/logo.png` — logo image copied from project root for Next.js static serving
+- `src/app/icon.png` — same image used as App Router favicon (replaces favicon.ico)
+- `src/app/download/page.tsx` — public download page at `/download` with Windows installer button, feature highlights, system requirements
+
+**Files Modified:**
+- `src/components/DashboardShell.tsx` — replaced "T" placeholder box with `<Image src="/logo.png">` in sidebar; added "Download App" nav item
+- `src/app/(auth)/login/page.tsx` — replaced "T" placeholder with logo image
+- `src/app/(auth)/register/page.tsx` — replaced "T" placeholder with logo image
+- `src/app/(auth)/reset-password/page.tsx` — replaced "T" placeholder with logo image
+
+**Files Deleted:**
+- `src/app/favicon.ico` — removed so `icon.png` takes precedence in browsers
+
+**External Actions:**
+- Created GitHub Release `v0.1.0` at `github.com/Vividex/TimeWiseHub/releases/tag/v0.1.0` with `TimeWiseHub_0.1.0_x64-setup.exe` uploaded as a release asset
+
+**Summary of Findings:**
+- The logo image (`logo image.png`) was sitting at the project root but not in `public/` — Next.js cannot serve files outside `public/`, so the logo was never loading
+- All four locations using the "T" placeholder (sidebar, login, register, reset-password) were updated to use the real image
+- `/download` is a static public page — not in the proxy matcher, so no auth required
+- To update the download link for future releases: bump `LATEST_VERSION` in `src/app/download/page.tsx` and create a new GitHub release with the matching installer filename
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly; `/download` confirmed as static route
+
+**Risk Level:** Low. No schema changes. All changes are UI and static assets.
+
+**Next Recommended Action:**
+- Hard refresh (`Ctrl+Shift+R`) on the live site after Vercel deploys to clear cached favicon
+- Pending from Session 9: run `schema-026-fix-invitations-rls.sql` in Supabase SQL Editor
+- Pending from Session 7: run `schema-024-fix-project-storage.sql` and `schema-025-invoice-number-unique.sql`
+
+---
+
 ### Session 10 — 2026-06-06
 **Agent:** Claude
 
