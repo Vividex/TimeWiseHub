@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-const LATEST_VERSION = '0.1.0'
+const LATEST_VERSION = '0.1.1'
 const WINDOWS_DOWNLOAD_URL = `https://github.com/Vividex/TimeWiseHub/releases/download/v${LATEST_VERSION}/TimeWiseHub_${LATEST_VERSION}_x64-setup.exe`
 const RELEASES_URL = 'https://github.com/Vividex/TimeWiseHub/releases'
 
