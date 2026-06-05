@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: 'Reports', href: '/dashboard/reports' },
   { label: 'Activity', href: '/dashboard/activity' },
   { label: 'Billing', href: '/dashboard/billing' },
+  { label: 'Download App', href: '/download' },
   { label: 'Help', href: '/help' },
   { label: 'Settings', href: '/settings' },
 ]
