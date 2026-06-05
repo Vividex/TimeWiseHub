@@ -15,7 +15,7 @@ export const PLANS = {
   },
   pro: {
     label: 'Pro',
-    priceAud: 9.99,
+    priceAud: 9,
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
     projects: Infinity,
     historyDays: Infinity,
@@ -23,11 +23,11 @@ export const PLANS = {
   },
   team: {
     label: 'Team',
-    priceAud: 7.99,
+    priceAud: 24,
     priceId: process.env.STRIPE_TEAM_PRICE_ID!,
     projects: Infinity,
     historyDays: Infinity,
-    perSeat: true,
+    perSeat: false,
   },
 } as const
 
