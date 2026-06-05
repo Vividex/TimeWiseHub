@@ -100,6 +100,10 @@ export default function DashboardShell({
             <SignOutButton />
           </div>
         </div>
+
+        <p className="mt-4 text-center text-xs font-semibold text-slate-600 tracking-wide">
+          Powered by <span className="text-slate-400">Vividex</span>
+        </p>
       </aside>
 
       <div className="lg:pl-64">

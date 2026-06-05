@@ -46,19 +46,24 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen bg-white">
-      <div className="hidden min-h-screen w-1/2 bg-slate-900 px-12 py-10 lg:flex lg:items-center lg:justify-center">
-        <div className="max-w-md">
-          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl overflow-hidden">
-            <Image src="/logo.png" alt="TimeWiseHub" width={56} height={56} className="object-contain" />
+      <div className="hidden min-h-screen w-1/2 bg-slate-900 px-12 py-10 lg:flex lg:flex-col lg:justify-between">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="max-w-md">
+            <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl overflow-hidden">
+              <Image src="/logo.png" alt="TimeWiseHub" width={56} height={56} className="object-contain" />
+            </div>
+            <h1 className="font-['Poppins'] text-3xl font-black tracking-tight text-white">TimeWiseHub</h1>
+            <p className="mt-3 text-sm font-semibold text-cyan-400">Track Time. Control Costs. Grow Smarter.</p>
+            <ul className="mt-10 space-y-4 text-sm font-medium text-slate-300">
+              <li>Log time with one click</li>
+              <li>Track expenses and receipts</li>
+              <li>Hit every project deadline</li>
+            </ul>
           </div>
-          <h1 className="font-['Poppins'] text-3xl font-black tracking-tight text-white">TimeWiseHub</h1>
-          <p className="mt-3 text-sm font-semibold text-cyan-400">Track Time. Control Costs. Grow Smarter.</p>
-          <ul className="mt-10 space-y-4 text-sm font-medium text-slate-300">
-            <li>Log time with one click</li>
-            <li>Track expenses and receipts</li>
-            <li>Hit every project deadline</li>
-          </ul>
         </div>
+        <p className="text-center text-xs font-semibold text-slate-600 tracking-wide">
+          Powered by <span className="text-slate-500">Vividex</span>
+        </p>
       </div>
 
       <div className="flex min-h-screen w-full items-center justify-center bg-white px-4 py-10 lg:w-1/2">
