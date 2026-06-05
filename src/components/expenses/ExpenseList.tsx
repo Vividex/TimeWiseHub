@@ -36,6 +36,7 @@ export default function ExpenseList({
   const router = useRouter()
   const [expenses, setExpenses] = useState(initialExpenses)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -92,42 +93,93 @@ export default function ExpenseList({
       ) : (
         <>
           <ul className="space-y-3">
-            {filtered.map(expense => (
-              <li key={expense.id} className="flex items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-gray-900">
-                      {expense.currency} {expense.amount.toFixed(2)}
-                    </span>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_COLOURS[expense.status]}`}>
-                      {expense.status}
-                    </span>
-                    {expense.expense_categories && (
-                      <span className="text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm font-medium text-gray-500">{expense.description || <span className="italic text-gray-500">No description</span>}</p>
-                  <p className="mt-1 text-xs font-semibold text-gray-500">{new Date(expense.expense_date).toLocaleDateString()}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  {expense.receipt_path && (
-                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View receipt</button>
+            {filtered.map(expense => {
+              const isExpanded = expandedId === expense.id
+              return (
+                <li key={expense.id} className="rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden">
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : expense.id)}
+                    className="w-full flex items-start justify-between gap-4 p-4 text-left hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-gray-900">
+                          {expense.currency} {expense.amount.toFixed(2)}
+                        </span>
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_COLOURS[expense.status]}`}>
+                          {expense.status}
+                        </span>
+                        {expense.expense_categories && (
+                          <span className="text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm font-medium text-gray-500">{expense.description || <span className="italic">No description</span>}</p>
+                      <p className="mt-1 text-xs font-semibold text-gray-400">{new Date(expense.expense_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    <span className="text-gray-400 text-xs mt-1 shrink-0">{isExpanded ? '▲' : '▼'}</span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="border-t border-gray-100 bg-white px-4 py-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Amount</p>
+                          <p className="font-bold text-gray-900">{expense.currency} {expense.amount.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Date</p>
+                          <p className="font-semibold text-gray-900">{new Date(expense.expense_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Category</p>
+                          <p className="font-semibold text-gray-900">{expense.expense_categories?.name ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Status</p>
+                          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_COLOURS[expense.status]}`}>{expense.status}</span>
+                        </div>
+                      </div>
+
+                      {expense.description && (
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Description</p>
+                          <p className="mt-1 text-sm font-medium text-gray-700">{expense.description}</p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {expense.receipt_path && (
+                          <button
+                            onClick={() => viewReceipt(expense.receipt_path!)}
+                            className="rounded-xl bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-600 hover:bg-cyan-100 transition-colors"
+                          >
+                            View receipt
+                          </button>
+                        )}
+                        {expense.status === 'draft' && (
+                          <button
+                            onClick={() => handleSubmit(expense.id)}
+                            disabled={loading === expense.id}
+                            className="rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
+                          >
+                            {loading === expense.id ? 'Submitting…' : 'Submit for approval'}
+                          </button>
+                        )}
+                        {expense.status === 'draft' && (
+                          <button
+                            onClick={() => handleDelete(expense.id, expense.receipt_path)}
+                            disabled={loading === expense.id}
+                            className="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
-                  {expense.status === 'draft' && (
-                    <button onClick={() => handleSubmit(expense.id)} disabled={loading === expense.id}
-                      className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 disabled:opacity-50">
-                      Submit
-                    </button>
-                  )}
-                  {expense.status === 'draft' && (
-                    <button onClick={() => handleDelete(expense.id, expense.receipt_path)} disabled={loading === expense.id}
-                      className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700 disabled:opacity-50">
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
           <div className="mt-4 flex justify-between border-t border-gray-100 pt-4 text-sm">
             <span className="font-semibold text-gray-500">Total ({filtered.length} {filtered.length === 1 ? 'entry' : 'entries'})</span>
