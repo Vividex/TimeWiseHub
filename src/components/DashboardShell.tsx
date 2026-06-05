@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import SignOutButton from '@/components/SignOutButton'
@@ -59,8 +60,8 @@ export default function DashboardShell({
     <div className="min-h-screen bg-gray-50 text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-slate-900 px-4 py-6 lg:flex overflow-y-auto">
         <Link href="/dashboard" className="mb-10 flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-500 text-lg font-black text-white shadow-sm">
-            T
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-sm">
+            <Image src="/logo.png" alt="TimeWiseHub" width={44} height={44} className="object-contain" />
           </div>
           <div className="min-w-0">
             <p className="font-['Poppins'] text-xl font-black tracking-tight text-white">TimeWiseHub</p>

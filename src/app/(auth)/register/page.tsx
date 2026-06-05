@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -56,7 +57,9 @@ export default function RegisterPage() {
     <div className="flex min-h-screen bg-white">
       <div className="hidden min-h-screen w-1/2 bg-slate-900 px-12 py-10 lg:flex lg:items-center lg:justify-center">
         <div className="max-w-md">
-          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl bg-cyan-500 text-2xl font-black text-white">T</div>
+          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl overflow-hidden">
+            <Image src="/logo.png" alt="TimeWiseHub" width={56} height={56} className="object-contain" />
+          </div>
           <h1 className="font-['Poppins'] text-3xl font-black tracking-tight text-white">TimeWiseHub</h1>
           <p className="mt-3 text-sm font-semibold text-cyan-400">Track Time. Control Costs. Grow Smarter.</p>
           <ul className="mt-10 space-y-4 text-sm font-medium text-slate-300">
