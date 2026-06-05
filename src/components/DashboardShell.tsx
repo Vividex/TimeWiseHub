@@ -57,7 +57,7 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-slate-900 px-4 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-slate-900 px-4 py-6 lg:flex overflow-y-auto">
         <Link href="/dashboard" className="mb-10 flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-500 text-lg font-black text-white shadow-sm">
             T
@@ -139,6 +139,9 @@ export default function DashboardShell({
                 </Link>
               )
             })}
+            <div className="shrink-0 flex items-center">
+              <SignOutButton />
+            </div>
           </nav>
         </div>
 
