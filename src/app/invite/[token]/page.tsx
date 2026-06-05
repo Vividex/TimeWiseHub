@@ -10,7 +10,7 @@ type Invitation = {
   email: string
   role: string
   expires_at: string
-  organisations: { name: string }
+  org_name: string
 }
 
 export default function AcceptInvitePage() {
@@ -29,21 +29,31 @@ export default function AcceptInvitePage() {
 
   useEffect(() => {
     async function loadInvitation() {
-      const supabase = createClient()
+      const response = await fetch(`/api/invite/${encodeURIComponent(token)}`)
 
-      const { data } = await supabase
-        .from('invitations')
-        .select('*, organisations(name)')
-        .eq('token', token)
-        .is('accepted_at', null)
-        .single()
+      if (response.status === 404) {
+        setNotFound(true)
+        setChecking(false)
+        return
+      }
 
-      if (!data) { setNotFound(true); setChecking(false); return }
-      if (new Date(data.expires_at) < new Date()) { setExpired(true); setChecking(false); return }
+      if (response.status === 410) {
+        setExpired(true)
+        setChecking(false)
+        return
+      }
 
-      setInvitation(data as Invitation)
+      if (!response.ok) {
+        setError('Could not load invitation. Please try again.')
+        setChecking(false)
+        return
+      }
+
+      const data = await response.json() as Invitation
+      setInvitation(data)
 
       // Check if user already has an account
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setExistingUser(true)
 
@@ -129,7 +139,7 @@ export default function AcceptInvitePage() {
         <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
         <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">You&apos;ve been invited</h1>
         <p className="mb-8 text-sm font-medium text-gray-500">
-          Join <strong>{invitation?.organisations.name}</strong> as <strong>{invitation?.role}</strong>.
+          Join <strong>{invitation?.org_name}</strong> as <strong>{invitation?.role}</strong>.
         </p>
 
         <form onSubmit={handleAccept} className="space-y-5">
@@ -171,4 +181,3 @@ export default function AcceptInvitePage() {
     </div>
   )
 }
-

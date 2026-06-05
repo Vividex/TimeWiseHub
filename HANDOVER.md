@@ -321,6 +321,42 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 
 ---
 
+
+### Session 9 — 2026-06-05
+**Agent:** Codex
+
+**Files Inspected:**
+- `src/app/invite/[token]/page.tsx`
+- `src/lib/supabase-service.ts`
+- `src/lib/supabase-browser.ts`
+- `supabase/schema-001-auth.sql`
+- `supabase/schema-002-account-type.sql`
+
+**Files Created:**
+- `src/app/api/invite/[token]/route.ts` — service-role invitation lookup by exact token
+- `supabase/schema-026-fix-invitations-rls.sql` — drops the unsafe invitation SELECT policy
+
+**Files Modified:**
+- `src/app/invite/[token]/page.tsx` — replaced direct browser Supabase invitation query with `/api/invite/[token]` fetch; handles 404 and 410 responses
+- `GOALS.md` — noted invitation RLS hardening under Phase 2.5
+- `HANDOVER.md` — added this session entry
+
+**Summary of Findings:**
+- `schema-002-account-type.sql` had `using (true)` on `public.invitations`, allowing any authenticated user to read all invitations.
+- The invite accept page no longer queries `invitations` directly from the browser for token lookup.
+- The new API returns only the invitation matching the exact token and only when `accepted_at is null`; expired invitations return 410.
+- Accepting an invite still uses the existing browser client flow for signup, member insert, and invitation update.
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly; `/api/invite/[token]` appears in the route list.
+
+**Risk Level:** Low. This narrows read access and leaves the existing accept flow intact.
+
+**Next Recommended Action:**
+- Run `supabase/schema-026-fix-invitations-rls.sql` in Supabase SQL Editor before deployment.
+- Claude should review the API response shape and invite accept flow before push.
+
+---
 ## Product Definition (Reference)
 
 | Feature | Detail |

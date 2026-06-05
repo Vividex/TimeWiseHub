@@ -39,6 +39,7 @@
 - [x] 2.3 — JWT or session-based auth with refresh tokens
 - [x] 2.4 — Organisation (parent) account creation
 - [x] 2.5 — Employee (sub) account creation and invitation flow
+  - Invitation token lookup moved to service-role API route; public authenticated invitation enumeration policy removed in schema-026
 - [x] 2.6 — Role-based access control (admin, manager, employee, individual)
 - [x] 2.7 — Data isolation — confirm no cross-account data leakage
 - [x] 2.8 — Account settings (profile, timezone, notification preferences)
@@ -181,4 +182,3 @@
 - AI-powered productivity suggestions
 - Multi-currency and multi-language support
 - White-label / reseller option
-
