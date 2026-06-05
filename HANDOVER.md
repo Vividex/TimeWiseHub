@@ -357,6 +357,50 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 - Claude should review the API response shape and invite accept flow before push.
 
 ---
+
+### Session 10 — 2026-06-06
+**Agent:** Claude
+
+**Files Inspected:**
+- `GOALS.md`, `HANDOVER.md`, `package.json`, `next.config.ts`
+
+**Files Created:**
+- `src-tauri/` — full Tauri v2 scaffold (via `pnpm tauri init`)
+- `src-tauri/tauri.conf.json` — app config
+- `src-tauri/Cargo.toml` — Rust package definition
+- `src-tauri/src/main.rs`, `src-tauri/src/lib.rs` — Rust entry points
+- `src-tauri/capabilities/default.json` — Tauri capability config
+- `src-tauri/icons/` — all required icon sizes
+- `out/` — placeholder directory required by Tauri build (gitignored)
+
+**Files Modified:**
+- `package.json` — added `tauri:dev` and `tauri:build` scripts
+- `.gitignore` — added `src-tauri/target/` and `src-tauri/gen/`
+- `GOALS.md` — marked 9.6 complete
+
+**Summary of Findings:**
+- Rust 1.96.0 and Visual Studio Community 2026 (MSVC tools) were already installed
+- Tauri v2.11.2 CLI + API installed via pnpm
+- App identifier set to `com.vividex.timewisehub`; binary name `timewisehub.exe`
+- Production approach: desktop shell loads `https://timewisehub.com.au` (not a static export — API routes require a live server)
+- Dev mode loads `http://localhost:3000` via `build.devUrl`
+- Initial debug compile took ~2 minutes; subsequent rebuilds take ~7 seconds (only app crate recompiles)
+- `timewisehub.vercel.app` URL was stale — actual live URL is `timewisehub.com.au`; Tauri config corrected
+- App confirmed working: desktop window opened and loaded `https://timewisehub.com.au` successfully
+
+**Tests Performed:**
+- `cargo check` — passes cleanly
+- `pnpm tauri:dev` — desktop window opened and displayed the live app
+
+**Risk Level:** Low. No schema or Next.js changes. All changes are Tauri configuration and Rust scaffold.
+
+**Next Recommended Action:**
+- Run `pnpm tauri:build` to produce the Windows NSIS installer (outputs to `src-tauri/target/release/bundle/`)
+- Still pending from Session 9: run `schema-026-fix-invitations-rls.sql` in Supabase SQL Editor
+- Still pending from Session 7: run `schema-024-fix-project-storage.sql` and `schema-025-invoice-number-unique.sql`
+- Commit this session's changes to git
+
+---
 ## Product Definition (Reference)
 
 | Feature | Detail |

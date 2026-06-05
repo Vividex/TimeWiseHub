@@ -145,7 +145,7 @@
 - [x] 9.3 — Progressive Web App (PWA) packaging — manifest, service worker, icons generated
 - [!] 9.4 — Android app (Play Store submission) — external/deferred; requires Capacitor + Android Studio, store assets, and Play Console submission
 - [!] 9.5 — iOS app (App Store submission) — external/deferred; requires macOS + Xcode, Apple Developer account, store assets, and App Store Connect submission
-- [ ] 9.6 — Windows desktop app — deferred; requires Tauri
+- [x] 9.6 — Windows desktop app — Tauri v2 wrapper; loads https://timewisehub.com.au; builds NSIS installer via `pnpm tauri:build`
 - [x] 9.7 — Push notifications — VAPID keys, service worker push handler, subscribe/unsubscribe API, PushPermission component on dashboard
 
 ---
