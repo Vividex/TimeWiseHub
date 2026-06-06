@@ -4,6 +4,7 @@ import LeaveRequestForm from '@/components/leave/LeaveRequestForm'
 import LeaveRequestList from '@/components/leave/LeaveRequestList'
 import LeaveBalance from '@/components/leave/LeaveBalance'
 import ManagerLeaveView from '@/components/leave/ManagerLeaveView'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 function workingDays(start: string, end: string, halfDay: boolean): number {
   const s = new Date(start + 'T00:00:00')
@@ -33,8 +34,9 @@ export default async function LeavePage() {
     .maybeSingle()
 
   const orgId = membership?.org_id ?? null
-  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
-  const hasManager = !!orgId
+  const subscription = await getSubscription(user.id)
+  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const hasManager = !!orgId && isTeamPlan(subscription)
 
   const [{ data: requests }, { data: balances }, managerResult] = await Promise.all([
     supabase.from('leave_requests')

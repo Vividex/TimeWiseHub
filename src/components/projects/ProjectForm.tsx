@@ -17,7 +17,19 @@ const COLOURS = [
 
 type Client = { id: string; name: string; default_rate: number | null; currency: string }
 
-export default function ProjectForm({ userId, orgId }: { userId: string; orgId: string | null }) {
+export default function ProjectForm({
+  userId,
+  orgId,
+  activeProjectCount,
+  activeProjectLimit,
+  canCreateOrgProject,
+}: {
+  userId: string
+  orgId: string | null
+  activeProjectCount: number
+  activeProjectLimit: number | null
+  canCreateOrgProject: boolean
+}) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -30,6 +42,8 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
   const [clients, setClients] = useState<Client[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const atProjectLimit = activeProjectLimit !== null && activeProjectCount >= activeProjectLimit
+  const blocked = atProjectLimit || (!!orgId && !canCreateOrgProject)
 
   useEffect(() => {
     if (!open) return
@@ -45,10 +59,17 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const { error } = await supabase.from('projects').insert({
-      owner_id: userId,
-      org_id: orgId,
+    if (blocked) {
+      setError(atProjectLimit ? `Free plan is limited to ${activeProjectLimit} active projects.` : 'Team plan required for organisation projects.')
+      setLoading(false)
+      return
+    }
+
+    const res = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        org_id: orgId,
       name,
       description: description || null,
       colour,
@@ -56,9 +77,11 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
       client_id: clientId || null,
       budget_hours: budgetHours ? Number(budgetHours) : null,
       budget_dollars: budgetDollars ? Number(budgetDollars) : null,
+      }),
     })
+    const result = await res.json() as { error?: string }
 
-    if (error) { setError(error.message); setLoading(false); return }
+    if (!res.ok) { setError(result.error ?? 'Could not create project'); setLoading(false); return }
 
     setName(''); setDescription(''); setDueDate('')
     setClientId(''); setBudgetHours(''); setBudgetDollars('')
@@ -69,9 +92,19 @@ export default function ProjectForm({ userId, orgId }: { userId: string; orgId: 
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
+      <button onClick={() => setOpen(o => !o)} disabled={blocked} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50">
         {open ? 'Cancel' : '+ New project'}
       </button>
+      {atProjectLimit && (
+        <p className="mt-3 text-sm font-semibold text-amber-600">
+          Free plan limit reached: {activeProjectLimit} active projects. Archive a project or upgrade to Pro.
+        </p>
+      )}
+      {!!orgId && !canCreateOrgProject && (
+        <p className="mt-3 text-sm font-semibold text-amber-600">
+          Organisation projects require the Team plan.
+        </p>
+      )}
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">

@@ -39,3 +39,33 @@ export function isActive(sub: Subscription): boolean {
 export function planLimits(plan: Plan) {
   return PLANS[plan]
 }
+
+export function effectivePlan(sub: Subscription): Plan {
+  return isActive(sub) ? sub.plan : 'free'
+}
+
+export function isPaidPlan(sub: Subscription): boolean {
+  const plan = effectivePlan(sub)
+  return plan === 'pro' || plan === 'team'
+}
+
+export function isTeamPlan(sub: Subscription): boolean {
+  return effectivePlan(sub) === 'team'
+}
+
+export function maxActiveProjects(sub: Subscription): number {
+  return PLANS[effectivePlan(sub)].projects
+}
+
+export function historyCutoffDate(sub: Subscription): string | null {
+  const days = PLANS[effectivePlan(sub)].historyDays
+  if (days === Infinity) return null
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  return cutoff.toISOString().slice(0, 10)
+}
+
+export function canExportReports(sub: Subscription): boolean {
+  return isPaidPlan(sub)
+}

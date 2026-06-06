@@ -5,6 +5,7 @@ import TimeSummary from '@/components/time/TimeSummary'
 import ManagerTimeView from '@/components/time/ManagerTimeView'
 import TimesheetSection from '@/components/time/TimesheetSection'
 import ManagerTimesheetView from '@/components/time/ManagerTimesheetView'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 function tzSuffix(timezone: string, at: Date = new Date()): string {
   const raw = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
@@ -55,17 +56,19 @@ export default async function TimePage() {
     { data: activeEntry },
     { data: membership },
     { data: timesheet },
+    subscription,
   ] = await Promise.all([
     supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).gte('started_at', todayStart).order('started_at', { ascending: false }),
     supabase.from('time_entries').select('duration_seconds').eq('user_id', user.id).gte('started_at', weekStart).lt('started_at', weekEnd).not('ended_at', 'is', null),
     supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).is('ended_at', null).maybeSingle(),
     supabase.from('organisation_members').select('role, org_id').eq('user_id', user.id).maybeSingle(),
     supabase.from('timesheets').select('id, status, total_seconds, review_note').eq('user_id', user.id).eq('week_start', weekStartDay).maybeSingle(),
+    getSubscription(user.id),
   ])
 
   const todaySeconds = (todayEntries ?? []).filter(e => e.duration_seconds).reduce((sum: number, e: { duration_seconds: number }) => sum + e.duration_seconds, 0)
   const weekSeconds = (weekEntries ?? []).reduce((sum: number, e: { duration_seconds: number | null }) => sum + (e.duration_seconds ?? 0), 0)
-  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
   return (
     <div className="px-4 py-8 sm:px-8">

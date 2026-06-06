@@ -5,6 +5,7 @@ import InviteMember from '@/components/InviteMember'
 import NudgeBanner from '@/components/NudgeBanner'
 import PushPermission from '@/components/PushPermission'
 import WelcomeBanner from '@/components/WelcomeBanner'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -27,6 +28,8 @@ export default async function DashboardPage() {
 
   const org = membership?.organisations as unknown as { id: string; name: string } | null
   const role = membership?.role
+  const subscription = await getSubscription(user.id)
+  const hasTeamPlan = isTeamPlan(subscription)
 
   return (
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 dark:text-slate-100">
@@ -73,9 +76,14 @@ export default async function DashboardPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{org.name}</h2>
             <p className="mt-1 text-sm font-semibold capitalize text-gray-500 dark:text-slate-400">Your role: {role}</p>
 
-            {(role === 'owner' || role === 'admin') && (
+            {(role === 'owner' || role === 'admin') && hasTeamPlan && (
               <div className="mt-6">
                 <InviteMember orgId={org.id} />
+              </div>
+            )}
+            {(role === 'owner' || role === 'admin') && !hasTeamPlan && (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
+                Team member invites require the Team plan.
               </div>
             )}
           </div>
@@ -90,4 +98,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

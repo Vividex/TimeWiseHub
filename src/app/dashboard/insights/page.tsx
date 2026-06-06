@@ -6,6 +6,7 @@ import ActivityRatio from '@/components/insights/ActivityRatio'
 import ProjectBreakdown, { type ProjectBar } from '@/components/insights/ProjectBreakdown'
 import ProjectHealthTable, { type ProjectHealth } from '@/components/insights/ProjectHealthTable'
 import OrgStatsPanel, { type MemberStat } from '@/components/insights/OrgStatsPanel'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 function fmtHours(h: number) {
   if (h < 1) return `${Math.round(h * 60)}m`
@@ -44,7 +45,8 @@ export default async function InsightsPage() {
     .maybeSingle()
 
   const orgId = membership?.org_id ?? null
-  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const subscription = await getSubscription(user.id)
+  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
   // Run all non-conditional queries in parallel
   const [timeResult, tasksResult, expensesResult, projectsResult] = await Promise.all([

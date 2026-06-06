@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import ProjectCard from '@/components/projects/ProjectCard'
 import ProjectForm from '@/components/projects/ProjectForm'
+import { getSubscription, isTeamPlan, maxActiveProjects } from '@/lib/subscription'
 
 export default async function ProjectsPage() {
   const supabase = await createClient()
@@ -14,19 +15,27 @@ export default async function ProjectsPage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const { data: projects } = await (
+  const [subscription, { data: projects }] = await Promise.all([
+    getSubscription(user.id),
     membership?.org_id
       ? supabase.from('projects').select('*, tasks(id, status)').or(`owner_id.eq.${user.id},org_id.eq.${membership.org_id}`).order('created_at', { ascending: false })
-      : supabase.from('projects').select('*, tasks(id, status)').eq('owner_id', user.id).order('created_at', { ascending: false })
-  )
+      : supabase.from('projects').select('*, tasks(id, status)').eq('owner_id', user.id).order('created_at', { ascending: false }),
+  ])
 
   const active   = (projects ?? []).filter(p => p.status === 'active')
   const archived = (projects ?? []).filter(p => p.status === 'archived')
+  const projectLimit = maxActiveProjects(subscription)
 
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
-        <ProjectForm userId={user.id} orgId={membership?.org_id ?? null} />
+        <ProjectForm
+          userId={user.id}
+          orgId={membership?.org_id ?? null}
+          activeProjectCount={active.filter(project => project.owner_id === user.id).length}
+          activeProjectLimit={projectLimit === Infinity ? null : projectLimit}
+          canCreateOrgProject={isTeamPlan(subscription)}
+        />
 
         {/* Inbox — active */}
         <section>

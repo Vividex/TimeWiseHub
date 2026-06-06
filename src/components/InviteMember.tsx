@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase-browser'
 
 type Role = 'admin' | 'manager' | 'employee'
 
@@ -19,18 +18,15 @@ export default function InviteMember({ orgId }: { orgId: string }) {
     setError(null)
     setInviteLink(null)
 
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    const res = await fetch('/api/invitations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ org_id: orgId, email, role }),
+    })
+    const data = await res.json() as { token?: string; error?: string }
 
-    const { data, error } = await supabase
-      .from('invitations')
-      .insert({ org_id: orgId, email, role, invited_by: user.id })
-      .select('token')
-      .single()
-
-    if (error) {
-      setError(error.message)
+    if (!res.ok || !data.token) {
+      setError(data.error ?? 'Could not create invitation')
       setLoading(false)
       return
     }

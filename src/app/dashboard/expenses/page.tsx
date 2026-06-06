@@ -4,19 +4,21 @@ import ExpenseList from '@/components/expenses/ExpenseList'
 import ExpenseForm from '@/components/expenses/ExpenseForm'
 import ManagerExpenseView from '@/components/expenses/ManagerExpenseView'
 import SubscriptionsView from '@/components/expenses/SubscriptionsView'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 export default async function ExpensesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: expenses }, { data: categories }, { data: membership }] = await Promise.all([
+  const [{ data: expenses }, { data: categories }, { data: membership }, subscription] = await Promise.all([
     supabase.from('expenses').select('*, expense_categories(name)').eq('user_id', user.id).order('expense_date', { ascending: false }),
     supabase.from('expense_categories').select('id, name').order('name'),
     supabase.from('organisation_members').select('role, org_id').eq('user_id', user.id).maybeSingle(),
+    getSubscription(user.id),
   ])
 
-  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
   return (
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 min-h-full">

@@ -605,6 +605,42 @@ Run `pnpm run build` — confirm `/dashboard/finance` appears in the route table
 - Commit and push the completed finance implementation.
 
 ---
+
+### Session 13 — 2026-06-07
+**Agent:** Codex
+
+**Files Created:**
+- `src/app/api/projects/route.ts` — server-side project creation with plan enforcement
+- `src/app/api/invitations/route.ts` — server-side team invitation creation with Team-plan and owner/admin checks
+- `supabase/schema-028-project-entitlements.sql` — database trigger enforcing free project limits and Team-only org projects
+
+**Files Modified:**
+- `src/lib/subscription.ts` — central entitlement helpers for effective plan, paid/team access, project limits, and report export checks
+- `src/components/projects/ProjectForm.tsx` and `src/app/dashboard/projects/page.tsx` — project creation now uses `/api/projects` and displays free/team limit messages
+- `src/components/InviteMember.tsx` and `src/app/dashboard/page.tsx` — invitations now use `/api/invitations` and only appear for Team-plan org owners/admins
+- `src/app/api/export/route.ts` and `src/app/dashboard/reports/page.tsx` — report/data export now requires Pro or Team
+- `src/app/dashboard/time/page.tsx`, `expenses/page.tsx`, `leave/page.tsx`, `insights/page.tsx` — manager/team surfaces now require Team in addition to manager role
+
+**Summary of Findings:**
+- Paid tiers were previously mostly configured and displayed, but not consistently enforced.
+- Free users are now limited to three active projects at both app API and database trigger level.
+- Organisation project creation and team invitations now require an active Team subscription.
+- Report/data export now requires an active Pro or Team subscription.
+- Manager dashboards, timesheets, expense approvals, leave approvals, and org insights now require Team.
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly; new `/api/projects` and `/api/invitations` routes appear in the route table.
+- Supabase migration `schema_028_project_entitlements` applied successfully.
+- Supabase security advisor no longer reports the new `enforce_project_entitlements()` trigger function after revoking execute from `public`, `anon`, and `authenticated`.
+
+**Risk Level:** Medium-low. Entitlement checks are now active and may block workflows for org users unless their subscription is Team. Existing pre-existing Supabase SECURITY DEFINER warnings remain for older functions.
+
+**Next Recommended Action:**
+- Smoke test Free project creation at the three-active-project limit.
+- Smoke test Pro report export.
+- Smoke test Team organisation invite, manager views, and org project creation.
+
+---
 ## Product Definition (Reference)
 
 | Feature | Detail |
