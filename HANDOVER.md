@@ -442,6 +442,128 @@ TimeWiseHub is a cloud-based productivity platform for tracking work hours, mana
 - Commit this session's changes to git
 
 ---
+
+### Session 11 — 2026-06-07
+**Agent:** Claude (planning + code authoring) — implementation via Codex subagents
+
+**Files Inspected:**
+- `GOALS.md`, `HANDOVER.md`, `agents.md`
+- `package.json`, `src/app/globals.css`, `src/app/layout.tsx`
+- `src/components/DashboardShell.tsx`
+- `src/app/settings/page.tsx`
+- `src/app/(auth)/login/page.tsx`, `register/page.tsx`, `reset-password/page.tsx`
+- `src/app/dashboard/page.tsx`, `expenses/page.tsx`, `insights/page.tsx`, `billing/page.tsx`
+- `src/app/api/invoices/[id]/mark-paid/route.ts`
+- `supabase/schema-019-invoices.sql`
+- `src/components/insights/BarChart.tsx`, `src/components/expenses/ExpenseForm.tsx`
+
+**Files Created:**
+- `docs/superpowers/specs/2026-06-07-dark-mode-finance-sidebar-design.md` — approved design spec (commit `1c07dea`)
+- `docs/superpowers/plans/2026-06-07-dark-mode-finance-sidebar.md` — full 16-task implementation plan
+- `src/components/ThemeToggle.tsx` — cycles light/dark/system, mounted guard, lucide icons
+- `src/components/ThemeSelector.tsx` — Light/Dark/System button group for settings page
+- `src/components/finance/FinanceSummary.tsx` — 3 summary cards (Income, Expenses, Net)
+- `src/components/finance/FinanceChart.tsx` — Monthly P&L bar chart, pure CSS, cyan/rose bars
+- `src/components/finance/IncomeForm.tsx` — Add income entry form, toggles open/closed
+- `src/components/finance/IncomeList.tsx` — Table of income_entries with ConfirmDialog delete
+- `supabase/schema-027-income-entries.sql` — migration file (NOT YET RUN IN SUPABASE — see below)
+
+**Files Modified:**
+- `src/app/globals.css` — added `@custom-variant dark` (Tailwind v4 syntax) and `html.dark` CSS variable overrides
+- `src/app/layout.tsx` — added `ThemeProvider` from next-themes wrapping body, `suppressHydrationWarning` on `<html>`
+- `src/components/DashboardShell.tsx` — full rewrite: NAV_GROUPS (4 groups + BOTTOM_ITEMS), lucide icons per item, category `<p>` labels, divider, `ThemeToggle` in header, dark mode classes, new `/dashboard/finance` route in PAGE_TITLES
+- `src/app/settings/page.tsx` — added `ThemeSelector` Appearance card, dark mode classes on all cards
+- `src/app/(auth)/login/page.tsx` — dark mode classes on backgrounds, headings, labels, inputs
+- `src/app/(auth)/register/page.tsx` — same dark mode treatment
+- `src/app/(auth)/reset-password/page.tsx` — same dark mode treatment
+- `src/app/dashboard/page.tsx` — `dark:bg-slate-950` on wrapper, dark mode on cards
+- `src/app/dashboard/expenses/page.tsx` — `dark:bg-slate-950` on wrapper
+- `src/app/dashboard/insights/page.tsx` — `dark:bg-slate-950` on wrapper
+- `src/app/dashboard/billing/page.tsx` — `dark:bg-slate-950` on wrapper
+- `package.json` + `pnpm-lock.yaml` — added `lucide-react ^1.17.0` and `next-themes ^0.4.6`
+
+**Commits this session (oldest → newest):**
+```
+334d154 feat: install lucide-react and next-themes
+65e01be feat: add next-themes ThemeProvider, dark CSS variant, and ThemeToggle
+664bb30 feat: grouped sidebar with icons, category labels, ThemeToggle in header
+6bb8010 feat: ThemeSelector component and settings appearance section
+387a0c5 fix: add dark mode classes to remaining settings cards
+2b13c71 feat: dark mode on auth pages
+5bba0e1 feat: dark mode wrapper classes on dashboard pages
+733592c feat: income_entries table with RLS (schema-027)
+2b3109c feat: FinanceSummary, FinanceChart, IncomeForm, IncomeList components
+```
+
+**What is COMPLETE:**
+- [x] Dark mode infrastructure (ThemeProvider, CSS variant, tokens)
+- [x] ThemeToggle in header (cycles light/dark/system)
+- [x] ThemeSelector on settings page Appearance section
+- [x] Sidebar restructure — grouped with icons, category headers, divider
+- [x] Dark mode classes on: DashboardShell, settings, auth pages, dashboard page wrappers
+- [x] `schema-027-income-entries.sql` migration file written
+- [x] FinanceSummary, FinanceChart, IncomeForm, IncomeList components (all in `src/components/finance/`)
+
+**What is STILL TO DO (pick up here):**
+
+**STEP A — Run Supabase migration (manual, user action required):**
+Go to Supabase Dashboard → SQL Editor → paste and run `supabase/schema-027-income-entries.sql`.
+This creates the `income_entries` table with two RLS policies. The Finance page will 404/error without it.
+
+**STEP B — Create Finance page (Task 14):**
+Create `src/app/dashboard/finance/page.tsx` — server component.
+
+Key details:
+- Route: `/dashboard/finance`
+- Query param: `?period=month|quarter|year|all` (default: `month`)
+- Fetches from `income_entries` and `expenses` tables using `@/lib/supabase-server`
+- Passes data to `FinanceSummary`, `FinanceChart`, `IncomeForm`, `IncomeList`
+- Period selector is `<Link>` components (not client state)
+- Also fetches all-time data for the 6-month chart (separate from period-filtered data)
+- `getMonthlyData()` helper produces last 6 months of income vs expenses for the chart
+
+Full page code is in the implementation plan at:
+`docs/superpowers/plans/2026-06-07-dark-mode-finance-sidebar.md` — **Task 14**
+
+After creating: run `pnpm run build` to verify, then commit:
+```
+git add src/app/dashboard/finance/
+git commit -m "feat: Finance page with period selector, P&L chart, income table"
+```
+
+**STEP C — Extend mark-paid API (Task 15):**
+Modify `src/app/api/invoices/[id]/mark-paid/route.ts` to auto-insert an `income_entries` row when an invoice is marked paid.
+
+Key details:
+- Join `clients(name)` when fetching invoice: `.select('owner_id, org_id, subtotal, currency, invoice_number, clients(name)')`
+- Use `Promise.all` to update invoice status AND insert income_entry simultaneously
+- Income entry fields: `source_type: 'invoice'`, `invoice_id: id`, `amount: invoice.subtotal`, `category: 'Sales'`, `description: 'Invoice {number} — {clientName}'`
+- Invoice table uses `subtotal` (NOT `total`) and `owner_id` (NOT `user_id`)
+
+Full route code is in the implementation plan — **Task 15**
+
+After modifying: run `pnpm run build`, then commit:
+```
+git add src/app/api/invoices/
+git commit -m "feat: mark-paid auto-inserts income_entry for invoice payments"
+```
+
+**STEP D — Final build check (Task 16):**
+Run `pnpm run build` — confirm `/dashboard/finance` appears in the route table, zero TypeScript errors.
+
+**Tests Performed:**
+- `pnpm run build` — clean after each commit (40 static pages, zero errors)
+
+**Risk Level:** Low. All changes are additive. Existing features unaffected. The only external dependency is running the Supabase migration before the Finance page will work.
+
+**Next Recommended Action:**
+1. User runs `schema-027-income-entries.sql` in Supabase SQL Editor
+2. Codex implements Task 14 (Finance page) — see plan file for complete code
+3. Codex implements Task 15 (mark-paid extension) — see plan file for complete code
+4. Codex runs final build check
+5. Push to master → Vercel auto-deploys
+
+---
 ## Product Definition (Reference)
 
 | Feature | Detail |
