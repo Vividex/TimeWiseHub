@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import TimerWidget from '@/components/time/TimerWidget'
-import ManualEntryForm from '@/components/time/ManualEntryForm'
-import TimeEntryList from '@/components/time/TimeEntryList'
+import TimeSection from '@/components/time/TimeSection'
 import TimeSummary from '@/components/time/TimeSummary'
 import ManagerTimeView from '@/components/time/ManagerTimeView'
 import TimesheetSection from '@/components/time/TimesheetSection'
@@ -73,9 +71,7 @@ export default async function TimePage() {
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <TimeSummary todaySeconds={todaySeconds} weekSeconds={weekSeconds} />
-        <TimerWidget activeEntry={activeEntry} />
-        <ManualEntryForm />
-        <TimeEntryList initialEntries={todayEntries ?? []} userId={user.id} />
+        <TimeSection activeEntry={activeEntry} initialEntries={todayEntries ?? []} userId={user.id} />
         <TimesheetSection
           userId={user.id}
           orgId={membership?.org_id ?? null}

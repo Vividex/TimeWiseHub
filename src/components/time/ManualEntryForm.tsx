@@ -6,6 +6,15 @@ import { createClient } from '@/lib/supabase-browser'
 
 type OpenTask = { id: string; title: string }
 type TimeSettings = { hourlyRate: number | null; roundingMinutes: number }
+type TimeEntry = {
+  id: string
+  description: string | null
+  started_at: string
+  ended_at: string | null
+  duration_seconds: number | null
+  task_id: string | null
+  tasks: { title: string } | null
+}
 
 function roundedEndTime(start: Date, end: Date, roundingMinutes: number) {
   if (roundingMinutes !== 15) return end
@@ -15,7 +24,7 @@ function roundedEndTime(start: Date, end: Date, roundingMinutes: number) {
   return new Date(start.getTime() + roundedMinutes * 60000)
 }
 
-export default function ManualEntryForm() {
+export default function ManualEntryForm({ onAdd }: { onAdd?: (entry: TimeEntry) => void }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
@@ -79,7 +88,7 @@ export default function ManualEntryForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { error } = await supabase.from('time_entries').insert({
+    const { data: newEntry, error } = await supabase.from('time_entries').insert({
       user_id: user.id,
       started_at: startedAt.toISOString(),
       ended_at: endedAt.toISOString(),
@@ -87,7 +96,7 @@ export default function ManualEntryForm() {
       task_id: taskId || null,
       billable,
       billable_rate: billableRate ? Number(billableRate) : null,
-    })
+    }).select('id, description, started_at, ended_at, duration_seconds, task_id, tasks(title)').single()
 
     if (error) {
       setError(error.message)
@@ -103,6 +112,7 @@ export default function ManualEntryForm() {
     setBillable(true)
     setOpen(false)
     setLoading(false)
+    if (newEntry) onAdd?.(newEntry as unknown as TimeEntry)
     router.refresh()
   }
 

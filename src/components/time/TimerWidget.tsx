@@ -7,6 +7,15 @@ import { createClient } from '@/lib/supabase-browser'
 type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null; task_id: string | null }
 type OpenTask = { id: string; title: string }
 type TimeSettings = { hourlyRate: number | null; roundingMinutes: number }
+type CompletedEntry = {
+  id: string
+  description: string | null
+  started_at: string
+  ended_at: string | null
+  duration_seconds: number | null
+  task_id: string | null
+  tasks: { title: string } | null
+}
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -29,7 +38,7 @@ function roundedEndTime(startIso: string, end: Date, roundingMinutes: number) {
   return new Date(start.getTime() + roundedMinutes * 60000).toISOString()
 }
 
-export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null }) {
+export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeEntry: Entry | null; onEntryCompleted?: (entry: CompletedEntry) => void }) {
   const router = useRouter()
   const [running, setRunning] = useState(!!activeEntry)
   const [entryId, setEntryId] = useState(activeEntry?.id ?? null)
@@ -112,12 +121,19 @@ export default function TimerWidget({ activeEntry }: { activeEntry: Entry | null
       .update({ ended_at: endedAt, description: description || null })
       .eq('id', entryId)
 
+    const { data: completed } = await supabase
+      .from('time_entries')
+      .select('id, description, started_at, ended_at, duration_seconds, task_id, tasks(title)')
+      .eq('id', entryId)
+      .single()
+
     setRunning(false)
     setEntryId(null)
     setStartedAt(null)
     setDescription('')
     setTaskId('')
     setLoading(false)
+    if (completed) onEntryCompleted?.(completed as unknown as CompletedEntry)
     router.refresh()
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -40,6 +40,10 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
   const router = useRouter()
   const [tasks, setTasks] = useState(initialTasks)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+
+  useEffect(() => {
+    setTasks(initialTasks)
+  }, [initialTasks])
 
   async function advanceStatus(task: Task) {
     const next = STATUS_ORDER[STATUS_ORDER.indexOf(task.status as typeof STATUS_ORDER[number]) + 1]

@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import TaskList from '@/components/projects/TaskList'
-import TaskForm from '@/components/projects/TaskForm'
+import TaskSection from '@/components/projects/TaskSection'
 import DocumentPanel from '@/components/projects/DocumentPanel'
 import ArchiveButton from '@/components/projects/ArchiveButton'
 
@@ -104,8 +103,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         {/* Tasks */}
         <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900">Tasks</h2>
-          <TaskForm projectId={project.id} assigneeId={user.id} />
-          <TaskList initialTasks={tasks ?? []} projectId={project.id} currentUserId={user.id} />
+          <TaskSection projectId={project.id} assigneeId={user.id} initialTasks={tasks ?? []} />
         </div>
 
         {/* Documents */}

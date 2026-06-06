@@ -4,7 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-export default function TaskForm({ projectId, assigneeId }: { projectId: string; assigneeId: string }) {
+type Task = {
+  id: string
+  title: string
+  priority: string
+  status: string
+  due_date: string | null
+  notes: string | null
+  assignee_id: string | null
+  completed_at: string | null
+}
+
+export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: string; assigneeId: string; onAdd?: (task: Task) => void }) {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('normal')
@@ -21,14 +32,14 @@ export default function TaskForm({ projectId, assigneeId }: { projectId: string;
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.from('tasks').insert({
+    const { data: task, error } = await supabase.from('tasks').insert({
       project_id: projectId,
       assignee_id: assigneeId,
       title: title.trim(),
       priority,
       due_date: dueDate || null,
       notes: notes || null,
-    })
+    }).select('id, title, priority, status, due_date, notes, assignee_id, completed_at').single()
 
     if (error) { setError(error.message); setLoading(false); return }
 
@@ -38,6 +49,7 @@ export default function TaskForm({ projectId, assigneeId }: { projectId: string;
     setNotes('')
     setExpanded(false)
     setLoading(false)
+    if (task) onAdd?.(task as Task)
     router.refresh()
   }
 
