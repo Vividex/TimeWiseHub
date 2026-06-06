@@ -193,7 +193,7 @@ export default async function InsightsPage() {
   }
 
   return (
-    <div className="px-4 py-8 sm:px-8">
+    <div className="px-4 py-8 sm:px-8 dark:bg-slate-950">
       <div className="mx-auto max-w-6xl space-y-6">
 
         {/* Stat cards — 7.1 */}

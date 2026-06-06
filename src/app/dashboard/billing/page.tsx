@@ -31,7 +31,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const active = isActive(sub)
 
   return (
-    <div className="px-4 py-8 sm:px-8">
+    <div className="px-4 py-8 sm:px-8 dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6">
 
         {/* Success banner */}
