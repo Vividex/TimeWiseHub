@@ -13,10 +13,17 @@ export default function NudgeBanner({ userId }: { userId: string }) {
     async function check() {
       const supabase = createClient()
       const found: Nudge[] = []
+      // Use browser local timezone for date comparisons
+      const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local TZ
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toISOString().slice(0, 10)
-      const todayStr = new Date().toISOString().slice(0, 10)
+      const tomorrowStr = tomorrow.toLocaleDateString('en-CA')
+      // Local midnight as UTC timestamp for time_entries query
+      const offset = -new Date().getTimezoneOffset()
+      const sign = offset >= 0 ? '+' : '-'
+      const hh = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')
+      const mm = String(Math.abs(offset) % 60).padStart(2, '0')
+      const todayStartISO = new Date(`${todayStr}T00:00:00${sign}${hh}:${mm}`).toISOString()
 
       // Check for tasks due today or tomorrow
       const { data: dueSoon } = await supabase
@@ -60,7 +67,7 @@ export default function NudgeBanner({ userId }: { userId: string }) {
         .from('time_entries')
         .select('id')
         .eq('user_id', userId)
-        .gte('started_at', `${todayStr}T00:00:00`)
+        .gte('started_at', todayStartISO)
         .limit(1)
 
       const hour = new Date().getHours()
