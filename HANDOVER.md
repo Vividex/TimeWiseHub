@@ -564,6 +564,47 @@ Run `pnpm run build` — confirm `/dashboard/finance` appears in the route table
 5. Push to master → Vercel auto-deploys
 
 ---
+
+### Session 12 — 2026-06-07
+**Agent:** Codex
+
+**Files Inspected:**
+- `HANDOVER.md`
+- `agents.md`
+- `GOALS.md`
+- `docs/superpowers/plans/2026-06-07-dark-mode-finance-sidebar.md`
+- `supabase/schema-027-income-entries.sql`
+- `supabase/schema-019-invoices.sql`
+- `src/components/finance/FinanceSummary.tsx`
+- `src/components/finance/FinanceChart.tsx`
+- `src/components/finance/IncomeForm.tsx`
+- `src/components/finance/IncomeList.tsx`
+- `src/app/api/invoices/[id]/mark-paid/route.ts`
+
+**Files Created:**
+- `src/app/dashboard/finance/page.tsx` — Finance page with period selector, income summary, 6-month P&L chart, income table, and expenses summary
+
+**Files Modified:**
+- `src/app/api/invoices/[id]/mark-paid/route.ts` — marking an invoice paid now also inserts an `income_entries` row with source_type `invoice`
+- `HANDOVER.md` — added this session entry
+
+**Summary of Findings:**
+- The finance components and `schema-027-income-entries.sql` already existed from the previous session.
+- `/dashboard/finance` is now wired as a server component using `income_entries` and `expenses`, with `month`, `quarter`, `year`, and `all` period filters.
+- Supabase inferred `clients(name)` as an array in the mark-paid API, so the route now handles both array and object join shapes safely.
+- `schema-027-income-entries.sql` still must be run in Supabase SQL Editor before the Finance page and invoice income insertion work against production data.
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly; `/dashboard/finance` appears in the route table.
+
+**Risk Level:** Low. Changes are additive, but the mark-paid route depends on the new `income_entries` table existing in Supabase.
+
+**Next Recommended Action:**
+- Run `supabase/schema-027-income-entries.sql` in Supabase SQL Editor.
+- Smoke test `/dashboard/finance` and marking an invoice paid after the migration is applied.
+- Commit and push the completed finance implementation.
+
+---
 ## Product Definition (Reference)
 
 | Feature | Detail |
