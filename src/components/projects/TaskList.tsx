@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Task = {
   id: string
@@ -38,6 +39,7 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
 }) {
   const router = useRouter()
   const [tasks, setTasks] = useState(initialTasks)
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
   async function advanceStatus(task: Task) {
     const next = STATUS_ORDER[STATUS_ORDER.indexOf(task.status as typeof STATUS_ORDER[number]) + 1]
@@ -66,6 +68,7 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
     const supabase = createClient()
     await supabase.from('tasks').delete().eq('id', id)
     setTasks(prev => prev.filter(t => t.id !== id))
+    setPendingDelete(null)
   }
 
   const grouped = STATUS_ORDER.reduce((acc, s) => {
@@ -116,7 +119,7 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
                           Back
                         </button>
                       )}
-                      <button onClick={() => deleteTask(task.id)}
+                      <button onClick={() => setPendingDelete(task.id)}
                         className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">
                         Delete
                       </button>
@@ -128,6 +131,13 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
           )}
         </div>
       ))}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete task"
+        message="This task will be permanently deleted and cannot be recovered."
+        onConfirm={() => pendingDelete && deleteTask(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Category = { id: string; name: string }
 type RecurrenceInterval = 'weekly' | 'fortnightly' | 'monthly' | 'annually'
@@ -72,6 +73,7 @@ export default function SubscriptionsView({
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
@@ -168,6 +170,7 @@ export default function SubscriptionsView({
     const { error } = await supabase.from('expenses').delete().eq('id', id)
     if (!error) {
       setSubs(current => current.filter(sub => sub.id !== id))
+      setPendingDelete(null)
       router.refresh()
     }
   }
@@ -299,7 +302,7 @@ export default function SubscriptionsView({
                     <button onClick={() => startEdit(sub)} className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
                       Edit
                     </button>
-                    <button onClick={() => deleteTemplate(sub.id)} className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700">
+                    <button onClick={() => setPendingDelete(sub.id)} className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700">
                       Delete
                     </button>
                   </div>
@@ -309,6 +312,14 @@ export default function SubscriptionsView({
           })}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete subscription"
+        message="This recurring subscription template will be permanently deleted and cannot be recovered."
+        onConfirm={() => pendingDelete && deleteTemplate(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

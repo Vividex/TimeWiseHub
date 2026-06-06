@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Request = {
   id: string
@@ -35,12 +36,14 @@ function fmtDate(d: string) {
 export default function LeaveRequestList({ requests }: { requests: Request[] }) {
   const router = useRouter()
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
     setDeleting(id)
     const supabase = createClient()
     await supabase.from('leave_requests').delete().eq('id', id)
     setDeleting(null)
+    setPendingDelete(null)
     router.refresh()
   }
 
@@ -70,7 +73,7 @@ export default function LeaveRequestList({ requests }: { requests: Request[] }) 
               )}
             </div>
             {(r.status === 'draft' || r.status === 'submitted') && (
-              <button onClick={() => handleDelete(r.id)} disabled={deleting === r.id}
+              <button onClick={() => setPendingDelete(r.id)} disabled={deleting === r.id}
                 className="shrink-0 text-xs font-semibold text-red-500 hover:text-red-700 disabled:opacity-50">
                 Cancel
               </button>
@@ -78,6 +81,14 @@ export default function LeaveRequestList({ requests }: { requests: Request[] }) 
           </div>
         </li>
       ))}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Cancel leave request"
+        message="This leave request will be permanently deleted and cannot be recovered."
+        confirmLabel="Cancel request"
+        onConfirm={() => pendingDelete && handleDelete(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </ul>
   )
 }

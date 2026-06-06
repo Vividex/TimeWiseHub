@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ExportExpensesButton from './ExportExpensesButton'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Category = { id: string; name: string }
 type Expense = {
@@ -37,6 +38,7 @@ export default function ExpenseList({
   const [expenses, setExpenses] = useState(initialExpenses)
   const [statusFilter, setStatusFilter] = useState('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; receipt_path: string | null } | null>(null)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -63,6 +65,7 @@ export default function ExpenseList({
     await supabase.from('expenses').delete().eq('id', id)
     setExpenses(prev => prev.filter(e => e.id !== id))
     setLoading(null)
+    setPendingDelete(null)
   }
 
   async function viewReceipt(path: string) {
@@ -167,7 +170,7 @@ export default function ExpenseList({
                         )}
                         {expense.status === 'draft' && (
                           <button
-                            onClick={() => handleDelete(expense.id, expense.receipt_path)}
+                            onClick={() => setPendingDelete({ id: expense.id, receipt_path: expense.receipt_path })}
                             disabled={loading === expense.id}
                             className="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
                           >
@@ -187,6 +190,13 @@ export default function ExpenseList({
           </div>
         </>
       )}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete expense"
+        message="This expense and any attached receipt will be permanently deleted and cannot be recovered."
+        onConfirm={() => pendingDelete && handleDelete(pendingDelete.id, pendingDelete.receipt_path)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

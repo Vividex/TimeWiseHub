@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ExportButton from './ExportButton'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Entry = {
   id: string
@@ -31,6 +32,7 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
   const router = useRouter()
   const [entries, setEntries] = useState(initialEntries)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
   useEffect(() => {
     setEntries(initialEntries)
@@ -41,6 +43,7 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
     const supabase = createClient()
     await supabase.from('time_entries').delete().eq('id', id)
     setEntries(prev => prev.filter(e => e.id !== id))
+    setPendingDelete(null)
   }
 
   function startEdit(entry: Entry) {
@@ -95,12 +98,19 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => startEdit(entry)} className="text-xs font-semibold text-gray-500 transition-colors hover:text-gray-900">Edit</button>
-                <button onClick={() => handleDelete(entry.id)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
+                <button onClick={() => setPendingDelete(entry.id)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
               </div>
             </li>
           ))}
         </ul>
       )}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete time entry"
+        message="This entry will be permanently deleted and cannot be recovered."
+        onConfirm={() => pendingDelete && handleDelete(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

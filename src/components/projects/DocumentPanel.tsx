@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Doc = { id: string; name: string; storage_path: string; size_bytes: number | null; created_at: string }
 
@@ -22,6 +23,7 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
   const [docs, setDocs] = useState(initialDocuments)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Doc | null>(null)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -62,6 +64,7 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
     await supabase.storage.from('project-documents').remove([doc.storage_path])
     await supabase.from('project_documents').delete().eq('id', doc.id)
     setDocs(prev => prev.filter(d => d.id !== doc.id))
+    setPendingDelete(null)
   }
 
   return (
@@ -88,12 +91,19 @@ export default function DocumentPanel({ projectId, userId, initialDocuments }: {
               </div>
               <div className="flex gap-3 shrink-0">
                 <button onClick={() => handleView(doc.storage_path)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View</button>
-                <button onClick={() => handleDelete(doc)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
+                <button onClick={() => setPendingDelete(doc)} className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700">Delete</button>
               </div>
             </li>
           ))}
         </ul>
       )}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete document"
+        message={`"${pendingDelete?.name}" will be permanently deleted from storage and cannot be recovered.`}
+        onConfirm={() => pendingDelete && handleDelete(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }
