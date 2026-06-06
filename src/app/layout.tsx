@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from 'next-themes'
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CookieBanner from "@/components/CookieBanner";
 
@@ -19,11 +20,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
-        <ServiceWorkerRegistration />
-        {children}
-        <CookieBanner />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="twh-theme">
+          <ServiceWorkerRegistration />
+          {children}
+          <CookieBanner />
+        </ThemeProvider>
       </body>
     </html>
   );

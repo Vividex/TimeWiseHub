@@ -6,9 +6,16 @@
 @import "@fontsource/poppins/700.css";
 @import "@fontsource/poppins/900.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+}
+
+html.dark {
+  --background: #020617;
+  --foreground: #f1f5f9;
 }
 
 body {
