@@ -57,9 +57,9 @@ export default async function SettingsPage() {
         </div>
 
         {/* Reports & data export */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900">Reports &amp; data export</h2>
-          <p className="mt-1 text-sm font-semibold text-gray-500">Download time logs, expense reports, and leave summaries as formatted CSV files — ready for payroll or your accountant.</p>
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Reports &amp; data export</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">Download time logs, expense reports, and leave summaries as formatted CSV files — ready for payroll or your accountant.</p>
           <a href="/dashboard/reports"
             className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-700">
             Go to Reports
@@ -67,9 +67,9 @@ export default async function SettingsPage() {
         </div>
 
         {/* GDPR raw data export */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900">Download all my data</h2>
-          <p className="mt-1 text-sm font-semibold text-gray-500">Export a complete copy of your account data in JSON format (GDPR right of access).</p>
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Download all my data</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">Export a complete copy of your account data in JSON format (GDPR right of access).</p>
           <a href="/api/export" download
             className="mt-4 inline-flex rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50">
             Download raw data (JSON)
