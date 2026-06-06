@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import AccountSettingsForm from '@/components/AccountSettingsForm'
 import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
+import ThemeSelector from '@/components/ThemeSelector'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -38,12 +39,21 @@ export default async function SettingsPage() {
     : [{ data: null }, { data: null }]
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-8">
+    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-8 dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Account settings</h1>
-          <p className="mt-2 text-sm font-semibold text-gray-500">{user.email}</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">Account settings</h1>
+          <p className="mt-2 text-sm font-semibold text-gray-500 dark:text-slate-400">{user.email}</p>
+        </div>
+
+        {/* Theme */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Appearance</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">Choose your preferred colour scheme.</p>
+          <div className="mt-4">
+            <ThemeSelector />
+          </div>
         </div>
 
         {/* Reports & data export */}
