@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { useTextFilter } from '@/lib/use-text-filter'
+import SearchInput from '@/components/ui/SearchInput'
 
 type Task = {
   id: string
@@ -39,6 +41,10 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
 }) {
   const router = useRouter()
   const [tasks, setTasks] = useState(initialTasks)
+  const { query, setQuery, filtered } = useTextFilter(
+    tasks,
+    t => `${t.title} ${t.notes ?? ''}`,
+  )
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
   useEffect(() => {
@@ -76,13 +82,16 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
   }
 
   const grouped = STATUS_ORDER.reduce((acc, s) => {
-    acc[s] = tasks.filter(t => t.status === s)
+    acc[s] = filtered.filter(t => t.status === s)
     return acc
   }, {} as Record<string, Task[]>)
 
   return (
     <div className="space-y-6">
-      {STATUS_ORDER.map(status => (
+      <SearchInput value={query} onChange={setQuery} placeholder="Search tasks…" />
+      {tasks.length > 0 && filtered.length === 0 ? (
+        <p className="rounded-2xl border border-gray-100 bg-gray-50 p-4 text-xs font-semibold text-gray-500">No matches.</p>
+      ) : STATUS_ORDER.map(status => (
         <div key={status}>
           <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">
             {STATUS_LABELS[status]} ({grouped[status].length})
@@ -145,4 +154,3 @@ export default function TaskList({ initialTasks, projectId, currentUserId }: {
     </div>
   )
 }
-
