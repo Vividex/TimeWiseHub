@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
 
 type OwnTimesheet = {
   id: string
@@ -14,32 +15,51 @@ function formatHours(totalSeconds: number): string {
 export default async function EmployeeFinanceView({ userId }: { userId: string }) {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('timesheets')
-    .select('id, week_start, status, total_seconds')
-    .eq('user_id', userId)
-    .order('week_start', { ascending: false })
-    .limit(12)
+  const [{ data: statementsData }, { data: profile }, { data: tsData }] = await Promise.all([
+    supabase
+      .from('pay_statements')
+      .select('id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes')
+      .eq('user_id', userId)
+      .order('period_start', { ascending: false })
+      .limit(12),
+    supabase.from('profiles').select('tax_estimate_pct').eq('id', userId).single(),
+    supabase
+      .from('timesheets')
+      .select('id, week_start, status, total_seconds')
+      .eq('user_id', userId)
+      .order('week_start', { ascending: false })
+      .limit(12),
+  ])
 
-  const timesheets = (data ?? []) as OwnTimesheet[]
+  const statements = (statementsData ?? []) as PayStatement[]
+  const taxPct = (profile?.tax_estimate_pct ?? null) as number | null
+  const timesheets = (tsData ?? []) as OwnTimesheet[]
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6">
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+        <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Your pay statements</h2>
-          <p className="mt-2 text-sm font-semibold text-gray-500 dark:text-slate-400">
-            Coming with the payroll module. Your gross pay, tax estimate, and net pay will appear here — visible only to you and your employer.
-          </p>
+          {statements.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
+                No pay statements yet. They appear here after your employer runs pay — visible only to you and your employer.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {statements.map(s => (
+                <PayStatementCard key={s.id} statement={s} showNet userId={userId} initialTaxPct={taxPct} />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Your recent timesheets</h2>
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             {timesheets.length === 0 ? (
-              <p className="px-6 py-4 text-sm font-semibold text-gray-500 dark:text-slate-400">
-                No timesheets yet.
-              </p>
+              <p className="px-6 py-4 text-sm font-semibold text-gray-500 dark:text-slate-400">No timesheets yet.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
