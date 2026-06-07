@@ -13,7 +13,7 @@ function formatHours(totalSeconds: number): string {
   return `${(totalSeconds / 3600).toFixed(2)} h`
 }
 
-export default async function TeamApprovalsView({ orgId, userId }: { orgId: string; userId: string }) {
+export default async function TeamApprovalsView({ orgId }: { orgId: string }) {
   const supabase = await createClient()
 
   const { data } = await supabase

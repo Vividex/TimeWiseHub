@@ -34,7 +34,7 @@ export default async function FinancePage({
 
   // Manager → team hours + own pay placeholder.
   if (ctx.role === 'manager') {
-    return <TeamApprovalsView orgId={ctx.orgId} userId={ctx.userId} />
+    return <TeamApprovalsView orgId={ctx.orgId} />
   }
 
   // Employee → own data only.
