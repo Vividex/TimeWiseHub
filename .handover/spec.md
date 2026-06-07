@@ -1,48 +1,47 @@
-# Task: Redesign the startup splash — spinning TW coin on deep navy, "powered by vividex"
+# Task: Global back button (never-a-dead-end navigation)
 
 ## Context
-Replace the v1 text-wordmark splash with a branded animation. Next.js App Router;
-client components need `"use client"`; SSR-safe (no `window`/`document` during
-render). `SplashGate` is already wired into `src/app/layout.tsx` (wraps the app,
-shows once per full page load); this task rewrites the splash internals — keep the
-`SplashScreen` props `{ minDurationMs?: number; onDone?: () => void }` and the
-`SplashGate` show-once behavior intact.
+The desktop (Tauri) app loads the live web app in a chrome-less window
+(`src-tauri/tauri.conf.json` → `url: https://timewisehub.com.au`), so there is NO
+browser back button, and some pages have no in-app way back — users get stuck and
+must quit and relaunch. Fix: a single GLOBAL back control in the web app (covers
+web, desktop, PWA — all the same app). Next.js App Router; client components need
+`"use client"`; SSR-safe. `lucide-react` is already a dependency (use it for the
+icon — no new deps). The root layout already wraps the app in `ThemeProvider` and
+`SplashGate` (`src/app/layout.tsx`); add the new pieces without disturbing those.
 
 Design decisions (locked):
-- **Background:** a FIXED deep navy `#020617` (the scheme's darkest), NOT a theme
-  variable — the splash is a brand moment, identical in light/dark mode.
-- **Centerpiece:** the circular TW logo (served at `/logo.png`) presented as a
-  **two-sided coin** and animated to **spin on its vertical axis like a coin
-  spinning on its edge**, decelerating to rest **facing forward**, then static.
-- **Attribution:** small "powered by" + the **vividex** mark (the blue V +
-  "VIVIDEX" wordmark) below the logo. The source asset `vividex logo 3.png` has a
-  black background and a "BUILDING DIGITAL EXPERIENCES" tagline; both must be
-  removed — black via CSS `mix-blend-mode: screen` (drops black on the navy bg),
-  tagline via a clipping container showing only the V + wordmark.
-- **No new dependencies.** Pure CSS keyframes for the animation (GPU-friendly).
+- **Global, app-wide, top-left**, rendered once in the root layout (covers every
+  page: dashboard, settings, help, onboarding, legal, etc.).
+- **Behavior:** click → go back if there is in-app history this session, else fall
+  back to `/dashboard` (home). Never a dead end.
+- **Auto-hide** on root/entry routes where "back" is meaningless: `/`,
+  `/dashboard`, `/login`, `/onboarding`.
+- **"Can go back" signal:** a small provider tracks whether the user has navigated
+  within the app this session (App Router has no built-in API; `window.history.length`
+  is unreliable). Navigated at least once → `router.back()` is safe; cold landing
+  on a deep page (redirect/deep-link) → home fallback.
+- Fixed floating placement so it is decoupled from each page's own header/layout.
 
 ## Acceptance checklist
-- [x] C1: Make the vividex asset web-accessible — copy the repo-root `vividex logo 3.png` to `public/vividex.png` (so it serves at `/vividex.png`). Do not modify the original.
-- [x] C2: Rewrite `src/components/SplashScreen.tsx` structure (`"use client"`): a `fixed inset-0 z-50` full-screen flex-centered overlay with an INLINE fixed background `#020617` (not a theme var). Center a TW "coin": a container with CSS `perspective`, holding two stacked `<img src="/logo.png">` faces — front at `rotateY(0)` and back at `rotateY(180deg)`, both with `backface-visibility: hidden` — so both faces show the TW logo and there is never a mirrored/backwards flash. Keep props `{ minDurationMs?: number; onDone?: () => void }`. SSR-safe. (No spin animation yet — static coin facing front.)
-- [x] C3: Add the coin spin via pure CSS `@keyframes` that rotate the coin container about the Y axis through multiple turns and **ease-out decelerate** to land exactly face-front (`rotateY(0)` / a multiple of 360deg), duration ~1.6s, `forwards` fill so it holds static facing forward after. No JS animation libs.
-- [x] C4: Add the "powered by vividex" mark below the coin: small muted "powered by" text (slate, e.g. `#64748b`) above/beside `<img src="/vividex.png">` rendered with `mix-blend-mode: screen` (so the black background disappears on the navy) inside a clipping container (`overflow: hidden` + sized/positioned to show only the V + "VIVIDEX", cropping off the "BUILDING DIGITAL EXPERIENCES" tagline). Keep it small and understated.
-- [x] C5: Lifecycle/timing — after the spin settles (~1.6s) keep the logo static for at least 1s, then fade the whole overlay out (opacity transition ~0.4s) and call `onDone` when the fade completes (reuse the `onTransitionEnd` pattern). Total ≈3s. Honor `minDurationMs` as the floor for the static hold. SSR-safe (timers/effects only).
+- [ ] C1: Create `src/components/NavHistoryProvider.tsx` — a `"use client"` React context provider wrapping `children`. Using `usePathname()`, track in-app navigation: skip the initial mount, then on each subsequent pathname change mark that the user has navigated this session. Expose a context value `{ canGoBack: boolean }` (true once at least one in-app navigation has happened). SSR-safe (no `window` access during render). Export the provider and a `useNavHistory()` hook.
+- [ ] C2: Create `src/components/BackButton.tsx` — a `"use client"` component that consumes `useNavHistory()` and `usePathname()`/`useRouter()`. Render a FIXED-position control top-left (e.g. `position: fixed; top: 12px; left: 12px; z-index: 50`) — a `lucide-react` `ChevronLeft` icon + "Back" label, as a real accessible `<button>` (`aria-label="Go back"`), styled to match the app (rounded, subtle background, cyan accent, readable in light/dark). On click: if `canGoBack` call `router.back()`, else `router.push('/dashboard')`. Return `null` (render nothing) when `usePathname()` is one of the root routes `['/', '/dashboard', '/login', '/onboarding']`. SSR-safe.
+- [ ] C3: Wire into `src/app/layout.tsx` — wrap the existing app content in `NavHistoryProvider` and render `<BackButton />` once inside it (within `<body>`, alongside the current `ThemeProvider`/`SplashGate` tree). Do not remove or alter the existing `SplashGate`/`ThemeProvider`/`ServiceWorkerRegistration`/`CookieBanner` wiring.
 
 ## Verification
 - Global (after each item): `npm run lint` reports no new errors and
   `npx tsc --noEmit` reports no type errors in the changed files.
 - Per item: Claude inspects the actual `git diff` and confirms it matches the
-  description — `"use client"` present, fixed `#020617` background, double-sided
-  coin with `backface-visibility: hidden`, CSS-only spin easing to face-front,
-  vividex via `mix-blend-mode: screen` + tagline cropped, SSR-safe lifecycle, no
-  new dependencies.
-- Final (manual, after the loop): visual check via the dev server — the coin
-  spins, settles forward, holds ~1s, then the app appears; "powered by vividex"
-  is clean (no black box, no tagline).
+  description — `"use client"` present, SSR-safe, no new dependencies, correct
+  back/home-fallback logic, correct root-route hiding, fixed top-left placement.
+- Final (manual, after the loop): visual check via the dev server — the button
+  shows on inner pages (e.g. /settings, /help), is hidden on `/dashboard`, does
+  NOT collide with the dashboard header, and going back / home-fallback both work.
 
 ## Out of scope
-- No new npm dependencies. No backend/Supabase/Stripe/auth/billing changes.
-- Do not alter `src/app/layout.tsx`'s existing `SplashGate` wiring or other
-  components beyond `SplashScreen.tsx` / `SplashGate.tsx`.
-- No paid asset generation or external calls (spend budget is 0).
-- Do not edit the original `vividex logo 3.png` or the TW `/logo.png`.
+- No new npm dependencies (use the existing `lucide-react`).
+- No backend/Supabase/Stripe/auth/billing changes.
+- Do not change pages other than `src/app/layout.tsx`, and do not modify other
+  components. No pricing/plan changes (that is a separate task).
+- Wiring the desktop mouse "back" button is a separate, optional follow-up — not
+  part of this task.

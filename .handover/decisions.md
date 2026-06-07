@@ -12,8 +12,8 @@
 ## Notes
 # Free-form standing rules the conductor should respect this run.
 - Never touch billing, payment, auth, or Supabase code.
-- Do not add npm dependencies — use what is already installed.
-- Confine changes to: src/components/SplashScreen.tsx, src/components/SplashGate.tsx,
-  and a new public/vividex.png. Leave the existing SplashGate wiring in
-  src/app/layout.tsx as-is; do not touch other components or page.tsx.
-- Do not edit the original "vividex logo 3.png" or public/logo.png.
+- Do not add npm dependencies — use the existing lucide-react for the icon.
+- Confine changes to: new src/components/NavHistoryProvider.tsx, new
+  src/components/BackButton.tsx, and src/app/layout.tsx (wiring only).
+- Leave the existing SplashGate/ThemeProvider/ServiceWorkerRegistration/CookieBanner
+  wiring intact; do not modify other components or pages.
