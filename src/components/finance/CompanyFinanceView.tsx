@@ -6,6 +6,7 @@ import IncomeForm from '@/components/finance/IncomeForm'
 import IncomeList from '@/components/finance/IncomeList'
 import RunPayControl from '@/components/finance/RunPayControl'
 import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
+import CompanyPnLSummary from '@/components/finance/CompanyPnLSummary'
 import { PERIOD_LABELS, getPeriodRange, type Period } from '@/lib/finance/period'
 
 export type FinanceScope = { type: 'org'; orgId: string } | { type: 'user'; userId: string }
@@ -25,9 +26,16 @@ type ExpenseEntry = {
   expense_date: string
 }
 
+type PayStatementRow = {
+  period_start: string
+  gross: number
+  super_amount: number
+}
+
 function getMonthlyData(
   incomeEntries: Pick<IncomeEntry, 'amount' | 'date'>[],
   expenses: ExpenseEntry[],
+  payStatements: PayStatementRow[],
 ): MonthBar[] {
   const months: MonthBar[] = []
   const now = new Date()
@@ -52,7 +60,14 @@ function getMonthlyData(
       })
       .reduce((sum, entry) => sum + Number(entry.amount), 0)
 
-    months.push({ label, income, expenses: expenseTotal })
+    const payroll = payStatements
+      .filter(s => {
+        const date = new Date(s.period_start)
+        return date.getFullYear() === year && date.getMonth() === month
+      })
+      .reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
+
+    months.push({ label, income, expenses: expenseTotal, payroll })
   }
 
   return months
@@ -112,7 +127,6 @@ export default async function CompanyFinanceView({
   const expenses = (expenseResult.data ?? []) as ExpenseEntry[]
   const totalIncome = incomeEntries.reduce((sum, entry) => sum + Number(entry.amount), 0)
   const totalExpenses = expenses.reduce((sum, entry) => sum + Number(entry.amount), 0)
-  const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenseResult.data ?? [])
   // Payroll section data — org scope only.
   type PayRun = {
     id: string
@@ -123,8 +137,9 @@ export default async function CompanyFinanceView({
   }
   let payRuns: PayRun[] = []
   let payCadence = 'fortnightly'
+  let payStatements: PayStatementRow[] = []
   if (scope.type === 'org') {
-    const [{ data: runs }, { data: orgRow }] = await Promise.all([
+    const [{ data: runs }, { data: orgRow }, { data: stmts }] = await Promise.all([
       supabase
         .from('pay_runs')
         .select('id, period_start, period_end, created_at, pay_statements(id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes)')
@@ -132,10 +147,20 @@ export default async function CompanyFinanceView({
         .order('period_start', { ascending: false })
         .limit(6),
       supabase.from('organisations').select('pay_cadence').eq('id', scope.orgId).single(),
+      supabase.from('pay_statements').select('period_start, gross, super_amount').eq('org_id', scope.orgId),
     ])
     payRuns = (runs ?? []) as unknown as PayRun[]
     payCadence = (orgRow?.pay_cadence as string) ?? 'fortnightly'
+    payStatements = (stmts ?? []) as PayStatementRow[]
   }
+
+  // Period-filtered payroll cost (gross + super) for the P&L summary.
+  // period_start and from/to are all 'YYYY-MM-DD' strings → lexical compare is correct.
+  const periodPayroll = payStatements
+    .filter(s => (!from || s.period_start >= from) && (!to || s.period_start <= to))
+    .reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
+
+  const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenseResult.data ?? [], payStatements)
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
@@ -191,12 +216,7 @@ export default async function CompanyFinanceView({
               })
             )}
 
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Net profit</h3>
-              <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
-                Revenue − expenses − payroll roll-up arrives with the company P&amp;L module.
-              </p>
-            </div>
+            <CompanyPnLSummary revenue={totalIncome} expenses={totalExpenses} payroll={periodPayroll} />
           </div>
         )}
 
