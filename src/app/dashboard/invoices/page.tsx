@@ -1,18 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-
-const STATUS_STYLE: Record<string, string> = {
-  draft:     'bg-gray-100 text-gray-600',
-  sent:      'bg-cyan-100 text-cyan-700',
-  paid:      'bg-green-100 text-green-700',
-  overdue:   'bg-red-100 text-red-700',
-  cancelled: 'bg-gray-100 text-gray-400',
-}
-
-function fmtDate(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+import InvoiceTable from '@/components/invoices/InvoiceTable'
 
 export default async function InvoicesPage() {
   const supabase = await createClient()
@@ -64,47 +53,7 @@ export default async function InvoicesPage() {
 
         {/* Invoice list */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-          {!invoices?.length ? (
-            <div className="p-8 text-center">
-              <p className="text-sm font-semibold text-gray-400">No invoices yet.</p>
-              <Link href="/dashboard/invoices/new" className="mt-3 inline-block text-sm font-bold text-cyan-600 hover:underline">Create your first invoice →</Link>
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="border-b border-gray-100">
-                <tr>
-                  <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Invoice</th>
-                  <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Client</th>
-                  <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Issued</th>
-                  <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Due</th>
-                  <th className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-gray-400">Amount</th>
-                  <th className="px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {invoices.map(inv => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const clientName = (inv as any).clients?.name ?? '—'
-                  return (
-                    <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-4">
-                        <Link href={`/dashboard/invoices/${inv.id}`} className="font-bold text-slate-900 hover:text-cyan-600">{inv.invoice_number}</Link>
-                      </td>
-                      <td className="px-5 py-4 text-gray-600">{clientName}</td>
-                      <td className="px-5 py-4 text-gray-500">{fmtDate(inv.issue_date)}</td>
-                      <td className="px-5 py-4 text-gray-500">{inv.due_date ? fmtDate(inv.due_date) : '—'}</td>
-                      <td className="px-5 py-4 text-right font-bold text-gray-900">{inv.currency} {Number(inv.subtotal).toFixed(2)}</td>
-                      <td className="px-5 py-4 text-center">
-                        <span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[inv.status]}`}>
-                          {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
+          <InvoiceTable invoices={(invoices ?? []) as unknown as import('@/components/invoices/InvoiceTable').InvoiceRow[]} />
         </div>
 
       </div>
