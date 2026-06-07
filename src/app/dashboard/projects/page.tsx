@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import ProjectCard from '@/components/projects/ProjectCard'
+import ProjectsGrid from '@/components/projects/ProjectsGrid'
 import ProjectForm from '@/components/projects/ProjectForm'
 import { getSubscription, isTeamPlan, maxActiveProjects } from '@/lib/subscription'
 
@@ -45,9 +46,7 @@ export default async function ProjectsPage() {
           {active.length === 0 ? (
             <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm font-semibold text-gray-500 shadow-sm">No active projects. Create one above.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {active.map(p => <ProjectCard key={p.id} project={p} />)}
-            </div>
+            <ProjectsGrid projects={active} />
           )}
         </section>
 
