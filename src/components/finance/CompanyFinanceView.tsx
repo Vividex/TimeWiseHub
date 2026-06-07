@@ -4,6 +4,8 @@ import FinanceSummary from '@/components/finance/FinanceSummary'
 import FinanceChart, { type MonthBar } from '@/components/finance/FinanceChart'
 import IncomeForm from '@/components/finance/IncomeForm'
 import IncomeList from '@/components/finance/IncomeList'
+import RunPayControl from '@/components/finance/RunPayControl'
+import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
 import { PERIOD_LABELS, getPeriodRange, type Period } from '@/lib/finance/period'
 
 export type FinanceScope = { type: 'org'; orgId: string } | { type: 'user'; userId: string }
@@ -111,6 +113,29 @@ export default async function CompanyFinanceView({
   const totalIncome = incomeEntries.reduce((sum, entry) => sum + Number(entry.amount), 0)
   const totalExpenses = expenses.reduce((sum, entry) => sum + Number(entry.amount), 0)
   const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenseResult.data ?? [])
+  // Payroll section data — org scope only.
+  type PayRun = {
+    id: string
+    period_start: string
+    period_end: string
+    created_at: string
+    pay_statements: PayStatement[]
+  }
+  let payRuns: PayRun[] = []
+  let payCadence = 'fortnightly'
+  if (scope.type === 'org') {
+    const [{ data: runs }, { data: orgRow }] = await Promise.all([
+      supabase
+        .from('pay_runs')
+        .select('id, period_start, period_end, created_at, pay_statements(id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes)')
+        .eq('org_id', scope.orgId)
+        .order('period_start', { ascending: false })
+        .limit(6),
+      supabase.from('organisations').select('pay_cadence').eq('id', scope.orgId).single(),
+    ])
+    payRuns = (runs ?? []) as unknown as PayRun[]
+    payCadence = (orgRow?.pay_cadence as string) ?? 'fortnightly'
+  }
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
@@ -136,12 +161,44 @@ export default async function CompanyFinanceView({
         <FinanceSummary totalIncome={totalIncome} totalExpenses={totalExpenses} currency="AUD" />
         <FinanceChart months={monthlyData} />
 
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Payroll &amp; net profit</h2>
-          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
-            Coming with the payroll module — payroll costs and net profit will roll up here.
-          </p>
-        </div>
+        {scope.type === 'org' && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Payroll</h2>
+            <RunPayControl cadence={payCadence} />
+
+            {payRuns.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-4 text-sm font-semibold text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                No pay runs yet. Use “Run pay” above to generate statements from approved hours.
+              </p>
+            ) : (
+              payRuns.map(run => {
+                const cost = run.pay_statements.reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
+                return (
+                  <div key={run.id} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{run.period_start} – {run.period_end}</span>
+                      <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                        {run.pay_statements.length} statement(s) · cost {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(cost)}
+                      </span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {run.pay_statements.map(s => (
+                        <PayStatementCard key={s.id} statement={s} showNet={false} />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Net profit</h3>
+              <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
+                Revenue − expenses − payroll roll-up arrives with the company P&amp;L module.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
