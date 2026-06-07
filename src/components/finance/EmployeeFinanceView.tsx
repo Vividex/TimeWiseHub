@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
+import PayslipList, { type PayslipRow } from '@/components/finance/PayslipList'
 
 type OwnTimesheet = {
   id: string
@@ -15,7 +16,7 @@ function formatHours(totalSeconds: number): string {
 export default async function EmployeeFinanceView({ userId }: { userId: string }) {
   const supabase = await createClient()
 
-  const [{ data: statementsData }, { data: profile }, { data: tsData }] = await Promise.all([
+  const [{ data: statementsData }, { data: profile }, { data: tsData }, { data: payslipsData }] = await Promise.all([
     supabase
       .from('pay_statements')
       .select('id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes')
@@ -29,15 +30,26 @@ export default async function EmployeeFinanceView({ userId }: { userId: string }
       .eq('user_id', userId)
       .order('week_start', { ascending: false })
       .limit(12),
+    supabase
+      .from('payslips')
+      .select('id, label, pay_date, file_path, uploaded_at')
+      .eq('user_id', userId)
+      .order('pay_date', { ascending: false }),
   ])
 
   const statements = (statementsData ?? []) as PayStatement[]
   const taxPct = (profile?.tax_estimate_pct ?? null) as number | null
   const timesheets = (tsData ?? []) as OwnTimesheet[]
+  const payslips = (payslipsData ?? []) as PayslipRow[]
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6">
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Payslips</h2>
+          <PayslipList payslips={payslips} />
+        </div>
+
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Your pay statements</h2>
           {statements.length === 0 ? (
