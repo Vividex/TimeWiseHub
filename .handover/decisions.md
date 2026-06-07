@@ -13,5 +13,7 @@
 # Free-form standing rules the conductor should respect this run.
 - Never touch billing, payment, auth, or Supabase code.
 - Do not add npm dependencies — use what is already installed.
-- Do not modify src/app/layout.tsx or src/app/page.tsx.
-- Keep changes confined to new files under src/components/.
+- Confine changes to: src/components/SplashScreen.tsx, src/components/SplashGate.tsx,
+  and a new public/vividex.png. Leave the existing SplashGate wiring in
+  src/app/layout.tsx as-is; do not touch other components or page.tsx.
+- Do not edit the original "vividex logo 3.png" or public/logo.png.
