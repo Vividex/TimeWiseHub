@@ -27,7 +27,7 @@ export default async function SettingsPage() {
     ? await Promise.all([
       supabase
         .from('organisations')
-        .select('time_rounding_minutes')
+        .select('time_rounding_minutes, pay_cadence, super_rate')
         .eq('id', membership.org_id)
         .single(),
       supabase
@@ -94,6 +94,8 @@ export default async function SettingsPage() {
           <OrgBillingSettingsForm
             orgId={membership.org_id}
             initialRoundingMinutes={organisation?.time_rounding_minutes ?? 0}
+            initialPayCadence={organisation?.pay_cadence ?? 'fortnightly'}
+            initialSuperRate={organisation?.super_rate ?? 12}
             initialMembers={(members ?? []) as unknown as Parameters<typeof OrgBillingSettingsForm>[0]['initialMembers']}
           />
         )}

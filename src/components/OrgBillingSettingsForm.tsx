@@ -14,14 +14,20 @@ type OrgMember = {
 export default function OrgBillingSettingsForm({
   orgId,
   initialRoundingMinutes,
+  initialPayCadence,
+  initialSuperRate,
   initialMembers,
 }: {
   orgId: string
   initialRoundingMinutes: number
+  initialPayCadence: string
+  initialSuperRate: number
   initialMembers: OrgMember[]
 }) {
   const router = useRouter()
   const [roundingEnabled, setRoundingEnabled] = useState(initialRoundingMinutes === 15)
+  const [payCadence, setPayCadence] = useState(initialPayCadence)
+  const [superRate, setSuperRate] = useState(String(initialSuperRate))
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries(initialMembers.map(member => [member.id, member.hourly_rate?.toString() ?? ''])),
   )
@@ -38,7 +44,11 @@ export default function OrgBillingSettingsForm({
     const supabase = createClient()
     const { error: orgError } = await supabase
       .from('organisations')
-      .update({ time_rounding_minutes: roundingEnabled ? 15 : 0 })
+      .update({
+        time_rounding_minutes: roundingEnabled ? 15 : 0,
+        pay_cadence: payCadence,
+        super_rate: superRate.trim() ? Number(superRate) : 12,
+      })
       .eq('id', orgId)
 
     if (orgError) {
@@ -89,6 +99,30 @@ export default function OrgBillingSettingsForm({
         >
           <span className={`mt-0.5 inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${roundingEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
         </button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="payCadence" className="block text-sm font-bold text-gray-900">Pay cadence</label>
+          <select
+            id="payCadence" value={payCadence}
+            onChange={e => setPayCadence(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="weekly">Weekly</option>
+            <option value="fortnightly">Fortnightly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="superRate" className="block text-sm font-bold text-gray-900">Super rate %</label>
+          <input
+            id="superRate" type="number" min="0" max="100" step="0.1"
+            value={superRate}
+            onChange={e => setSuperRate(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
       </div>
 
       <div className="overflow-x-auto">
