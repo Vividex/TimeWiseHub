@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const userIds = [...secondsByUser.keys()]
   const { data: membersData } = await supabase
     .from('organisation_members')
-    .select('user_id, hourly_rate, profiles(full_name, email)')
+    .select('user_id, hourly_rate, profiles!organisation_members_user_id_fkey(full_name, email)')
     .eq('org_id', ctx.orgId)
     .in('user_id', userIds)
 
