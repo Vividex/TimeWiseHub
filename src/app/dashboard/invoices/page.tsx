@@ -19,11 +19,18 @@ export default async function InvoicesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: invoices } = await supabase
+  const { data: membership } = await supabase
+    .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
+  const orgId = membership?.org_id ?? null
+
+  const invoiceQuery = supabase
     .from('invoices')
     .select('id, invoice_number, status, issue_date, due_date, subtotal, currency, clients(name)')
-    .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
+
+  const { data: invoices } = orgId
+    ? await invoiceQuery.or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
+    : await invoiceQuery.eq('owner_id', user.id)
 
   const totalOutstanding = (invoices ?? [])
     .filter(i => i.status === 'sent' || i.status === 'overdue')
