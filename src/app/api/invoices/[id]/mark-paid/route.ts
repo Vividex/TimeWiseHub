@@ -11,7 +11,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const service = createServiceClient()
   const { data: invoice } = await service
     .from('invoices')
-    .select('owner_id, org_id, subtotal, currency, invoice_number, clients(name)')
+    .select('owner_id, org_id, client_id, subtotal, currency, invoice_number, clients(name)')
     .eq('id', id)
     .single()
 
@@ -31,6 +31,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     service.from('income_entries').insert({
       user_id: invoice.owner_id,
       org_id: invoice.org_id ?? null,
+      client_id: invoice.client_id ?? null,
       amount: invoice.subtotal,
       currency: invoice.currency ?? 'AUD',
       category: 'Sales',
