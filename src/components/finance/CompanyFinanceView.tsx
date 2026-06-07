@@ -7,6 +7,8 @@ import IncomeList from '@/components/finance/IncomeList'
 import RunPayControl from '@/components/finance/RunPayControl'
 import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
 import CompanyPnLSummary from '@/components/finance/CompanyPnLSummary'
+import PayslipUpload, { type OrgMemberOption } from '@/components/finance/PayslipUpload'
+import PayslipList, { type PayslipRow } from '@/components/finance/PayslipList'
 import { PERIOD_LABELS, getPeriodRange, type Period } from '@/lib/finance/period'
 
 export type FinanceScope = { type: 'org'; orgId: string } | { type: 'user'; userId: string }
@@ -138,8 +140,10 @@ export default async function CompanyFinanceView({
   let payRuns: PayRun[] = []
   let payCadence = 'fortnightly'
   let payStatements: PayStatementRow[] = []
+  let payslipRows: PayslipRow[] = []
+  let payslipMembers: OrgMemberOption[] = []
   if (scope.type === 'org') {
-    const [{ data: runs }, { data: orgRow }, { data: stmts }] = await Promise.all([
+    const [{ data: runs }, { data: orgRow }, { data: stmts }, { data: payslipsData }, { data: membersForPayslips }] = await Promise.all([
       supabase
         .from('pay_runs')
         .select('id, period_start, period_end, created_at, pay_statements(id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes)')
@@ -148,10 +152,29 @@ export default async function CompanyFinanceView({
         .limit(6),
       supabase.from('organisations').select('pay_cadence').eq('id', scope.orgId).single(),
       supabase.from('pay_statements').select('period_start, gross, super_amount').eq('org_id', scope.orgId),
+      supabase
+        .from('payslips')
+        .select('id, label, pay_date, file_path, uploaded_at, user_id, profiles!payslips_user_id_fkey(full_name, email)')
+        .eq('org_id', scope.orgId)
+        .order('pay_date', { ascending: false }),
+      supabase
+        .from('organisation_members')
+        .select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)')
+        .eq('org_id', scope.orgId),
     ])
     payRuns = (runs ?? []) as unknown as PayRun[]
     payCadence = (orgRow?.pay_cadence as string) ?? 'fortnightly'
     payStatements = (stmts ?? []) as PayStatementRow[]
+    payslipRows = ((payslipsData ?? []) as unknown as {
+      id: string; label: string; pay_date: string; file_path: string; uploaded_at: string
+      profiles: { full_name: string | null; email: string } | null
+    }[]).map(p => ({
+      id: p.id, label: p.label, pay_date: p.pay_date, file_path: p.file_path, uploaded_at: p.uploaded_at,
+      employeeName: p.profiles?.full_name ?? p.profiles?.email ?? 'Unknown',
+    }))
+    payslipMembers = ((membersForPayslips ?? []) as unknown as {
+      user_id: string; profiles: { full_name: string | null; email: string } | null
+    }[]).map(m => ({ user_id: m.user_id, name: m.profiles?.full_name ?? m.profiles?.email ?? 'Unknown' }))
   }
 
   // Period-filtered payroll cost (gross + super) for the P&L summary.
@@ -215,6 +238,12 @@ export default async function CompanyFinanceView({
                 )
               })
             )}
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Payslips</h3>
+              <PayslipUpload orgId={scope.orgId} uploadedBy={currentUserId} members={payslipMembers} />
+              <PayslipList payslips={payslipRows} canDelete />
+            </div>
 
             <CompanyPnLSummary revenue={totalIncome} expenses={totalExpenses} payroll={periodPayroll} />
           </div>
