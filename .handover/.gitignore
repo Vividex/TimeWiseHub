@@ -1,0 +1,5 @@
+# Ignore transient handover scratch; keep the plan and the standing decisions.
+*
+!.gitignore
+!spec.md
+!decisions.md
