@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ExportExpensesButton from './ExportExpensesButton'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { useTextFilter } from '@/lib/use-text-filter'
+import SearchInput from '@/components/ui/SearchInput'
 
 type Category = { id: string; name: string }
 type Expense = {
@@ -37,6 +39,10 @@ export default function ExpenseList({
   const router = useRouter()
   const [expenses, setExpenses] = useState(initialExpenses)
   const [statusFilter, setStatusFilter] = useState('all')
+  const { query, setQuery, filtered: textFiltered } = useTextFilter(
+    expenses,
+    e => `${e.description ?? ''} ${e.expense_categories?.name ?? ''} ${e.amount}`,
+  )
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<{ id: string; receipt_path: string | null } | null>(null)
 
@@ -46,7 +52,7 @@ export default function ExpenseList({
   }, [initialExpenses])
   const [loading, setLoading] = useState<string | null>(null)
 
-  const filtered = statusFilter === 'all' ? expenses : expenses.filter(e => e.status === statusFilter)
+  const filtered = statusFilter === 'all' ? textFiltered : textFiltered.filter(e => e.status === statusFilter)
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
 
   async function handleSubmit(id: string) {
@@ -79,6 +85,7 @@ export default function ExpenseList({
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-xl font-bold text-gray-900">My expenses</h2>
         <div className="flex items-center gap-3">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search expenses…" />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
             className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
             <option value="all">All</option>
@@ -91,8 +98,10 @@ export default function ExpenseList({
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {expenses.length === 0 ? (
         <p className="text-sm font-semibold text-gray-500">No expenses found.</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm font-semibold text-gray-500">No matches.</p>
       ) : (
         <>
           <ul className="space-y-3">
@@ -200,4 +209,3 @@ export default function ExpenseList({
     </div>
   )
 }
-
