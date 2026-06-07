@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+
+const SPIN_MS = 1600
+const HOLD_MS = 1000
+const FADE_MS = 400
 
 export default function SplashScreen({
   minDurationMs = 1500,
@@ -13,27 +16,100 @@ export default function SplashScreen({
   const [fading, setFading] = useState(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setFading(true), minDurationMs)
+    const fadeStart = Math.max(minDurationMs, SPIN_MS + HOLD_MS)
+    const t = setTimeout(() => setFading(true), fadeStart)
 
     return () => clearTimeout(t)
   }, [minDurationMs])
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity ${
         fading ? 'opacity-0' : 'opacity-100'
       }`}
       onTransitionEnd={(e) => {
         if (fading && e.propertyName === 'opacity') onDone?.()
       }}
-      style={{ background: 'var(--background)', color: 'var(--foreground)' }}
+      style={{ background: '#020617', transitionDuration: `${FADE_MS}ms` }}
     >
-      <div className="flex flex-col items-center gap-5 text-center">
-        <h1 className="text-3xl font-extrabold tracking-normal sm:text-4xl">
-          <span>TimeWise</span>
-          <span className="text-cyan-500 dark:text-cyan-400">Hub</span>
-        </h1>
-        <Loader2 className="h-6 w-6 animate-spin text-cyan-500 dark:text-cyan-400" aria-hidden="true" />
+      <style>{`
+        @keyframes tw-coin-spin {
+          from { transform: rotateY(-1080deg); }
+          to { transform: rotateY(0deg); }
+        }
+        .tw-coin { animation: tw-coin-spin 1.6s ease-out forwards; }
+        @media (prefers-reduced-motion: reduce) {
+          .tw-coin { animation: none; }
+        }
+      `}</style>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 48 }}>
+        {/* TW coin with soft glow behind it */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              width: 360,
+              height: 360,
+              borderRadius: '50%',
+              background:
+                'radial-gradient(circle, rgba(56,189,248,0.40) 0%, rgba(37,99,235,0.22) 42%, rgba(2,6,23,0) 72%)',
+              filter: 'blur(28px)',
+              zIndex: 0,
+              pointerEvents: 'none',
+            }}
+          />
+          <div style={{ perspective: '1400px', position: 'relative', zIndex: 1 }}>
+            <div
+              className="tw-coin"
+              style={{ position: 'relative', width: 224, height: 224, transformStyle: 'preserve-3d' }}
+            >
+              <img
+                src="/logo.png"
+                alt="TimeWiseHub"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  borderRadius: '50%',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(0deg)',
+                }}
+              />
+              <img
+                src="/logo.png"
+                alt="TimeWiseHub"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  borderRadius: '50%',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+        {/* powered by vividex */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 22, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b' }}>
+            powered by
+          </span>
+          <div style={{ width: 300, height: 44, overflow: 'hidden' }}>
+            <img
+              src="/vividex.png"
+              alt="vividex"
+              style={{ display: 'block', width: 300, marginTop: -46, mixBlendMode: 'screen' }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
