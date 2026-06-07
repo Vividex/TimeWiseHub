@@ -11,9 +11,9 @@ EXISTING dependencies only — do not add packages. Everything must stay SSR-saf
 (no `window`/`document` access during render).
 
 ## Acceptance checklist
-- [ ] C1: Create `src/components/SplashScreen.tsx` — a `"use client"` full-screen overlay (`fixed inset-0`, high z-index, centered) showing the "TimeWiseHub" wordmark (Poppins) and a subtle animated loading indicator using a `lucide-react` icon (e.g. `Loader2` with a CSS spin). It must respect light/dark via the existing theme CSS variables. Default-export a `SplashScreen` component accepting props `{ minDurationMs?: number; onDone?: () => void }`.
-- [ ] C2: Implement auto-dismiss in `SplashScreen.tsx`: on mount, after `minDurationMs` (default 1500ms) start a CSS opacity fade-out, and call `onDone` once the fade finishes. Use `useState`/`useEffect`; keep it SSR-safe (guard browser access inside effects only).
-- [ ] C3: Create `src/components/SplashGate.tsx` — a `"use client"` wrapper that shows `SplashScreen` on first client mount, then renders its `children`, hiding the splash when `onDone` fires. Do NOT modify `layout.tsx` or `page.tsx` in this task; just provide the reusable gate component for later wiring.
+- [x] C1: Create `src/components/SplashScreen.tsx` — a `"use client"` full-screen overlay (`fixed inset-0`, high z-index, centered) showing the "TimeWiseHub" wordmark (Poppins) and a subtle animated loading indicator using a `lucide-react` icon (e.g. `Loader2` with a CSS spin). It must respect light/dark via the existing theme CSS variables. Default-export a `SplashScreen` component accepting props `{ minDurationMs?: number; onDone?: () => void }`.
+- [x] C2: Implement auto-dismiss in `SplashScreen.tsx`: on mount, after `minDurationMs` (default 1500ms) start a CSS opacity fade-out, and call `onDone` once the fade finishes. Use `useState`/`useEffect`; keep it SSR-safe (guard browser access inside effects only).
+- [x] C3: Create `src/components/SplashGate.tsx` — a `"use client"` wrapper that shows `SplashScreen` on first client mount, then renders its `children`, hiding the splash when `onDone` fires. Do NOT modify `layout.tsx` or `page.tsx` in this task; just provide the reusable gate component for later wiring.
 
 ## Verification
 - Global (run after each item): `npm run lint` reports no new errors, and
