@@ -43,7 +43,7 @@ export default function ManagerTimesheetView({ orgId }: { orgId: string }) {
     const supabase = createClient()
     const { data } = await supabase
       .from('timesheets')
-      .select('id, week_start, total_seconds, profiles(email, full_name)')
+      .select('id, week_start, total_seconds, profiles!timesheets_user_id_fkey(email, full_name)')
       .eq('org_id', orgId)
       .eq('status', 'submitted')
       .order('week_start', { ascending: false })

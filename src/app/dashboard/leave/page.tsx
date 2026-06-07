@@ -52,7 +52,7 @@ export default async function LeavePage() {
 
     isManager && orgId
       ? supabase.from('leave_requests')
-          .select('id, leave_type, start_date, end_date, half_day, notes, status, user_id, profiles(email, full_name)')
+          .select('id, leave_type, start_date, end_date, half_day, notes, status, user_id, profiles!leave_requests_user_id_fkey(email, full_name)')
           .eq('org_id', orgId)
           .eq('status', 'submitted')
           .order('created_at', { ascending: true })

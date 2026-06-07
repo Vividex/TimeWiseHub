@@ -41,7 +41,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
     const userIds = members.map(m => m.user_id)
     const { data } = await supabase
       .from('expenses')
-      .select('*, profiles(email), expense_categories(name)')
+      .select('*, profiles!expenses_user_id_fkey(email), expense_categories(name)')
       .in('user_id', userIds)
       .eq('status', 'submitted')
       .order('created_at', { ascending: false })

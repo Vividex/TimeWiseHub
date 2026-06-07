@@ -29,7 +29,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const orgId = membership?.org_id ?? null
 
   const orgMembers = orgId
-    ? (await supabase.from('organisation_members').select('user_id, profiles(id, email, full_name)').eq('org_id', orgId)).data
+    ? (await supabase.from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(id, email, full_name)').eq('org_id', orgId)).data
     : null
 
   // Time entries linked via tasks, not directly by project id
@@ -113,4 +113,3 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     </div>
   )
 }
-

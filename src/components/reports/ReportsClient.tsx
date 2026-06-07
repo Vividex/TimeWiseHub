@@ -402,7 +402,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     setLoading('orgleave')
     const { data } = await supabase
       .from('leave_requests')
-      .select('user_id, leave_type, start_date, end_date, half_day, status, notes, profiles(full_name, email)')
+      .select('user_id, leave_type, start_date, end_date, half_day, status, notes, profiles!leave_requests_user_id_fkey(full_name, email)')
       .eq('org_id', orgId)
       .gte('start_date', `${orgLeaveYear}-01-01`)
       .lte('start_date', `${orgLeaveYear}-12-31`)
@@ -453,7 +453,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     setLoading('orgexp')
     const { data } = await supabase
       .from('expenses')
-      .select('user_id, expense_date, amount, currency, description, status, expense_categories(name), profiles(full_name, email)')
+      .select('user_id, expense_date, amount, currency, description, status, expense_categories(name), profiles!expenses_user_id_fkey(full_name, email)')
       .eq('org_id', orgId)
       .gte('expense_date', orgExpFrom)
       .lte('expense_date', orgExpTo)

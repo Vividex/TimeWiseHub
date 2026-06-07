@@ -108,10 +108,10 @@ export async function sendReviewNotification(
 ) {
   const table = kind === 'leave' ? 'leave_requests' : kind === 'expense' ? 'expenses' : 'timesheets'
   const select = kind === 'leave'
-    ? 'id, user_id, org_id, leave_type, start_date, end_date, half_day, status, review_note, profiles(email, full_name, notification_preferences)'
+    ? 'id, user_id, org_id, leave_type, start_date, end_date, half_day, status, review_note, profiles!leave_requests_user_id_fkey(email, full_name, notification_preferences)'
     : kind === 'expense'
-      ? 'id, user_id, org_id, amount, currency, description, expense_date, status, review_note, profiles(email, full_name, notification_preferences)'
-      : 'id, user_id, org_id, week_start, total_seconds, status, review_note, profiles(email, full_name, notification_preferences)'
+      ? 'id, user_id, org_id, amount, currency, description, expense_date, status, review_note, profiles!expenses_user_id_fkey(email, full_name, notification_preferences)'
+      : 'id, user_id, org_id, week_start, total_seconds, status, review_note, profiles!timesheets_user_id_fkey(email, full_name, notification_preferences)'
 
   // Dynamic notification lookups span three tables with different shapes.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

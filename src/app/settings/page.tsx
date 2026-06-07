@@ -32,7 +32,7 @@ export default async function SettingsPage() {
         .single(),
       supabase
         .from('organisation_members')
-        .select('id, role, hourly_rate, profiles(email, full_name)')
+        .select('id, role, hourly_rate, profiles!organisation_members_user_id_fkey(email, full_name)')
         .eq('org_id', membership.org_id)
         .order('role', { ascending: true }),
     ])

@@ -155,7 +155,7 @@ export default async function InsightsPage() {
   if (isManager && orgId) {
     const { data: orgMembers } = await supabase
       .from('organisation_members')
-      .select('user_id, profiles(full_name, email)')
+      .select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)')
       .eq('org_id', orgId)
 
     const memberIds = (orgMembers ?? []).map(m => m.user_id)

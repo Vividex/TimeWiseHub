@@ -32,7 +32,7 @@ export default function ManagerTimeView({ orgId }: { orgId: string }) {
 
       const { data: orgMembers } = await supabase
         .from('organisation_members')
-        .select('user_id, profiles(email)')
+        .select('user_id, profiles!organisation_members_user_id_fkey(email)')
         .eq('org_id', orgId)
 
       if (!orgMembers) { setLoading(false); return }
