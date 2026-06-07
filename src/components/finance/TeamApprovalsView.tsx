@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import PayStatementCard, { type PayStatement } from '@/components/finance/PayStatementCard'
 
 type TeamTimesheet = {
   id: string
@@ -13,7 +14,7 @@ function formatHours(totalSeconds: number): string {
   return `${(totalSeconds / 3600).toFixed(2)} h`
 }
 
-export default async function TeamApprovalsView({ orgId }: { orgId: string }) {
+export default async function TeamApprovalsView({ orgId, userId }: { orgId: string; userId: string }) {
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -26,6 +27,17 @@ export default async function TeamApprovalsView({ orgId }: { orgId: string }) {
 
   const timesheets = (data ?? []) as unknown as TeamTimesheet[]
   const pending = timesheets.filter(t => t.status === 'submitted')
+  const [{ data: ownStmts }, { data: profile }] = await Promise.all([
+    supabase
+      .from('pay_statements')
+      .select('id, period_start, period_end, approved_seconds, hourly_rate, gross, super_rate, super_amount, notes')
+      .eq('user_id', userId)
+      .order('period_start', { ascending: false })
+      .limit(6),
+    supabase.from('profiles').select('tax_estimate_pct').eq('id', userId).single(),
+  ])
+  const ownStatements = (ownStmts ?? []) as PayStatement[]
+  const ownTaxPct = (profile?.tax_estimate_pct ?? null) as number | null
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
@@ -68,11 +80,21 @@ export default async function TeamApprovalsView({ orgId }: { orgId: string }) {
           )}
         </div>
 
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Your pay statement</h2>
-          <p className="mt-2 text-sm font-semibold text-gray-500 dark:text-slate-400">
-            Coming with the payroll module — visible only to you and your employer.
-          </p>
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Your pay statements</h2>
+          {ownStatements.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
+                No pay statements yet — visible only to you and your employer.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {ownStatements.map(s => (
+                <PayStatementCard key={s.id} statement={s} showNet userId={userId} initialTaxPct={ownTaxPct} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
