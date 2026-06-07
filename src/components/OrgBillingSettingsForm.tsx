@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import { useTextFilter } from '@/lib/use-text-filter'
+import SearchInput from '@/components/ui/SearchInput'
 
 type OrgMember = {
   id: string
@@ -34,6 +36,10 @@ export default function OrgBillingSettingsForm({
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const { query, setQuery, filtered: filteredMembers } = useTextFilter(
+    initialMembers,
+    m => `${m.profiles?.full_name ?? ''} ${m.profiles?.email ?? ''} ${m.role}`,
+  )
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault()
@@ -125,6 +131,11 @@ export default function OrgBillingSettingsForm({
         </div>
       </div>
 
+      <SearchInput value={query} onChange={setQuery} placeholder="Search employees…" />
+
+      {initialMembers.length > 0 && filteredMembers.length === 0 ? (
+        <p className="text-sm font-semibold text-gray-500">No matches.</p>
+      ) : (
       <div className="overflow-x-auto">
         <table className="w-full min-w-[520px] text-left text-sm">
           <thead>
@@ -135,7 +146,7 @@ export default function OrgBillingSettingsForm({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {initialMembers.map(member => {
+            {filteredMembers.map(member => {
               const profile = member.profiles
               const name = profile?.full_name || profile?.email || 'Unknown'
               return (
@@ -162,6 +173,7 @@ export default function OrgBillingSettingsForm({
           </tbody>
         </table>
       </div>
+      )}
 
       {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
