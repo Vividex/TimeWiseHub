@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -13,6 +14,8 @@ type Client = {
   default_rate: number | null
   currency: string
   project_count: number
+  outstanding?: number
+  paid?: number
 }
 
 export default function ClientList({ clients }: { clients: Client[] }) {
@@ -37,7 +40,7 @@ export default function ClientList({ clients }: { clients: Client[] }) {
         <div key={c.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-base font-bold text-gray-900 truncate">{c.name}</p>
+              <Link href={`/dashboard/clients/${c.id}`} className="text-base font-bold text-gray-900 truncate hover:text-cyan-600">{c.name}</Link>
               {c.email && <p className="mt-0.5 text-sm text-gray-500 truncate">{c.email}</p>}
               {c.phone && <p className="text-sm text-gray-500">{c.phone}</p>}
               {c.address && <p className="mt-1 text-xs text-gray-400 truncate">{c.address}</p>}
@@ -54,6 +57,12 @@ export default function ClientList({ clients }: { clients: Client[] }) {
               <span className="text-xs text-gray-400">No default rate</span>
             )}
             <span className="text-xs text-gray-400">{c.project_count} project{c.project_count !== 1 ? 's' : ''}</span>
+            {c.outstanding !== undefined && (
+              <span className="text-xs font-bold text-amber-600">Outstanding ${c.outstanding.toFixed(2)}</span>
+            )}
+            {c.paid !== undefined && (
+              <span className="text-xs font-bold text-green-600">Paid ${c.paid.toFixed(2)}</span>
+            )}
           </div>
         </div>
       ))}
