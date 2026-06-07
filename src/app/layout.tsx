@@ -4,6 +4,8 @@ import { ThemeProvider } from 'next-themes'
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CookieBanner from "@/components/CookieBanner";
 import SplashGate from "@/components/SplashGate";
+import NavHistoryProvider from "@/components/NavHistoryProvider";
+import BackButton from "@/components/BackButton";
 
 export const metadata: Metadata = {
   title: "TimeWiseHub — Track Time. Control Costs. Grow Smarter.",
@@ -25,10 +27,13 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="twh-theme">
           <ServiceWorkerRegistration />
-          <SplashGate>
-            {children}
-            <CookieBanner />
-          </SplashGate>
+          <NavHistoryProvider>
+            <BackButton />
+            <SplashGate>
+              {children}
+              <CookieBanner />
+            </SplashGate>
+          </NavHistoryProvider>
         </ThemeProvider>
       </body>
     </html>
