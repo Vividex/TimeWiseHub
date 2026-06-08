@@ -20,7 +20,7 @@ org-scoped when created by an org member and visible to all members.
 
 ## Acceptance checklist
 
-- [ ] C1: **DB migration** — create `supabase/schema-029-member-project-client-access.sql`.
+- [x] C1: **DB migration** — create `supabase/schema-034-member-project-client-access.sql`.
   Add two RLS policies (do NOT drop existing ones, do NOT touch other tables):
   ```sql
   -- Allow any org member to create clients for their org
