@@ -58,7 +58,7 @@ org-scoped when created by an org member and visible to all members.
   Personal projects (`org_id = null`) keep existing individual subscription +
   project-limit logic completely unchanged.
 
-- [ ] C3: **ProjectForm toggle** — update `src/components/projects/ProjectForm.tsx`.
+- [x] C3: **ProjectForm toggle** — update `src/components/projects/ProjectForm.tsx`.
   When `orgId` is present, add a **"Scope"** row above the project name field with
   two pill-style toggle buttons: **Personal** and **Organisation** (default:
   Organisation). Local state: `scope: 'personal' | 'org'` (default `'org'`).

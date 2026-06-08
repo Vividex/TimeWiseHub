@@ -22,13 +22,11 @@ export default function ProjectForm({
   orgId,
   activeProjectCount,
   activeProjectLimit,
-  canCreateOrgProject,
 }: {
   userId: string
   orgId: string | null
   activeProjectCount: number
   activeProjectLimit: number | null
-  canCreateOrgProject: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -42,8 +40,9 @@ export default function ProjectForm({
   const [clients, setClients] = useState<Client[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [scope, setScope] = useState<'personal' | 'org'>('org')
   const atProjectLimit = activeProjectLimit !== null && activeProjectCount >= activeProjectLimit
-  const blocked = atProjectLimit || (!!orgId && !canCreateOrgProject)
+  const blocked = atProjectLimit
 
   useEffect(() => {
     if (!open) return
@@ -60,7 +59,7 @@ export default function ProjectForm({
     setError(null)
 
     if (blocked) {
-      setError(atProjectLimit ? `Free plan is limited to ${activeProjectLimit} active projects.` : 'Team plan required for organisation projects.')
+      setError(`Free plan is limited to ${activeProjectLimit} active projects.`)
       setLoading(false)
       return
     }
@@ -69,7 +68,7 @@ export default function ProjectForm({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        org_id: orgId,
+        org_id: orgId && scope === 'org' ? orgId : null,
       name,
       description: description || null,
       colour,
@@ -100,14 +99,31 @@ export default function ProjectForm({
           Free plan limit reached: {activeProjectLimit} active projects. Archive a project or upgrade to Pro.
         </p>
       )}
-      {!!orgId && !canCreateOrgProject && (
-        <p className="mt-3 text-sm font-semibold text-amber-600">
-          Organisation projects require the Team plan.
-        </p>
-      )}
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          {orgId && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Scope</label>
+              <div className="flex gap-2">
+                {(['org', 'personal'] as const).map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setScope(s)}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      scope === s
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {s === 'org' ? 'Organisation' : 'Personal'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Project name</label>
             <input type="text" required value={name} onChange={e => setName(e.target.value)}

@@ -35,7 +35,6 @@ export default async function ProjectsPage() {
           orgId={membership?.org_id ?? null}
           activeProjectCount={active.filter(project => project.owner_id === user.id).length}
           activeProjectLimit={projectLimit === Infinity ? null : projectLimit}
-          canCreateOrgProject={isTeamPlan(subscription)}
         />
 
         {/* Inbox — active */}
