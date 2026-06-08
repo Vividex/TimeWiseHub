@@ -40,6 +40,8 @@ export default function IncomeForm({ userId, orgId }: { userId: string; orgId: s
     setAmount('')
     setDescription('')
     setDate(new Date().toISOString().slice(0, 10))
+    setCurrency('AUD')
+    setCategory('Sales')
     setOpen(false)
     router.refresh()
   }
