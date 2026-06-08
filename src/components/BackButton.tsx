@@ -15,7 +15,7 @@ export default function BackButton() {
   // Only show once the user has actually navigated away from a hub/main page.
   // The hub needs no back button (everything is a click away), and this also
   // keeps the control off the logo on landing/main pages.
-  if (ROOT_ROUTES.has(pathname) || !canGoBack) return null
+  if (pathname.startsWith('/dashboard') || ROOT_ROUTES.has(pathname) || !canGoBack) return null
 
   return (
     <button
