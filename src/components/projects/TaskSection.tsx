@@ -19,10 +19,12 @@ export default function TaskSection({
   projectId,
   assigneeId,
   initialTasks,
+  orgMembers,
 }: {
   projectId: string
   assigneeId: string
   initialTasks: Task[]
+  orgMembers?: { userId: string; displayName: string }[]
 }) {
   const [tasks, setTasks] = useState(initialTasks)
 
@@ -32,7 +34,7 @@ export default function TaskSection({
 
   return (
     <>
-      <TaskForm projectId={projectId} assigneeId={assigneeId} onAdd={handleAdd} />
+      <TaskForm projectId={projectId} assigneeId={assigneeId} orgMembers={orgMembers} onAdd={handleAdd} />
       <TaskList initialTasks={tasks} projectId={projectId} currentUserId={assigneeId} />
     </>
   )

@@ -49,6 +49,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const dollarsPct = project.budget_dollars ? Math.min(Math.round((billableValue / project.budget_dollars) * 100), 100) : null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientName = (project as any).clients?.name as string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mappedOrgMembers = orgId && orgMembers
+    ? (orgMembers as any[]).map((m: any) => ({
+        userId: m.user_id as string,
+        displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string,
+      }))
+    : undefined
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -103,7 +110,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         {/* Tasks */}
         <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900">Tasks</h2>
-          <TaskSection projectId={project.id} assigneeId={user.id} initialTasks={tasks ?? []} />
+          <TaskSection projectId={project.id} assigneeId={user.id} initialTasks={tasks ?? []} orgMembers={mappedOrgMembers} />
         </div>
 
         {/* Documents */}

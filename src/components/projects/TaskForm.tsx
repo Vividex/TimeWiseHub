@@ -15,12 +15,23 @@ type Task = {
   completed_at: string | null
 }
 
-export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: string; assigneeId: string; onAdd?: (task: Task) => void }) {
+export default function TaskForm({
+  projectId,
+  assigneeId,
+  orgMembers,
+  onAdd,
+}: {
+  projectId: string
+  assigneeId: string
+  orgMembers?: { userId: string; displayName: string }[]
+  onAdd?: (task: Task) => void
+}) {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('normal')
   const [dueDate, setDueDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [assignee, setAssignee] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +45,9 @@ export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: 
     const supabase = createClient()
     const { data: task, error } = await supabase.from('tasks').insert({
       project_id: projectId,
-      assignee_id: assigneeId,
+      assignee_id: orgMembers && orgMembers.length > 0
+        ? (assignee || null)
+        : assigneeId,
       title: title.trim(),
       priority,
       due_date: dueDate || null,
@@ -47,6 +60,7 @@ export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: 
     setPriority('normal')
     setDueDate('')
     setNotes('')
+    setAssignee('')
     setExpanded(false)
     setLoading(false)
     if (task) onAdd?.(task as Task)
@@ -88,6 +102,18 @@ export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: 
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
               className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
+          {orgMembers && orgMembers.length > 0 && (
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Assignee</label>
+              <select value={assignee} onChange={e => setAssignee(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <option value="">Unassigned</option>
+                {orgMembers.map(m => (
+                  <option key={m.userId} value={m.userId}>{m.displayName}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
@@ -95,4 +121,3 @@ export default function TaskForm({ projectId, assigneeId, onAdd }: { projectId: 
     </form>
   )
 }
-

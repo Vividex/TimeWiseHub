@@ -21,7 +21,7 @@ allow unassigned tasks.
     WHERE assignee_id IS NULL AND status <> 'done';
   ```
 
-- [ ] T2: Update `src/components/projects/TaskForm.tsx`,
+- [x] T2: Update `src/components/projects/TaskForm.tsx`,
   `src/components/projects/TaskSection.tsx`, and
   `src/app/dashboard/projects/[id]/page.tsx` to support creating unassigned tasks:
   - **TaskForm.tsx** — add optional prop
