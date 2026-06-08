@@ -65,7 +65,7 @@ Full step plan: `docs/superpowers/plans/2026-06-08-confidential-document-access.
   uppercase tracking-wide`, `bg-amber-100 text-amber-700`, with the `Lock` icon).
   **Use the exact JSX from the plan file's Task 3.**
 
-- [ ] **C4: Document search + management-only filter** — update
+- [x] **C4: Document search + management-only filter** — update
   `src/components/projects/DocumentPanel.tsx`. Add `import { useTextFilter } from
   '@/lib/use-text-filter'` and `import SearchInput from '@/components/ui/SearchInput'`.
   Add state `const [confFilter, setConfFilter] = useState<'all' | 'confidential'

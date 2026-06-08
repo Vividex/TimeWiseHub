@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { useTextFilter } from '@/lib/use-text-filter'
+import SearchInput from '@/components/ui/SearchInput'
 
 type Doc = { id: string; name: string; storage_path: string; size_bytes: number | null; created_at: string; confidential: boolean }
 
@@ -28,6 +30,7 @@ export default function DocumentPanel({ projectId, userId, initialDocuments, isO
   const [error, setError] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Doc | null>(null)
   const [uploadConfidential, setUploadConfidential] = useState(false)
+  const [confFilter, setConfFilter] = useState<'all' | 'confidential' | 'standard'>('all')
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -72,6 +75,13 @@ export default function DocumentPanel({ projectId, userId, initialDocuments, isO
     setPendingDelete(null)
   }
 
+  const { query, setQuery, filtered: nameFiltered } = useTextFilter(docs, d => d.name)
+  const visibleDocs = nameFiltered.filter(d =>
+    confFilter === 'all' ? true
+    : confFilter === 'confidential' ? d.confidential
+    : !d.confidential,
+  )
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -95,13 +105,30 @@ export default function DocumentPanel({ projectId, userId, initialDocuments, isO
         </div>
       </div>
 
+      <div className="mb-3 flex items-center gap-3">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search documents…" />
+        {canManageConfidential && (
+          <select
+            value={confFilter}
+            onChange={e => setConfFilter(e.target.value as 'all' | 'confidential' | 'standard')}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="all">All</option>
+            <option value="confidential">Confidential only</option>
+            <option value="standard">Standard only</option>
+          </select>
+        )}
+      </div>
+
       {error && <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
       {docs.length === 0 ? (
         <p className="text-sm font-semibold text-gray-500">No documents uploaded yet.</p>
+      ) : visibleDocs.length === 0 ? (
+        <p className="text-sm font-semibold text-gray-500">No matches.</p>
       ) : (
         <ul className="space-y-2">
-          {docs.map(doc => (
+          {visibleDocs.map(doc => (
             <li key={doc.id} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
