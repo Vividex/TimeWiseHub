@@ -68,7 +68,7 @@ org-scoped when created by an org member and visible to all members.
   Remove the "Organisation projects require the Team plan" warning paragraph.
   All other fields (name, description, colour, due date, client, budget) unchanged.
 
-- [ ] C4: **Projects page separation** — update `src/app/dashboard/projects/page.tsx`.
+- [x] C4: **Projects page separation** — update `src/app/dashboard/projects/page.tsx`.
   Split the project list into two groups after fetching:
   - `personalProjects` — where `project.org_id === null`
   - `orgProjects` — where `project.org_id !== null`
@@ -90,7 +90,7 @@ org-scoped when created by an org member and visible to all members.
   personal ProjectCard. Do not alter the query itself — just split the existing
   result array. Remove the `canCreateOrgProject` prop from `<ProjectForm>`.
 
-- [ ] C5: **ProjectCard scope badge** — update `src/components/projects/ProjectCard.tsx`.
+- [x] C5: **ProjectCard scope badge** — update `src/components/projects/ProjectCard.tsx`.
   Accept an optional `scope?: 'personal' | 'org'` prop (default: `'personal'`).
   Render a small pill badge inside the card (top-right corner, or below the
   project name — whichever fits cleanly):

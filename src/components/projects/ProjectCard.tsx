@@ -19,7 +19,7 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((new Date(dateStr).getTime() - today.getTime()) / 86400000)
 }
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ project, scope = 'personal' }: { project: Project; scope?: 'personal' | 'org' }) {
   const tasks = project.tasks ?? []
   const total = tasks.length
   const done  = tasks.filter(t => t.status === 'done').length
@@ -38,6 +38,13 @@ export default function ProjectCard({ project }: { project: Project }) {
           {project.description && (
             <p className="mt-1 truncate text-sm font-medium text-gray-500">{project.description}</p>
           )}
+          <span className={`mt-2 inline-block rounded-xl px-2 py-0.5 text-xs font-black uppercase tracking-wide ${
+            scope === 'org'
+              ? 'bg-cyan-100 text-cyan-700'
+              : 'bg-gray-100 text-gray-500'
+          }`}>
+            {scope === 'org' ? 'Organisation' : 'Personal'}
+          </span>
 
           {total > 0 && (
             <div className="mt-3">

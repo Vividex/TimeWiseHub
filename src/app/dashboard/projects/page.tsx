@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import ProjectCard from '@/components/projects/ProjectCard'
 import ProjectsGrid from '@/components/projects/ProjectsGrid'
 import ProjectForm from '@/components/projects/ProjectForm'
-import { getSubscription, isTeamPlan, maxActiveProjects } from '@/lib/subscription'
+import { getSubscription, maxActiveProjects } from '@/lib/subscription'
 
 export default async function ProjectsPage() {
   const supabase = await createClient()
@@ -23,8 +23,13 @@ export default async function ProjectsPage() {
       : supabase.from('projects').select('*, tasks(id, status)').eq('owner_id', user.id).order('created_at', { ascending: false }),
   ])
 
-  const active   = (projects ?? []).filter(p => p.status === 'active')
-  const archived = (projects ?? []).filter(p => p.status === 'archived')
+  const allProjects = projects ?? []
+  const orgProjects        = allProjects.filter(p => p.org_id !== null)
+  const personalProjects   = allProjects.filter(p => p.org_id === null)
+  const activeOrg          = orgProjects.filter(p => p.status === 'active')
+  const archivedOrg        = orgProjects.filter(p => p.status === 'archived')
+  const activePersonal     = personalProjects.filter(p => p.status === 'active')
+  const archivedPersonal   = personalProjects.filter(p => p.status === 'archived')
   const projectLimit = maxActiveProjects(subscription)
 
   return (
@@ -33,33 +38,51 @@ export default async function ProjectsPage() {
         <ProjectForm
           userId={user.id}
           orgId={membership?.org_id ?? null}
-          activeProjectCount={active.filter(project => project.owner_id === user.id).length}
+          activeProjectCount={activePersonal.filter(p => p.owner_id === user.id).length}
           activeProjectLimit={projectLimit === Infinity ? null : projectLimit}
         />
 
-        {/* Inbox — active */}
-        <section>
-          <h2 className="mb-4 text-xl font-bold text-gray-900">
-            Inbox — Active ({active.length})
-          </h2>
-          {active.length === 0 ? (
-            <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm font-semibold text-gray-500 shadow-sm">No active projects. Create one above.</p>
-          ) : (
-            <ProjectsGrid projects={active} />
-          )}
-        </section>
-
-        {/* Outbox — archived */}
-        {archived.length > 0 && (
+        {/* Organisation Projects */}
+        {membership?.org_id && (
           <section>
             <h2 className="mb-4 text-xl font-bold text-gray-900">
-              Outbox — Completed ({archived.length})
+              Organisation Projects ({activeOrg.length})
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {archived.map(p => <ProjectCard key={p.id} project={p} />)}
-            </div>
+            {activeOrg.length === 0 ? (
+              <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm font-semibold text-gray-500 shadow-sm">No active organisation projects.</p>
+            ) : (
+              <ProjectsGrid projects={activeOrg} scope="org" />
+            )}
+            {archivedOrg.length > 0 && (
+              <div className="mt-4">
+                <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Archived</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {archivedOrg.map(p => <ProjectCard key={p.id} project={p} scope="org" />)}
+                </div>
+              </div>
+            )}
           </section>
         )}
+
+        {/* Personal Projects */}
+        <section>
+          <h2 className="mb-4 text-xl font-bold text-gray-900">
+            Personal Projects ({activePersonal.length})
+          </h2>
+          {activePersonal.length === 0 ? (
+            <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm font-semibold text-gray-500 shadow-sm">No active personal projects. Create one above.</p>
+          ) : (
+            <ProjectsGrid projects={activePersonal} scope="personal" />
+          )}
+          {archivedPersonal.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Archived</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {archivedPersonal.map(p => <ProjectCard key={p.id} project={p} scope="personal" />)}
+              </div>
+            </div>
+          )}
+        </section>
 
       </div>
     </div>
