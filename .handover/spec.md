@@ -33,7 +33,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
   `supabase_realtime`; backfill). Conductor applies via MCP `apply_migration`
   (name: `chat_core`) and verifies with plan Task 1 Step 3 queries.
 
-- [ ] **C2: Chat storage migration** — create `supabase/schema-037-chat-storage.sql`
+- [x] **C2: Chat storage migration** — create `supabase/schema-037-chat-storage.sql`
   exactly per plan **Task 2** (`chat-attachments` private bucket + 3 storage policies).
   Conductor applies via MCP `apply_migration` (name: `chat_storage`) and verifies.
 
