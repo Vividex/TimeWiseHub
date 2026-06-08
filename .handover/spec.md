@@ -58,7 +58,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 
 - [x] **C12: NewDmDialog** — create `src/components/chat/NewDmDialog.tsx` per plan **Task 12**.
 
-- [ ] **C13: ConversationList** — create `src/components/chat/ConversationList.tsx` per plan **Task 13**.
+- [x] **C13: ConversationList** — create `src/components/chat/ConversationList.tsx` per plan **Task 13**.
 
 - [ ] **C14: ChatClient** — create `src/components/chat/ChatClient.tsx` per plan **Task 14**.
 
