@@ -1,102 +1,94 @@
-# Task: Phase 5.5b — Confidential Document Access Control
+# Task: Phase 12 — Team Chat
 
 ## Context
-Today every org member can see every document on every org project:
-`project_documents` RLS grants `ALL` to any org member (schema-008), and the
-storage `project-documents` SELECT policy grants read to any org member of the
-uploader's org (schema-024). There is no way to restrict a sensitive file.
+First in-app messaging for TimeWiseHub: open 1:1 DMs + one read-only-for-employees
+org Announcements channel, live via Supabase Realtime, with file attachments,
+unread badges, and web push gated by quiet hours + leave + public holidays.
+First feature in the codebase to use Supabase Realtime.
 
-**Goal:** A document can be marked **confidential**. A confidential document is
-visible only to its **uploader** plus org **owner/admin/manager**, and is fully
-hidden from regular employees (no row, name, or count). The uploader may set the
-flag at upload time; only owner/admin/manager may change it afterward.
-
-Full design + rationale: `docs/superpowers/specs/2026-06-08-confidential-document-access-design.md`
-Full step plan: `docs/superpowers/plans/2026-06-08-confidential-document-access.md`
+Full design: `docs/superpowers/specs/2026-06-08-team-chat-design.md`
+Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-chat.md`
 
 ## Key files (read before touching)
-- `supabase/schema-008-projects.sql` — defines `project_documents` + its open `ALL` policy (reference)
-- `supabase/schema-024-fix-project-storage.sql` — current storage SELECT policy (reference)
-- `supabase/schema-028-project-entitlements.sql` — trigger pattern to mirror (reference)
-- `src/app/dashboard/projects/[id]/page.tsx` — fetches membership (org_id only) + renders DocumentPanel
-- `src/components/projects/DocumentPanel.tsx` — upload/view/delete; no search box today
-- `src/components/ui/SearchInput.tsx`, `src/lib/use-text-filter.ts` — shared search pattern (reference)
+- `docs/superpowers/plans/2026-06-08-team-chat.md` — THE source of exact code; each
+  checklist item below maps to a numbered Task in this plan. Implement that task's code verbatim.
+- `supabase/schema-001-auth.sql` — org/member/role model + RLS conventions (reference)
+- `src/lib/supabase-browser.ts` / `-server.ts` / `-service.ts` — clients (reference)
+- `src/components/DashboardShell.tsx`, `src/app/dashboard/layout.tsx` — nav + layout (modified)
+- `public/sw.js`, `src/lib/push.ts` — push handler + helper (modified/reference)
+- `src/components/AccountSettingsForm.tsx` — notification prefs form (modified)
+
+## Division of labor
+- **Codex**: all text file creation/edits (SQL files, .ts/.tsx, sw.js).
+- **Conductor**: applies SQL migrations via Supabase MCP `apply_migration`; runs all
+  shell (`pnpm run build`, `git`); verifies diffs + SQL structure; ticks boxes; commits.
 
 ## Acceptance checklist
 
-- [x] **C1: DB migration** — create `supabase/schema-035-confidential-documents.sql`
-  containing, in order: (1) `alter table public.project_documents add column if
-  not exists confidential boolean not null default false;`  (2) drop the
-  schema-008 policy `"Project members can manage documents"` and create four new
-  `project_documents` policies — SELECT `"View documents (confidential gated)"`,
-  INSERT `"Add documents"`, UPDATE `"Modify documents (uploader or management)"`,
-  DELETE `"Remove documents (uploader or management)"`;  (3) a `security definer`
-  function `enforce_confidential_change()` + `before update of confidential`
-  trigger `project_documents_confidential_guard` that raises `'Only managers can
-  change document confidentiality'` when a non-(owner/admin/manager) changes the
-  flag, with execute revoked from public/anon/authenticated;  (4) drop the
-  schema-024 storage policy `"Org members can view project documents"` and create
-  `"View project document objects (confidential gated)"` on `storage.objects`
-  joining `d.storage_path = storage.objects.name`. **Use the exact SQL from the
-  plan file's Task 1 (Steps 1–3).** Apply via the Supabase MCP `apply_migration`
-  tool (name: `confidential_documents`) — the **conductor** runs this.
-  Management = `om.role in ('owner','admin','manager')`. Non-confidential docs
-  remain visible to all org members exactly as before.
+- [x] **C1: Chat core migration** — create `supabase/schema-036-chat.sql` exactly per
+  plan **Task 1** (enums; `chat_conversations`/`chat_participants`/`chat_messages`/
+  `chat_attachments`; indexes; `is_chat_participant`/`can_post_chat` helpers; all RLS;
+  soft-delete guard trigger; `ensure_announcements_channel` + membership-sync trigger;
+  `start_dm`; `send_chat_message`; `get_chat_unread`; add `chat_messages` to
+  `supabase_realtime`; backfill). Conductor applies via MCP `apply_migration`
+  (name: `chat_core`) and verifies with plan Task 1 Step 3 queries.
 
-- [x] **C2: Role plumbing** — update `src/app/dashboard/projects/[id]/page.tsx`.
-  Change the membership query from `.select('org_id')` to `.select('org_id, role')`.
-  After `const orgId = membership?.org_id ?? null`, add:
-  ```ts
-  const canManageConfidential = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
-  const isOrgProject = project.org_id !== null
-  ```
-  Pass `isOrgProject={isOrgProject}` and `canManageConfidential={canManageConfidential}`
-  to `<DocumentPanel />`. No other changes to this page.
+- [ ] **C2: Chat storage migration** — create `supabase/schema-037-chat-storage.sql`
+  exactly per plan **Task 2** (`chat-attachments` private bucket + 3 storage policies).
+  Conductor applies via MCP `apply_migration` (name: `chat_storage`) and verifies.
 
-- [x] **C3: Upload checkbox + lock badge** — update `src/components/projects/DocumentPanel.tsx`.
-  Add `import { Lock } from 'lucide-react'`. Extend the `Doc` type with
-  `confidential: boolean`. Add props `isOrgProject: boolean` and
-  `canManageConfidential: boolean`. Add state `const [uploadConfidential,
-  setUploadConfidential] = useState(false)`. Include `confidential: isOrgProject
-  && uploadConfidential` in the `project_documents` insert. Render a
-  **"Confidential"** checkbox next to the `+ Upload` control, shown only when
-  `isOrgProject`. Render a `🔒 Confidential` amber pill on rows where
-  `doc.confidential` (badge style `rounded-xl px-2 py-0.5 text-xs font-black
-  uppercase tracking-wide`, `bg-amber-100 text-amber-700`, with the `Lock` icon).
-  **Use the exact JSX from the plan file's Task 3.**
+- [ ] **C3: Shared types + pure availability** — create `src/lib/chat/types.ts` and
+  `src/lib/chat/availability.ts` exactly per plan **Task 3**.
 
-- [x] **C4: Document search + management-only filter** — update
-  `src/components/projects/DocumentPanel.tsx`. Add `import { useTextFilter } from
-  '@/lib/use-text-filter'` and `import SearchInput from '@/components/ui/SearchInput'`.
-  Add state `const [confFilter, setConfFilter] = useState<'all' | 'confidential'
-  | 'standard'>('all')`. Derive `nameFiltered` via `useTextFilter(docs, d =>
-  d.name)` then `visibleDocs` applying `confFilter`. Render a `SearchInput`
-  (placeholder "Search documents…") and, only when `canManageConfidential`, a
-  `<select>` dropdown with options **All / Confidential only / Standard only**.
-  Map the list over `visibleDocs`; add a "No matches" state distinct from "No
-  documents uploaded yet." **Use the exact code from the plan file's Task 4.**
+- [ ] **C4: Server presence resolver** — create `src/lib/chat/presence.ts` per plan **Task 4**.
+
+- [ ] **C5: Push notify module** — create `src/lib/chat/notify.ts` per plan **Task 5**.
+
+- [ ] **C6: Send API route** — create `src/app/api/chat/send/route.ts` per plan **Task 6**.
+
+- [ ] **C7: Availability API route** — create `src/app/api/chat/availability/route.ts` per plan **Task 7**.
+
+- [ ] **C8: ChatRealtimeProvider** — create `src/components/chat/ChatRealtimeProvider.tsx` per plan **Task 8**.
+
+- [ ] **C9: AttachmentChip** — create `src/components/chat/AttachmentChip.tsx` per plan **Task 9**.
+
+- [ ] **C10: MessageThread** — create `src/components/chat/MessageThread.tsx` per plan **Task 10**.
+
+- [ ] **C11: MessageComposer** — create `src/components/chat/MessageComposer.tsx` per plan **Task 11**.
+
+- [ ] **C12: NewDmDialog** — create `src/components/chat/NewDmDialog.tsx` per plan **Task 12**.
+
+- [ ] **C13: ConversationList** — create `src/components/chat/ConversationList.tsx` per plan **Task 13**.
+
+- [ ] **C14: ChatClient** — create `src/components/chat/ChatClient.tsx` per plan **Task 14**.
+
+- [ ] **C15: Chat page + layout provider + nav badge** — create `src/app/dashboard/chat/page.tsx`;
+  modify `src/app/dashboard/layout.tsx` and `src/components/DashboardShell.tsx` per plan **Task 15**.
+
+- [ ] **C16: Service worker** — modify `public/sw.js` per plan **Task 16** (suppress chat
+  push when conversation focused; fix notificationclick navigation; bump cache to v3).
+
+- [ ] **C17: Quiet-hours settings UI** — create `src/components/chat/QuietHoursSettings.tsx`;
+  modify `src/components/AccountSettingsForm.tsx` per plan **Task 17**.
+
+- [ ] **C18: GOALS update** — mark Phase 12 items 12.1–12.6 complete in `GOALS.md` per plan **Task 18 Step 3**.
 
 ## Verification
-- Conductor runs after each item: `pnpm lint` (no new errors) and
-  `npx tsc --noEmit` (no type errors). Note: Task 2/C2 alone leaves a temporary
-  tsc prop error that C3 closes — commit C2+C3 together.
-- C1: conductor confirms via Supabase MCP `execute_sql` that the `confidential`
-  column exists, `project_documents` has 4 policies, the storage policy exists,
-  and the trigger exists (see plan Task 1 Step 5). Two-account RLS smoke (plan
-  Task 1 Step 6): employee cannot see/open a confidential doc; manager + uploader
-  can; a non-manager flag change is rejected.
-- C2/C3: confidential checkbox appears only on org projects; ticking it then
-  uploading produces a row with the amber lock badge; an employee (non-uploader)
-  does not see that row after reload.
-- C4: search narrows the list live by name; the All/Confidential only/Standard
-  only dropdown appears only for management and filters correctly; employees see
-  neither the dropdown nor any confidential row.
+- Conductor runs after each code item: `pnpm run build` (the repo's gate — runs tsc +
+  eslint; must be clean). Note: C8 references the `send_chat_message`/`get_chat_unread`/
+  `start_dm` RPCs and chat tables — build is a pure type-check and does not hit the DB,
+  so ordering only matters for the final smoke.
+- C1: conductor confirms via MCP `execute_sql` (plan Task 1 Step 3): one channel per org,
+  all six functions present, `chat_messages` in the `supabase_realtime` publication.
+- C2: conductor confirms bucket exists with `public=false` and 3 storage policies.
+- Final (after C18): two-account manual smoke per plan **Task 18 Step 2** — realtime DM,
+  unread badge, announcements read-only for employees, attachments, soft-delete, push +
+  focus suppression, and quiet-hours/leave push suppression. The RLS/realtime privacy
+  check (a subscriber must NOT receive messages from conversations they're not in) is the
+  highest-priority smoke item.
 
 ## Out of scope
-- Per-person document ACLs or multi-tier sensitivity levels.
-- Confidential tasks (documents only).
-- Changes to the client → project → document navigation (already exists).
-- Cross-user storage deletion (manager removing another user's file from the
-  bucket) — known orphan-object limitation, documented, not solved here.
-- No new npm dependencies (`lucide-react` is already installed); no billing,
-  auth, or Stripe changes.
+- Group DMs, multiple/custom channels, message editing, threaded replies, reactions,
+  typing indicators, chat email digests, message pagination beyond 200 — all parked.
+- No new npm dependencies (`lucide-react`, `web-push`, `@supabase/*` already installed).
+- No billing/Stripe/auth changes.
