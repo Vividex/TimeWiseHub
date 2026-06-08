@@ -1,133 +1,119 @@
-# Phase 5.15–5.17 — Task Assignment Pool
-**Date:** 2026-06-08
-**Repo:** C:/GameForge/TimeWiseHub
+# Task: Phase 5.5a — Clients & Project Visibility
 
 ## Context
-`tasks.assignee_id` already exists (nullable UUID). The existing `FOR ALL` RLS
-policy in schema-008 lets all org members read/update any task in an org project.
-No new columns or policies are needed — only a DB performance index, two new
-page/component trees, and small updates to the existing task creation flow to
-allow unassigned tasks.
+Currently, org members (employees) cannot create clients or org projects — only
+admins can. Projects have no visual distinction between personal and org scope.
+Employees who join an org see no projects unless they own them. Clients are
+admin-only to create.
+
+**Goal:** Any org member can create clients and projects (personal or org-scoped).
+Projects are clearly separated into Personal and Organisation sections. Clients are
+org-scoped when created by an org member and visible to all members.
+
+## Key files (read before touching)
+- `supabase/schema-008-projects.sql` — existing projects RLS (reference only)
+- `supabase/schema-018-clients-billable-budgets.sql` — existing clients RLS (reference only)
+- `src/app/api/projects/route.ts` — blocks employees from creating org projects
+- `src/components/projects/ProjectForm.tsx` — no personal/org toggle
+- `src/app/dashboard/projects/page.tsx` — no personal/org separation
+- `src/components/projects/ProjectCard.tsx` — no scope badge
 
 ## Acceptance checklist
 
-- [x] T1: Create `supabase/schema-033-task-pool.sql` with the SQL below and apply it
-  to the live Supabase project via `supabase db push` (or the MCP apply_migration
-  tool). Content:
+- [ ] C1: **DB migration** — create `supabase/schema-029-member-project-client-access.sql`.
+  Add two RLS policies (do NOT drop existing ones, do NOT touch other tables):
   ```sql
-  -- partial index to speed up the task-pool query
-  CREATE INDEX IF NOT EXISTS tasks_pool
-    ON public.tasks (project_id, created_at)
-    WHERE assignee_id IS NULL AND status <> 'done';
+  -- Allow any org member to create clients for their org
+  create policy "Org members can insert org clients"
+    on public.clients for insert
+    with check (
+      org_id is not null and
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = clients.org_id and om.user_id = auth.uid()
+      )
+    );
+
+  -- Allow any org member to create projects for their org
+  create policy "Org members can insert org projects"
+    on public.projects for insert
+    with check (
+      org_id is not null and
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = projects.org_id and om.user_id = auth.uid()
+      )
+    );
   ```
+  Apply via the Supabase MCP `apply_migration` tool (migration name:
+  `member_project_client_access`).
 
-- [x] T2: Update `src/components/projects/TaskForm.tsx`,
-  `src/components/projects/TaskSection.tsx`, and
-  `src/app/dashboard/projects/[id]/page.tsx` to support creating unassigned tasks:
-  - **TaskForm.tsx** — add optional prop
-    `orgMembers?: { userId: string; displayName: string }[]`.
-    When provided, render an "Assignee" `<select>` below the Notes field with
-    "Unassigned" (value `""`) as the first option, then each member. Change the
-    insert payload: `assignee_id` = selected member's `userId` or `null` when
-    "Unassigned" is selected. Default selected value: `""` (unassigned).
-  - **TaskSection.tsx** — accept and forward the new optional `orgMembers` prop
-    to `<TaskForm>`.
-  - **`[id]/page.tsx`** — map the existing `orgMembers` query result to
-    `{ userId: string; displayName: string }[]` (display name =
-    `profile.full_name ?? profile.email`) and pass it as `orgMembers` to
-    `<TaskSection>`. Only pass the prop when `orgId` is non-null.
+- [ ] C2: **API route** — update `src/app/api/projects/route.ts`.
+  Replace the `['owner', 'admin'].includes(membership.role)` 403 check with a
+  check that the org's owner has a Team plan:
+  1. Query `organisation_members` for `role = 'owner'` in `orgId` → get `ownerUserId`
+  2. Call `getSubscription(ownerUserId)` → check `isTeamPlan`
+  3. If the org owner is NOT on Team plan → return 402 `"Team plan required for organisation projects"`
+  4. Any org member (any role) may then proceed to insert.
+  Personal projects (`org_id = null`) keep existing individual subscription +
+  project-limit logic completely unchanged.
 
-- [x] T3: Create `src/app/dashboard/tasks/page.tsx` — async server component:
-  1. Get the current user via `supabase.auth.getUser()`; `redirect('/login')` if
-     missing.
-  2. Query `organisation_members` for `user.id` → get `orgId` and `role`.
-  3. If `orgId` is non-null:
-     a. Fetch active org project IDs:
-        ```ts
-        supabase.from('projects').select('id').eq('org_id', orgId).eq('status', 'active')
-        ```
-     b. Fetch pool tasks (unassigned, non-done) in those projects:
-        ```ts
-        supabase.from('tasks')
-          .select('*, projects(id, name, colour)')
-          .is('assignee_id', null)
-          .neq('status', 'done')
-          .in('project_id', orgProjectIds)
-          .order('created_at', { ascending: false })
-        ```
-     c. Fetch org members with profiles:
-        ```ts
-        supabase.from('organisation_members')
-          .select('user_id, role, profiles!organisation_members_user_id_fkey(id, email, full_name)')
-          .eq('org_id', orgId)
-        ```
-  4. Fetch the current user's assigned tasks (any status):
-     ```ts
-     supabase.from('tasks')
-       .select('*, projects(id, name, colour)')
-       .eq('assignee_id', user.id)
-       .order('due_date', { ascending: true, nullsFirst: false })
-     ```
-  5. Render:
-     ```tsx
-     <TasksHub
-       poolTasks={poolTasks ?? []}
-       myTasks={myTasks ?? []}
-       orgMembers={mappedOrgMembers}
-       currentUserId={user.id}
-       currentUserRole={membership?.role ?? 'employee'}
-     />
-     ```
+- [ ] C3: **ProjectForm toggle** — update `src/components/projects/ProjectForm.tsx`.
+  When `orgId` is present, add a **"Scope"** row above the project name field with
+  two pill-style toggle buttons: **Personal** and **Organisation** (default:
+  Organisation). Local state: `scope: 'personal' | 'org'` (default `'org'`).
+  - When Personal → POST body includes `org_id: null`
+  - When Organisation → POST body includes `org_id: orgId` (as now)
+  Remove the `canCreateOrgProject` prop — it is no longer needed (API enforces).
+  Remove the "Organisation projects require the Team plan" warning paragraph.
+  All other fields (name, description, colour, due date, client, budget) unchanged.
 
-- [x] T4: Create `src/components/tasks/TasksHub.tsx` (`'use client'`):
-  - Props: `poolTasks`, `myTasks`, `orgMembers`, `currentUserId`, `currentUserRole`
-  - State: `tab: 'pool' | 'mine'` (default `'pool'`)
-  - Render two tab buttons: "Available (N)" and "My Tasks (N)" where N is the
-    respective count. Active tab uses `bg-cyan-500 text-white`, inactive uses
-    `text-gray-500 hover:text-gray-900`.
-  - Render `<TaskPool>` when tab is `'pool'`, `<MyTasks>` when `'mine'`.
+- [ ] C4: **Projects page separation** — update `src/app/dashboard/projects/page.tsx`.
+  Split the project list into two groups after fetching:
+  - `personalProjects` — where `project.org_id === null`
+  - `orgProjects` — where `project.org_id !== null`
+  Apply the active/archived split within each group. Render:
+  ```
+  <ProjectForm … />          {/* unchanged — stays at top */}
 
-- [x] T5: Create `src/components/tasks/TaskPool.tsx` (`'use client'`):
-  - Props: `initialTasks` (with `projects: { id, name, colour }` embedded),
-    `orgMembers: { userId, displayName }[]`, `currentUserId`, `currentUserRole`
-  - State: `tasks` (local copy of `initialTasks`), `assignTargets: Record<string, string>` (taskId → selected userId)
-  - Group tasks by `projects.id`; render each group with a colour dot + project
-    name heading.
-  - Each task card: title, priority badge (use same `PRIORITY_COLOURS` map as
-    `TaskList`), due date / overdue indicator, notes preview.
-  - "Claim" button (all roles):
-    ```ts
-    supabase.from('tasks').update({ assignee_id: currentUserId }).eq('id', task.id)
-    // then: setTasks(prev => prev.filter(t => t.id !== task.id))
-    ```
-  - Force-assign UI (only when `currentUserRole` is `owner`, `admin`, or `manager`):
-    a `<select>` of org members + "Assign" button. On submit:
-    ```ts
-    supabase.from('tasks').update({ assignee_id: selectedUserId }).eq('id', task.id)
-    // then: setTasks(prev => prev.filter(t => t.id !== task.id))
-    ```
-  - Empty state (tasks.length === 0):
-    `<p className="...">No available tasks — all tasks are assigned.</p>`
+  <section>
+    <h2>Organisation Projects (N)</h2>
+    {/* active org projects grid, then archived */}
+  </section>
 
-- [x] T6: Create `src/components/tasks/MyTasks.tsx` (`'use client'`):
-  - Props: `initialTasks` (with `projects: { id, name, colour }` embedded),
-    `currentUserId`
-  - Groups tasks by status in order: `['todo', 'in_progress', 'done']`
-  - STATUS_LABELS: `{ todo: 'To Do', in_progress: 'In Progress', done: 'Done' }`
-  - Each task card: colour dot + project name (small, grey), title (bold), priority
-    badge, due date / overdue indicator (same logic as `TaskList`).
-  - Status advance ("Start" / "Done") and revert ("Back") buttons — same
-    `advanceStatus` / `revertStatus` pattern as `TaskList.tsx` using
-    `supabase.from('tasks').update(...)`.
-  - Uses local state so status changes reflect immediately without a full reload.
-  - Empty state: `<p className="...">You have no assigned tasks.</p>`
+  <section>
+    <h2>Personal Projects (N)</h2>
+    {/* active personal projects grid, then archived */}
+  </section>
+  ```
+  Pass `scope="org"` to each org ProjectCard and `scope="personal"` to each
+  personal ProjectCard. Do not alter the query itself — just split the existing
+  result array. Remove the `canCreateOrgProject` prop from `<ProjectForm>`.
 
-- [x] T7: Edit `src/components/DashboardShell.tsx`:
-  - Import `ListTodo` from `lucide-react` (add to the existing named import).
-  - Add `{ label: 'Tasks', href: '/dashboard/tasks', icon: ListTodo }` to the
-    `'Work'` group in `NAV_GROUPS`, immediately after the `Projects` entry.
-  - Add `'/dashboard/tasks': 'Tasks'` to `PAGE_TITLES`.
+- [ ] C5: **ProjectCard scope badge** — update `src/components/projects/ProjectCard.tsx`.
+  Accept an optional `scope?: 'personal' | 'org'` prop (default: `'personal'`).
+  Render a small pill badge inside the card (top-right corner, or below the
+  project name — whichever fits cleanly):
+  - `'personal'` → grey pill: `bg-gray-100 text-gray-500`, label `"Personal"`
+  - `'org'` → cyan pill: `bg-cyan-100 text-cyan-700`, label `"Organisation"`
+  Style: `rounded-xl px-2 py-0.5 text-xs font-black uppercase tracking-wide`
+  No other changes to card layout or behaviour.
 
 ## Verification
-Each turn: `pnpm run build` must exit 0 with no TypeScript errors.
-Final turn: build passes, all seven boxes ticked, committed to master.
+- After each item: `npm run lint` — no new errors. `npx tsc --noEmit` — no type errors.
+- C1: SQL file exists with both policies; migration applied successfully.
+- C2: A non-admin org member can create an org project via POST `/api/projects`.
+  A user outside the org still cannot.
+- C3: ProjectForm shows scope toggle when orgId is present. Selecting Personal
+  sends `org_id: null`; Organisation sends the real orgId.
+- C4: Projects page renders two sections with correct headings and counts.
+  A project with org_id appears under Organisation; one without appears under Personal.
+- C5: Cards display the correct colour-coded scope badge.
+
+## Out of scope
+- Confidential documents and access control (Phase 5.5b — planned separately).
+- Changing any existing admin/owner UPDATE or DELETE permissions.
+- Clients page UI changes — the new RLS INSERT policy makes the existing create
+  flow work for all org members with no UI changes needed.
+- No new npm dependencies.
+- No billing, auth, or Stripe changes.
