@@ -89,6 +89,11 @@
 - [x] 5.9 — Assign tasks to self or org members
 - [x] 5.10 — Link tasks to time entries
 
+### Task Assignment Pool
+- [ ] 5.15 — Public task pool — unassigned org tasks visible to all org members in a shared "available tasks" view; tasks with no `assigned_to` appear here
+- [ ] 5.16 — Claim & assign — employees can self-claim a pooled task (moves it to their personal bucket); managers/admins/owners can force-assign any pooled task to a specific employee
+- [ ] 5.17 — Personal task bucket — "my tasks" view filtered to tasks assigned to the current user; replaces the current self-only view
+
 ### Smart Nudges & Alerts
 - [x] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
 - [x] 5.12 — Priority escalation nudge — alert user when a higher-priority task exists while they are working on a lower one
@@ -173,6 +178,20 @@
 - [!] 11.7 — Security audit — external/deferred; recommend a professional penetration test before public launch
 - [!] 11.8 — Load testing — external/deferred; use k6 or similar against production URL before launch
 - [x] 11.9 — Backup plan — Supabase Pro tier includes daily backups and PITR; document in runbook before launch
+
+---
+
+---
+
+## Phase 12 — Team Chat
+> Goal: In-app messaging so employees and managers can communicate privately or as a team, with file sharing, without leaving the platform.
+
+- [ ] 12.1 — Direct messages — 1:1 private chat between any two org members; message history persisted in Supabase
+- [ ] 12.2 — Team channels — org-wide broadcast channel visible to all members; managers/admins can post announcements
+- [ ] 12.3 — Real-time delivery — Supabase Realtime subscriptions for live message updates without polling
+- [ ] 12.4 — File sharing — attach and send documents, PDFs, and images via Supabase Storage; inline preview for images
+- [ ] 12.5 — Unread indicators — badge counts on chat nav item and per-conversation; mark as read on open
+- [ ] 12.6 — Notification on new message — push/email notification for unread messages (respects notification_preferences)
 
 ---
 
