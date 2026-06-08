@@ -37,7 +37,7 @@ allow unassigned tasks.
     `profile.full_name ?? profile.email`) and pass it as `orgMembers` to
     `<TaskSection>`. Only pass the prop when `orgId` is non-null.
 
-- [ ] T3: Create `src/app/dashboard/tasks/page.tsx` — async server component:
+- [x] T3: Create `src/app/dashboard/tasks/page.tsx` — async server component:
   1. Get the current user via `supabase.auth.getUser()`; `redirect('/login')` if
      missing.
   2. Query `organisation_members` for `user.id` → get `orgId` and `role`.
@@ -79,7 +79,7 @@ allow unassigned tasks.
      />
      ```
 
-- [ ] T4: Create `src/components/tasks/TasksHub.tsx` (`'use client'`):
+- [x] T4: Create `src/components/tasks/TasksHub.tsx` (`'use client'`):
   - Props: `poolTasks`, `myTasks`, `orgMembers`, `currentUserId`, `currentUserRole`
   - State: `tab: 'pool' | 'mine'` (default `'pool'`)
   - Render two tab buttons: "Available (N)" and "My Tasks (N)" where N is the
@@ -87,7 +87,7 @@ allow unassigned tasks.
     `text-gray-500 hover:text-gray-900`.
   - Render `<TaskPool>` when tab is `'pool'`, `<MyTasks>` when `'mine'`.
 
-- [ ] T5: Create `src/components/tasks/TaskPool.tsx` (`'use client'`):
+- [x] T5: Create `src/components/tasks/TaskPool.tsx` (`'use client'`):
   - Props: `initialTasks` (with `projects: { id, name, colour }` embedded),
     `orgMembers: { userId, displayName }[]`, `currentUserId`, `currentUserRole`
   - State: `tasks` (local copy of `initialTasks`), `assignTargets: Record<string, string>` (taskId → selected userId)
@@ -109,7 +109,7 @@ allow unassigned tasks.
   - Empty state (tasks.length === 0):
     `<p className="...">No available tasks — all tasks are assigned.</p>`
 
-- [ ] T6: Create `src/components/tasks/MyTasks.tsx` (`'use client'`):
+- [x] T6: Create `src/components/tasks/MyTasks.tsx` (`'use client'`):
   - Props: `initialTasks` (with `projects: { id, name, colour }` embedded),
     `currentUserId`
   - Groups tasks by status in order: `['todo', 'in_progress', 'done']`
