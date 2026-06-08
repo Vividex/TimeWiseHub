@@ -37,7 +37,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
   exactly per plan **Task 2** (`chat-attachments` private bucket + 3 storage policies).
   Conductor applies via MCP `apply_migration` (name: `chat_storage`) and verifies.
 
-- [ ] **C3: Shared types + pure availability** — create `src/lib/chat/types.ts` and
+- [x] **C3: Shared types + pure availability** — create `src/lib/chat/types.ts` and
   `src/lib/chat/availability.ts` exactly per plan **Task 3**.
 
 - [ ] **C4: Server presence resolver** — create `src/lib/chat/presence.ts` per plan **Task 4**.
