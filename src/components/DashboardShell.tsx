@@ -7,11 +7,12 @@ import {
   LayoutDashboard, Clock, FolderKanban, ListTodo, CalendarDays, Palmtree,
   Receipt, Users, FileText, TrendingUp,
   BarChart3, FileBarChart2, Activity,
-  CreditCard, Download, HelpCircle, Settings,
+  CreditCard, Download, HelpCircle, Settings, MessageSquare,
   type LucideIcon,
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import ThemeToggle from '@/components/ThemeToggle'
+import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
 
 type NavItem = { label: string; href: string; icon: LucideIcon }
 type NavGroup = { title: string; items: NavItem[] }
@@ -29,6 +30,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Time', href: '/dashboard/time', icon: Clock },
       { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
       { label: 'Tasks', href: '/dashboard/tasks', icon: ListTodo },
+      { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare },
       { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
       { label: 'Leave', href: '/dashboard/leave', icon: Palmtree },
     ],
@@ -63,6 +65,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/time': 'Time tracking',
   '/dashboard/tasks': 'Tasks',
+  '/dashboard/chat': 'Chat',
   '/dashboard/expenses': 'Expenses',
   '/dashboard/clients': 'Clients',
   '/dashboard/invoices': 'Invoices',
@@ -94,6 +97,9 @@ function isActive(pathname: string, href: string): boolean {
 function NavLink({ item, pathname, mobile }: { item: NavItem; pathname: string; mobile?: boolean }) {
   const active = isActive(pathname, item.href)
   const Icon = item.icon
+  const unread = useChatUnreadTotal()
+  const badge = item.href === '/dashboard/chat' && unread > 0 ? (unread > 99 ? '99+' : unread) : null
+
   if (mobile) {
     return (
       <Link
@@ -104,6 +110,11 @@ function NavLink({ item, pathname, mobile }: { item: NavItem; pathname: string; 
       >
         <Icon size={15} className="shrink-0" />
         {item.label}
+        {badge && (
+          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-white">
+            {badge}
+          </span>
+        )}
       </Link>
     )
   }
@@ -118,6 +129,11 @@ function NavLink({ item, pathname, mobile }: { item: NavItem; pathname: string; 
     >
       <Icon size={16} className="shrink-0" />
       {item.label}
+      {badge && (
+        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1.5 text-xs font-bold text-white">
+          {badge}
+        </span>
+      )}
     </Link>
   )
 }

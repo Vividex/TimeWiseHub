@@ -4,25 +4,22 @@
 
 ## Spending
 - spend-budget-usd: 0
-- All work is SQL + TypeScript UI; no paid API calls expected.
-  Supabase apply_migration is free.
+- All work is SQL + TypeScript. Supabase apply_migration is free. No paid API calls expected.
 
-## Notes (Phase 5.5b — confidential documents)
-- Apply the DB migration using the Supabase MCP apply_migration tool.
-  Migration name: confidential_documents
-- Never touch billing, payment, auth, or Stripe code.
-- Do not add npm dependencies (lucide-react is already installed).
-- Confine changes to:
-    supabase/schema-035-confidential-documents.sql (new file)
-    src/app/dashboard/projects/[id]/page.tsx
-    src/components/projects/DocumentPanel.tsx
-- Leave all other components, pages, and API routes untouched.
-- Codex handles text edits; conductor runs lint/tsc/git and apply_migration.
+## Notes (Phase 12 — team chat)
+- Source of exact code: docs/superpowers/plans/2026-06-08-team-chat.md. Each checklist
+  item maps to a numbered Task there; implement that task's code verbatim.
+- Apply the two DB migrations using the Supabase MCP apply_migration tool.
+  Migration names: chat_core (schema-036), chat_storage (schema-037). Conductor runs these.
 - The Supabase MCP apply_migration may require confirmation — conductor handles it.
-- Match existing badge style: rounded-xl px-2 py-0.5 text-xs font-black uppercase tracking-wide.
-- THIS PHASE INTENTIONALLY REPLACES EXISTING RLS POLICIES (unlike 5.5a):
-  drop schema-008 "Project members can manage documents" and schema-024
-  "Org members can view project documents", replacing them with the gated
-  policies in spec.md C1. This is expected and authorized.
-- pnpm is the package manager (pnpm lint). No test runner — verify with
-  lint + tsc + SQL structural check + two-account RLS smoke.
+- Codex handles text edits only; conductor runs build/git and apply_migration.
+- pnpm is the package manager. Verification gate = `pnpm run build` (runs tsc + eslint).
+  No test runner. Final two-account manual smoke per plan Task 18.
+- Do NOT add npm dependencies. Do NOT touch billing, payment, auth, or Stripe code.
+- Confine changes to: supabase/schema-036-chat.sql, supabase/schema-037-chat-storage.sql,
+  src/lib/chat/*, src/app/api/chat/*, src/components/chat/*, src/app/dashboard/chat/page.tsx,
+  and the named modifications to src/app/dashboard/layout.tsx, src/components/DashboardShell.tsx,
+  public/sw.js, src/components/AccountSettingsForm.tsx, GOALS.md. Leave everything else untouched.
+- This phase ADDS new objects/policies; it does not replace existing RLS (unlike Phase 5.5b).
+- Privacy-critical: the chat_messages realtime + is_chat_participant RLS must not leak
+  messages to non-participants. Conductor scrutinises C1 and the final smoke for this.

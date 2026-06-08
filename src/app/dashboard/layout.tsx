@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import DashboardShell from '@/components/DashboardShell'
 import AssistantWidget from '@/components/AssistantWidget'
+import ChatRealtimeProvider from '@/components/chat/ChatRealtimeProvider'
 
 export default async function DashboardLayout({
   children,
@@ -13,10 +14,11 @@ export default async function DashboardLayout({
   if (!user) redirect('/login')
 
   return (
-    <DashboardShell email={user.email ?? ''}>
-      {children}
-      <AssistantWidget userEmail={user.email ?? ''} />
-    </DashboardShell>
+    <ChatRealtimeProvider userId={user.id}>
+      <DashboardShell email={user.email ?? ''}>
+        {children}
+        <AssistantWidget userEmail={user.email ?? ''} />
+      </DashboardShell>
+    </ChatRealtimeProvider>
   )
 }
-
