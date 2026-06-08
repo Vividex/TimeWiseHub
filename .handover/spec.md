@@ -24,7 +24,7 @@ Full step plan: `docs/superpowers/plans/2026-06-08-confidential-document-access.
 
 ## Acceptance checklist
 
-- [ ] **C1: DB migration** — create `supabase/schema-035-confidential-documents.sql`
+- [x] **C1: DB migration** — create `supabase/schema-035-confidential-documents.sql`
   containing, in order: (1) `alter table public.project_documents add column if
   not exists confidential boolean not null default false;`  (2) drop the
   schema-008 policy `"Project members can manage documents"` and create four new
