@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { AU_STATES, type AustralianState } from '@/lib/australian-public-holidays'
+import QuietHoursSettings from '@/components/chat/QuietHoursSettings'
+import { resolveQuietHours } from '@/lib/chat/availability'
+import type { QuietHours } from '@/lib/chat/types'
 
 const TIMEZONES = [
   'UTC',
@@ -29,6 +32,8 @@ type NotificationPreferences = {
   daily_digest: boolean
   scheduled_reports: boolean
   idle_alerts: boolean
+  chat_messages?: boolean
+  quiet_hours?: QuietHours
 }
 
 type Props = {
@@ -54,6 +59,9 @@ export default function AccountSettingsForm({
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const chatEnabled = notifications.chat_messages !== false
+  const quietHours = resolveQuietHours(notifications.quiet_hours)
+
   function toggleNotification(key: keyof NotificationPreferences) {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }))
   }
@@ -68,9 +76,15 @@ export default function AccountSettingsForm({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const payloadNotifications: NotificationPreferences = {
+      ...notifications,
+      chat_messages: notifications.chat_messages !== false,
+      quiet_hours: resolveQuietHours(notifications.quiet_hours),
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, timezone, au_state: auState || null, notification_preferences: notifications })
+      .update({ full_name: fullName, timezone, au_state: auState || null, notification_preferences: payloadNotifications })
       .eq('id', user.id)
 
     if (error) {
@@ -176,6 +190,13 @@ export default function AccountSettingsForm({
         ))}
       </div>
 
+      <QuietHoursSettings
+        chatEnabled={chatEnabled}
+        quietHours={quietHours}
+        onChatEnabledChange={v => setNotifications(prev => ({ ...prev, chat_messages: v }))}
+        onQuietHoursChange={q => setNotifications(prev => ({ ...prev, quiet_hours: q }))}
+      />
+
       {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
 
       <button
@@ -188,4 +209,3 @@ export default function AccountSettingsForm({
     </form>
   )
 }
-

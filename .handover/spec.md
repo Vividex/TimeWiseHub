@@ -68,7 +68,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 - [x] **C16: Service worker** — modify `public/sw.js` per plan **Task 16** (suppress chat
   push when conversation focused; fix notificationclick navigation; bump cache to v3).
 
-- [ ] **C17: Quiet-hours settings UI** — create `src/components/chat/QuietHoursSettings.tsx`;
+- [x] **C17: Quiet-hours settings UI** — create `src/components/chat/QuietHoursSettings.tsx`;
   modify `src/components/AccountSettingsForm.tsx` per plan **Task 17**.
 
 - [ ] **C18: GOALS update** — mark Phase 12 items 12.1–12.6 complete in `GOALS.md` per plan **Task 18 Step 3**.
