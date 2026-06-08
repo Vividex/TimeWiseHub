@@ -90,9 +90,9 @@
 - [x] 5.10 — Link tasks to time entries
 
 ### Task Assignment Pool
-- [ ] 5.15 — Public task pool — unassigned org tasks visible to all org members in a shared "available tasks" view; tasks with no `assigned_to` appear here
-- [ ] 5.16 — Claim & assign — employees can self-claim a pooled task (moves it to their personal bucket); managers/admins/owners can force-assign any pooled task to a specific employee
-- [ ] 5.17 — Personal task bucket — "my tasks" view filtered to tasks assigned to the current user; replaces the current self-only view
+- [x] 5.15 — Public task pool — unassigned org tasks visible to all org members in a shared "available tasks" view; tasks with no `assigned_to` appear here
+- [x] 5.16 — Claim & assign — employees can self-claim a pooled task (moves it to their personal bucket); managers/admins/owners can force-assign any pooled task to a specific employee
+- [x] 5.17 — Personal task bucket — "my tasks" view filtered to tasks assigned to the current user; replaces the current self-only view
 
 ### Smart Nudges & Alerts
 - [x] 5.11 — Deadline alerts — notify user when a project or task deadline is approaching (configurable threshold, e.g. 24h, 48h)
