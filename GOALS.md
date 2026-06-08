@@ -196,6 +196,7 @@
 ---
 
 ## Parking Lot (Future / Unscheduled)
+- Rostering / shift scheduling — standalone phase; shifts, recurring patterns, assignments, swaps; could feed chat presence/notification windows
 - SSO / SAML integration for enterprise orgs
 - API access for third-party integrations (Jira, Slack, QuickBooks)
 - AI-powered productivity suggestions
