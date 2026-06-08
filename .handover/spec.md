@@ -48,7 +48,7 @@ org-scoped when created by an org member and visible to all members.
   Apply via the Supabase MCP `apply_migration` tool (migration name:
   `member_project_client_access`).
 
-- [ ] C2: **API route** — update `src/app/api/projects/route.ts`.
+- [x] C2: **API route** — update `src/app/api/projects/route.ts`.
   Replace the `['owner', 'admin'].includes(membership.role)` 403 check with a
   check that the org's owner has a Team plan:
   1. Query `organisation_members` for `role = 'owner'` in `orgId` → get `ownerUserId`

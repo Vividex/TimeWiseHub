@@ -31,10 +31,6 @@ export async function POST(req: Request) {
   const orgId = payload.org_id ?? null
 
   if (orgId) {
-    if (!isTeamPlan(subscription)) {
-      return NextResponse.json({ error: 'Team plan required for organisation projects' }, { status: 402 })
-    }
-
     const { data: membership } = await service
       .from('organisation_members')
       .select('role')
@@ -42,8 +38,22 @@ export async function POST(req: Request) {
       .eq('org_id', orgId)
       .maybeSingle()
 
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
-      return NextResponse.json({ error: 'Only organisation owners and admins can create organisation projects' }, { status: 403 })
+    if (!membership) {
+      return NextResponse.json({ error: 'You are not a member of this organisation' }, { status: 403 })
+    }
+
+    const { data: ownerRow } = await service
+      .from('organisation_members')
+      .select('user_id')
+      .eq('org_id', orgId)
+      .eq('role', 'owner')
+      .maybeSingle()
+
+    if (ownerRow) {
+      const ownerSubscription = await getSubscription(ownerRow.user_id)
+      if (!isTeamPlan(ownerSubscription)) {
+        return NextResponse.json({ error: 'Team plan required for organisation projects' }, { status: 402 })
+      }
     }
   }
 
