@@ -42,7 +42,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 
 - [x] **C4: Server presence resolver** — create `src/lib/chat/presence.ts` per plan **Task 4**.
 
-- [ ] **C5: Push notify module** — create `src/lib/chat/notify.ts` per plan **Task 5**.
+- [x] **C5: Push notify module** — create `src/lib/chat/notify.ts` per plan **Task 5**.
 
 - [ ] **C6: Send API route** — create `src/app/api/chat/send/route.ts` per plan **Task 6**.
 
