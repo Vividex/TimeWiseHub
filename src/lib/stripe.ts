@@ -24,22 +24,26 @@ export const PLANS = {
     projects: 3,
     historyDays: 30,
     perSeat: false,
+    unitSize: null,
   },
   pro: {
     label: 'Pro',
-    priceAud: 9,
+    priceAud: 12,
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
     projects: Infinity,
     historyDays: Infinity,
     perSeat: false,
+    unitSize: null,
   },
   team: {
     label: 'Team',
-    priceAud: 24,
+    // $29 AUD per unit; 1 unit = 10 employees. Quantity passed to Stripe = Math.ceil(employeeCount / 10)
+    priceAud: 29,
     priceId: process.env.STRIPE_TEAM_PRICE_ID!,
     projects: Infinity,
     historyDays: Infinity,
     perSeat: false,
+    unitSize: 10,
   },
 } as const
 

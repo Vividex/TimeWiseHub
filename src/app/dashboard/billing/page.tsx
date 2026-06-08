@@ -69,7 +69,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 </p>
               )}
               {sub.plan === 'team' && (
-                <p className="mt-1 text-sm font-semibold text-gray-500">${PLANS.team.priceAud} AUD/month</p>
+                <p className="mt-1 text-sm font-semibold text-gray-500">${PLANS.team.priceAud} AUD per 10 employees/month</p>
               )}
             </div>
             {active && sub.stripe_customer_id && (
@@ -90,7 +90,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <p className="text-lg font-black text-gray-900">Pro</p>
                 <PlanBadge plan="pro" />
               </div>
-              <p className="mb-1 text-3xl font-black text-gray-900">$9<span className="text-sm font-semibold text-gray-400">/mo</span></p>
+              <p className="mb-1 text-3xl font-black text-gray-900">${PLANS.pro.priceAud}<span className="text-sm font-semibold text-gray-400">/mo</span></p>
               <p className="mb-6 text-xs font-semibold uppercase tracking-wide text-gray-400">AUD · Individual</p>
               <ul className="mb-6 space-y-2 text-sm font-semibold text-gray-600">
                 <li>✓ Unlimited projects</li>
@@ -107,7 +107,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <p className="text-lg font-black text-gray-900">Team</p>
                 <PlanBadge plan="team" />
               </div>
-              <p className="mb-1 text-3xl font-black text-gray-900">$24<span className="text-sm font-semibold text-gray-400">/mo</span></p>
+              <p className="mb-1 text-3xl font-black text-gray-900">${PLANS.team.priceAud}<span className="text-sm font-semibold text-gray-400">/10 employees/mo</span></p>
               <p className="mb-6 text-xs font-semibold uppercase tracking-wide text-gray-400">AUD · Organisation</p>
               <ul className="mb-6 space-y-2 text-sm font-semibold text-gray-600">
                 <li>✓ Everything in Pro</li>

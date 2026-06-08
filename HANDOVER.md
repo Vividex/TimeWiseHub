@@ -641,6 +641,295 @@ Run `pnpm run build` — confirm `/dashboard/finance` appears in the route table
 - Smoke test Team organisation invite, manager views, and org project creation.
 
 ---
+
+### Session 14 — 2026-06-07
+**Agent:** Claude
+
+**Files Inspected:**
+- `src/app/dashboard/finance/page.tsx`
+- `src/app/globals.css`
+- `src/components/finance/IncomeList.tsx`
+- `src/components/finance/IncomeForm.tsx`
+- `src/app/api/invoices/[id]/mark-paid/route.ts`
+- `src/lib/subscription.ts`
+- `supabase/schema-028-project-entitlements.sql`
+
+**Files Created:**
+- None
+
+**Files Modified:**
+- `~/.claude.json` — Supabase MCP server added at user scope (env: SUPABASE_ACCESS_TOKEN)
+
+**Summary of Findings (code review of Session 12–13 Codex work):**
+
+Codex completed Tasks 14–16 (Finance page, mark-paid extension, final build check) and also added out-of-scope subscription entitlements work (schema-028, subscription.ts). A code review found **4 bugs** requiring fixes.
+
+---
+
+**PENDING FIXES — Codex must implement all 4 before deploying:**
+
+---
+
+#### FIX 1 — CRITICAL: Finance page period filter silently ignored
+**File:** `src/app/dashboard/finance/page.tsx` (approx lines 121–140)
+**Bug:** Supabase query builder methods (`.gte()`, `.lte()`) return NEW query objects. Codex used the old pattern of calling them without reassigning, so all period filters are discarded — every tab shows all-time data.
+
+Find this pattern:
+```ts
+const incomeQuery = supabase.from('income_entries').select(...).eq(...)
+if (from) {
+  incomeQuery.gte('date', from)   // ← BUG: result discarded
+}
+if (to) {
+  incomeQuery.lte('date', to)     // ← BUG: result discarded
+}
+```
+
+Replace with:
+```ts
+let incomeQuery = supabase.from('income_entries').select(...).eq(...)
+if (from) incomeQuery = incomeQuery.gte('date', from)
+if (to) incomeQuery = incomeQuery.lte('date', to)
+```
+
+Apply the same pattern to the `expenseQuery` variable in the same file (same bug exists there too).
+
+After fixing: verify that switching from Month → Quarter → Year → All shows different totals.
+
+---
+
+#### FIX 2 — HIGH: Global CSS dark overrides conflict with Tailwind utility system
+**File:** `src/app/globals.css` (lines 31–75)
+**Bug:** Codex added a block of nuclear `html.dark .bg-white { ... }` overrides as a shortcut for dark mode on older components. This approach:
+- Overrides intentionally-white elements (e.g., modals, badges) in dark mode
+- Uses `#0f172a` (slate-950) inconsistently — other dark surfaces use slate-800/slate-900
+- Fights against the `dark:` utility class system already in place
+- Makes every future dark mode tweak require fighting both systems
+
+**Remove the entire block from line 31 to line 75.** The correct section to keep is:
+
+```css
+/* KEEP — only this dark block */
+html.dark {
+  --background: #020617;
+  --foreground: #f1f5f9;
+}
+```
+
+**Remove everything from this line onwards until end of file (the problematic block starts at):**
+```css
+/* Dark-mode compatibility for older dashboard components that predate dark: utilities. */
+html.dark .bg-white {
+```
+...through to the end of the `html.dark input::placeholder` block.
+
+After removing: audit any components that were relying on the global overrides (projects page, clients page, time page) and add proper `dark:` utility classes to them individually. Run `pnpm run build` to verify no TypeScript errors.
+
+---
+
+#### FIX 3 — MEDIUM: IncomeList deletes without confirmation or error handling
+**File:** `src/components/finance/IncomeList.tsx`
+**Bug:** The delete button fires `handleDelete()` immediately with no confirmation dialog, no error handling if the Supabase call fails, and no loading state to prevent double-clicks.
+
+Replace the entire file content with:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase-browser'
+import ConfirmDialog from '@/components/ConfirmDialog'
+
+type IncomeEntry = {
+  id: string
+  date: string
+  amount: number
+  currency: string
+  category: string
+  description: string | null
+  source_type: string
+}
+
+export default function IncomeList({
+  entries,
+  onDeleted,
+}: {
+  entries: IncomeEntry[]
+  onDeleted: () => void
+}) {
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDelete(id: string) {
+    setDeletingId(id)
+    setError(null)
+    const supabase = createClient()
+    const { error: err } = await supabase.from('income_entries').delete().eq('id', id)
+    setDeletingId(null)
+    setConfirmId(null)
+    if (err) {
+      setError('Failed to delete entry. Please try again.')
+      return
+    }
+    onDeleted()
+  }
+
+  if (entries.length === 0) {
+    return <p className="text-sm text-gray-400 dark:text-slate-500 py-4 text-center">No income entries for this period.</p>
+  }
+
+  return (
+    <>
+      {error && (
+        <p className="mb-3 rounded-xl bg-red-50 dark:bg-red-950 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 dark:border-slate-700">
+              <th className="pb-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">Date</th>
+              <th className="pb-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">Category</th>
+              <th className="pb-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">Description</th>
+              <th className="pb-2 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">Amount</th>
+              <th className="pb-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map(e => (
+              <tr key={e.id} className="border-b border-gray-50 dark:border-slate-800">
+                <td className="py-2 text-gray-600 dark:text-slate-300">{e.date}</td>
+                <td className="py-2 text-gray-600 dark:text-slate-300">{e.category}</td>
+                <td className="py-2 text-gray-500 dark:text-slate-400 max-w-[200px] truncate">
+                  {e.description ?? '—'}
+                  {e.source_type === 'invoice' && (
+                    <span className="ml-2 rounded-full bg-cyan-100 dark:bg-cyan-900 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300">
+                      Invoice
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">
+                  {e.currency} {Number(e.amount).toFixed(2)}
+                </td>
+                <td className="py-2 text-right">
+                  {e.source_type === 'manual' && (
+                    <button
+                      onClick={() => setConfirmId(e.id)}
+                      disabled={deletingId === e.id}
+                      className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-40"
+                    >
+                      {deletingId === e.id ? '…' : 'Delete'}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete income entry"
+        description="This income entry will be permanently deleted. This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => confirmId && handleDelete(confirmId)}
+        onCancel={() => setConfirmId(null)}
+      />
+    </>
+  )
+}
+```
+
+Note: This requires `@/components/ConfirmDialog` to exist. Verify the import path matches the existing component in the project.
+
+---
+
+#### FIX 4 — MINOR: IncomeForm doesn't reset currency and category after submit
+**File:** `src/components/finance/IncomeForm.tsx`
+**Bug:** After a successful submit, the form resets `amount`, `description`, and `date` but leaves `currency` and `category` at whatever values the user had selected. On the next entry the old selections persist unexpectedly.
+
+Find the `handleSubmit` reset block (after `setError(null)` on success):
+```ts
+setAmount('')
+setDescription('')
+setDate(todayStr())
+```
+
+Replace with:
+```ts
+setAmount('')
+setDescription('')
+setDate(todayStr())
+setCurrency('AUD')
+setCategory('Sales')
+```
+
+---
+
+**SCHEMA STATUS:**
+- `supabase/schema-027-income-entries.sql` — **NOT YET RUN**. Must be run in Supabase SQL Editor before the Finance page works.
+- `supabase/schema-028-project-entitlements.sql` — Already run by Codex in Session 13. No action needed.
+
+**Previous unrun schemas still pending:**
+- `schema-024-fix-project-storage.sql`
+- `schema-025-invoice-number-unique.sql`
+- `schema-026-fix-invitations-rls.sql`
+
+**Tests Performed:**
+- Code review only — no new code written this session.
+
+**Risk Level:** Medium (Fix 1 is a silent data bug — period filter completely non-functional). Fix 2 (CSS) is cosmetic but causes visual inconsistencies. Fixes 3–4 are UX quality issues.
+
+**Next Recommended Action:**
+1. Codex implements FIX 1 (query builder reassignment) in `finance/page.tsx`
+2. Codex implements FIX 2 (remove global CSS overrides) from `globals.css`
+3. Codex implements FIX 3 (ConfirmDialog + error handling) in `IncomeList.tsx`
+4. Codex implements FIX 4 (state reset) in `IncomeForm.tsx`
+5. User runs `schema-027-income-entries.sql` in Supabase SQL Editor
+6. `pnpm run build` to verify, then push to master
+
+---
+
+### Session 15 — 2026-06-08
+**Agent:** Codex
+
+**Files Inspected:**
+- `GOALS.md`
+- `HANDOVER.md`
+- `src/app/layout.tsx`
+- `src/app/dashboard/layout.tsx`
+- `src/components/DashboardShell.tsx`
+- `src/components/BackButton.tsx`
+- `src/components/NavHistoryProvider.tsx`
+- `package.json`
+
+**Files Created:**
+- None
+
+**Files Modified:**
+- `src/components/BackButton.tsx` — global back button now hides on all `/dashboard` routes so it does not cover the sidebar TimeWiseHub logo.
+- `HANDOVER.md` — added this session entry.
+
+**Summary of Findings:**
+- `BackButton` is mounted globally in `src/app/layout.tsx`, while dashboard pages are wrapped by `DashboardShell`.
+- The button was only hidden on `/dashboard` exactly, so nested dashboard pages such as `/dashboard/time` and `/dashboard/projects/[id]` could still display it over the sidebar/logo.
+- The fix keeps the button available on non-dashboard pages after in-app navigation, including pages that navigate away from the dashboard shell.
+- Existing uncommitted files were present before this session and were left untouched except for the required `HANDOVER.md` update.
+
+**Tests Performed:**
+- `pnpm run build` — passes cleanly; 44 app routes generated with no TypeScript errors.
+
+**Risk Level:** Low. One route-visibility condition changed; no navigation targets or sidebar behavior were modified.
+
+**Next Recommended Action:**
+- Smoke test a dashboard subpage and a non-dashboard page after navigating away from the dashboard to confirm the button visibility matches expectations.
+- Recommend committing now — the back button overlay bug is fixed and the build passes.
+
+---
+
 ## Product Definition (Reference)
 
 | Feature | Detail |
