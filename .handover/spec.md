@@ -71,7 +71,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 - [x] **C17: Quiet-hours settings UI** — create `src/components/chat/QuietHoursSettings.tsx`;
   modify `src/components/AccountSettingsForm.tsx` per plan **Task 17**.
 
-- [ ] **C18: GOALS update** — mark Phase 12 items 12.1–12.6 complete in `GOALS.md` per plan **Task 18 Step 3**.
+- [x] **C18: GOALS update** — mark Phase 12 items 12.1–12.6 complete in `GOALS.md` per plan **Task 18 Step 3**.
 
 ## Verification
 - Conductor runs after each code item: `pnpm run build` (the repo's gate — runs tsc +

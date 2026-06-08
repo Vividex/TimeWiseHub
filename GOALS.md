@@ -186,12 +186,12 @@
 ## Phase 12 — Team Chat
 > Goal: In-app messaging so employees and managers can communicate privately or as a team, with file sharing, without leaving the platform.
 
-- [ ] 12.1 — Direct messages — 1:1 private chat between any two org members; message history persisted in Supabase
-- [ ] 12.2 — Team channels — org-wide broadcast channel visible to all members; managers/admins can post announcements
-- [ ] 12.3 — Real-time delivery — Supabase Realtime subscriptions for live message updates without polling
-- [ ] 12.4 — File sharing — attach and send documents, PDFs, and images via Supabase Storage; inline preview for images
-- [ ] 12.5 — Unread indicators — badge counts on chat nav item and per-conversation; mark as read on open
-- [ ] 12.6 — Notification on new message — push/email notification for unread messages (respects notification_preferences)
+- [x] 12.1 — Direct messages — 1:1 private chat between any two org members; message history persisted in Supabase
+- [x] 12.2 — Team channels — org-wide Announcements channel; read-only for employees, post for owner/admin/manager (schema-036 `can_post_chat`)
+- [x] 12.3 — Real-time delivery — Supabase Postgres Changes on `chat_messages`; `ChatRealtimeProvider` in the dashboard layout
+- [x] 12.4 — File sharing — `chat-attachments` bucket; inline image preview + download chips (schema-037)
+- [x] 12.5 — Unread indicators — per-participant `last_read_at`; live nav + per-conversation badges; mark-read on open
+- [x] 12.6 — Notification on new message — web push gated by quiet hours + leave + public holiday, suppressed when the thread is focused; respects `notification_preferences`
 
 ---
 
