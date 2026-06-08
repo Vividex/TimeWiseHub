@@ -43,7 +43,7 @@ Full step plan: `docs/superpowers/plans/2026-06-08-confidential-document-access.
   Management = `om.role in ('owner','admin','manager')`. Non-confidential docs
   remain visible to all org members exactly as before.
 
-- [ ] **C2: Role plumbing** — update `src/app/dashboard/projects/[id]/page.tsx`.
+- [x] **C2: Role plumbing** — update `src/app/dashboard/projects/[id]/page.tsx`.
   Change the membership query from `.select('org_id')` to `.select('org_id, role')`.
   After `const orgId = membership?.org_id ?? null`, add:
   ```ts
@@ -53,7 +53,7 @@ Full step plan: `docs/superpowers/plans/2026-06-08-confidential-document-access.
   Pass `isOrgProject={isOrgProject}` and `canManageConfidential={canManageConfidential}`
   to `<DocumentPanel />`. No other changes to this page.
 
-- [ ] **C3: Upload checkbox + lock badge** — update `src/components/projects/DocumentPanel.tsx`.
+- [x] **C3: Upload checkbox + lock badge** — update `src/components/projects/DocumentPanel.tsx`.
   Add `import { Lock } from 'lucide-react'`. Extend the `Doc` type with
   `confidential: boolean`. Add props `isOrgProject: boolean` and
   `canManageConfidential: boolean`. Add state `const [uploadConfidential,

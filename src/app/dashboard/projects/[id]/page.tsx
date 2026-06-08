@@ -20,13 +20,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     supabase.from('projects').select('*, clients(name)').eq('id', id).single(),
     supabase.from('tasks').select('*').eq('project_id', id).order('created_at', { ascending: true }),
     supabase.from('project_documents').select('*').eq('project_id', id).order('created_at', { ascending: false }),
-    supabase.from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle(),
+    supabase.from('organisation_members').select('org_id, role').eq('user_id', user.id).maybeSingle(),
   ])
 
   if (!project) notFound()
 
   const taskIds = (tasks ?? []).map(t => t.id)
   const orgId = membership?.org_id ?? null
+  const canManageConfidential = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const isOrgProject = project.org_id !== null
 
   const orgMembers = orgId
     ? (await supabase.from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(id, email, full_name)').eq('org_id', orgId)).data
@@ -114,7 +116,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {/* Documents */}
-        <DocumentPanel projectId={project.id} userId={user.id} initialDocuments={documents ?? []} />
+        <DocumentPanel
+          projectId={project.id}
+          userId={user.id}
+          initialDocuments={documents ?? []}
+          isOrgProject={isOrgProject}
+          canManageConfidential={canManageConfidential}
+        />
 
       </div>
     </div>
