@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase-browser'
 import TaskPool from './TaskPool'
 import MyTasks from './MyTasks'
 
@@ -17,6 +19,7 @@ type PoolTask = {
 }
 
 type OrgMember = { userId: string; displayName: string }
+type Project = { id: string; name: string; colour: string }
 
 export default function TasksHub({
   poolTasks,
@@ -24,17 +27,62 @@ export default function TasksHub({
   orgMembers,
   currentUserId,
   currentUserRole,
+  projects,
 }: {
   poolTasks: PoolTask[]
   myTasks: PoolTask[]
   orgMembers: OrgMember[]
   currentUserId: string
   currentUserRole: string
+  projects: Project[]
 }) {
+  const router = useRouter()
   const [tab, setTab] = useState<'pool' | 'mine'>('pool')
+  const [showModal, setShowModal] = useState(false)
+  const [title, setTitle] = useState('')
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? '')
+  const [priority, setPriority] = useState('normal')
+  const [dueDate, setDueDate] = useState('')
+  const [assignee, setAssignee] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim() || !projectId) return
+    setLoading(true)
+    setError(null)
+    const supabase = createClient()
+    const { error: err } = await supabase.from('tasks').insert({
+      project_id: projectId,
+      assignee_id: assignee || currentUserId,
+      title: title.trim(),
+      priority,
+      due_date: dueDate || null,
+    })
+    setLoading(false)
+    if (err) { setError(err.message); return }
+    setTitle(''); setPriority('normal'); setDueDate(''); setAssignee('')
+    setShowModal(false)
+    router.refresh()
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-black text-gray-900">Tasks</h1>
+        {projects.length > 0 && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
+          >
+            + New task
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
       <div className="flex gap-2">
         <button
           onClick={() => setTab('pool')}
@@ -70,6 +118,68 @@ export default function TasksHub({
           initialTasks={myTasks}
           currentUserId={currentUserId}
         />
+      )}
+
+      {/* New task modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowModal(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h2 className="mb-4 text-lg font-black text-gray-900">New task</h2>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-500">Project</label>
+                <select value={projectId} onChange={e => setProjectId(e.target.value)} required
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-500">Title</label>
+                <input type="text" value={title} onChange={e => setTitle(e.target.value)} required autoFocus
+                  placeholder="What needs doing?"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-gray-500">Priority</label>
+                  <select value={priority} onChange={e => setPriority(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="normal">Normal</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-gray-500">Due date</label>
+                  <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+                </div>
+              </div>
+              {orgMembers.length > 0 && (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-gray-500">Assign to</label>
+                  <select value={assignee} onChange={e => setAssignee(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <option value="">Me</option>
+                    {orgMembers.map(m => <option key={m.userId} value={m.userId}>{m.displayName}</option>)}
+                  </select>
+                </div>
+              )}
+              {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
+              <div className="flex gap-3 pt-1">
+                <button type="submit" disabled={loading || !title.trim()}
+                  className="flex-1 rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+                  {loading ? 'Creating...' : 'Create task'}
+                </button>
+                <button type="button" onClick={() => setShowModal(false)}
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -54,6 +54,16 @@ export default async function TasksPage() {
     }))
   }
 
+  // User's active projects (for the new-task modal project picker)
+  const { data: userProjects } = await supabase
+    .from('projects')
+    .select('id, name, colour')
+    .eq('status', 'active')
+    .or(orgId ? `assigned_to.eq.${user.id},org_id.eq.${orgId}` : `assigned_to.eq.${user.id}`)
+    .order('name', { ascending: true })
+
+  const projects = (userProjects ?? []) as { id: string; name: string; colour: string }[]
+
   // My tasks: all tasks assigned to current user
   const { data: mine } = await supabase
     .from('tasks')
@@ -72,6 +82,7 @@ export default async function TasksPage() {
           orgMembers={orgMembers}
           currentUserId={user.id}
           currentUserRole={role}
+          projects={projects}
         />
       </div>
     </div>
