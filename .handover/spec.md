@@ -60,7 +60,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 
 - [x] **C13: ConversationList** — create `src/components/chat/ConversationList.tsx` per plan **Task 13**.
 
-- [ ] **C14: ChatClient** — create `src/components/chat/ChatClient.tsx` per plan **Task 14**.
+- [x] **C14: ChatClient** — create `src/components/chat/ChatClient.tsx` per plan **Task 14**.
 
 - [ ] **C15: Chat page + layout provider + nav badge** — create `src/app/dashboard/chat/page.tsx`;
   modify `src/app/dashboard/layout.tsx` and `src/components/DashboardShell.tsx` per plan **Task 15**.
