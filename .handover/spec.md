@@ -40,7 +40,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 - [x] **C3: Shared types + pure availability** — create `src/lib/chat/types.ts` and
   `src/lib/chat/availability.ts` exactly per plan **Task 3**.
 
-- [ ] **C4: Server presence resolver** — create `src/lib/chat/presence.ts` per plan **Task 4**.
+- [x] **C4: Server presence resolver** — create `src/lib/chat/presence.ts` per plan **Task 4**.
 
 - [ ] **C5: Push notify module** — create `src/lib/chat/notify.ts` per plan **Task 5**.
 
