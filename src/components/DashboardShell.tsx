@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Clock, FolderKanban, CalendarDays, Palmtree,
+  LayoutDashboard, Clock, FolderKanban, ListTodo, CalendarDays, Palmtree,
   Receipt, Users, FileText, TrendingUp,
   BarChart3, FileBarChart2, Activity,
   CreditCard, Download, HelpCircle, Settings,
@@ -28,6 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Time', href: '/dashboard/time', icon: Clock },
       { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
+      { label: 'Tasks', href: '/dashboard/tasks', icon: ListTodo },
       { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
       { label: 'Leave', href: '/dashboard/leave', icon: Palmtree },
     ],
@@ -61,6 +62,7 @@ const BOTTOM_ITEMS: NavItem[] = [
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/time': 'Time tracking',
+  '/dashboard/tasks': 'Tasks',
   '/dashboard/expenses': 'Expenses',
   '/dashboard/clients': 'Clients',
   '/dashboard/invoices': 'Invoices',

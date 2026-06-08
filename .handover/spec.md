@@ -122,7 +122,7 @@ allow unassigned tasks.
   - Uses local state so status changes reflect immediately without a full reload.
   - Empty state: `<p className="...">You have no assigned tasks.</p>`
 
-- [ ] T7: Edit `src/components/DashboardShell.tsx`:
+- [x] T7: Edit `src/components/DashboardShell.tsx`:
   - Import `ListTodo` from `lucide-react` (add to the existing named import).
   - Add `{ label: 'Tasks', href: '/dashboard/tasks', icon: ListTodo }` to the
     `'Work'` group in `NAV_GROUPS`, immediately after the `Projects` entry.
