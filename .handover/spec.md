@@ -46,7 +46,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 
 - [x] **C6: Send API route** — create `src/app/api/chat/send/route.ts` per plan **Task 6**.
 
-- [ ] **C7: Availability API route** — create `src/app/api/chat/availability/route.ts` per plan **Task 7**.
+- [x] **C7: Availability API route** — create `src/app/api/chat/availability/route.ts` per plan **Task 7**.
 
 - [ ] **C8: ChatRealtimeProvider** — create `src/components/chat/ChatRealtimeProvider.tsx` per plan **Task 8**.
 
