@@ -65,7 +65,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 - [x] **C15: Chat page + layout provider + nav badge** — create `src/app/dashboard/chat/page.tsx`;
   modify `src/app/dashboard/layout.tsx` and `src/components/DashboardShell.tsx` per plan **Task 15**.
 
-- [ ] **C16: Service worker** — modify `public/sw.js` per plan **Task 16** (suppress chat
+- [x] **C16: Service worker** — modify `public/sw.js` per plan **Task 16** (suppress chat
   push when conversation focused; fix notificationclick navigation; bump cache to v3).
 
 - [ ] **C17: Quiet-hours settings UI** — create `src/components/chat/QuietHoursSettings.tsx`;

@@ -1,4 +1,4 @@
-const CACHE = 'timewisehub-v2'
+const CACHE = 'timewisehub-v3'
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', event => {
@@ -27,25 +27,36 @@ self.addEventListener('fetch', event => {
 // Push notifications
 self.addEventListener('push', event => {
   const data = event.data?.json() ?? {}
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? 'TimeWiseHub', {
+  const targetUrl = data.url ?? '/dashboard'
+  const isChat = typeof data.tag === 'string' && data.tag.startsWith('chat:')
+
+  event.waitUntil((async () => {
+    // For chat, skip the notification if a focused window is already on that
+    // conversation — the user is actively viewing it and saw it live.
+    if (isChat) {
+      const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      const focusedOnConversation = wins.some(c => c.focused && c.url.includes(targetUrl))
+      if (focusedOnConversation) return
+    }
+
+    await self.registration.showNotification(data.title ?? 'TimeWiseHub', {
       body: data.body ?? '',
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       tag: data.tag ?? 'timewisehub',
-      data: { url: data.url ?? '/dashboard' },
+      data: { url: targetUrl },
     })
-  )
+  })())
 })
 
 self.addEventListener('notificationclick', event => {
   event.notification.close()
+  const targetUrl = event.notification.data?.url ?? '/dashboard'
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      const target = data?.url ?? '/dashboard'
-      const existing = list.find(c => c.url.includes(target))
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes(targetUrl))
       if (existing) return existing.focus()
-      return clients.openWindow(target)
+      return self.clients.openWindow(targetUrl)
     })
   )
 })
