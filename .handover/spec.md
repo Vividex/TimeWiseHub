@@ -52,7 +52,7 @@ Full step plan (exact code per task): `docs/superpowers/plans/2026-06-08-team-ch
 
 - [x] **C9: AttachmentChip** — create `src/components/chat/AttachmentChip.tsx` per plan **Task 9**.
 
-- [ ] **C10: MessageThread** — create `src/components/chat/MessageThread.tsx` per plan **Task 10**.
+- [x] **C10: MessageThread** — create `src/components/chat/MessageThread.tsx` per plan **Task 10**.
 
 - [ ] **C11: MessageComposer** — create `src/components/chat/MessageComposer.tsx` per plan **Task 11**.
 
