@@ -18,7 +18,7 @@ Evolve the existing help widget into a full AI agent: Anthropic tool use, read +
 - [x] C4: Upgraded API route — replace `src/app/api/assistant/route.ts` with tool-use + action sentinel (Task 4)
 - [x] C5: Execute route — create `src/app/api/assistant/execute/route.ts` (Task 5)
 - [x] C6: ActionCard component — create `src/components/assistant/ActionCard.tsx` (Task 6)
-- [ ] C7: Upgraded AssistantWidget — replace `src/components/AssistantWidget.tsx` with Sparkles icon + tool use + open/onClose props (Task 7)
+- [x] C7: Upgraded AssistantWidget — replace `src/components/AssistantWidget.tsx` with Sparkles icon + tool use + open/onClose props (Task 7)
 - [ ] C8: Full-page assistant — create `src/app/dashboard/assistant/page.tsx` + `src/components/assistant/AssistantPageClient.tsx` (Task 8)
 - [ ] C9: FloatingWidgets + layout + nav — create `src/components/FloatingWidgets.tsx`, update `src/app/dashboard/layout.tsx` + `src/components/DashboardShell.tsx` (Task 9)
 - [ ] C10: TeamChatWidget — create `src/components/chat/TeamChatWidget.tsx`, replace placeholder in FloatingWidgets (Task 10)

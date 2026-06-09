@@ -17,7 +17,7 @@ export default async function DashboardLayout({
     <ChatRealtimeProvider userId={user.id}>
       <DashboardShell email={user.email ?? ''}>
         {children}
-        <AssistantWidget userEmail={user.email ?? ''} />
+        <AssistantWidget userEmail={user.email ?? ''} open={false} onClose={() => {}} />
       </DashboardShell>
     </ChatRealtimeProvider>
   )
