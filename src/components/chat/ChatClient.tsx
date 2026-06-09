@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, ArrowLeft } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import ConversationList from '@/components/chat/ConversationList'
 import MessageThread from '@/components/chat/MessageThread'
@@ -46,16 +46,31 @@ export default function ChatClient() {
 
   return (
     <div className="flex h-[calc(100vh-8.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:h-[calc(100vh-7rem)]">
-      <ConversationList onNewDm={() => setShowNewDm(true)} />
 
-      <div className="flex flex-1 flex-col">
+      {/* Sidebar: always visible on desktop; on mobile, shown only when no conversation is active */}
+      <div className={active ? 'hidden md:block' : 'block'}>
+        <ConversationList onNewDm={() => setShowNewDm(true)} />
+      </div>
+
+      {/* Thread panel: always visible on desktop; on mobile, shown only when a conversation is active */}
+      <div className={`min-w-0 flex-1 flex-col ${active ? 'flex' : 'hidden md:flex'}`}>
         {active ? (
           <>
-            <div className="border-b border-gray-200 px-4 py-3 dark:border-slate-800">
-              <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">{title}</h3>
-              {isChannel && (
-                <p className="text-xs font-medium text-gray-400">Org-wide · managers can post</p>
-              )}
+            <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-slate-800">
+              {/* Back to conversation list — mobile only */}
+              <button
+                onClick={() => setActiveConversation(null)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800 md:hidden"
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="min-w-0">
+                <h3 className="truncate text-sm font-black text-slate-900 dark:text-slate-100">{title}</h3>
+                {isChannel && (
+                  <p className="text-xs font-medium text-gray-400">Org-wide · managers can post</p>
+                )}
+              </div>
             </div>
             <MessageThread conversationId={active.id} isChannel={isChannel} />
             <MessageComposer

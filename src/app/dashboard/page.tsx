@@ -35,6 +35,13 @@ export default async function DashboardPage() {
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto max-w-6xl space-y-8">
 
+        {/* Greeting */}
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">
+            Hi, {profile?.full_name?.split(' ')[0] || 'there'}
+          </h1>
+        </div>
+
         {/* First-run welcome */}
         <WelcomeBanner firstName={profile?.full_name?.split(' ')[0] ?? ''} />
 
