@@ -23,16 +23,25 @@ interface SpeechRecognitionCtor {
 
 // Ordered by preference — neural/natural voices first, then decent fallbacks
 const PREFERRED_VOICES = [
+  // Edge on Windows — best quality
+  'Microsoft Natasha Online (Natural) - English (Australia)',
   'Microsoft Aria Online (Natural) - English (United States)',
   'Microsoft Jenny Online (Natural) - English (United States)',
-  'Microsoft Guy Online (Natural) - English (United States)',
-  'Microsoft Natasha Online (Natural) - English (Australia)',
   'Microsoft Ryan Online (Natural) - English (United Kingdom)',
-  'Google US English',
+  'Microsoft Guy Online (Natural) - English (United States)',
+  // Chrome network voices — sound natural, require internet
   'Google UK English Female',
-  'Samantha', // macOS
-  'Karen',    // macOS Australian
-  'Daniel',   // macOS British
+  'Google US English',
+  'Google UK English Male',
+  // Local Windows voices — Australian first
+  'Microsoft Catherine - English (Australia)',
+  'Microsoft James - English (Australia)',
+  'Microsoft Hazel - English (United Kingdom)',
+  'Microsoft George - English (United Kingdom)',
+  // macOS
+  'Samantha',
+  'Karen',
+  'Daniel',
 ]
 
 function pickVoice(): SpeechSynthesisVoice | null {
