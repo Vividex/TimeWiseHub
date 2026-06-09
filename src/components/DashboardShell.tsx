@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Clock, FolderKanban, ListTodo, CalendarDays, Palmtree,
   Receipt, Users, FileText, TrendingUp,
   BarChart3, FileBarChart2, Activity,
-  CreditCard, Download, HelpCircle, Settings, MessageSquare,
+  CreditCard, Download, HelpCircle, Settings, MessageSquare, Sparkles,
   type LucideIcon,
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
@@ -31,6 +31,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
       { label: 'Tasks', href: '/dashboard/tasks', icon: ListTodo },
       { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare },
+      { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles },
       { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
       { label: 'Leave', href: '/dashboard/leave', icon: Palmtree },
     ],
@@ -66,6 +67,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/time': 'Time tracking',
   '/dashboard/tasks': 'Tasks',
   '/dashboard/chat': 'Chat',
+  '/dashboard/assistant': 'Assistant',
   '/dashboard/expenses': 'Expenses',
   '/dashboard/clients': 'Clients',
   '/dashboard/invoices': 'Invoices',
