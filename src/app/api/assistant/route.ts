@@ -1,38 +1,35 @@
+// src/app/api/assistant/route.ts
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase-server'
+import { TOOL_SCHEMAS, isReadTool, executeReadTool } from '@/lib/assistant/tools'
 
-type ChatMessage = {
-  role: 'user' | 'assistant'
-  content: string
-}
+type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
-const SYSTEM_PROMPT = `You are the onsite AI assistant for TimeWiseHub, a modern business dashboard for teams and individuals.
+const SYSTEM_PROMPT = `You are the TimeWiseHub AI assistant. You have access to the user's real data: tasks, projects, clients, time entries, expenses, leave, calendar, and team members. You can read data and propose actions (the user confirms before anything changes).
 
-TimeWiseHub features include:
-- Time tracking: start and stop timers, add manual time entries, review today's time, weekly totals, and task-linked work logs.
-- Expenses: submit expenses, upload and view receipts, track statuses, manage recurring subscriptions, export expense data, and review manager approvals.
-- Projects: create projects, monitor project status, archive completed work, store project documents, and review deadlines.
-- Tasks: create task lists, assign work, set due dates, track status, use priority levels, and spot urgent or overdue work.
-- Leave: plan and reason about team availability, time away, and how leave affects deadlines and project capacity.
-- Calendar: view tasks and events by date, add calendar events, inspect daily schedules, and see upcoming work.
-- Billing: manage subscription plans, trials, checkout, customer portal access, and plan limits.
-- Reports and insights: review activity, productivity ratios, project health, time and expense summaries, organisation stats, exports, and business performance trends.
+Rules:
+- At the start of every new session (first user message), call get_summary to load context before responding.
+- For write actions, call the appropriate tool. The system will show the user a confirmation card — you do not need to ask for permission in text.
+- After proposing a write action, briefly explain what you proposed and wait for the result.
+- If a write action fails, say so clearly and suggest alternatives.
+- Never guess at UUIDs. Fetch the data first to get IDs.
+- Be concise and practical. This is a productivity tool, not a chat app.
+- If the user reports a bug, tell them to use the "Report a bug" button below and include what they were doing.
 
-Help users understand how to use TimeWiseHub, troubleshoot common workflow issues, and choose the next best action inside the app. Be concise, practical, and specific. If a user asks for private account data you cannot see, explain what page or feature they should open.
-
-Bug and error handling:
-- If a user reports something that is not working correctly, first try to help them resolve it (e.g. wrong page, missing step, browser cache).
-- If you cannot resolve it and it appears to be a genuine application bug (something broken, data not saving, page erroring), tell the user clearly: "This sounds like a bug. Please use the 'Report a bug' button below to send a report to our support team — include a description of what you were doing and what went wrong." Do not speculate beyond your knowledge. Keep the message short and action-focused.`
+TimeWiseHub features: time tracking, expenses, projects, tasks, leave, calendar, clients, invoices, finance, team chat, reports, billing.`
 
 export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
-
   if (!apiKey || apiKey === 'replace-with-your-anthropic-api-key') {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not configured.' }, { status: 500 })
   }
 
-  let messages: ChatMessage[]
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  let messages: ChatMessage[]
   try {
     const body = await request.json()
     messages = Array.isArray(body.messages) ? body.messages : []
@@ -41,50 +38,94 @@ export async function POST(request: Request) {
   }
 
   const cleanMessages = messages
-    .filter(message =>
-      (message.role === 'user' || message.role === 'assistant') &&
-      typeof message.content === 'string' &&
-      message.content.trim().length > 0,
-    )
-    .slice(-12)
-    .map(message => ({ role: message.role, content: message.content.trim() }))
+    .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .slice(-20)
+    .map(m => ({ role: m.role, content: m.content.trim() }))
 
-  if (cleanMessages.length === 0 || cleanMessages[cleanMessages.length - 1].role !== 'user') {
+  if (!cleanMessages.length || cleanMessages[cleanMessages.length - 1].role !== 'user') {
     return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
   }
 
   const anthropic = new Anthropic({ apiKey })
-  const encoder = new TextEncoder()
 
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        const messageStream = anthropic.messages.stream({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 800,
-          system: SYSTEM_PROMPT,
-          messages: cleanMessages,
-        })
+  // Phase 1: non-streaming call to resolve tool calls
+  let currentMessages: Anthropic.MessageParam[] = cleanMessages
+  let iterations = 0
+  const MAX_ITERATIONS = 5
 
-        for await (const event of messageStream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            controller.enqueue(encoder.encode(event.delta.text))
-          }
+  while (iterations < MAX_ITERATIONS) {
+    iterations++
+    const result = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      tools: TOOL_SCHEMAS,
+      messages: currentMessages,
+    })
+
+    const toolUseBlocks = result.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
+    const textBlocks = result.content.filter((b): b is Anthropic.TextBlock => b.type === 'text')
+
+    if (toolUseBlocks.length === 0) {
+      const text = textBlocks.map(b => b.text).join('')
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoder.encode(text))
+          controller.close()
+        },
+      })
+      return new Response(stream, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
+      })
+    }
+
+    const readTools = toolUseBlocks.filter(b => isReadTool(b.name))
+    const writeTools = toolUseBlocks.filter(b => !isReadTool(b.name))
+
+    if (writeTools.length > 0) {
+      const preamble = textBlocks.map(b => b.text).join('')
+      const sentinels = writeTools
+        .map(t => `\n__ACTION__:${JSON.stringify({ tool: t.name, input: t.input, id: t.id })}`)
+        .join('')
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoder.encode(preamble + sentinels))
+          controller.close()
+        },
+      })
+      return new Response(stream, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
+      })
+    }
+
+    const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
+      readTools.map(async tool => {
+        const data = await executeReadTool(tool.name, tool.input as Record<string, unknown>, supabase, user.id)
+        return {
+          type: 'tool_result' as const,
+          tool_use_id: tool.id,
+          content: JSON.stringify(data),
         }
+      }),
+    )
 
-        controller.close()
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Assistant request failed.'
-        controller.enqueue(encoder.encode(`\n\n${message}`))
-        controller.close()
-      }
+    currentMessages = [
+      ...currentMessages,
+      { role: 'assistant' as const, content: result.content },
+      { role: 'user' as const, content: toolResults },
+    ]
+  }
+
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode("I wasn't able to complete that in the expected number of steps. Please try again."))
+      controller.close()
     },
   })
-
   return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-    },
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
   })
 }
