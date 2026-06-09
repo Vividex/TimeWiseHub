@@ -195,10 +195,40 @@
 
 ---
 
+## Phase 13 — AI Assistant
+> Goal: An embedded AI agent that can read all platform data and propose write actions, with user confirmation before anything changes.
+
+- [x] 13.1 — Persistent assistant sessions — `assistant_sessions` table; full-page view at `/dashboard/assistant` with session sidebar
+- [x] 13.2 — Read tools — get_tasks, get_projects, get_clients, get_time_entries, get_expenses, get_team_members, get_leave_requests, get_calendar_events, get_summary
+- [x] 13.3 — Write tools with confirmation cards — create/update tasks, projects, clients, time entries, expenses, calendar events, leave requests; user confirms before execution
+- [x] 13.4 — Floating widget stack — AI (Sparkles) + Team Chat (MessageSquare) buttons bottom-right; mutually exclusive open state
+- [x] 13.5 — Voice mode — ElevenLabs TTS (server-side, consistent voice across all browsers); browser SpeechRecognition STT; tap-to-speak with auto-submit on speech end
+- [x] 13.6 — Conversational tone — natural language, no technical jargon, colour names accepted, dates in plain English
+
+---
+
+## Phase 14 — Client Sessions & Progress Notes
+> Goal: A session booking and tracking layer sitting under each client — a personal trainer books a session, plans what to cover, works through it live, and logs progress notes that build a longitudinal record.
+
+### Sessions
+- [ ] 14.1 — Create sessions linked to a client (title, scheduled date/time, duration, notes)
+  - Sessions appear on the calendar automatically; no due date field
+  - Session can be created from the client portal, the calendar, or via the AI assistant
+- [ ] 14.2 — Session to-do list — customisable checklist attached to each session (e.g. "Cardio", "Meal prep planning"); items can be checked off during the session
+- [ ] 14.3 — Session notes — free-text notes field on each session; editable at any time
+- [ ] 14.4 — Session list view inside the client portal — upcoming and past sessions separated
+- [ ] 14.5 — Session status — scheduled → in progress → completed
+
+### Progress Notes
+- [ ] 14.6 — Progress notes — standalone timestamped entries living in the client portal (separate from session notes); each entry records date, time, and free text
+- [ ] 14.7 — Progress note history — chronological feed of all notes for a client; visible inside the client portal
+- [ ] 14.8 — AI assistant integration — create sessions, add to-do items, check off items, add session notes, and add progress notes all via the AI assistant
+
+---
+
 ## Parking Lot (Future / Unscheduled)
 - Rostering / shift scheduling — standalone phase; shifts, recurring patterns, assignments, swaps; could feed chat presence/notification windows
 - SSO / SAML integration for enterprise orgs
 - API access for third-party integrations (Jira, Slack, QuickBooks)
-- AI-powered productivity suggestions
 - Multi-currency and multi-language support
 - White-label / reseller option
