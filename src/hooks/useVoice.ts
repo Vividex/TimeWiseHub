@@ -21,39 +21,6 @@ interface SpeechRecognitionCtor {
   new(): SpeechRecognitionInstance
 }
 
-// Ordered by preference — neural/natural voices first, then decent fallbacks
-const PREFERRED_VOICES = [
-  // Edge on Windows — best quality
-  'Microsoft Natasha Online (Natural) - English (Australia)',
-  'Microsoft Aria Online (Natural) - English (United States)',
-  'Microsoft Jenny Online (Natural) - English (United States)',
-  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
-  'Microsoft Guy Online (Natural) - English (United States)',
-  // Chrome network voices — sound natural, require internet
-  'Google UK English Female',
-  'Google US English',
-  'Google UK English Male',
-  // Local Windows voices — Australian first
-  'Microsoft Catherine - English (Australia)',
-  'Microsoft James - English (Australia)',
-  'Microsoft Hazel - English (United Kingdom)',
-  'Microsoft George - English (United Kingdom)',
-  // macOS
-  'Samantha',
-  'Karen',
-  'Daniel',
-]
-
-function pickVoice(): SpeechSynthesisVoice | null {
-  if (!('speechSynthesis' in window)) return null
-  const voices = window.speechSynthesis.getVoices()
-  for (const name of PREFERRED_VOICES) {
-    const match = voices.find(v => v.name === name)
-    if (match) return match
-  }
-  return voices.find(v => ['en-AU', 'en-US', 'en-GB'].includes(v.lang)) ?? null
-}
-
 type VoiceState = 'idle' | 'listening' | 'error'
 
 export function useVoice({
@@ -66,6 +33,7 @@ export function useVoice({
   const [state, setState] = useState<VoiceState>('idle')
   const [supported, setSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     const w = window as unknown as { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor }
@@ -100,19 +68,35 @@ export function useVoice({
     setState('idle')
   }, [])
 
-  function speak(text: string) {
-    if (!enabled || !('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    const voice = pickVoice()
-    if (voice) utterance.voice = voice
-    utterance.lang = voice?.lang ?? 'en-AU'
-    utterance.rate = 1.05
-    window.speechSynthesis.speak(utterance)
+  async function speak(text: string) {
+    if (!enabled) return
+    stopSpeaking()
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok) return
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => {
+        URL.revokeObjectURL(url)
+        audioRef.current = null
+      }
+      await audio.play()
+    } catch {
+      // TTS is non-critical — silently ignore errors
+    }
   }
 
   function stopSpeaking() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
   }
 
   return { state, supported, startListening, stopListening, speak, stopSpeaking }
