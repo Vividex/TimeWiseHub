@@ -14,7 +14,7 @@ Evolve the existing help widget into a full AI agent: Anthropic tool use, read +
 
 - [x] C1: DB migration — create `supabase/schema-038-assistant-sessions.sql` and apply via Supabase MCP (Task 1 in plan)
 - [x] C2: Tool schemas + read executors — create `src/lib/assistant/tools.ts` (Task 2)
-- [ ] C3: Write executors — create `src/lib/assistant/write-executors.ts` (Task 3)
+- [x] C3: Write executors — create `src/lib/assistant/write-executors.ts` (Task 3)
 - [ ] C4: Upgraded API route — replace `src/app/api/assistant/route.ts` with tool-use + action sentinel (Task 4)
 - [ ] C5: Execute route — create `src/app/api/assistant/execute/route.ts` (Task 5)
 - [ ] C6: ActionCard component — create `src/components/assistant/ActionCard.tsx` (Task 6)
