@@ -1,10 +1,11 @@
-# Phase 13 — AI Assistant
+# Phase 14 — Client Sessions & Progress Notes
 
 ## Goal
-Evolve the existing help widget into a full AI agent: Anthropic tool use, read + write tools with confirmation cards, full-page view with persistent sessions, floating widget stack (AI + team chat), and browser-native voice mode.
+Build sessions, session to-do lists, client templates, and progress notes under the client portal,
+with calendar integration and AI assistant control.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-09-ai-assistant.md`
+`docs/superpowers/plans/2026-06-10-client-sessions-progress-notes.md`
 
 ## Division of labor
 - **Codex**: all text file creation/edits (.ts/.tsx/.sql).
@@ -12,25 +13,46 @@ Evolve the existing help widget into a full AI agent: Anthropic tool use, read +
 
 ## Acceptance checklist
 
-- [x] C1: DB migration — create `supabase/schema-038-assistant-sessions.sql` and apply via Supabase MCP (Task 1 in plan)
-- [x] C2: Tool schemas + read executors — create `src/lib/assistant/tools.ts` (Task 2)
-- [x] C3: Write executors — create `src/lib/assistant/write-executors.ts` (Task 3)
-- [x] C4: Upgraded API route — replace `src/app/api/assistant/route.ts` with tool-use + action sentinel (Task 4)
-- [x] C5: Execute route — create `src/app/api/assistant/execute/route.ts` (Task 5)
-- [x] C6: ActionCard component — create `src/components/assistant/ActionCard.tsx` (Task 6)
-- [x] C7: Upgraded AssistantWidget — replace `src/components/AssistantWidget.tsx` with Sparkles icon + tool use + open/onClose props (Task 7)
-- [x] C8: Full-page assistant — create `src/app/dashboard/assistant/page.tsx` + `src/components/assistant/AssistantPageClient.tsx` (Task 8)
-- [x] C9: FloatingWidgets + layout + nav — create `src/components/FloatingWidgets.tsx`, update `src/app/dashboard/layout.tsx` + `src/components/DashboardShell.tsx` (Task 9)
-- [x] C10: TeamChatWidget — create `src/components/chat/TeamChatWidget.tsx`, replace placeholder in FloatingWidgets (Task 10)
-- [x] C11: Voice hook — create `src/hooks/useVoice.ts` (Task 11)
-- [x] C12: Wire voice — update `src/components/AssistantWidget.tsx` + `src/components/assistant/AssistantPageClient.tsx` with mic/speaker controls (Task 12)
+### Task C1 — DB Migration
+- [x] C1-1: Write `supabase/schema-039-client-sessions.sql` (4 tables: sessions, session_todos, client_session_templates, progress_notes + RLS)
+- [x] C1-2: Apply migration in Supabase (conductor runs via Supabase MCP or SQL Editor)
+- [x] C1-3: Commit schema file
+
+### Task C2 — Client Detail Page Redesign
+- [ ] C2-1: Create `src/components/clients/NewSessionModal.tsx`
+- [ ] C2-2: Create `src/components/clients/AddProgressNote.tsx`
+- [ ] C2-3: Replace `src/app/dashboard/clients/[id]/page.tsx` with sessions list + progress notes feed + collapsible financials
+- [ ] C2-4: Build check (`pnpm run build`)
+- [ ] C2-5: Commit C2 files
+
+### Task C3 — Session Detail Page
+- [ ] C3-1: Create `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx`
+- [ ] C3-2: Create `src/components/clients/SessionDetailClient.tsx` (inline editing, todo checkboxes, debounced notes, save-as-template)
+- [ ] C3-3: Build check (`pnpm run build`)
+- [ ] C3-4: Commit C3 files
+
+### Task C4 — Calendar Integration
+- [ ] C4-1: Add `Session` type + `'session'` to CalendarItem union + `sessions` param to `buildItems` in `src/components/calendar/CalendarView.tsx`
+- [ ] C4-2: Add session navigation (Link wrapper) to `src/components/calendar/DayPanel.tsx`
+- [ ] C4-3: Add sessions query + pass to `<CalendarView>` in `src/app/dashboard/calendar/page.tsx`
+- [ ] C4-4: Build check (`pnpm run build`)
+- [ ] C4-5: Commit C4 files
+
+### Task C5 — AI Assistant Tools
+- [ ] C5-1: Add `get_sessions`, `get_progress_notes` to READ_TOOLS; add 5 write tools to WRITE_TOOLS in `src/lib/assistant/tools.ts`
+- [ ] C5-2: Append 7 tool schemas to `TOOL_SCHEMAS` in `src/lib/assistant/tools.ts`
+- [ ] C5-3: Add `get_sessions` + `get_progress_notes` cases to `executeReadTool` in `src/lib/assistant/tools.ts`
+- [ ] C5-4: Add 5 write executor cases to `src/lib/assistant/write-executors.ts`
+- [ ] C5-5: Add 5 new entries to `TOOL_LABELS` in `src/components/assistant/ActionCard.tsx`
+- [ ] C5-6: Build check (`pnpm run build`)
+- [ ] C5-7: Commit C5 files
 
 ## Verification
-After each item: `pnpm run build` must pass clean.
-Final smoke: floating widgets stacked bottom-right; AI assistant reads tasks; write action shows confirmation card; team chat widget lists conversations; `/dashboard/assistant` full-page loads with session sidebar; voice mic/speaker controls present.
+After each item: `pnpm run build` must pass clean (runs tsc + eslint).
+Final smoke: sessions on client detail page; session detail inline editing; calendar teal items; AI `get_sessions` returns data; `create_session` shows confirmation card.
 
 ## Out of scope
-- Deleting records via AI (too destructive)
-- Multi-currency, SSO, white-label
-- No new npm dependencies (Anthropic SDK already installed)
+- Deleting sessions/notes via AI (too destructive)
+- Real-time updates / subscriptions
+- No new npm dependencies
 - No billing/Stripe/auth changes
