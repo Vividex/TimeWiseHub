@@ -26,10 +26,10 @@ with calendar integration and AI assistant control.
 - [x] C2-5: Commit C2 files
 
 ### Task C3 — Session Detail Page
-- [ ] C3-1: Create `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx`
-- [ ] C3-2: Create `src/components/clients/SessionDetailClient.tsx` (inline editing, todo checkboxes, debounced notes, save-as-template)
-- [ ] C3-3: Build check (`pnpm run build`)
-- [ ] C3-4: Commit C3 files
+- [x] C3-1: Create `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx`
+- [x] C3-2: Create `src/components/clients/SessionDetailClient.tsx` (inline editing, todo checkboxes, debounced notes, save-as-template)
+- [x] C3-3: Build check (`pnpm run build`)
+- [x] C3-4: Commit C3 files
 
 ### Task C4 — Calendar Integration
 - [ ] C4-1: Add `Session` type + `'session'` to CalendarItem union + `sessions` param to `buildItems` in `src/components/calendar/CalendarView.tsx`
