@@ -51,10 +51,14 @@ export default function AssistantWidget({
   const [bugDescription, setBugDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const voiceTextRef = useRef('')
   const [voiceEnabled, setVoiceEnabled] = useState(false)
   const { state: voiceState, supported: voiceSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
+      voiceTextRef.current = text
       setInput(text)
+      setTimeout(() => formRef.current?.requestSubmit(), 0)
     },
     enabled: voiceEnabled,
   })
@@ -71,7 +75,8 @@ export default function AssistantWidget({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const text = input.trim()
+    const text = (voiceTextRef.current || input).trim()
+    voiceTextRef.current = ''
     if (!text || loading) return
 
     const nextMessages: Message[] = [...messages, { role: 'user', content: text }]
@@ -320,7 +325,7 @@ export default function AssistantWidget({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} data-assistant-form className="border-t border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+          <form ref={formRef} onSubmit={handleSubmit} data-assistant-form className="border-t border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-end gap-2">
               <textarea
                 value={input}

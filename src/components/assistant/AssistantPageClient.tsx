@@ -47,11 +47,15 @@ export default function AssistantPageClient({
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const voiceTextRef = useRef('')
   const supabase = createClient()
   const [voiceEnabled, setVoiceEnabled] = useState(false)
   const { state: voiceState, supported: voiceSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
+      voiceTextRef.current = text
       setInput(text)
+      setTimeout(() => formRef.current?.requestSubmit(), 0)
     },
     enabled: voiceEnabled,
   })
@@ -102,7 +106,8 @@ export default function AssistantPageClient({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const text = input.trim()
+    const text = (voiceTextRef.current || input).trim()
+    voiceTextRef.current = ''
     if (!text || loading) return
 
     let sessionId = activeSessionId
@@ -329,7 +334,7 @@ export default function AssistantPageClient({
         </div>
 
         <div className="border-t border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <form onSubmit={handleSubmit} data-assistant-form>
+          <form ref={formRef} onSubmit={handleSubmit} data-assistant-form>
             <div className="flex items-end gap-3">
               <textarea
                 value={input}
