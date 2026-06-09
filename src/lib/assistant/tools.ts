@@ -6,12 +6,14 @@ export const READ_TOOLS = new Set([
   'get_tasks', 'get_projects', 'get_clients', 'get_time_entries',
   'get_expenses', 'get_team_members', 'get_leave_requests',
   'get_calendar_events', 'get_summary',
+  'get_sessions', 'get_progress_notes',
 ])
 
 export const WRITE_TOOLS = new Set([
   'create_task', 'update_task', 'create_project', 'update_project',
   'create_client', 'update_client', 'create_time_entry', 'start_timer',
   'stop_timer', 'create_expense', 'create_calendar_event', 'create_leave_request',
+  'create_session', 'update_session', 'add_session_todo', 'check_session_todo', 'add_progress_note',
 ])
 
 export function isReadTool(name: string): boolean {
@@ -283,6 +285,99 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
       required: ['leave_type', 'start_date', 'end_date'],
     },
   },
+
+  // ── Session read tools ───────────────────────────────────────
+  {
+    name: 'get_sessions',
+    description: 'Fetch sessions for a client. Filter by upcoming, past, or all.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Client UUID (required)' },
+        filter: { type: 'string', enum: ['upcoming', 'past', 'all'], description: 'Default: upcoming' },
+      },
+      required: ['client_id'],
+    },
+  },
+  {
+    name: 'get_progress_notes',
+    description: 'Fetch all progress notes for a client, newest first.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Client UUID (required)' },
+        limit: { type: 'number', description: 'Max results (default 20)' },
+      },
+      required: ['client_id'],
+    },
+  },
+
+  // ── Session write tools (require confirmation) ───────────────
+  {
+    name: 'create_session',
+    description: 'Propose creating a session for a client. Pre-populates the to-do list from the client\'s saved template if one exists. Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Client UUID' },
+        title: { type: 'string', description: 'Session title e.g. Weekly check-in' },
+        scheduled_at: { type: 'string', description: 'ISO datetime e.g. 2026-06-15T10:00:00' },
+        duration_minutes: { type: 'number', description: 'Duration in minutes (default 60)' },
+      },
+      required: ['client_id', 'title', 'scheduled_at'],
+    },
+  },
+  {
+    name: 'update_session',
+    description: 'Propose updating a session (title, time, duration, or status). Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        session_id: { type: 'string', description: 'Session UUID' },
+        title: { type: 'string' },
+        scheduled_at: { type: 'string', description: 'ISO datetime' },
+        duration_minutes: { type: 'number' },
+        status: { type: 'string', enum: ['scheduled', 'in_progress', 'completed'] },
+      },
+      required: ['session_id'],
+    },
+  },
+  {
+    name: 'add_session_todo',
+    description: 'Propose adding a to-do item to a session checklist. Appended to the end. Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        session_id: { type: 'string', description: 'Session UUID' },
+        title: { type: 'string', description: 'To-do item text' },
+      },
+      required: ['session_id', 'title'],
+    },
+  },
+  {
+    name: 'check_session_todo',
+    description: 'Propose checking or unchecking a to-do item in a session. Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        todo_id: { type: 'string', description: 'session_todos UUID' },
+        completed: { type: 'boolean', description: 'true to check, false to uncheck' },
+      },
+      required: ['todo_id', 'completed'],
+    },
+  },
+  {
+    name: 'add_progress_note',
+    description: "Propose adding a timestamped progress note to a client's record. Will show a confirmation card.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Client UUID' },
+        body: { type: 'string', description: 'Note text' },
+      },
+      required: ['client_id', 'body'],
+    },
+  },
 ]
 
 // ── Read executors ────────────────────────────────────────────
@@ -446,6 +541,32 @@ export async function executeReadTool(
         today_hours_logged: todayHours,
         active_timer: activeTimer ?? null,
       }
+    }
+
+    case 'get_sessions': {
+      const clientId = input.client_id as string
+      const filter = (input.filter as string) ?? 'upcoming'
+      let q = supabase
+        .from('sessions')
+        .select('id, title, scheduled_at, duration_minutes, status, client_id, clients(name), session_todos(id, title, completed, position)')
+        .eq('client_id', clientId)
+        .order('scheduled_at', { ascending: filter !== 'past' })
+        .limit(20)
+      if (filter === 'upcoming') q = q.neq('status', 'completed')
+      if (filter === 'past') q = q.eq('status', 'completed')
+      const { data } = await q
+      return data ?? []
+    }
+
+    case 'get_progress_notes': {
+      const clientId = input.client_id as string
+      const { data } = await supabase
+        .from('progress_notes')
+        .select('id, body, created_at, profiles!progress_notes_created_by_fkey(full_name)')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(Number(input.limit ?? 20))
+      return data ?? []
     }
 
     default:

@@ -39,13 +39,13 @@ with calendar integration and AI assistant control.
 - [x] C4-5: Commit C4 files
 
 ### Task C5 — AI Assistant Tools
-- [ ] C5-1: Add `get_sessions`, `get_progress_notes` to READ_TOOLS; add 5 write tools to WRITE_TOOLS in `src/lib/assistant/tools.ts`
-- [ ] C5-2: Append 7 tool schemas to `TOOL_SCHEMAS` in `src/lib/assistant/tools.ts`
-- [ ] C5-3: Add `get_sessions` + `get_progress_notes` cases to `executeReadTool` in `src/lib/assistant/tools.ts`
-- [ ] C5-4: Add 5 write executor cases to `src/lib/assistant/write-executors.ts`
-- [ ] C5-5: Add 5 new entries to `TOOL_LABELS` in `src/components/assistant/ActionCard.tsx`
-- [ ] C5-6: Build check (`pnpm run build`)
-- [ ] C5-7: Commit C5 files
+- [x] C5-1: Add `get_sessions`, `get_progress_notes` to READ_TOOLS; add 5 write tools to WRITE_TOOLS in `src/lib/assistant/tools.ts`
+- [x] C5-2: Append 7 tool schemas to `TOOL_SCHEMAS` in `src/lib/assistant/tools.ts`
+- [x] C5-3: Add `get_sessions` + `get_progress_notes` cases to `executeReadTool` in `src/lib/assistant/tools.ts`
+- [x] C5-4: Add 5 write executor cases to `src/lib/assistant/write-executors.ts`
+- [x] C5-5: Add 5 new entries to `TOOL_LABELS` in `src/components/assistant/ActionCard.tsx`
+- [x] C5-6: Build check (`pnpm run build`)
+- [x] C5-7: Commit C5 files
 
 ## Verification
 After each item: `pnpm run build` must pass clean (runs tsc + eslint).

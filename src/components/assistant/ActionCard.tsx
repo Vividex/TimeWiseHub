@@ -14,6 +14,11 @@ const TOOL_LABELS: Record<string, string> = {
   create_expense: 'Log expense',
   create_calendar_event: 'Create event',
   create_leave_request: 'Submit leave',
+  create_session: 'Book session',
+  update_session: 'Update session',
+  add_session_todo: 'Add to checklist',
+  check_session_todo: 'Check item',
+  add_progress_note: 'Add progress note',
 }
 
 const SKIP_KEYS = new Set(['id'])

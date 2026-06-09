@@ -237,6 +237,100 @@ export async function executeWriteTool(
         return { ok: true, result: data }
       }
 
+      case 'create_session': {
+        const { data: membership } = await supabase
+          .from('organisation_members')
+          .select('org_id')
+          .eq('user_id', userId)
+          .maybeSingle()
+        const { data: session, error: sessErr } = await supabase
+          .from('sessions')
+          .insert({
+            client_id: input.client_id as string,
+            org_id: membership?.org_id ?? null,
+            created_by: userId,
+            title: input.title as string,
+            scheduled_at: input.scheduled_at as string,
+            duration_minutes: Number(input.duration_minutes ?? 60),
+            status: 'scheduled',
+          })
+          .select('id, title, scheduled_at')
+          .single()
+        if (sessErr || !session) return { ok: false, error: sessErr?.message ?? 'Failed to create session.' }
+        const { data: templates } = await supabase
+          .from('client_session_templates')
+          .select('title, position')
+          .eq('client_id', input.client_id as string)
+          .order('position')
+        if (templates && templates.length > 0) {
+          await supabase.from('session_todos').insert(
+            templates.map(t => ({ session_id: session.id, title: t.title, completed: false, position: t.position }))
+          )
+        }
+        return { ok: true, result: session }
+      }
+
+      case 'update_session': {
+        const { session_id, ...fields } = input
+        const { data, error } = await supabase
+          .from('sessions')
+          .update(fields)
+          .eq('id', session_id as string)
+          .select('id, title, status')
+          .single()
+        if (error) return { ok: false, error: error.message }
+        return { ok: true, result: data }
+      }
+
+      case 'add_session_todo': {
+        const { data: existing } = await supabase
+          .from('session_todos')
+          .select('position')
+          .eq('session_id', input.session_id as string)
+          .order('position', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        const position = existing ? existing.position + 1 : 0
+        const { data, error } = await supabase
+          .from('session_todos')
+          .insert({ session_id: input.session_id as string, title: input.title as string, completed: false, position })
+          .select('id, title')
+          .single()
+        if (error) return { ok: false, error: error.message }
+        return { ok: true, result: data }
+      }
+
+      case 'check_session_todo': {
+        const { data, error } = await supabase
+          .from('session_todos')
+          .update({ completed: input.completed as boolean })
+          .eq('id', input.todo_id as string)
+          .select('id, title, completed')
+          .single()
+        if (error) return { ok: false, error: error.message }
+        return { ok: true, result: data }
+      }
+
+      case 'add_progress_note': {
+        const { data: membership } = await supabase
+          .from('organisation_members')
+          .select('org_id')
+          .eq('user_id', userId)
+          .maybeSingle()
+        const { data, error } = await supabase
+          .from('progress_notes')
+          .insert({
+            client_id: input.client_id as string,
+            org_id: membership?.org_id ?? null,
+            created_by: userId,
+            body: input.body as string,
+          })
+          .select('id, created_at')
+          .single()
+        if (error) return { ok: false, error: error.message }
+        return { ok: true, result: data }
+      }
+
       default:
         return { ok: false, error: `Unknown write tool: ${name}` }
     }
