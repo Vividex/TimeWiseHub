@@ -2,9 +2,10 @@
 'use client'
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { Send, Plus } from 'lucide-react'
+import { Send, Plus, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
+import { useVoice } from '@/hooks/useVoice'
 
 type Message = {
   role: 'user' | 'assistant' | 'notice'
@@ -47,6 +48,13 @@ export default function AssistantPageClient({
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+  const [voiceEnabled, setVoiceEnabled] = useState(false)
+  const { state: voiceState, supported: voiceSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
+    onTranscript: (text) => {
+      setInput(text)
+    },
+    enabled: voiceEnabled,
+  })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -145,6 +153,7 @@ export default function AssistantPageClient({
           : { role: 'assistant', content: finalText },
       ]
       setMessages(finalMessages)
+      if (voiceEnabled && finalText) speak(finalText)
 
       const isFirst = messages.length === 0
       const title = isFirst ? text.slice(0, 60) : undefined
@@ -316,7 +325,7 @@ export default function AssistantPageClient({
         </div>
 
         <div className="border-t border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-assistant-form>
             <div className="flex items-end gap-3">
               <textarea
                 value={input}
@@ -335,6 +344,37 @@ export default function AssistantPageClient({
               >
                 <Send size={18} />
               </button>
+              {voiceSupported && (
+                <button
+                  type="button"
+                  onClick={() => { setVoiceEnabled(v => !v); stopSpeaking() }}
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+                    voiceEnabled
+                      ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-400'
+                      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
+                  title={voiceEnabled ? 'Disable voice' : 'Enable voice'}
+                >
+                  {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                </button>
+              )}
+              {voiceSupported && voiceEnabled && (
+                <button
+                  type="button"
+                  onMouseDown={startListening}
+                  onMouseUp={stopListening}
+                  onTouchStart={startListening}
+                  onTouchEnd={stopListening}
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+                    voiceState === 'listening'
+                      ? 'animate-pulse bg-red-500 text-white'
+                      : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
+                  }`}
+                  title="Hold to speak"
+                >
+                  {voiceState === 'listening' ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+              )}
             </div>
           </form>
         </div>
