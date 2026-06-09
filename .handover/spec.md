@@ -19,11 +19,11 @@ with calendar integration and AI assistant control.
 - [x] C1-3: Commit schema file
 
 ### Task C2 — Client Detail Page Redesign
-- [ ] C2-1: Create `src/components/clients/NewSessionModal.tsx`
-- [ ] C2-2: Create `src/components/clients/AddProgressNote.tsx`
-- [ ] C2-3: Replace `src/app/dashboard/clients/[id]/page.tsx` with sessions list + progress notes feed + collapsible financials
-- [ ] C2-4: Build check (`pnpm run build`)
-- [ ] C2-5: Commit C2 files
+- [x] C2-1: Create `src/components/clients/NewSessionModal.tsx`
+- [x] C2-2: Create `src/components/clients/AddProgressNote.tsx`
+- [x] C2-3: Replace `src/app/dashboard/clients/[id]/page.tsx` with sessions list + progress notes feed + collapsible financials
+- [x] C2-4: Build check (`pnpm run build`)
+- [x] C2-5: Commit C2 files
 
 ### Task C3 — Session Detail Page
 - [ ] C3-1: Create `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx`
