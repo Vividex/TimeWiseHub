@@ -21,6 +21,30 @@ interface SpeechRecognitionCtor {
   new(): SpeechRecognitionInstance
 }
 
+// Ordered by preference — neural/natural voices first, then decent fallbacks
+const PREFERRED_VOICES = [
+  'Microsoft Aria Online (Natural) - English (United States)',
+  'Microsoft Jenny Online (Natural) - English (United States)',
+  'Microsoft Guy Online (Natural) - English (United States)',
+  'Microsoft Natasha Online (Natural) - English (Australia)',
+  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
+  'Google US English',
+  'Google UK English Female',
+  'Samantha', // macOS
+  'Karen',    // macOS Australian
+  'Daniel',   // macOS British
+]
+
+function pickVoice(): SpeechSynthesisVoice | null {
+  if (!('speechSynthesis' in window)) return null
+  const voices = window.speechSynthesis.getVoices()
+  for (const name of PREFERRED_VOICES) {
+    const match = voices.find(v => v.name === name)
+    if (match) return match
+  }
+  return voices.find(v => ['en-AU', 'en-US', 'en-GB'].includes(v.lang)) ?? null
+}
+
 type VoiceState = 'idle' | 'listening' | 'error'
 
 export function useVoice({
@@ -71,7 +95,9 @@ export function useVoice({
     if (!enabled || !('speechSynthesis' in window)) return
     window.speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-AU'
+    const voice = pickVoice()
+    if (voice) utterance.voice = voice
+    utterance.lang = voice?.lang ?? 'en-AU'
     utterance.rate = 1.05
     window.speechSynthesis.speak(utterance)
   }
