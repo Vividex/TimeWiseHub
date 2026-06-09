@@ -191,23 +191,24 @@ export default function AssistantPageClient({
       })
       const data = await res.json()
 
-      setMessages(cur => {
-        const u = [...cur]
-        u[msgIndex] = { ...u[msgIndex], actionStatus: 'confirmed' }
-        return u
-      })
-
+      const confirmedMsg: Message = { ...msg, actionStatus: 'confirmed' as const }
       const followUp = res.ok
         ? `Action confirmed and completed. Result: ${JSON.stringify(data.result)}`
         : `The action failed: ${data.error}`
 
       const historyWithFollowUp = [
-        ...buildHistory(messages.slice(0, msgIndex + 1)),
+        ...buildHistory([...messages.slice(0, msgIndex), confirmedMsg]),
         { role: 'user' as const, content: followUp },
       ]
 
       const notice: Message = { role: 'notice', content: res.ok ? 'Action confirmed.' : `Failed: ${data.error}` }
-      setMessages(cur => [...cur, notice, { role: 'assistant', content: '' }])
+      const nextMessages: Message[] = [
+        ...messages.slice(0, msgIndex),
+        confirmedMsg,
+        notice,
+        { role: 'assistant', content: '' },
+      ]
+      setMessages(nextMessages)
       setLoading(true)
 
       const apiRes = await fetch('/api/assistant', {

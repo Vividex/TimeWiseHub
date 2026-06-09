@@ -158,12 +158,7 @@ export default function AssistantWidget({
       })
       const data = await res.json()
 
-      setMessages(cur => {
-        const u = [...cur]
-        u[msgIndex] = { ...u[msgIndex], actionStatus: 'confirmed' }
-        return u
-      })
-
+      const confirmedMsg: Message = { ...msg, actionStatus: 'confirmed' as const }
       const followUp = res.ok
         ? `Action confirmed and completed. Result: ${JSON.stringify(data.result)}`
         : `The action failed with error: ${data.error}`
@@ -173,7 +168,12 @@ export default function AssistantWidget({
         content: res.ok ? `Action confirmed.` : `Action failed: ${data.error}`,
       }
 
-      const nextMessages: Message[] = [...messages.slice(0, msgIndex + 1), notice, { role: 'assistant', content: '' }]
+      const nextMessages: Message[] = [
+        ...messages.slice(0, msgIndex),
+        confirmedMsg,
+        notice,
+        { role: 'assistant', content: '' },
+      ]
       setMessages(nextMessages)
       setLoading(true)
 
