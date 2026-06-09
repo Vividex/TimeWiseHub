@@ -91,10 +91,13 @@ export default function AssistantPageClient({
   }
 
   function buildHistory(msgs: Message[]) {
-    return msgs
+    const filtered = msgs
       .filter(m => m.role === 'user' || m.role === 'assistant')
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content || '' }))
       .filter(m => m.content.trim())
+    // Anthropic requires the first message to be from the user
+    const firstUser = filtered.findIndex(m => m.role === 'user')
+    return firstUser === -1 ? [] : filtered.slice(firstUser)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

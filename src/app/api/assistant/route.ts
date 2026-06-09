@@ -53,6 +53,7 @@ export async function POST(request: Request) {
   let iterations = 0
   const MAX_ITERATIONS = 5
 
+  try {
   while (iterations < MAX_ITERATIONS) {
     iterations++
     const result = await anthropic.messages.create({
@@ -128,4 +129,8 @@ export async function POST(request: Request) {
   return new Response(stream, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
   })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'AI error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }
