@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 
-const VOICE_ID = '21m00Tcm4TlvDq8ikWAM' // Rachel
+const VOICE_ID = 'U9VgC8Xinl7nnNsyDd3J' // Australian voice
 
 export async function POST(request: Request) {
   const apiKey = process.env.ELEVENLABS_API_KEY
