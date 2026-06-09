@@ -22,7 +22,7 @@ Evolve the existing help widget into a full AI agent: Anthropic tool use, read +
 - [x] C8: Full-page assistant — create `src/app/dashboard/assistant/page.tsx` + `src/components/assistant/AssistantPageClient.tsx` (Task 8)
 - [x] C9: FloatingWidgets + layout + nav — create `src/components/FloatingWidgets.tsx`, update `src/app/dashboard/layout.tsx` + `src/components/DashboardShell.tsx` (Task 9)
 - [x] C10: TeamChatWidget — create `src/components/chat/TeamChatWidget.tsx`, replace placeholder in FloatingWidgets (Task 10)
-- [ ] C11: Voice hook — create `src/hooks/useVoice.ts` (Task 11)
+- [x] C11: Voice hook — create `src/hooks/useVoice.ts` (Task 11)
 - [ ] C12: Wire voice — update `src/components/AssistantWidget.tsx` + `src/components/assistant/AssistantPageClient.tsx` with mic/speaker controls (Task 12)
 
 ## Verification
