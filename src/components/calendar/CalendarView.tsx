@@ -8,12 +8,13 @@ type CalEvent     = { id: string; title: string; start_at: string; end_at: strin
 type Project      = { id: string; name: string; colour: string; due_date: string }
 type Task         = { id: string; title: string; due_date: string; priority: string; status: string; project_id: string }
 type LeaveRequest = { id: string; leave_type: string; start_date: string; end_date: string; half_day: boolean; user_id: string; holiday_name?: string }
+type Session = { id: string; title: string; scheduled_at: string; status: string; client_id: string }
 
 export type CalendarItem = {
   key: string
   date: string
   label: string
-  type: 'event' | 'project' | 'task' | 'leave'
+  type: 'event' | 'project' | 'task' | 'leave' | 'session'
   colour: string
   priority?: string
   id: string
@@ -21,6 +22,7 @@ export type CalendarItem = {
   startTime?: string | null
   endTime?: string | null
   allDay?: boolean
+  clientId?: string
 }
 
 const LEAVE_LABELS: Record<string, string> = {
@@ -35,7 +37,7 @@ function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
-function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leaveRequests: LeaveRequest[]): CalendarItem[] {
+function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leaveRequests: LeaveRequest[], sessions: Session[] = []): CalendarItem[] {
   const items: CalendarItem[] = []
   events.forEach(e => items.push({
     key: `e-${e.id}`,
@@ -73,16 +75,28 @@ function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leav
     }
   })
 
+  sessions.forEach(s => items.push({
+    key: `s-${s.id}`,
+    date: s.scheduled_at.slice(0, 10),
+    label: s.title,
+    type: 'session',
+    colour: '#0891b2',
+    id: s.id,
+    clientId: s.client_id,
+    startTime: s.scheduled_at,
+  }))
+
   return items
 }
 
-export default function CalendarView({ userId, orgId, initialEvents, projects, tasks, leaveRequests = [] }: {
+export default function CalendarView({ userId, orgId, initialEvents, projects, tasks, leaveRequests = [], sessions = [] }: {
   userId: string
   orgId: string | null
   initialEvents: CalEvent[]
   projects: Project[]
   tasks: Task[]
   leaveRequests?: LeaveRequest[]
+  sessions?: Session[]
 }) {
   const [events, setEvents] = useState(initialEvents)
   const [current, setCurrent] = useState(new Date())
@@ -103,7 +117,7 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
     return dayNum >= 1 && dayNum <= daysInMonth ? new Date(year, month, dayNum) : null
   })
 
-  const items = buildItems(events, projects, tasks, leaveRequests)
+  const items = buildItems(events, projects, tasks, leaveRequests, sessions)
   const byDate: Record<string, CalendarItem[]> = {}
   items.forEach(item => { (byDate[item.date] ??= []).push(item) })
 

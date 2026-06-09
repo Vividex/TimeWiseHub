@@ -32,11 +32,11 @@ with calendar integration and AI assistant control.
 - [x] C3-4: Commit C3 files
 
 ### Task C4 — Calendar Integration
-- [ ] C4-1: Add `Session` type + `'session'` to CalendarItem union + `sessions` param to `buildItems` in `src/components/calendar/CalendarView.tsx`
-- [ ] C4-2: Add session navigation (Link wrapper) to `src/components/calendar/DayPanel.tsx`
-- [ ] C4-3: Add sessions query + pass to `<CalendarView>` in `src/app/dashboard/calendar/page.tsx`
-- [ ] C4-4: Build check (`pnpm run build`)
-- [ ] C4-5: Commit C4 files
+- [x] C4-1: Add `Session` type + `'session'` to CalendarItem union + `sessions` param to `buildItems` in `src/components/calendar/CalendarView.tsx`
+- [x] C4-2: Add session navigation (Link wrapper) to `src/components/calendar/DayPanel.tsx`
+- [x] C4-3: Add sessions query + pass to `<CalendarView>` in `src/app/dashboard/calendar/page.tsx`
+- [x] C4-4: Build check (`pnpm run build`)
+- [x] C4-5: Commit C4 files
 
 ### Task C5 — AI Assistant Tools
 - [ ] C5-1: Add `get_sessions`, `get_progress_notes` to READ_TOOLS; add 5 write tools to WRITE_TOOLS in `src/lib/assistant/tools.ts`

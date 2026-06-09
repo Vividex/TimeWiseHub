@@ -17,7 +17,7 @@ export default async function CalendarPage() {
 
   const year = new Date().getFullYear()
 
-  const [{ data: events }, { data: projects }, { data: tasks }, { data: leave }, { data: profile }] = await Promise.all([
+  const [{ data: events }, { data: projects }, { data: tasks }, { data: leave }, { data: profile }, { data: sessions }] = await Promise.all([
     supabase.from('calendar_events')
       .select('*')
       .or(`created_by.eq.${user.id}${membership?.org_id ? `,org_id.eq.${membership.org_id}` : ''}`)
@@ -39,6 +39,10 @@ export default async function CalendarPage() {
       .select('au_state')
       .eq('id', user.id)
       .single(),
+    supabase.from('sessions')
+      .select('id, title, scheduled_at, status, client_id')
+      .or(`created_by.eq.${user.id}${membership?.org_id ? `,org_id.eq.${membership.org_id}` : ''}`)
+      .neq('status', 'completed'),
   ])
 
   const holidays = profile?.au_state
@@ -66,6 +70,7 @@ export default async function CalendarPage() {
           projects={projects ?? []}
           tasks={tasks ?? []}
           leaveRequests={[...(leave ?? []), ...holidays]}
+          sessions={sessions ?? []}
         />
       </div>
     </div>
