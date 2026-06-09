@@ -361,16 +361,13 @@ export default function AssistantWidget({
               {voiceSupported && voiceEnabled && (
                 <button
                   type="button"
-                  onMouseDown={startListening}
-                  onMouseUp={stopListening}
-                  onTouchStart={startListening}
-                  onTouchEnd={stopListening}
+                  onClick={() => voiceState === 'listening' ? stopListening() : startListening()}
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
                     voiceState === 'listening'
                       ? 'animate-pulse bg-red-500 text-white'
                       : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
                   }`}
-                  title="Hold to speak"
+                  title={voiceState === 'listening' ? 'Tap to stop' : 'Tap to speak'}
                 >
                   {voiceState === 'listening' ? <MicOff size={16} /> : <Mic size={16} />}
                 </button>
