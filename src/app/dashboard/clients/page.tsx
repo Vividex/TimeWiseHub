@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import ClientForm from '@/components/clients/ClientForm'
-import ClientList from '@/components/clients/ClientList'
 import QuickSaleForm from '@/components/clients/QuickSaleForm'
+import { Tile, TileGrid } from '@/components/ui/Tile'
+
+const fmtCurrency = (n: number) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(n)
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -65,11 +67,19 @@ export default async function ClientsPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         {canAdd && <ClientForm orgId={orgId} />}
         {isAdmin && <QuickSaleForm orgId={orgId} />}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">
-            Clients ({clients.length})
-          </h2>
-          <ClientList clients={clients} />
+        <div>
+          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Clients ({clients.length})</h2>
+          <TileGrid empty="No clients yet. Add your first.">
+            {clients.map(c => (
+              <Tile
+                key={c.id}
+                title={c.name}
+                meta={c.email ?? c.phone ?? undefined}
+                badge={isAdmin && (c as { outstanding?: number }).outstanding ? { label: fmtCurrency((c as { outstanding: number }).outstanding), tone: 'amber' } : undefined}
+                href={`/dashboard/clients/${c.id}`}
+              />
+            ))}
+          </TileGrid>
         </div>
       </div>
     </div>

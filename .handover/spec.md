@@ -60,9 +60,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C8-3: Commit
 
 ### Task 9 — Clients list as tiles
-- [ ] C9-1: Modify `src/app/dashboard/clients/page.tsx` to render client tiles per plan Task 9
-- [ ] C9-2: Build check
-- [ ] C9-3: Commit
+- [x] C9-1: Modify `src/app/dashboard/clients/page.tsx` to render client tiles per plan Task 9
+- [x] C9-2: Build check
+- [x] C9-3: Commit
 
 ### Task 10 — Retire project/task routes (redirects)
 - [ ] C10-1: Convert `projects/[id]`, `projects`, `tasks` pages to redirects per plan Task 10
