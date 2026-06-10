@@ -22,11 +22,11 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ### Task 1 — Shared Tile primitive
 - [x] C1-1: Create `src/components/ui/Tile.tsx` (`Tile` + `TileGrid`) per plan Task 1
 - [x] C1-2: Build check (`pnpm run build`)
-- [ ] C1-3: Commit
+- [x] C1-3: Commit
 
 ### Task 2 — Task drawer
-- [ ] C2-1: Create `src/components/projects/TaskDrawer.tsx` per plan Task 2
-- [ ] C2-2: Build check
+- [x] C2-1: Create `src/components/projects/TaskDrawer.tsx` per plan Task 2
+- [x] C2-2: Build check
 - [ ] C2-3: Commit
 
 ### Task 3 — Project task grid
