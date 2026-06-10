@@ -65,9 +65,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C9-3: Commit
 
 ### Task 10 — Retire project/task routes (redirects)
-- [ ] C10-1: Convert `projects/[id]`, `projects`, `tasks` pages to redirects per plan Task 10
-- [ ] C10-2: Build check
-- [ ] C10-3: Commit
+- [x] C10-1: Convert `projects/[id]`, `projects`, `tasks` pages to redirects per plan Task 10
+- [x] C10-2: Build check
+- [x] C10-3: Commit
 
 ### Task 11 — Sidebar reorg + mobile drawer
 - [ ] C11-1: Create `src/components/nav/SidebarNav.tsx` + `src/components/nav/MobileSidebar.tsx`; rewrite `src/components/DashboardShell.tsx` per plan Task 11
