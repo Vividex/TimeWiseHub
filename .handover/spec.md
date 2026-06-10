@@ -1,58 +1,98 @@
-# Phase 14 — Client Sessions & Progress Notes
+# Phase 15 — Navigation & Client Drill-Down Redesign
 
 ## Goal
-Build sessions, session to-do lists, client templates, and progress notes under the client portal,
-with calendar integration and AI assistant control.
+Rebuild navigation around a client-centred drill-down (Client ▸ Projects/Sessions/Notes
+▸ Project ▸ Tasks), rendered through one shared tile component, with a reorganised
+sidebar and a mobile hamburger drawer replacing the horizontal scroll strip.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-10-client-sessions-progress-notes.md`
+`docs/superpowers/plans/2026-06-10-navigation-client-drilldown-redesign.md`
+Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
+
+## Source spec
+`docs/superpowers/specs/2026-06-10-navigation-client-drilldown-redesign-design.md`
 
 ## Division of labor
-- **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: applies SQL migrations via Supabase MCP `apply_migration`; runs all shell (`pnpm run build`, `git`); verifies diffs; ticks boxes; commits.
+- **Codex**: all text file creation/edits (.ts/.tsx).
+- **Conductor**: runs all shell (`pnpm run build`, `git`); verifies diffs; ticks boxes; commits.
+  No DB migration this phase (no schema changes).
 
 ## Acceptance checklist
 
-### Task C1 — DB Migration
-- [x] C1-1: Write `supabase/schema-039-client-sessions.sql` (4 tables: sessions, session_todos, client_session_templates, progress_notes + RLS)
-- [x] C1-2: Apply migration in Supabase (conductor runs via Supabase MCP or SQL Editor)
-- [x] C1-3: Commit schema file
+### Task 1 — Shared Tile primitive
+- [ ] C1-1: Create `src/components/ui/Tile.tsx` (`Tile` + `TileGrid`) per plan Task 1
+- [ ] C1-2: Build check (`pnpm run build`)
+- [ ] C1-3: Commit
 
-### Task C2 — Client Detail Page Redesign
-- [x] C2-1: Create `src/components/clients/NewSessionModal.tsx`
-- [x] C2-2: Create `src/components/clients/AddProgressNote.tsx`
-- [x] C2-3: Replace `src/app/dashboard/clients/[id]/page.tsx` with sessions list + progress notes feed + collapsible financials
-- [x] C2-4: Build check (`pnpm run build`)
-- [x] C2-5: Commit C2 files
+### Task 2 — Task drawer
+- [ ] C2-1: Create `src/components/projects/TaskDrawer.tsx` per plan Task 2
+- [ ] C2-2: Build check
+- [ ] C2-3: Commit
 
-### Task C3 — Session Detail Page
-- [x] C3-1: Create `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx`
-- [x] C3-2: Create `src/components/clients/SessionDetailClient.tsx` (inline editing, todo checkboxes, debounced notes, save-as-template)
-- [x] C3-3: Build check (`pnpm run build`)
-- [x] C3-4: Commit C3 files
+### Task 3 — Project task grid
+- [ ] C3-1: Create `src/components/projects/ProjectTaskGrid.tsx` per plan Task 3
+- [ ] C3-2: Build check
+- [ ] C3-3: Commit
 
-### Task C4 — Calendar Integration
-- [x] C4-1: Add `Session` type + `'session'` to CalendarItem union + `sessions` param to `buildItems` in `src/components/calendar/CalendarView.tsx`
-- [x] C4-2: Add session navigation (Link wrapper) to `src/components/calendar/DayPanel.tsx`
-- [x] C4-3: Add sessions query + pass to `<CalendarView>` in `src/app/dashboard/calendar/page.tsx`
-- [x] C4-4: Build check (`pnpm run build`)
-- [x] C4-5: Commit C4 files
+### Task 4 — Nested project home route
+- [ ] C4-1: Create `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` per plan Task 4
+- [ ] C4-2: Build check
+- [ ] C4-3: Commit
 
-### Task C5 — AI Assistant Tools
-- [x] C5-1: Add `get_sessions`, `get_progress_notes` to READ_TOOLS; add 5 write tools to WRITE_TOOLS in `src/lib/assistant/tools.ts`
-- [x] C5-2: Append 7 tool schemas to `TOOL_SCHEMAS` in `src/lib/assistant/tools.ts`
-- [x] C5-3: Add `get_sessions` + `get_progress_notes` cases to `executeReadTool` in `src/lib/assistant/tools.ts`
-- [x] C5-4: Add 5 write executor cases to `src/lib/assistant/write-executors.ts`
-- [x] C5-5: Add 5 new entries to `TOOL_LABELS` in `src/components/assistant/ActionCard.tsx`
-- [x] C5-6: Build check (`pnpm run build`)
-- [x] C5-7: Commit C5 files
+### Task 5 — Client projects grid
+- [ ] C5-1: Read `src/components/projects/ProjectForm.tsx` props; create `src/app/dashboard/clients/[id]/projects/page.tsx` per plan Task 5 (creation must bind client)
+- [ ] C5-2: Build check
+- [ ] C5-3: Commit
+
+### Task 6 — Client sessions grid
+- [ ] C6-1: Create `src/app/dashboard/clients/[id]/sessions/page.tsx` per plan Task 6
+- [ ] C6-2: Build check
+- [ ] C6-3: Commit
+
+### Task 7 — Client notes feed
+- [ ] C7-1: Create `src/app/dashboard/clients/[id]/notes/page.tsx` per plan Task 7
+- [ ] C7-2: Build check
+- [ ] C7-3: Commit
+
+### Task 8 — Client home category tiles
+- [ ] C8-1: Replace `src/app/dashboard/clients/[id]/page.tsx` with category tiles per plan Task 8
+- [ ] C8-2: Build check
+- [ ] C8-3: Commit
+
+### Task 9 — Clients list as tiles
+- [ ] C9-1: Modify `src/app/dashboard/clients/page.tsx` to render client tiles per plan Task 9
+- [ ] C9-2: Build check
+- [ ] C9-3: Commit
+
+### Task 10 — Retire project/task routes (redirects)
+- [ ] C10-1: Convert `projects/[id]`, `projects`, `tasks` pages to redirects per plan Task 10
+- [ ] C10-2: Build check
+- [ ] C10-3: Commit
+
+### Task 11 — Sidebar reorg + mobile drawer
+- [ ] C11-1: Create `src/components/nav/SidebarNav.tsx` + `src/components/nav/MobileSidebar.tsx`; rewrite `src/components/DashboardShell.tsx` per plan Task 11
+- [ ] C11-2: Build check
+- [ ] C11-3: Commit
+
+### Task 12 — Merge Reports + Activity into Insights tabs
+- [ ] C12-1: Extract Overview/Activity/Export panels; create `src/components/insights/InsightsTabs.tsx`; rewire insights page; redirect reports + activity per plan Task 12
+- [ ] C12-2: Build check
+- [ ] C12-3: Commit
+
+### Task 13 — Home as "My Work"
+- [ ] C13-1: Create `src/components/home/MyWork.tsx`; rewrite `src/app/dashboard/page.tsx`; carry over manager unassigned-pool per plan Task 13
+- [ ] C13-2: Build check
+- [ ] C13-3: Commit
 
 ## Verification
-After each item: `pnpm run build` must pass clean (runs tsc + eslint).
-Final smoke: sessions on client detail page; session detail inline editing; calendar teal items; AI `get_sessions` returns data; `create_session` shows confirmation card.
+After each item: `pnpm run build` must pass clean (tsc + eslint).
+Final smoke: Clients grid → client category tiles → projects grid → project task grid →
+task drawer edits persist; sessions grid → existing session detail; notes feed; old routes
+(`/projects`, `/tasks`, `/projects/[id]`, `/reports`, `/activity`) redirect; new sidebar
+groups with no Projects/Tasks; mobile hamburger opens/closes; Insights three tabs render.
 
 ## Out of scope
-- Deleting sessions/notes via AI (too destructive)
-- Real-time updates / subscriptions
-- No new npm dependencies
-- No billing/Stripe/auth changes
+- No DB schema changes, no new npm dependencies.
+- No billing/Stripe/auth changes.
+- No task comments/subtasks/attachments (drawer stays light).
+- Do not drop the manager unassigned-task pool (must survive into Home).
