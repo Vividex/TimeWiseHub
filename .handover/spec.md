@@ -80,9 +80,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C12-3: Commit
 
 ### Task 13 — Home as "My Work"
-- [ ] C13-1: Create `src/components/home/MyWork.tsx`; rewrite `src/app/dashboard/page.tsx`; carry over manager unassigned-pool per plan Task 13
-- [ ] C13-2: Build check
-- [ ] C13-3: Commit
+- [x] C13-1: Create `src/components/home/MyWork.tsx`; rewrite `src/app/dashboard/page.tsx`; carry over manager unassigned-pool per plan Task 13
+- [x] C13-2: Build check
+- [x] C13-3: Commit
 
 ## Verification
 After each item: `pnpm run build` must pass clean (tsc + eslint).

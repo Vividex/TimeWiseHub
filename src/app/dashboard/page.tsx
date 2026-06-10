@@ -1,106 +1,112 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-import InviteMember from '@/components/InviteMember'
+import MyWork from '@/components/home/MyWork'
+import TaskPool from '@/components/tasks/TaskPool'
+import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
 import PushPermission from '@/components/PushPermission'
-import WelcomeBanner from '@/components/WelcomeBanner'
-import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
-export default async function DashboardPage() {
+type PoolTask = {
+  id: string
+  title: string
+  priority: string
+  status: string
+  due_date: string | null
+  notes: string | null
+  assignee_id: string | null
+  completed_at: string | null
+  projects: { id: string; name: string; colour: string } | null
+}
+
+export default async function DashboardHome() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Load profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  // Load org membership
   const { data: membership } = await supabase
-    .from('organisation_members')
-    .select('role, organisations(id, name)')
-    .eq('user_id', user.id)
-    .single()
+    .from('organisation_members').select('org_id, role').eq('user_id', user.id).maybeSingle()
+  const orgId = membership?.org_id ?? null
+  const role = membership?.role ?? 'employee'
+  const isManager = ['owner', 'admin', 'manager'].includes(role)
 
-  const org = membership?.organisations as unknown as { id: string; name: string } | null
-  const role = membership?.role
-  const subscription = await getSubscription(user.id)
-  const hasTeamPlan = isTeamPlan(subscription)
+  const { data: profile } = await supabase
+    .from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+  const firstName = profile?.full_name?.split(' ')[0] ?? ''
+
+  const { data: rawTasks } = await supabase
+    .from('tasks')
+    .select('id, title, priority, status, due_date, notes, assignee_id, completed_at, projects(name, client_id)')
+    .eq('assignee_id', user.id)
+    .neq('status', 'done')
+    .order('due_date', { ascending: true, nullsFirst: false })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const myTasks = (rawTasks ?? []).map((t: any) => ({
+    id: t.id, title: t.title, priority: t.priority, status: t.status,
+    due_date: t.due_date, notes: t.notes, assignee_id: t.assignee_id, completed_at: t.completed_at,
+    projectName: t.projects?.name ?? null,
+    clientId: t.projects?.client_id ?? null,
+  }))
+
+  const orgMembersRaw = orgId
+    ? (await supabase.from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)).data
+    : null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mappedMembers = orgMembersRaw
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ? (orgMembersRaw as any[]).map((m: any) => ({ userId: m.user_id as string, displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string }))
+    : undefined
+
+  // Manager unassigned pool
+  let poolTasks: PoolTask[] = []
+  if (isManager && orgId) {
+    const { data: orgProjects } = await supabase
+      .from('projects').select('id').eq('org_id', orgId).eq('status', 'active')
+    const orgProjectIds = (orgProjects ?? []).map(p => p.id)
+    if (orgProjectIds.length > 0) {
+      const { data: pool } = await supabase
+        .from('tasks')
+        .select('id, title, priority, status, due_date, notes, assignee_id, completed_at, projects(id, name, colour)')
+        .is('assignee_id', null)
+        .neq('status', 'done')
+        .in('project_id', orgProjectIds)
+        .order('created_at', { ascending: false })
+      poolTasks = (pool ?? []) as unknown as PoolTask[]
+    }
+  }
 
   return (
-    <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 dark:text-slate-100">
-      <div className="mx-auto max-w-6xl space-y-8">
-
-        {/* Greeting */}
+    <div className="px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-5xl space-y-8">
         <div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">
-            Hi, {profile?.full_name?.split(' ')[0] || 'there'}
+            {firstName ? `Hi, ${firstName}` : 'My Work'}
           </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Jump to <Link href="/dashboard/clients" className="font-semibold text-cyan-600 hover:underline">Clients</Link> to browse projects and sessions.
+          </p>
         </div>
 
-        {/* First-run welcome */}
-        <WelcomeBanner firstName={profile?.full_name?.split(' ')[0] ?? ''} />
-
-        {/* Smart nudges */}
+        <WelcomeBanner firstName={firstName} />
         <NudgeBanner userId={user.id} />
-
-        {/* Push notifications opt-in */}
         <div className="flex justify-end">
           <PushPermission />
         </div>
 
-        {/* Quick links */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Link href="/dashboard/time" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Time tracking</p>
-            <p className="text-xl font-black text-gray-900 dark:text-slate-100">Log &amp; track hours</p>
-            <p className="mt-3 text-sm font-semibold text-gray-500 dark:text-slate-400">Open time workspace</p>
-          </Link>
-          <Link href="/dashboard/expenses" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Expenses</p>
-            <p className="text-xl font-black text-gray-900 dark:text-slate-100">Log &amp; manage costs</p>
-            <p className="mt-3 text-sm font-semibold text-gray-500 dark:text-slate-400">Review spending</p>
-          </Link>
-          <Link href="/dashboard/projects" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Projects</p>
-            <p className="text-xl font-black text-gray-900 dark:text-slate-100">Manage tasks</p>
-            <p className="mt-3 text-sm font-semibold text-gray-500 dark:text-slate-400">Track deadlines</p>
-          </Link>
-          <Link href="/dashboard/calendar" className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">Calendar</p>
-            <p className="text-xl font-black text-gray-900 dark:text-slate-100">Events &amp; deadlines</p>
-            <p className="mt-3 text-sm font-semibold text-gray-500 dark:text-slate-400">See the schedule</p>
-          </Link>
-        </div>
+        <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
 
-        {/* Org info */}
-        {org ? (
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{org.name}</h2>
-            <p className="mt-1 text-sm font-semibold capitalize text-gray-500 dark:text-slate-400">Your role: {role}</p>
-
-            {(role === 'owner' || role === 'admin') && hasTeamPlan && (
-              <div className="mt-6">
-                <InviteMember orgId={org.id} />
-              </div>
-            )}
-            {(role === 'owner' || role === 'admin') && !hasTeamPlan && (
-              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
-                Team member invites require the Team plan.
-              </div>
-            )}
+        {isManager && poolTasks.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Unassigned tasks</h2>
+            <TaskPool
+              initialTasks={poolTasks}
+              orgMembers={mappedMembers ?? []}
+              currentUserId={user.id}
+              currentUserRole={role}
+            />
           </div>
-        ) : profile?.account_type === 'org_owner' ? (
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-4 text-sm font-semibold text-gray-500 dark:text-slate-400">You haven&apos;t set up your organisation yet.</p>
-            <a href="/onboarding" className="inline-flex rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">Set up organisation</a>
-          </div>
-        ) : null}
-
+        )}
       </div>
     </div>
   )
