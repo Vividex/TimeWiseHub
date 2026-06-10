@@ -78,8 +78,7 @@ export function useVoice({
         body: JSON.stringify({ text }),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }))
-        console.error('[TTS] API error', res.status, err)
+        speakFallback(text)
         return
       }
       const blob = await res.blob()
@@ -91,15 +90,28 @@ export function useVoice({
         audioRef.current = null
       }
       await audio.play()
-    } catch (err) {
-      console.error('[TTS] playback error', err)
+    } catch {
+      speakFallback(text)
     }
+  }
+
+  function speakFallback(text: string) {
+    const synth = typeof window !== 'undefined' ? window.speechSynthesis : null
+    if (!synth) return
+    synth.cancel()
+    const utt = new SpeechSynthesisUtterance(text)
+    utt.lang = 'en-AU'
+    utt.rate = 1.0
+    synth.speak(utt)
   }
 
   function stopSpeaking() {
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current = null
+    }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
     }
   }
 
