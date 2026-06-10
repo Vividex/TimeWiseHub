@@ -75,9 +75,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C11-3: Commit
 
 ### Task 12 — Merge Reports + Activity into Insights tabs
-- [ ] C12-1: Extract Overview/Activity/Export panels; create `src/components/insights/InsightsTabs.tsx`; rewire insights page; redirect reports + activity per plan Task 12
-- [ ] C12-2: Build check
-- [ ] C12-3: Commit
+- [x] C12-1: Extract Overview/Activity/Export panels; create `src/components/insights/InsightsTabs.tsx`; rewire insights page; redirect reports + activity per plan Task 12
+- [x] C12-2: Build check
+- [x] C12-3: Commit
 
 ### Task 13 — Home as "My Work"
 - [ ] C13-1: Create `src/components/home/MyWork.tsx`; rewrite `src/app/dashboard/page.tsx`; carry over manager unassigned-pool per plan Task 13
