@@ -2,7 +2,12 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import NewInvoiceForm from '@/components/invoices/NewInvoiceForm'
 
-export default async function NewInvoicePage() {
+export default async function NewInvoicePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clientId?: string }>
+}) {
+  const { clientId } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -16,7 +21,7 @@ export default async function NewInvoicePage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} />
+        <NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} initialClientId={clientId} />
       </div>
     </div>
   )

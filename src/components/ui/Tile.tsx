@@ -28,8 +28,8 @@ export type TileProps = {
 function TileInner({ title, meta, stat, icon: Icon, accent, progress, badge }: TileProps) {
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
           {(Icon || accent) && (
             <span
               className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
@@ -39,12 +39,12 @@ function TileInner({ title, meta, stat, icon: Icon, accent, progress, badge }: T
             </span>
           )}
           <div className="min-w-0">
-            <p className="truncate font-bold text-gray-900 dark:text-slate-100">{title}</p>
+            <p className="font-bold leading-snug text-gray-900 dark:text-slate-100 sm:truncate">{title}</p>
             {meta && <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">{meta}</p>}
           </div>
         </div>
         {badge && (
-          <span className={`shrink-0 rounded-xl px-2 py-0.5 text-xs font-bold ${BADGE_TONES[badge.tone]}`}>
+          <span className={`w-fit shrink-0 rounded-xl px-2 py-0.5 text-xs font-bold ${BADGE_TONES[badge.tone]}`}>
             {badge.label}
           </span>
         )}
@@ -105,5 +105,5 @@ export function TileGrid({
       </p>
     )
   }
-  return <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">{children}</div>
+  return <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">{children}</div>
 }

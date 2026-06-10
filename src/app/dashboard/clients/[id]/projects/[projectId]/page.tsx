@@ -47,15 +47,15 @@ export default async function ClientProjectPage({
         <Link href={`/dashboard/clients/${id}/projects`} className="text-sm font-semibold text-cyan-600 hover:underline">← Projects</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
               <div className="mt-1 h-5 w-5 shrink-0 rounded-full shadow-sm" style={{ backgroundColor: project.colour }} />
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">{project.name}</h1>
+              <div className="min-w-0">
+                <h1 className="break-words text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">{project.name}</h1>
                 {project.description && <p className="mt-2 text-sm font-semibold text-gray-500">{project.description}</p>}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
               <ArchiveButton projectId={project.id} currentStatus={project.status} />
               <DeleteProjectButton projectId={project.id} clientId={id} />
             </div>

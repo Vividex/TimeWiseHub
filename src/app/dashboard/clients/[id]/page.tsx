@@ -27,7 +27,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   if (!client) notFound()
 
   const [{ count: projectCount }, { count: sessionCount }, { count: noteCount }] = await Promise.all([
-    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('archived', false),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('status', 'active'),
     supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('client_id', id),
     supabase.from('progress_notes').select('id', { count: 'exact', head: true }).eq('client_id', id),
   ])
@@ -80,8 +80,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </div>
               </div>
               <div>
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-400">Invoices</h3>
-                {invoices.length === 0 ? <p className="text-sm font-semibold text-gray-400">No invoices.</p> : (
+                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-gray-400">Invoices</h3>
+                  <Link
+                    href={`/dashboard/invoices/new?clientId=${id}`}
+                    className="inline-flex w-fit rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600"
+                  >
+                    Create invoice
+                  </Link>
+                </div>
+                {invoices.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-gray-200 p-4 dark:border-slate-700">
+                    <p className="text-sm font-semibold text-gray-400">No invoices.</p>
+                  </div>
+                ) : (
                   <table className="w-full text-sm">
                     <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
                       {invoices.map(i => (
