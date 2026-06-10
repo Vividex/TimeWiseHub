@@ -12,13 +12,24 @@ export default function InvoiceActions({ invoiceId, status, paymentLink }: {
   const [loading, setLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   async function handleSend() {
     setLoading('send')
     setError(null)
+    setNotice(null)
     const res = await fetch(`/api/invoices/${invoiceId}/send`, { method: 'POST' })
     const data = await res.json()
     if (!res.ok) { setError(data.error); setLoading(null); return }
+    if (data.email_sent && data.to) {
+      setNotice(`Invoice emailed to ${data.to}.`)
+    } else if (data.email_error) {
+      setNotice(`Invoice was prepared, but email was not sent: ${data.email_error}`)
+    } else if (data.email_skipped) {
+      setNotice('Invoice was prepared. Email is not configured.')
+    } else {
+      setNotice(data.email_error ?? 'Invoice was prepared. Add an email address to the client to send it directly.')
+    }
     router.refresh()
     setLoading(null)
   }
@@ -43,15 +54,23 @@ export default function InvoiceActions({ invoiceId, status, paymentLink }: {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {error && <span className="text-xs font-semibold text-red-600">{error}</span>}
+      {notice && <span className="basis-full text-xs font-semibold text-green-700">{notice}</span>}
 
       {status === 'draft' && (
         <button onClick={handleSend} disabled={loading === 'send'}
           className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
-          {loading === 'send' ? 'Generating link…' : 'Send invoice'}
+          {loading === 'send' ? 'Sending…' : 'Send invoice'}
         </button>
       )}
 
-      {status === 'sent' && paymentLink && (
+      {(status === 'sent' || status === 'overdue') && (
+        <button onClick={handleSend} disabled={loading === 'send'}
+          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+          {loading === 'send' ? 'Sending…' : 'Email invoice'}
+        </button>
+      )}
+
+      {(status === 'sent' || status === 'overdue') && paymentLink && (
         <button onClick={copyLink}
           className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50">
           {copied ? 'Copied!' : 'Copy payment link'}

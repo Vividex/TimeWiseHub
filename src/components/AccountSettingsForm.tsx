@@ -6,6 +6,7 @@ import { AU_STATES, type AustralianState } from '@/lib/australian-public-holiday
 import QuietHoursSettings from '@/components/chat/QuietHoursSettings'
 import { resolveQuietHours } from '@/lib/chat/availability'
 import type { QuietHours } from '@/lib/chat/types'
+import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
 
 const TIMEZONES = [
   'UTC',
@@ -42,6 +43,7 @@ type Props = {
   initialTimezone: string
   initialAuState: AustralianState | ''
   initialInvoiceLetterhead: string
+  initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
   initialNotifications: NotificationPreferences
 }
@@ -52,6 +54,7 @@ export default function AccountSettingsForm({
   initialTimezone,
   initialAuState,
   initialInvoiceLetterhead,
+  initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
   initialNotifications,
 }: Props) {
@@ -59,6 +62,7 @@ export default function AccountSettingsForm({
   const [timezone, setTimezone] = useState(initialTimezone)
   const [auState, setAuState] = useState<AustralianState | ''>(initialAuState)
   const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
+  const [paymentDetails, setPaymentDetails] = useState<InvoicePaymentDetails>(() => normaliseInvoicePaymentDetails(initialInvoicePaymentDetails))
   const [notifications, setNotifications] = useState<NotificationPreferences>(initialNotifications)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -92,6 +96,7 @@ export default function AccountSettingsForm({
       timezone,
       au_state: auState || null,
       notification_preferences: payloadNotifications,
+      invoice_payment_details: paymentDetails,
       ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
     }
 
@@ -181,6 +186,63 @@ export default function AccountSettingsForm({
           />
         </div>
       )}
+
+      <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Invoice payment details</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500">Automatically included on every invoice you create.</p>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-gray-900">Account name</label>
+          <input
+            type="text"
+            value={paymentDetails.account_name ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, account_name: e.target.value }))}
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-gray-900">BSB</label>
+            <input
+              type="text"
+              value={paymentDetails.bsb ?? ''}
+              onChange={e => setPaymentDetails(prev => ({ ...prev, bsb: e.target.value }))}
+              placeholder="000-000"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-gray-900">Account number</label>
+            <input
+              type="text"
+              value={paymentDetails.account_number ?? ''}
+              onChange={e => setPaymentDetails(prev => ({ ...prev, account_number: e.target.value }))}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-gray-900">PayID</label>
+          <input
+            type="text"
+            value={paymentDetails.pay_id ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, pay_id: e.target.value }))}
+            placeholder="email, phone, ABN, or organisation ID"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-gray-900">Payment instructions</label>
+          <textarea
+            value={paymentDetails.instructions ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, instructions: e.target.value }))}
+            rows={3}
+            placeholder="Example: Please use the invoice number as the payment reference."
+            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+      </div>
 
       {/* Notifications */}
       <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">

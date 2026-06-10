@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, timezone, au_state, notification_preferences, invoice_letterhead')
+      .select('full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details')
       .eq('id', user.id)
       .single(),
     supabase
@@ -30,7 +30,7 @@ export default async function SettingsPage() {
     ? await Promise.all([
       supabase
         .from('organisations')
-        .select('name, time_rounding_minutes, pay_cadence, super_rate, invoice_letterhead')
+        .select('name, time_rounding_minutes, pay_cadence, super_rate, invoice_letterhead, invoice_payment_details')
         .eq('id', membership.org_id)
         .single(),
       supabase
@@ -85,6 +85,7 @@ export default async function SettingsPage() {
           initialTimezone={profile?.timezone ?? 'UTC'}
           initialAuState={profile?.au_state ?? ''}
           initialInvoiceLetterhead={profile?.invoice_letterhead ?? ''}
+          initialInvoicePaymentDetails={profile?.invoice_payment_details ?? {}}
           canEditInvoiceLetterhead={plan === 'pro'}
           initialNotifications={profile?.notification_preferences ?? {
             deadline_alerts: true,
@@ -103,6 +104,7 @@ export default async function SettingsPage() {
             initialSuperRate={organisation?.super_rate ?? 12}
             initialOrgName={organisation?.name ?? ''}
             initialInvoiceLetterhead={organisation?.invoice_letterhead ?? ''}
+            initialInvoicePaymentDetails={organisation?.invoice_payment_details ?? {}}
             canEditInvoiceLetterhead={plan === 'team'}
             initialMembers={(members ?? []) as unknown as Parameters<typeof OrgBillingSettingsForm>[0]['initialMembers']}
           />

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription } from '@/lib/subscription'
 import InvoicePrintControls from '@/components/invoices/InvoicePrintControls'
 
@@ -23,14 +24,16 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
   if (!invoice || invoice.owner_id !== user.id) notFound()
 
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
-    supabase.from('profiles').select('full_name, email, invoice_letterhead').eq('id', user.id).single(),
+    supabase.from('profiles').select('full_name, email, invoice_letterhead, invoice_payment_details').eq('id', user.id).single(),
     getSubscription(user.id),
     invoice.org_id
-      ? supabase.from('organisations').select('name, invoice_letterhead').eq('id', invoice.org_id).maybeSingle()
+      ? supabase.from('organisations').select('name, invoice_letterhead, invoice_payment_details').eq('id', invoice.org_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const letterhead = invoiceLetterhead({ profile, organisation, subscription })
   const showDefaultTagline = letterhead === 'TimeWiseHub'
+  const paymentDetails = invoicePaymentDetails({ profile, organisation })
+  const paymentLines = invoicePaymentLines(paymentDetails)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = (invoice.invoice_items as any[]).sort((a, b) => a.sort_order - b.sort_order)
@@ -69,6 +72,8 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
           .invoice-print-page .notes { background: #f9fafb; border-radius: 8px; padding: 16px; margin-top: 24px; }
           .invoice-print-page .notes-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px; }
           .invoice-print-page .notes-text { color: #374151; line-height: 1.6; white-space: pre-wrap; }
+          .invoice-print-page .payment-details { background: #f9fafb; border-radius: 8px; padding: 16px; margin-top: 24px; }
+          .invoice-print-page .payment-line { color: #374151; font-weight: 600; margin-top: 4px; }
           .invoice-print-page .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #9ca3af; text-align: center; }
           @media print {
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -150,6 +155,14 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
           <div className="notes">
             <div className="notes-label">Notes</div>
             <div className="notes-text">{invoice.notes}</div>
+          </div>
+        )}
+
+        {hasInvoicePaymentDetails(paymentDetails) && (
+          <div className="payment-details">
+            <div className="notes-label">Bank transfer details</div>
+            {paymentLines.map(line => <div key={line} className="payment-line">{line}</div>)}
+            <div className="meta-sub" style={{ marginTop: 8 }}>Use invoice {invoice.invoice_number} as the payment reference.</div>
           </div>
         )}
 

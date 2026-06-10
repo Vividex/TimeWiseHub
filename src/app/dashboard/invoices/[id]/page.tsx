@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
 
@@ -39,19 +40,21 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, invoice_letterhead')
+      .select('full_name, email, invoice_letterhead, invoice_payment_details')
       .eq('id', user.id)
       .single(),
     getSubscription(user.id),
     invoice.org_id
       ? supabase
         .from('organisations')
-        .select('name, invoice_letterhead')
+        .select('name, invoice_letterhead, invoice_payment_details')
         .eq('id', invoice.org_id)
         .maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const letterhead = invoiceLetterhead({ profile, organisation, subscription })
+  const paymentDetails = invoicePaymentDetails({ profile, organisation })
+  const paymentLines = invoicePaymentLines(paymentDetails)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = (invoice.invoice_items as any[]).sort((a, b) => a.sort_order - b.sort_order)
@@ -159,6 +162,16 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           )}
 
           {/* Payment link */}
+          {hasInvoicePaymentDetails(paymentDetails) && (
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">Bank transfer details</p>
+              <div className="space-y-1 text-sm font-semibold text-gray-700">
+                {paymentLines.map(line => <p key={line}>{line}</p>)}
+              </div>
+              <p className="mt-2 text-xs text-gray-500">Use invoice {invoice.invoice_number} as the payment reference.</p>
+            </div>
+          )}
+
           {invoice.payment_link && invoice.status !== 'paid' && (
             <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-cyan-600 mb-2">Payment link</p>

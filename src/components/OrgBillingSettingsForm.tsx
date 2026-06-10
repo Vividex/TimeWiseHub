@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
+import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
 
 type OrgMember = {
   id: string
@@ -20,6 +21,7 @@ export default function OrgBillingSettingsForm({
   initialSuperRate,
   initialOrgName,
   initialInvoiceLetterhead,
+  initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
   initialMembers,
 }: {
@@ -29,6 +31,7 @@ export default function OrgBillingSettingsForm({
   initialSuperRate: number
   initialOrgName: string
   initialInvoiceLetterhead: string
+  initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
   initialMembers: OrgMember[]
 }) {
@@ -37,6 +40,7 @@ export default function OrgBillingSettingsForm({
   const [payCadence, setPayCadence] = useState(initialPayCadence)
   const [superRate, setSuperRate] = useState(String(initialSuperRate))
   const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
+  const [paymentDetails, setPaymentDetails] = useState<InvoicePaymentDetails>(() => normaliseInvoicePaymentDetails(initialInvoicePaymentDetails))
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries(initialMembers.map(member => [member.id, member.hourly_rate?.toString() ?? ''])),
   )
@@ -61,6 +65,7 @@ export default function OrgBillingSettingsForm({
         time_rounding_minutes: roundingEnabled ? 15 : 0,
         pay_cadence: payCadence,
         super_rate: superRate.trim() ? Number(superRate) : 12,
+        invoice_payment_details: paymentDetails,
         ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
       })
       .eq('id', orgId)
@@ -117,6 +122,63 @@ export default function OrgBillingSettingsForm({
           </p>
         </div>
       )}
+
+      <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+        <div>
+          <p className="text-sm font-bold text-gray-900">Invoice payment details</p>
+          <p className="text-xs font-medium text-gray-500">Automatically included on organisation invoices.</p>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-bold text-gray-500">Account name</label>
+          <input
+            type="text"
+            value={paymentDetails.account_name ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, account_name: e.target.value }))}
+            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-bold text-gray-500">BSB</label>
+            <input
+              type="text"
+              value={paymentDetails.bsb ?? ''}
+              onChange={e => setPaymentDetails(prev => ({ ...prev, bsb: e.target.value }))}
+              placeholder="000-000"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold text-gray-500">Account number</label>
+            <input
+              type="text"
+              value={paymentDetails.account_number ?? ''}
+              onChange={e => setPaymentDetails(prev => ({ ...prev, account_number: e.target.value }))}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-bold text-gray-500">PayID</label>
+          <input
+            type="text"
+            value={paymentDetails.pay_id ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, pay_id: e.target.value }))}
+            placeholder="email, phone, ABN, or organisation ID"
+            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-bold text-gray-500">Payment instructions</label>
+          <textarea
+            value={paymentDetails.instructions ?? ''}
+            onChange={e => setPaymentDetails(prev => ({ ...prev, instructions: e.target.value }))}
+            rows={3}
+            placeholder="Example: Please use the invoice number as the payment reference."
+            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+      </div>
 
       <div className="flex items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
         <div>
