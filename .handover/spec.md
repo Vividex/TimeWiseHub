@@ -20,8 +20,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ## Acceptance checklist
 
 ### Task 1 — Shared Tile primitive
-- [ ] C1-1: Create `src/components/ui/Tile.tsx` (`Tile` + `TileGrid`) per plan Task 1
-- [ ] C1-2: Build check (`pnpm run build`)
+- [x] C1-1: Create `src/components/ui/Tile.tsx` (`Tile` + `TileGrid`) per plan Task 1
+- [x] C1-2: Build check (`pnpm run build`)
 - [ ] C1-3: Commit
 
 ### Task 2 — Task drawer
