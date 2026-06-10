@@ -26,14 +26,18 @@ type VoiceState = 'idle' | 'listening' | 'error'
 export function useVoice({
   onTranscript,
   enabled,
+  onSpeakEnd,
 }: {
   onTranscript: (text: string) => void
   enabled: boolean
+  onSpeakEnd?: () => void
 }) {
   const [state, setState] = useState<VoiceState>('idle')
   const [supported, setSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const onSpeakEndRef = useRef(onSpeakEnd)
+  onSpeakEndRef.current = onSpeakEnd
 
   useEffect(() => {
     const w = window as unknown as { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor }
@@ -88,6 +92,7 @@ export function useVoice({
       audio.onended = () => {
         URL.revokeObjectURL(url)
         audioRef.current = null
+        onSpeakEndRef.current?.()
       }
       await audio.play()
     } catch {
@@ -102,6 +107,7 @@ export function useVoice({
     const utt = new SpeechSynthesisUtterance(text)
     utt.lang = 'en-AU'
     utt.rate = 1.0
+    utt.onend = () => onSpeakEndRef.current?.()
     synth.speak(utt)
   }
 

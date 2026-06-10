@@ -1,8 +1,8 @@
 // src/components/assistant/AssistantPageClient.tsx
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
-import { Send, Plus, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
@@ -51,14 +51,56 @@ export default function AssistantPageClient({
   const voiceTextRef = useRef('')
   const supabase = createClient()
   const [voiceEnabled, setVoiceEnabled] = useState(false)
+  const [loopMode, setLoopMode] = useState(false)
+  const loopModeRef = useRef(false)
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const SIGN_OFFS = ['thanks', 'thank you', 'cheers', 'that will do', 'done', 'goodbye', 'bye']
+
+  const clearSilenceTimer = useCallback(() => {
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null }
+  }, [])
+
   const { state: voiceState, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
+      clearSilenceTimer()
       voiceTextRef.current = text
       setInput(text)
+      const lower = text.toLowerCase()
+      if (SIGN_OFFS.some(w => lower.includes(w))) {
+        loopModeRef.current = false
+        setLoopMode(false)
+      }
       setTimeout(() => formRef.current?.requestSubmit(), 0)
     },
     enabled: voiceEnabled,
+    onSpeakEnd: () => {
+      if (!loopModeRef.current) return
+      silenceTimerRef.current = setTimeout(() => {
+        loopModeRef.current = false
+        setLoopMode(false)
+      }, 15000)
+      startListening()
+    },
   })
+
+  function toggleLoopMode() {
+    const next = !loopMode
+    setLoopMode(next)
+    loopModeRef.current = next
+    if (next) {
+      setVoiceEnabled(true)
+      silenceTimerRef.current = setTimeout(() => {
+        loopModeRef.current = false
+        setLoopMode(false)
+      }, 15000)
+      startListening()
+    } else {
+      clearSilenceTimer()
+      stopListening()
+      stopSpeaking()
+    }
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -356,7 +398,7 @@ export default function AssistantPageClient({
               {ttsSupported && (
                 <button
                   type="button"
-                  onClick={() => { setVoiceEnabled(v => !v); stopSpeaking() }}
+                  onClick={() => { setVoiceEnabled(v => !v); stopSpeaking(); if (loopMode) { loopModeRef.current = false; setLoopMode(false); clearSilenceTimer() } }}
                   className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
                     voiceEnabled
                       ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-400'
@@ -365,6 +407,20 @@ export default function AssistantPageClient({
                   title={voiceEnabled ? 'Disable voice' : 'Enable voice'}
                 >
                   {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                </button>
+              )}
+              {ttsSupported && voiceSupported && (
+                <button
+                  type="button"
+                  onClick={toggleLoopMode}
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+                    loopMode
+                      ? 'animate-pulse bg-cyan-500 text-white'
+                      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
+                  title={loopMode ? 'Stop conversation loop' : 'Start conversation loop'}
+                >
+                  <Repeat size={18} />
                 </button>
               )}
               {voiceSupported && voiceEnabled && (
