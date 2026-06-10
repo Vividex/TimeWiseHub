@@ -27,12 +27,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ### Task 2 — Task drawer
 - [x] C2-1: Create `src/components/projects/TaskDrawer.tsx` per plan Task 2
 - [x] C2-2: Build check
-- [ ] C2-3: Commit
+- [x] C2-3: Commit
 
 ### Task 3 — Project task grid
-- [ ] C3-1: Create `src/components/projects/ProjectTaskGrid.tsx` per plan Task 3
-- [ ] C3-2: Build check
-- [ ] C3-3: Commit
+- [x] C3-1: Create `src/components/projects/ProjectTaskGrid.tsx` per plan Task 3
+- [x] C3-2: Build check
+- [x] C3-3: Commit
 
 ### Task 4 — Nested project home route
 - [ ] C4-1: Create `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` per plan Task 4
