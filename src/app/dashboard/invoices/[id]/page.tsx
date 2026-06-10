@@ -1,6 +1,8 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { getSubscription } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -34,11 +36,22 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
 
   if (!invoice || invoice.owner_id !== user.id) notFound()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, email')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, email, invoice_letterhead')
+      .eq('id', user.id)
+      .single(),
+    getSubscription(user.id),
+    invoice.org_id
+      ? supabase
+        .from('organisations')
+        .select('name, invoice_letterhead')
+        .eq('id', invoice.org_id)
+        .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+  const letterhead = invoiceLetterhead({ profile, organisation, subscription })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = (invoice.invoice_items as any[]).sort((a, b) => a.sort_order - b.sort_order)
@@ -77,6 +90,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           {/* Title row */}
           <div className="flex items-start justify-between gap-6">
             <div>
+              <p className="mb-4 text-xl font-black tracking-tight text-slate-900">{letterhead}</p>
               <p className="text-3xl font-black tracking-tight text-slate-900">INVOICE</p>
               <p className="mt-1 text-lg font-bold text-cyan-600">{invoice.invoice_number}</p>
             </div>

@@ -18,18 +18,25 @@ export default function OrgBillingSettingsForm({
   initialRoundingMinutes,
   initialPayCadence,
   initialSuperRate,
+  initialOrgName,
+  initialInvoiceLetterhead,
+  canEditInvoiceLetterhead,
   initialMembers,
 }: {
   orgId: string
   initialRoundingMinutes: number
   initialPayCadence: string
   initialSuperRate: number
+  initialOrgName: string
+  initialInvoiceLetterhead: string
+  canEditInvoiceLetterhead: boolean
   initialMembers: OrgMember[]
 }) {
   const router = useRouter()
   const [roundingEnabled, setRoundingEnabled] = useState(initialRoundingMinutes === 15)
   const [payCadence, setPayCadence] = useState(initialPayCadence)
   const [superRate, setSuperRate] = useState(String(initialSuperRate))
+  const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries(initialMembers.map(member => [member.id, member.hourly_rate?.toString() ?? ''])),
   )
@@ -54,6 +61,7 @@ export default function OrgBillingSettingsForm({
         time_rounding_minutes: roundingEnabled ? 15 : 0,
         pay_cadence: payCadence,
         super_rate: superRate.trim() ? Number(superRate) : 12,
+        ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
       })
       .eq('id', orgId)
 
@@ -92,6 +100,23 @@ export default function OrgBillingSettingsForm({
         <h2 className="mt-1 text-xl font-bold text-gray-900">Billable rates &amp; time rounding</h2>
         <p className="mt-1 text-sm font-semibold text-gray-500">Set employee hourly rates and optionally round time entries to the nearest 15 minutes.</p>
       </div>
+
+      {canEditInvoiceLetterhead && (
+        <div>
+          <label htmlFor="invoiceLetterhead" className="block text-sm font-bold text-gray-900">Invoice letterhead</label>
+          <input
+            id="invoiceLetterhead"
+            type="text"
+            value={invoiceLetterhead}
+            onChange={e => setInvoiceLetterhead(e.target.value)}
+            placeholder={initialOrgName || 'Organisation name'}
+            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            Leave blank to use {initialOrgName || 'your organisation name'} on team invoices.
+          </p>
+        </div>
+      )}
 
       <div className="flex items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
         <div>

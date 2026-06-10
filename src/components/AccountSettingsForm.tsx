@@ -41,6 +41,8 @@ type Props = {
   initialFullName: string
   initialTimezone: string
   initialAuState: AustralianState | ''
+  initialInvoiceLetterhead: string
+  canEditInvoiceLetterhead: boolean
   initialNotifications: NotificationPreferences
 }
 
@@ -49,11 +51,14 @@ export default function AccountSettingsForm({
   initialFullName,
   initialTimezone,
   initialAuState,
+  initialInvoiceLetterhead,
+  canEditInvoiceLetterhead,
   initialNotifications,
 }: Props) {
   const [fullName, setFullName] = useState(initialFullName)
   const [timezone, setTimezone] = useState(initialTimezone)
   const [auState, setAuState] = useState<AustralianState | ''>(initialAuState)
+  const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
   const [notifications, setNotifications] = useState<NotificationPreferences>(initialNotifications)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,9 +87,17 @@ export default function AccountSettingsForm({
       quiet_hours: resolveQuietHours(notifications.quiet_hours),
     }
 
+    const updates = {
+      full_name: fullName,
+      timezone,
+      au_state: auState || null,
+      notification_preferences: payloadNotifications,
+      ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, timezone, au_state: auState || null, notification_preferences: payloadNotifications })
+      .update(updates)
       .eq('id', user.id)
 
     if (error) {
@@ -154,6 +167,20 @@ export default function AccountSettingsForm({
         </select>
         <p className="mt-2 text-xs font-medium text-gray-500">Used to show state-specific public holidays in the calendar and payroll exports.</p>
       </div>
+
+      {canEditInvoiceLetterhead && (
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900">Invoice letterhead</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500">Shown at the top of invoices instead of TimeWiseHub.</p>
+          <input
+            type="text"
+            value={invoiceLetterhead}
+            onChange={e => setInvoiceLetterhead(e.target.value)}
+            placeholder={fullName || email || 'Your business name'}
+            className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+        </div>
+      )}
 
       {/* Notifications */}
       <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">

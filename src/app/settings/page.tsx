@@ -3,16 +3,17 @@ import { createClient } from '@/lib/supabase-server'
 import AccountSettingsForm from '@/components/AccountSettingsForm'
 import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 import ThemeSelector from '@/components/ThemeSelector'
+import { effectivePlan, getSubscription } from '@/lib/subscription'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: membership }] = await Promise.all([
+  const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, timezone, au_state, notification_preferences')
+      .select('full_name, timezone, au_state, notification_preferences, invoice_letterhead')
       .eq('id', user.id)
       .single(),
     supabase
@@ -20,14 +21,16 @@ export default async function SettingsPage() {
       .select('role, org_id')
       .eq('user_id', user.id)
       .maybeSingle(),
+    getSubscription(user.id),
   ])
 
   const isOrgAdmin = ['owner', 'admin'].includes(membership?.role ?? '')
+  const plan = effectivePlan(subscription)
   const [{ data: organisation }, { data: members }] = isOrgAdmin && membership?.org_id
     ? await Promise.all([
       supabase
         .from('organisations')
-        .select('time_rounding_minutes, pay_cadence, super_rate')
+        .select('name, time_rounding_minutes, pay_cadence, super_rate, invoice_letterhead')
         .eq('id', membership.org_id)
         .single(),
       supabase
@@ -81,6 +84,8 @@ export default async function SettingsPage() {
           initialFullName={profile?.full_name ?? ''}
           initialTimezone={profile?.timezone ?? 'UTC'}
           initialAuState={profile?.au_state ?? ''}
+          initialInvoiceLetterhead={profile?.invoice_letterhead ?? ''}
+          canEditInvoiceLetterhead={plan === 'pro'}
           initialNotifications={profile?.notification_preferences ?? {
             deadline_alerts: true,
             priority_nudges: true,
@@ -96,6 +101,9 @@ export default async function SettingsPage() {
             initialRoundingMinutes={organisation?.time_rounding_minutes ?? 0}
             initialPayCadence={organisation?.pay_cadence ?? 'fortnightly'}
             initialSuperRate={organisation?.super_rate ?? 12}
+            initialOrgName={organisation?.name ?? ''}
+            initialInvoiceLetterhead={organisation?.invoice_letterhead ?? ''}
+            canEditInvoiceLetterhead={plan === 'team'}
             initialMembers={(members ?? []) as unknown as Parameters<typeof OrgBillingSettingsForm>[0]['initialMembers']}
           />
         )}

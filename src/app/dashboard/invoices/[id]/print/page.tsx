@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { getSubscription } from '@/lib/subscription'
 import InvoicePrintControls from '@/components/invoices/InvoicePrintControls'
 
 function fmtDate(d: string) {
@@ -20,7 +22,15 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
 
   if (!invoice || invoice.owner_id !== user.id) notFound()
 
-  const { data: profile } = await supabase.from('profiles').select('full_name, email').eq('id', user.id).single()
+  const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
+    supabase.from('profiles').select('full_name, email, invoice_letterhead').eq('id', user.id).single(),
+    getSubscription(user.id),
+    invoice.org_id
+      ? supabase.from('organisations').select('name, invoice_letterhead').eq('id', invoice.org_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+  const letterhead = invoiceLetterhead({ profile, organisation, subscription })
+  const showDefaultTagline = letterhead === 'TimeWiseHub'
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = (invoice.invoice_items as any[]).sort((a, b) => a.sort_order - b.sort_order)
@@ -72,8 +82,8 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
         {/* Header */}
         <div className="header">
           <div>
-            <div className="logo">TimeWiseHub</div>
-            <div className="tagline">Track Time. Control Costs. Grow Smarter.</div>
+            <div className="logo">{letterhead}</div>
+            {showDefaultTagline && <div className="tagline">Track Time. Control Costs. Grow Smarter.</div>}
           </div>
           <div className="invoice-title">
             <h1>INVOICE</h1>

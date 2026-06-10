@@ -264,7 +264,7 @@ export default function SessionDetailClient({
               </div>
             )}
 
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 rounded-2xl border border-gray-100 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
               {todos.map((todo, i) => (
                 <div key={todo.id} className="flex items-center gap-3 px-4 py-3">
                   <input
@@ -287,16 +287,20 @@ export default function SessionDetailClient({
                 </div>
               ))}
 
-              <div className="flex items-center gap-2 px-4 py-3">
+              <div className="flex flex-col gap-2 bg-gray-50 px-4 py-3 dark:bg-slate-950 sm:flex-row sm:items-center">
                 <input
                   value={newTodo}
                   onChange={e => setNewTodo(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addTodo()}
                   placeholder="Add item..."
-                  className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
+                  className="min-h-10 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                 />
-                <button onClick={addTodo} disabled={!newTodo.trim()}
-                  className="text-sm font-semibold text-cyan-600 hover:underline disabled:opacity-40">
+                <button
+                  type="button"
+                  onClick={addTodo}
+                  disabled={!newTodo.trim()}
+                  className="min-h-10 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                >
                   Add
                 </button>
               </div>
