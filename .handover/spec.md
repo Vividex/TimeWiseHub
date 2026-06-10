@@ -45,9 +45,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-3: Commit
 
 ### Task 6 — Client sessions grid
-- [ ] C6-1: Create `src/app/dashboard/clients/[id]/sessions/page.tsx` per plan Task 6
-- [ ] C6-2: Build check
-- [ ] C6-3: Commit
+- [x] C6-1: Create `src/app/dashboard/clients/[id]/sessions/page.tsx` per plan Task 6
+- [x] C6-2: Build check
+- [x] C6-3: Commit
 
 ### Task 7 — Client notes feed
 - [ ] C7-1: Create `src/app/dashboard/clients/[id]/notes/page.tsx` per plan Task 7
