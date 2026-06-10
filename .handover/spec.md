@@ -40,9 +40,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-3: Commit
 
 ### Task 5 — Client projects grid
-- [ ] C5-1: Read `src/components/projects/ProjectForm.tsx` props; create `src/app/dashboard/clients/[id]/projects/page.tsx` per plan Task 5 (creation must bind client)
-- [ ] C5-2: Build check
-- [ ] C5-3: Commit
+- [x] C5-1: Read `src/components/projects/ProjectForm.tsx` props; create `src/app/dashboard/clients/[id]/projects/page.tsx` per plan Task 5 (creation must bind client)
+- [x] C5-2: Build check
+- [x] C5-3: Commit
 
 ### Task 6 — Client sessions grid
 - [ ] C6-1: Create `src/app/dashboard/clients/[id]/sessions/page.tsx` per plan Task 6
