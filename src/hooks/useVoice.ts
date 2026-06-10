@@ -99,5 +99,5 @@ export function useVoice({
     }
   }
 
-  return { state, supported, startListening, stopListening, speak, stopSpeaking }
+  return { state, supported, ttsSupported: true, startListening, stopListening, speak, stopSpeaking }
 }

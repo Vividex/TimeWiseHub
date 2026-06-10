@@ -54,7 +54,7 @@ export default function AssistantWidget({
   const formRef = useRef<HTMLFormElement>(null)
   const voiceTextRef = useRef('')
   const [voiceEnabled, setVoiceEnabled] = useState(false)
-  const { state: voiceState, supported: voiceSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
+  const { state: voiceState, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
       voiceTextRef.current = text
       setInput(text)
@@ -344,7 +344,7 @@ export default function AssistantWidget({
               >
                 <Send size={16} />
               </button>
-              {voiceSupported && (
+              {ttsSupported && (
                 <button
                   type="button"
                   onClick={() => { setVoiceEnabled(v => !v); stopSpeaking() }}

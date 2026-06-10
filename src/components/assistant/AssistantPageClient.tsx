@@ -51,7 +51,7 @@ export default function AssistantPageClient({
   const voiceTextRef = useRef('')
   const supabase = createClient()
   const [voiceEnabled, setVoiceEnabled] = useState(false)
-  const { state: voiceState, supported: voiceSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
+  const { state: voiceState, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
       voiceTextRef.current = text
       setInput(text)
@@ -353,7 +353,7 @@ export default function AssistantPageClient({
               >
                 <Send size={18} />
               </button>
-              {voiceSupported && (
+              {ttsSupported && (
                 <button
                   type="button"
                   onClick={() => { setVoiceEnabled(v => !v); stopSpeaking() }}
