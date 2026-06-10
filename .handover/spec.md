@@ -55,9 +55,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C7-3: Commit
 
 ### Task 8 — Client home category tiles
-- [ ] C8-1: Replace `src/app/dashboard/clients/[id]/page.tsx` with category tiles per plan Task 8
-- [ ] C8-2: Build check
-- [ ] C8-3: Commit
+- [x] C8-1: Replace `src/app/dashboard/clients/[id]/page.tsx` with category tiles per plan Task 8
+- [x] C8-2: Build check
+- [x] C8-3: Commit
 
 ### Task 9 — Clients list as tiles
 - [ ] C9-1: Modify `src/app/dashboard/clients/page.tsx` to render client tiles per plan Task 9
