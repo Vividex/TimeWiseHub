@@ -930,6 +930,111 @@ setCategory('Sales')
 
 ---
 
+### Session 16 — 2026-06-10
+**Agent:** Codex
+
+**Files Inspected:**
+- `AGENTS.md`
+- `MEMORY.md`
+- `HANDOVER.md`
+- `src/app/api/invoices/[id]/send/route.ts`
+- `src/app/dashboard/invoices/[id]/page.tsx`
+- `src/app/dashboard/invoices/[id]/print/page.tsx`
+- `src/app/settings/page.tsx`
+- `src/components/AccountSettingsForm.tsx`
+- `src/components/OrgBillingSettingsForm.tsx`
+- `src/components/invoices/InvoiceActions.tsx`
+- `src/components/clients/SessionDetailClient.tsx`
+
+**Files Created:**
+- `MEMORY.md` — durable repo memory and current conventions
+- `src/components/invoices/InvoicePrintControls.tsx` — client-side print/close controls
+- `src/lib/invoice-letterhead.ts` — shared invoice letterhead resolution
+- `src/lib/invoice-payment-details.ts` — shared bank/PayID payment detail helpers
+- `supabase/schema-040-invoice-letterheads.sql` — adds invoice letterhead columns
+- `supabase/schema-041-invoice-payment-details.sql` — adds invoice payment detail JSON columns
+
+**Files Modified:**
+- `AGENTS.md` — added current invoice/payment/email conventions and migration notes
+- `MEMORY.md` — updated pushed commits, invoice conventions, and pending local work
+- `HANDOVER.md` — added this session entry
+- `src/components/ui/Tile.tsx` — mobile tiles now stack titles/badges to avoid overlap
+- `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` — project actions wrap inside the card on mobile
+- `src/components/projects/DeleteProjectButton.tsx` — delete confirmation wraps on mobile
+- `src/app/dashboard/clients/[id]/page.tsx` — project count matches active client projects; invoice section has create action
+- `src/app/dashboard/invoices/new/page.tsx` and `src/components/invoices/NewInvoiceForm.tsx` — `?clientId=...` preselects the client
+- `src/app/dashboard/invoices/[id]/print/page.tsx` — print route no longer renders nested html/body, uses real letterhead and payment details
+- `src/components/DashboardShell.tsx` — invoice print routes bypass normal dashboard chrome
+- `src/app/dashboard/invoices/[id]/page.tsx` — invoice detail shows letterhead and bank/PayID details
+- `src/app/settings/page.tsx` — loads subscription-aware invoice settings and payment details
+- `src/components/AccountSettingsForm.tsx` — personal invoice letterhead and payment detail settings
+- `src/components/OrgBillingSettingsForm.tsx` — organisation invoice letterhead and payment detail settings
+- `src/app/api/invoices/[id]/send/route.ts` — invoice sending emails clients directly and no longer requires Stripe
+- `src/components/invoices/InvoiceActions.tsx` — inline send/email feedback, resend support, overdue copy-link support
+- `src/components/clients/SessionDetailClient.tsx` — checklist add-item UI made visible/usable in mobile and dark views
+
+**Commits Pushed:**
+- `0a33b9f fix: improve mobile client project layouts`
+- `75a6643 fix: repair invoice print page`
+- `fffa90e feat: add invoice letterhead settings`
+- `0c377ae feat: add invoice bank payment details`
+
+**Current Uncommitted Work:**
+- Direct invoice emailing and Stripe-optional send flow are currently local changes after `0c377ae`.
+- Documentation updates to `AGENTS.md`, `MEMORY.md`, and `HANDOVER.md` are currently local changes.
+
+**Summary of Findings:**
+- The previous invoice send route only created a Stripe Checkout link and marked the invoice sent; it did not email the client.
+- Many businesses will not use Stripe, so invoice sending must support bank transfer / PayID as the primary payment method.
+- Bank payment details are now modeled as JSON settings on both personal profiles and organisations.
+- Team invoices prefer organisation payment details; otherwise personal details can be used.
+- Invoice details, print/PDF, and email body should stay consistent by using shared helper functions.
+- Existing email infrastructure is Resend via `sendEmail()` in `src/lib/email-notifications.ts`; no new dependency was added.
+
+**Schema Status:**
+- `supabase/schema-040-invoice-letterheads.sql` — must be applied in Supabase before letterhead settings work.
+- `supabase/schema-041-invoice-payment-details.sql` — must be applied in Supabase before bank/PayID settings work.
+- Production symptom if missing: saving organisation settings can fail with `Could not find the 'invoice_letterhead' column of 'organisations' in the schema cache`.
+- Required Supabase additions:
+  - `public.profiles.invoice_letterhead text`
+  - `public.organisations.invoice_letterhead text`
+  - `public.profiles.invoice_payment_details jsonb not null default '{}'::jsonb`
+  - `public.organisations.invoice_payment_details jsonb not null default '{}'::jsonb`
+- Manual SQL if migrations are not applied through tooling:
+```sql
+alter table public.profiles
+  add column if not exists invoice_letterhead text;
+
+alter table public.organisations
+  add column if not exists invoice_letterhead text;
+
+alter table public.profiles
+  add column if not exists invoice_payment_details jsonb not null default '{}'::jsonb;
+
+alter table public.organisations
+  add column if not exists invoice_payment_details jsonb not null default '{}'::jsonb;
+```
+- After running the SQL, refresh/retry the app; Supabase schema cache can take a short moment to recognise new columns.
+- Older pending migrations may still include `schema-024`, `schema-025`, `schema-026`, and `schema-027`; verify against Supabase before production smoke testing.
+
+**Tests Performed:**
+- No build run in this session. The repo agent guide states the Windows sandbox cannot reliably run subprocess verification and the conductor handles `pnpm run build`.
+
+**Risk Level:** Medium. Invoice emailing and payment details touch user-facing billing/invoice flows. The schema migrations must be applied before settings reads/writes succeed in production.
+
+**Next Recommended Action:**
+- Apply `schema-040` and `schema-041` in Supabase SQL Editor.
+- Run `pnpm run build`.
+- Smoke test:
+  - Account Settings personal payment details save and render on a personal invoice.
+  - Team organisation payment details save and render on an org invoice.
+  - Draft invoice send works with no Stripe key by emailing bank/PayID details.
+  - Draft invoice send works with Stripe configured by including both online link and bank details.
+  - Sent/overdue invoice can be emailed again without navigating away.
+- Commit and push the current local invoice-email/payment-details/doc changes.
+
+---
+
 ## Product Definition (Reference)
 
 | Feature | Detail |

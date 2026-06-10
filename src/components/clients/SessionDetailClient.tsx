@@ -33,11 +33,13 @@ export default function SessionDetailClient({
   todos: initialTodos,
   clientId,
   clientName,
+  orgId,
 }: {
   session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   todos: Todo[]
   clientId: string
   clientName: string
+  orgId: string | null
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -51,6 +53,9 @@ export default function SessionDetailClient({
   const [newTodo, setNewTodo] = useState('')
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
+  const [savingProgressNote, setSavingProgressNote] = useState(false)
+  const [progressNoteSaved, setProgressNoteSaved] = useState(false)
+  const [progressNoteError, setProgressNoteError] = useState('')
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false)
   const [deletingSession, setDeletingSession] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -142,6 +147,48 @@ export default function SessionDetailClient({
     setSavingTemplate(false)
     setTemplateSaved(true)
     setTimeout(() => setTemplateSaved(false), 2000)
+  }
+
+  async function addSessionNotesToProgressNotes() {
+    const trimmed = notes.trim()
+    if (!trimmed) return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    setSavingProgressNote(true)
+    setProgressNoteSaved(false)
+    setProgressNoteError('')
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setProgressNoteError('Not logged in.')
+      setSavingProgressNote(false)
+      return
+    }
+
+    await supabase.from('sessions').update({ notes: trimmed }).eq('id', initial.id)
+
+    const body = [
+      `Session: ${title.trim() || initial.title}`,
+      `Scheduled: ${fmtDateTime(new Date(scheduledAt).toISOString())}`,
+      '',
+      trimmed,
+    ].join('\n')
+
+    const { error } = await supabase.from('progress_notes').insert({
+      client_id: clientId,
+      org_id: orgId,
+      created_by: user.id,
+      body,
+    })
+
+    setSavingProgressNote(false)
+    if (error) {
+      setProgressNoteError(error.message)
+      return
+    }
+
+    setProgressNoteSaved(true)
+    setTimeout(() => setProgressNoteSaved(false), 2500)
   }
 
   async function deleteSession() {
@@ -308,7 +355,17 @@ export default function SessionDetailClient({
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Notes</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Notes</h2>
+              <button
+                type="button"
+                onClick={addSessionNotesToProgressNotes}
+                disabled={savingProgressNote || !notes.trim()}
+                className="rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+              >
+                {savingProgressNote ? 'Adding...' : progressNoteSaved ? 'Added!' : 'Add to progress notes'}
+              </button>
+            </div>
             <textarea
               value={notes}
               onChange={e => handleNotesChange(e.target.value)}
@@ -316,6 +373,7 @@ export default function SessionDetailClient({
               rows={14}
               className="w-full rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm focus:border-cyan-400 focus:outline-none resize-none"
             />
+            {progressNoteError && <p className="text-xs font-semibold text-red-600">{progressNoteError}</p>}
             <p className="text-xs text-gray-400">Auto-saved as you type.</p>
           </div>
         </div>

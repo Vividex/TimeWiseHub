@@ -15,7 +15,7 @@ export default async function SessionDetailPage({
   const [{ data: session }, { data: client }] = await Promise.all([
     supabase
       .from('sessions')
-      .select('id, title, scheduled_at, duration_minutes, notes, status, session_todos(id, title, completed, position)')
+      .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, session_todos(id, title, completed, position)')
       .eq('id', sessionId)
       .maybeSingle(),
     supabase
@@ -44,6 +44,7 @@ export default async function SessionDetailPage({
       todos={todos}
       clientId={id}
       clientName={client.name}
+      orgId={session.org_id}
     />
   )
 }
