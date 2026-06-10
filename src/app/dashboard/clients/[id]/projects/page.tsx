@@ -22,7 +22,7 @@ export default async function ClientProjectsPage({ params }: { params: Promise<{
     .from('projects')
     .select('id, name, colour, due_date, status, tasks(status)')
     .eq('client_id', id)
-    .eq('archived', false)
+    .eq('status', 'active')
     .order('created_at', { ascending: false })
 
   const items = (projects ?? []).map(p => {
