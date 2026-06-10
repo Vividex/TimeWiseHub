@@ -43,6 +43,11 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname()
   const title = getTitle(pathname)
+  const isInvoicePrint = pathname.startsWith('/dashboard/invoices/') && pathname.endsWith('/print')
+
+  if (isInvoicePrint) {
+    return <div className="invoice-print-shell min-h-screen bg-white text-slate-900">{children}</div>
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
