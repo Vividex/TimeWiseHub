@@ -35,9 +35,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-3: Commit
 
 ### Task 4 — Nested project home route
-- [ ] C4-1: Create `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` per plan Task 4
-- [ ] C4-2: Build check
-- [ ] C4-3: Commit
+- [x] C4-1: Create `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` per plan Task 4
+- [x] C4-2: Build check
+- [x] C4-3: Commit
 
 ### Task 5 — Client projects grid
 - [ ] C5-1: Read `src/components/projects/ProjectForm.tsx` props; create `src/app/dashboard/clients/[id]/projects/page.tsx` per plan Task 5 (creation must bind client)
