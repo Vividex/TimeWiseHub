@@ -70,9 +70,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C10-3: Commit
 
 ### Task 11 — Sidebar reorg + mobile drawer
-- [ ] C11-1: Create `src/components/nav/SidebarNav.tsx` + `src/components/nav/MobileSidebar.tsx`; rewrite `src/components/DashboardShell.tsx` per plan Task 11
-- [ ] C11-2: Build check
-- [ ] C11-3: Commit
+- [x] C11-1: Create `src/components/nav/SidebarNav.tsx` + `src/components/nav/MobileSidebar.tsx`; rewrite `src/components/DashboardShell.tsx` per plan Task 11
+- [x] C11-2: Build check
+- [x] C11-3: Commit
 
 ### Task 12 — Merge Reports + Activity into Insights tabs
 - [ ] C12-1: Extract Overview/Activity/Export panels; create `src/components/insights/InsightsTabs.tsx`; rewire insights page; redirect reports + activity per plan Task 12
