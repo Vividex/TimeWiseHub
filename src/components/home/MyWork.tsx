@@ -38,6 +38,7 @@ export default function MyWork({
           orgMembers={orgMembers}
           onClose={() => setActive(null)}
           onSaved={u => setTasks(prev => prev.map(t => (t.id === u.id ? { ...t, ...u } : t)))}
+          onDeleted={id => setTasks(prev => prev.filter(t => t.id !== id))}
         />
       )}
     </div>

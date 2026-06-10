@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
 type Todo = { id: string; title: string; completed: boolean; position: number }
@@ -38,6 +39,7 @@ export default function SessionDetailClient({
   clientId: string
   clientName: string
 }) {
+  const router = useRouter()
   const supabase = createClient()
   const [title, setTitle] = useState(initial.title)
   const [editingTitle, setEditingTitle] = useState(false)
@@ -49,6 +51,8 @@ export default function SessionDetailClient({
   const [newTodo, setNewTodo] = useState('')
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState(false)
+  const [deletingSession, setDeletingSession] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const saveNotes = useCallback((value: string) => {
@@ -140,6 +144,12 @@ export default function SessionDetailClient({
     setTimeout(() => setTemplateSaved(false), 2000)
   }
 
+  async function deleteSession() {
+    setDeletingSession(true)
+    await supabase.from('sessions').delete().eq('id', initial.id)
+    router.push(`/dashboard/clients/${clientId}/sessions`)
+  }
+
   const allDone = todos.length > 0 && todos.every(t => t.completed)
 
   return (
@@ -191,7 +201,7 @@ export default function SessionDetailClient({
                 </label>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>
                 {STATUS_LABEL[status]}
               </span>
@@ -202,6 +212,34 @@ export default function SessionDetailClient({
                 >
                   Mark as {STATUS_LABEL[STATUS_NEXT[status]!]}
                 </button>
+              )}
+              {!confirmDeleteSession ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteSession(true)}
+                  className="rounded-xl border border-red-200 px-3 py-1 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-1.5">
+                  <span className="text-xs font-semibold text-red-700">Delete permanently?</span>
+                  <button
+                    type="button"
+                    onClick={deleteSession}
+                    disabled={deletingSession}
+                    className="rounded-lg bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {deletingSession ? '…' : 'Yes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteSession(false)}
+                    className="rounded-lg px-2 py-0.5 text-xs font-semibold text-gray-500 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
             </div>
           </div>

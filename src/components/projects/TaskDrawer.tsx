@@ -26,11 +26,13 @@ export default function TaskDrawer({
   orgMembers,
   onClose,
   onSaved,
+  onDeleted,
 }: {
   task: DrawerTask
   orgMembers?: { userId: string; displayName: string }[]
   onClose: () => void
   onSaved: (t: DrawerTask) => void
+  onDeleted?: (id: string) => void
 }) {
   const router = useRouter()
   const [title, setTitle] = useState(task.title)
@@ -40,6 +42,7 @@ export default function TaskDrawer({
   const [dueDate, setDueDate] = useState(task.due_date ?? '')
   const [assignee, setAssignee] = useState(task.assignee_id ?? '')
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function save() {
     setSaving(true)
@@ -58,6 +61,15 @@ export default function TaskDrawer({
     if (error) return
     onSaved({ ...task, ...updates })
     router.refresh()
+    onClose()
+  }
+
+  async function handleDelete() {
+    setSaving(true)
+    const supabase = createClient()
+    await supabase.from('tasks').delete().eq('id', task.id)
+    router.refresh()
+    onDeleted?.(task.id)
     onClose()
   }
 
@@ -116,6 +128,27 @@ export default function TaskDrawer({
           className="mt-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
           {saving ? 'Saving…' : 'Save'}
         </button>
+
+        <div className="mt-4 border-t border-gray-100 pt-4 dark:border-slate-800">
+          {!confirmDelete ? (
+            <button type="button" onClick={() => setConfirmDelete(true)}
+              className="text-sm font-semibold text-red-400 hover:text-red-600">
+              Delete task
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 rounded-xl bg-red-50 px-3 py-2.5 dark:bg-red-950">
+              <p className="flex-1 text-sm font-semibold text-red-700 dark:text-red-300">Delete permanently?</p>
+              <button type="button" onClick={handleDelete} disabled={saving}
+                className="rounded-lg bg-red-500 px-3 py-1 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50">
+                {saving ? '…' : 'Yes, delete'}
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(false)}
+                className="rounded-lg px-2 py-1 text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700">
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

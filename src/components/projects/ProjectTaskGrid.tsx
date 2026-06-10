@@ -37,6 +37,9 @@ export default function ProjectTaskGrid({
   function handleSaved(updated: DrawerTask) {
     setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)))
   }
+  function handleDeleted(id: string) {
+    setTasks(prev => prev.filter(t => t.id !== id))
+  }
 
   return (
     <div className="space-y-5">
@@ -58,6 +61,7 @@ export default function ProjectTaskGrid({
           orgMembers={orgMembers}
           onClose={() => setActive(null)}
           onSaved={handleSaved}
+          onDeleted={handleDeleted}
         />
       )}
     </div>

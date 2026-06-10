@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import ProjectTaskGrid from '@/components/projects/ProjectTaskGrid'
 import DocumentPanel from '@/components/projects/DocumentPanel'
 import ArchiveButton from '@/components/projects/ArchiveButton'
+import DeleteProjectButton from '@/components/projects/DeleteProjectButton'
 
 export default async function ClientProjectPage({
   params,
@@ -54,8 +55,9 @@ export default async function ClientProjectPage({
                 {project.description && <p className="mt-2 text-sm font-semibold text-gray-500">{project.description}</p>}
               </div>
             </div>
-            <div className="shrink-0">
+            <div className="flex shrink-0 items-center gap-2">
               <ArchiveButton projectId={project.id} currentStatus={project.status} />
+              <DeleteProjectButton projectId={project.id} clientId={id} />
             </div>
           </div>
         </div>
