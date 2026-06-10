@@ -50,9 +50,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C6-3: Commit
 
 ### Task 7 — Client notes feed
-- [ ] C7-1: Create `src/app/dashboard/clients/[id]/notes/page.tsx` per plan Task 7
-- [ ] C7-2: Build check
-- [ ] C7-3: Commit
+- [x] C7-1: Create `src/app/dashboard/clients/[id]/notes/page.tsx` per plan Task 7
+- [x] C7-2: Build check
+- [x] C7-3: Commit
 
 ### Task 8 — Client home category tiles
 - [ ] C8-1: Replace `src/app/dashboard/clients/[id]/page.tsx` with category tiles per plan Task 8
