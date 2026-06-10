@@ -77,7 +77,11 @@ export function useVoice({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }))
+        console.error('[TTS] API error', res.status, err)
+        return
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
@@ -87,8 +91,8 @@ export function useVoice({
         audioRef.current = null
       }
       await audio.play()
-    } catch {
-      // TTS is non-critical — silently ignore errors
+    } catch (err) {
+      console.error('[TTS] playback error', err)
     }
   }
 
