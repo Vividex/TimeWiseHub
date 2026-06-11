@@ -48,3 +48,13 @@ next-env.d.ts
 
 .vercel
 
+# playwright mcp artifacts
+.playwright-mcp/
+
+# loose assets / screenshots in project root (not in src or public subdirs)
+/Screenshot*.png
+/chat-*.png
+/"logo image*.png"
+/"vividex logo*.png"
+/employee-nav-after-read.yml
+/docs/superpowers/plans/
