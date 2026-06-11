@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import AccountSettingsForm from '@/components/AccountSettingsForm'
 import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 import ThemeSelector from '@/components/ThemeSelector'
+import InviteMember from '@/components/InviteMember'
 import { effectivePlan, getSubscription } from '@/lib/subscription'
 
 export default async function SettingsPage() {
@@ -95,6 +96,12 @@ export default async function SettingsPage() {
             idle_alerts: true,
           }}
         />
+
+        {isOrgAdmin && membership?.org_id && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <InviteMember orgId={membership.org_id} />
+          </div>
+        )}
 
         {isOrgAdmin && membership?.org_id && (
           <OrgBillingSettingsForm
