@@ -16,7 +16,7 @@ export default function Icon() {
           width: 512,
           height: 512,
           background:
-            'radial-gradient(circle at 50% 45%, #22d3ee 0%, #0ea5e9 28%, #0284c7 55%, #1e40af 80%, #172554 100%)',
+            'radial-gradient(circle at 50% 50%, #0f1f3d 0%, #0a1628 50%, #060e1a 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
