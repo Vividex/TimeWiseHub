@@ -48,14 +48,18 @@ export async function POST(req: Request) {
 
   const { error } = await service
     .from('invitations')
-    .insert({
-      org_id: orgId,
-      email,
-      role,
-      invited_by: user.id,
-      token,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    })
+    .upsert(
+      {
+        org_id: orgId,
+        email,
+        role,
+        invited_by: user.id,
+        token,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        accepted_at: null,
+      },
+      { onConflict: 'org_id,email' }
+    )
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
