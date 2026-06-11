@@ -49,6 +49,16 @@ export function useVoice({
     const w = window as unknown as { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor }
     const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition
     if (!SR) return
+
+    // Tear down any existing instance before creating a new one.
+    // Without this, calling start() on a still-alive recognition throws
+    // InvalidStateError, which silently kills the loop.
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null
+      try { recognitionRef.current.stop() } catch { /* already stopped */ }
+      recognitionRef.current = null
+    }
+
     const recognition = new SR()
     recognition.continuous = false
     recognition.interimResults = false
@@ -63,8 +73,12 @@ export function useVoice({
     recognition.onend = () => setState('idle')
 
     recognitionRef.current = recognition
-    recognition.start()
-    setState('listening')
+    try {
+      recognition.start()
+      setState('listening')
+    } catch {
+      setState('error')
+    }
   }, [onTranscript])
 
   const stopListening = useCallback(() => {

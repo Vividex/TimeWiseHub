@@ -321,7 +321,7 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
       properties: {
         client_id: { type: 'string', description: 'Client UUID' },
         title: { type: 'string', description: 'Session title e.g. Weekly check-in' },
-        scheduled_at: { type: 'string', description: 'ISO datetime e.g. 2026-06-15T10:00:00' },
+        scheduled_at: { type: 'string', description: 'ISO datetime (YYYY-MM-DDTHH:MM:SS). For "now" use the current datetime from the system prompt exactly.' },
         duration_minutes: { type: 'number', description: 'Duration in minutes (default 60)' },
       },
       required: ['client_id', 'title', 'scheduled_at'],

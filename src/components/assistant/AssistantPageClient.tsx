@@ -80,7 +80,10 @@ export default function AssistantPageClient({
         loopModeRef.current = false
         setLoopMode(false)
       }, 15000)
-      startListening()
+      // Yield one tick so the browser releases the audio context before
+      // SpeechRecognition tries to claim the mic; without this, start()
+      // can throw InvalidStateError and the loop dies silently.
+      setTimeout(() => { if (loopModeRef.current) startListening() }, 300)
     },
   })
 
@@ -101,6 +104,12 @@ export default function AssistantPageClient({
       stopSpeaking()
     }
   }
+
+  // Auto-load the most recent session so the AI picks up where it left off.
+  useEffect(() => {
+    if (initialSessions.length > 0) loadSession(initialSessions[0].id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
