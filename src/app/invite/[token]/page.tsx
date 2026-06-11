@@ -70,34 +70,39 @@ export default function AcceptInvitePage() {
 
     const supabase = createClient()
 
-    // Sign up or sign in
-    if (!existingUser) {
-      const { error: signUpError } = await supabase.auth.signUp({
+    if (existingUser) {
+      // Already signed in — just add to org
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('Please sign in first.'); setLoading(false); return }
+
+      const { error: memberError } = await supabase
+        .from('organisation_members')
+        .insert({ org_id: invitation.org_id, user_id: user.id, role: invitation.role })
+
+      if (memberError) { setError(memberError.message); setLoading(false); return }
+
+      await supabase
+        .from('invitations')
+        .update({ accepted_at: new Date().toISOString() })
+        .eq('id', invitation.id)
+    } else {
+      // New user — create account server-side (bypasses email confirmation)
+      const res = await fetch(`/api/invite/${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await res.json() as { email?: string; error?: string }
+      if (!res.ok) { setError(data.error ?? 'Could not create account'); setLoading(false); return }
+
+      // Sign in with the newly created credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: invitation.email,
         password,
-        options: {
-          data: { account_type: 'personal' },
-          emailRedirectTo: `${location.origin}/auth/callback`,
-        },
       })
-      if (signUpError) { setError(signUpError.message); setLoading(false); return }
+      if (signInError) { setError(signInError.message); setLoading(false); return }
     }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Could not get user. Please try again.'); setLoading(false); return }
-
-    // Add to org
-    const { error: memberError } = await supabase
-      .from('organisation_members')
-      .insert({ org_id: invitation.org_id, user_id: user.id, role: invitation.role })
-
-    if (memberError) { setError(memberError.message); setLoading(false); return }
-
-    // Mark invitation accepted
-    await supabase
-      .from('invitations')
-      .update({ accepted_at: new Date().toISOString() })
-      .eq('id', invitation.id)
 
     router.push('/dashboard')
     router.refresh()
@@ -174,7 +179,7 @@ export default function AcceptInvitePage() {
             disabled={loading}
             className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
           >
-            {loading ? 'Joining...' : existingUser ? 'Join organisation' : 'Create account & join'}
+            {loading ? 'Joining...' : existingUser ? 'Join organisation' : 'Create account & sign in'}
           </button>
         </form>
       </div>
