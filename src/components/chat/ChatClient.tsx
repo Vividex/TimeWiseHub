@@ -8,6 +8,7 @@ import ConversationList from '@/components/chat/ConversationList'
 import MessageThread from '@/components/chat/MessageThread'
 import MessageComposer from '@/components/chat/MessageComposer'
 import NewDmDialog from '@/components/chat/NewDmDialog'
+import PushPermission from '@/components/PushPermission'
 import type { ChatConversation } from '@/lib/chat/types'
 
 function dmPeerId(conv: ChatConversation, userId: string): string | null {
@@ -55,8 +56,11 @@ export default function ChatClient() {
     <div className="flex h-[calc(100vh-8.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:h-[calc(100vh-7rem)]">
 
       {/* Sidebar: always visible on desktop; on mobile, shown only when no conversation is active */}
-      <div className={active ? 'hidden md:block' : 'block'}>
+      <div className={`${active ? 'hidden md:flex' : 'flex'} flex-col`}>
         <ConversationList onNewDm={() => setShowNewDm(true)} />
+        <div className="border-t border-gray-100 p-3 dark:border-slate-800">
+          <PushPermission />
+        </div>
       </div>
 
       {/* Thread panel: always visible on desktop; on mobile, shown only when a conversation is active */}

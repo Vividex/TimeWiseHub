@@ -6,6 +6,48 @@ import type { ChatConversation, ChatMember } from '@/lib/chat/types'
 
 type LiveInsert = { conversationId: string; messageId: string; senderId: string; at: string }
 
+function pingSound() {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12)
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.35)
+    ctx.close()
+  } catch {
+    // AudioContext blocked or unavailable
+  }
+}
+
+function showInAppNotification(
+  senderId: string,
+  body: string,
+  conversationId: string,
+  members: Record<string, ChatMember>,
+) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return
+  const m = members[senderId]
+  const name = m?.full_name || m?.email || 'New message'
+  const preview = body.trim().length > 80 ? body.trim().slice(0, 77) + '…' : body.trim() || 'Sent an attachment'
+  const n = new Notification(name, {
+    body: preview,
+    icon: '/icon-192.png',
+    tag: `chat:${conversationId}`,
+    silent: true,
+  })
+  n.onclick = () => {
+    window.focus()
+    window.location.href = `/dashboard/chat?c=${conversationId}`
+  }
+}
+
 type ChatContextValue = {
   userId: string
   loading: boolean
@@ -103,11 +145,11 @@ export default function ChatRealtimeProvider({ userId, children }: { userId: str
     if (id) markRead(id)
   }, [markRead])
 
-  // Keep a ref of conversations so the subscription closure can check membership
-  // without re-subscribing on every conversation change. Declared BEFORE the
-  // subscription effect that reads it.
+  // Keep refs so subscription closures always see current state without re-subscribing.
   const conversationsRef = useRef<ChatConversation[]>([])
+  const membersRef = useRef<Record<string, ChatMember>>({})
   useEffect(() => { conversationsRef.current = conversations }, [conversations])
+  useEffect(() => { membersRef.current = members }, [members])
 
   useEffect(() => {
     let cancelled = false
@@ -127,7 +169,7 @@ export default function ChatRealtimeProvider({ userId, children }: { userId: str
         { event: 'INSERT', schema: 'public', table: 'chat_messages' },
         payload => {
           const row = payload.new as {
-            id: string; conversation_id: string; sender_id: string; created_at: string
+            id: string; conversation_id: string; sender_id: string; body: string; created_at: string
           }
           setLastInsert({
             conversationId: row.conversation_id,
@@ -140,6 +182,8 @@ export default function ChatRealtimeProvider({ userId, children }: { userId: str
               ...prev,
               [row.conversation_id]: (prev[row.conversation_id] ?? 0) + 1,
             }))
+            pingSound()
+            showInAppNotification(row.sender_id, row.body, row.conversation_id, membersRef.current)
           }
           // Surface brand-new DM conversations the moment their first message lands.
           if (!conversationsRef.current.some(c => c.id === row.conversation_id)) {
