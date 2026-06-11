@@ -29,8 +29,14 @@ Conversation flow:
 
 TimeWiseHub features: time tracking, expenses, projects, tasks, leave, calendar, clients, invoices, finance, team chat, reports, billing.`
 
-function buildSystemPrompt() {
-  return `Current datetime (UTC): ${new Date().toISOString()}\n\n${SYSTEM_PROMPT_BASE}`
+function buildSystemBlocks(): Anthropic.TextBlockParam[] {
+  return [
+    // Static base is identical across every request — Anthropic caches it so
+    // subsequent calls in the same 5-minute window skip re-processing ~3500 tokens.
+    { type: 'text', text: SYSTEM_PROMPT_BASE, cache_control: { type: 'ephemeral' } },
+    // Dynamic timestamp must be a separate block so it doesn't pollute the cache key.
+    { type: 'text', text: `Current datetime (UTC): ${new Date().toISOString()}` },
+  ]
 }
 
 export async function POST(request: Request) {
@@ -62,8 +68,7 @@ export async function POST(request: Request) {
 
   const anthropic = new Anthropic({ apiKey })
   const encoder = new TextEncoder()
-  // Compute once per request so the datetime is consistent across tool-resolution iterations
-  const systemPrompt = buildSystemPrompt()
+  const systemBlocks = buildSystemBlocks()
 
   const responseStream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -78,7 +83,7 @@ export async function POST(request: Request) {
             .stream({
               model: 'claude-haiku-4-5-20251001',
               max_tokens: 1024,
-              system: systemPrompt,
+              system: systemBlocks,
               tools: TOOL_SCHEMAS,
               messages: currentMessages,
             })
