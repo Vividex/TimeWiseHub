@@ -34,7 +34,10 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const PRIORITY_COLOURS: Record<string, string> = { urgent: '#dc2626', high: '#ea580c', normal: '#2563eb', low: '#6b7280' }
 
 function toDateStr(d: Date) {
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leaveRequests: LeaveRequest[], sessions: Session[] = []): CalendarItem[] {
@@ -60,7 +63,7 @@ function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leav
     const end = new Date(l.end_date + 'T00:00:00')
     let i = 0
     while (cur <= end) {
-      const dateStr = cur.toISOString().slice(0, 10)
+      const dateStr = toDateStr(cur)
       items.push({
         key: `l-${l.id}-${i}`,
         date: dateStr,
