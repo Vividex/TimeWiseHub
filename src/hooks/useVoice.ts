@@ -102,6 +102,7 @@ export function useVoice({
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
+      audio.playbackRate = 1.2
       audioRef.current = audio
       audio.onended = () => {
         URL.revokeObjectURL(url)
