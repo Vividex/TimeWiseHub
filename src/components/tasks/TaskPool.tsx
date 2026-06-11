@@ -61,6 +61,11 @@ export default function TaskPool({
     setLoading(taskId)
     const supabase = createClient()
     await supabase.from('tasks').update({ assignee_id: userId }).eq('id', taskId)
+    fetch('/api/tasks/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, assigneeId: userId }),
+    }).catch(() => {})
     setTasks(prev => prev.filter(t => t.id !== taskId))
     setLoading(null)
   }

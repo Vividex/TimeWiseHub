@@ -1,5 +1,6 @@
 // src/lib/assistant/write-executors.ts
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { notifyTaskAssigned } from '@/lib/task-notifications'
 
 type ToolInput = Record<string, unknown>
 
@@ -26,6 +27,9 @@ export async function executeWriteTool(
           .select('id, title')
           .single()
         if (error) return { ok: false, error: error.message }
+        if (data && input.assignee_id) {
+          notifyTaskAssigned(data.id, input.assignee_id as string, userId).catch(() => {})
+        }
         return { ok: true, result: data }
       }
 
@@ -38,6 +42,9 @@ export async function executeWriteTool(
           .select('id, title')
           .single()
         if (error) return { ok: false, error: error.message }
+        if (data && fields.assignee_id) {
+          notifyTaskAssigned(data.id, fields.assignee_id as string, userId).catch(() => {})
+        }
         return { ok: true, result: data }
       }
 

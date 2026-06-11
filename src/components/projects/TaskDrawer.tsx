@@ -59,6 +59,15 @@ export default function TaskDrawer({
     const { error } = await supabase.from('tasks').update(updates).eq('id', task.id)
     setSaving(false)
     if (error) return
+
+    if (assignee && assignee !== task.assignee_id) {
+      fetch('/api/tasks/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id, assigneeId: assignee }),
+      }).catch(() => {})
+    }
+
     onSaved({ ...task, ...updates })
     router.refresh()
     onClose()

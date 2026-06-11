@@ -87,6 +87,7 @@ export default function ChatClient() {
             <MessageComposer
               conversationId={active.id}
               canPost={canPost}
+              userId={userId}
               peerUserId={peerId ?? undefined}
               peerName={peer?.full_name || peer?.email || undefined}
             />

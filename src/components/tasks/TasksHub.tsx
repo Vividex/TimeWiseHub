@@ -53,15 +53,24 @@ export default function TasksHub({
     setLoading(true)
     setError(null)
     const supabase = createClient()
-    const { error: err } = await supabase.from('tasks').insert({
+    const { data: newTask, error: err } = await supabase.from('tasks').insert({
       project_id: projectId,
       assignee_id: assignee || currentUserId,
       title: title.trim(),
       priority,
       due_date: dueDate || null,
-    })
+    }).select('id, assignee_id').single()
     setLoading(false)
     if (err) { setError(err.message); return }
+
+    if (newTask?.assignee_id) {
+      fetch('/api/tasks/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: newTask.id, assigneeId: newTask.assignee_id }),
+      }).catch(() => {})
+    }
+
     setTitle(''); setPriority('normal'); setDueDate(''); setAssignee('')
     setShowModal(false)
     router.refresh()

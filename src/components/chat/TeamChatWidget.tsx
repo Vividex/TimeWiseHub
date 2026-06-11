@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, GripVertical } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import MessageThread from '@/components/chat/MessageThread'
 import MessageComposer from '@/components/chat/MessageComposer'
@@ -18,7 +18,13 @@ function canModerate(role: string | undefined): boolean {
   return role === 'owner' || role === 'admin' || role === 'manager'
 }
 
-export default function TeamChatWidget({ onClose }: { onClose: () => void }) {
+export default function TeamChatWidget({
+  onClose,
+  onHeaderPointerDown,
+}: {
+  onClose: () => void
+  onHeaderPointerDown?: (e: React.PointerEvent) => void
+}) {
   const { userId, conversations, members, unreadByConversation, setActiveConversation, loading } = useChat()
   const [localActive, setLocalActive] = useState<string | null>(null)
 
@@ -50,9 +56,13 @@ export default function TeamChatWidget({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="flex h-[min(560px,calc(100vh-7rem))] w-[calc(100vw-2.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-slate-900 px-4 py-3 text-white">
+      {/* Header — drag handle */}
+      <div
+        className="flex items-center justify-between border-b border-gray-200 bg-slate-900 px-4 py-3 text-white select-none cursor-grab active:cursor-grabbing"
+        onPointerDown={onHeaderPointerDown}
+      >
         <div className="flex items-center gap-2 min-w-0">
+          <GripVertical size={14} className="shrink-0 text-slate-600" aria-hidden />
           {localActive && (
             <button
               onClick={() => setLocalActive(null)}
@@ -111,6 +121,7 @@ export default function TeamChatWidget({ onClose }: { onClose: () => void }) {
           <MessageComposer
             conversationId={active!.id}
             canPost={canPost}
+            userId={userId}
             peerUserId={peerId ?? undefined}
             peerName={peer?.full_name || peer?.email || undefined}
           />

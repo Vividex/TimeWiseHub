@@ -56,6 +56,14 @@ export default function TaskForm({
 
     if (error) { setError(error.message); setLoading(false); return }
 
+    if (task?.assignee_id) {
+      fetch('/api/tasks/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id, assigneeId: task.assignee_id }),
+      }).catch(() => {})
+    }
+
     setTitle('')
     setPriority('normal')
     setDueDate('')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Send, Paperclip, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import type { Availability } from '@/lib/chat/types'
@@ -18,11 +18,13 @@ function safeName(name: string): string {
 export default function MessageComposer({
   conversationId,
   canPost,
+  userId,
   peerUserId,
   peerName,
 }: {
   conversationId: string
   canPost: boolean
+  userId: string
   peerUserId?: string
   peerName?: string
 }) {
@@ -31,7 +33,27 @@ export default function MessageComposer({
   const [sending, setSending] = useState(false)
   const [hint, setHint] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
+
+  // Refs for managing typing broadcasts
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastTypingSentRef = useRef(0)
+
+  // Subscribe to broadcast channel so we can send typing events
+  useEffect(() => {
+    const channel = supabase.channel(`conv:${conversationId}`)
+    channel.subscribe()
+    typingChannelRef.current = channel
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+      // Signal stop-typing before unsubscribing (conversation switch or unmount)
+      channel.send({ type: 'broadcast', event: 'stop_typing', payload: { userId } }).catch(() => {})
+      supabase.removeChannel(channel)
+      typingChannelRef.current = null
+      lastTypingSentRef.current = 0
+    }
+  }, [conversationId, supabase, userId])
 
   // Sender-side availability hint for DMs.
   useEffect(() => {
@@ -49,10 +71,33 @@ export default function MessageComposer({
     return () => { cancelled = true }
   }, [peerUserId, peerName])
 
+  function handleBodyChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setBody(e.target.value)
+
+    // Throttle: broadcast typing at most once every 2 seconds
+    const now = Date.now()
+    if (typingChannelRef.current && now - lastTypingSentRef.current > 2000) {
+      typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { userId } }).catch(() => {})
+      lastTypingSentRef.current = now
+    }
+
+    // Auto stop-typing after 3s of no keystrokes
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+    typingTimerRef.current = setTimeout(() => {
+      typingChannelRef.current?.send({ type: 'broadcast', event: 'stop_typing', payload: { userId } }).catch(() => {})
+      lastTypingSentRef.current = 0
+    }, 3000)
+  }
+
   async function handleSend() {
     if (sending) return
     if (!body.trim() && files.length === 0) return
     setSending(true)
+
+    // Clear typing state immediately on send
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+    typingChannelRef.current?.send({ type: 'broadcast', event: 'stop_typing', payload: { userId } }).catch(() => {})
+    lastTypingSentRef.current = 0
 
     const messageId = crypto.randomUUID()
     const attachments: { storage_path: string; file_name: string; mime_type: string; size_bytes: number }[] = []
@@ -132,7 +177,7 @@ export default function MessageComposer({
         />
         <textarea
           value={body}
-          onChange={e => setBody(e.target.value)}
+          onChange={handleBodyChange}
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
           }}
