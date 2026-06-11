@@ -17,7 +17,7 @@ Tone and style:
 
 Handling technical details (never expose these to the user):
 - Colours: ask "what colour?" and accept answers like "blue", "green", "red", "purple", "orange", "yellow", "pink", "teal", "dark", "light". Map them yourself: blue→#2563eb, green→#16a34a, red→#dc2626, purple→#9333ea, orange→#ea580c, yellow→#ca8a04, pink→#db2777, teal→#0891b2, dark→#1e293b, light→#e2e8f0. If they say a colour name not in that list, pick the closest one.
-- Dates and times: accept natural language ("next Friday", "end of month", "15th", "now", "right now") and convert yourself. The current datetime is provided at the top of each request — use it exactly for "now" / "right now" / "immediately"; derive relative dates from it for everything else.
+- Dates and times: accept natural language ("next Friday", "end of month", "15th", "now", "right now") and convert yourself. The current datetime is injected at the start of every conversation — use it exactly for "now" / "right now" / "immediately"; derive relative dates from it for everything else.
 - UUIDs: never ask for or mention IDs. Fetch data first to get them silently.
 - Never mention API field names, formats, or technical constraints.
 
@@ -29,15 +29,18 @@ Conversation flow:
 
 TimeWiseHub features: time tracking, expenses, projects, tasks, leave, calendar, clients, invoices, finance, team chat, reports, billing.`
 
-function buildSystemBlocks(): Anthropic.TextBlockParam[] {
-  return [
-    // Static base is identical across every request — Anthropic caches it so
-    // subsequent calls in the same 5-minute window skip re-processing ~3500 tokens.
-    { type: 'text', text: SYSTEM_PROMPT_BASE, cache_control: { type: 'ephemeral' } },
-    // Dynamic timestamp must be a separate block so it doesn't pollute the cache key.
-    { type: 'text', text: `Current datetime (UTC): ${new Date().toISOString()}` },
-  ]
-}
+// System prompt is 100% static so the cache prefix (system + tools) is
+// identical on every request — Anthropic reuses the processed prefix for the
+// 5-minute cache window instead of re-tokenising ~3500 tokens each call.
+const SYSTEM_BLOCKS: Anthropic.TextBlockParam[] = [
+  { type: 'text', text: SYSTEM_PROMPT_BASE, cache_control: { type: 'ephemeral' } },
+]
+
+// Mark the last tool so Anthropic also caches the full tool schema.
+// The cache key for this marker is: system + all tools — all static.
+const CACHED_TOOLS: Anthropic.Tool[] = TOOL_SCHEMAS.map((t, i) =>
+  i === TOOL_SCHEMAS.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t,
+)
 
 export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -68,11 +71,19 @@ export async function POST(request: Request) {
 
   const anthropic = new Anthropic({ apiKey })
   const encoder = new TextEncoder()
-  const systemBlocks = buildSystemBlocks()
+
+  // Inject the current datetime as the first message pair so it appears AFTER
+  // the cached system+tools prefix. The client never sends or saves these two
+  // synthetic messages — they exist only for this API call.
+  const messagesWithContext: Anthropic.MessageParam[] = [
+    { role: 'user', content: `[Context: Current datetime (UTC) is ${new Date().toISOString()}]` },
+    { role: 'assistant', content: 'Understood.' },
+    ...cleanMessages,
+  ]
 
   const responseStream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      let currentMessages: Anthropic.MessageParam[] = cleanMessages
+      let currentMessages: Anthropic.MessageParam[] = messagesWithContext
       const MAX_ITERATIONS = 5
 
       try {
@@ -83,8 +94,8 @@ export async function POST(request: Request) {
             .stream({
               model: 'claude-haiku-4-5-20251001',
               max_tokens: 1024,
-              system: systemBlocks,
-              tools: TOOL_SCHEMAS,
+              system: SYSTEM_BLOCKS,
+              tools: CACHED_TOOLS,
               messages: currentMessages,
             })
             .on('text', (text) => controller.enqueue(encoder.encode(text)))
