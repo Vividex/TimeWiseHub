@@ -99,7 +99,11 @@ export default function SidebarNav({ email }: { email: string }) {
           </div>
         ))}
         <div className="my-3 border-t border-slate-800" />
-        {BOTTOM_ITEMS.map(item => <NavLink key={item.href} item={item} pathname={pathname} />)}
+        {BOTTOM_ITEMS.map(item =>
+          item.href === '/download'
+            ? <div key={item.href} className="hidden md:block"><NavLink item={item} pathname={pathname} /></div>
+            : <NavLink key={item.href} item={item} pathname={pathname} />
+        )}
       </nav>
 
       <div className="mt-4 rounded-xl bg-slate-800 p-3">
