@@ -90,6 +90,9 @@ export default async function TeamApprovalsView({ orgId, userId }: { orgId: stri
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="border-l-2 border-cyan-400 bg-cyan-50 px-3 py-2 text-xs font-medium text-cyan-700 dark:border-cyan-500 dark:bg-cyan-950/30 dark:text-cyan-400">
+                Indicative only — not a payslip or tax advice. Figures are estimates. Refer to the ATO and your payroll provider.
+              </div>
               {ownStatements.map(s => (
                 <PayStatementCard key={s.id} statement={s} showNet userId={userId} initialTaxPct={ownTaxPct} />
               ))}

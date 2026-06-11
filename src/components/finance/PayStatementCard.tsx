@@ -46,9 +46,6 @@ export default function PayStatementCard({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-        ⚠ Indicative only — not a payslip or tax advice. Figures are estimates. Refer to the ATO and your payroll provider.
-      </div>
       <div className="space-y-2 p-4 text-sm">
         <div className="flex justify-between font-semibold text-slate-500 dark:text-slate-400">
           <span>{statement.period_start} – {statement.period_end}</span>
