@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
@@ -19,19 +19,22 @@ function canModerate(role: string | undefined): boolean {
 }
 
 export default function MessageThread({ conversationId, isChannel }: { conversationId: string; isChannel: boolean }) {
-  const { userId, members, lastInsert } = useChat()
+  const { userId, members } = useChat()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
-  const supabase = createClient()
+  // Stable client — creating a new instance on every render would cause the
+  // subscription effect to re-subscribe on every keystroke in the composer.
+  const supabase = useMemo(() => createClient(), [])
   const myRole = members[userId]?.role
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }))
   }, [])
 
-  // Initial / conversation-switch load
+  // Initial load / conversation switch
   useEffect(() => {
     let cancelled = false
+    setMessages([])
     ;(async () => {
       const { data } = await supabase
         .from('chat_messages')
@@ -45,25 +48,40 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
       }
     })()
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId])
+  }, [conversationId, supabase, scrollToBottom])
 
-  // Live append: when a new message lands in THIS conversation, fetch it with attachments.
+  // Live subscription: each thread subscribes directly, filtered to its own
+  // conversation. More reliable than threading through the provider's lastInsert.
   useEffect(() => {
-    if (!lastInsert || lastInsert.conversationId !== conversationId) return
-    ;(async () => {
-      const { data } = await supabase
-        .from('chat_messages')
-        .select(MESSAGE_SELECT)
-        .eq('id', lastInsert.messageId)
-        .maybeSingle()
-      if (!data) return
-      setMessages(prev =>
-        prev.some(m => m.id === data.id) ? prev : [...prev, data as unknown as ChatMessage])
-      scrollToBottom()
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastInsert])
+    const channel = supabase
+      .channel(`thread-${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        async (payload) => {
+          const id = (payload.new as { id: string }).id
+          const { data } = await supabase
+            .from('chat_messages')
+            .select(MESSAGE_SELECT)
+            .eq('id', id)
+            .maybeSingle()
+          if (!data) return
+          setMessages(prev =>
+            prev.some(m => m.id === (data as unknown as ChatMessage).id)
+              ? prev
+              : [...prev, data as unknown as ChatMessage],
+          )
+          scrollToBottom()
+        },
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [conversationId, supabase, scrollToBottom])
 
   async function handleDelete(id: string) {
     await supabase.from('chat_messages').update({ deleted_at: new Date().toISOString() }).eq('id', id)

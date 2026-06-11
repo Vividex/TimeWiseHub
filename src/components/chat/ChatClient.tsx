@@ -32,6 +32,13 @@ export default function ChatClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, conversations.length])
 
+  // Auto-select the first conversation on full-page chat so the thread isn't blank.
+  useEffect(() => {
+    if (!loading && !activeConversationId && conversations.length > 0) {
+      setActiveConversation(conversations[0].id)
+    }
+  }, [loading, activeConversationId, conversations, setActiveConversation])
+
   const active = conversations.find(c => c.id === activeConversationId) ?? null
   const isChannel = active?.type === 'channel'
   const peerId = active ? dmPeerId(active, userId) : null
