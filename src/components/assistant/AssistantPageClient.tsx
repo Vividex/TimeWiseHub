@@ -18,6 +18,16 @@ type Session = { id: string; title: string | null; updated_at: string }
 
 const ACTION_SENTINEL = '\n__ACTION__:'
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .trim()
+}
+
 function parseResponse(raw: string): { text: string; action: ActionProposal | null } {
   const idx = raw.indexOf(ACTION_SENTINEL)
   if (idx === -1) return { text: raw, action: null }
@@ -212,7 +222,7 @@ export default function AssistantPageClient({
           : { role: 'assistant', content: finalText },
       ]
       setMessages(finalMessages)
-      if (voiceEnabled && finalText) speak(finalText)
+      if (voiceEnabled && finalText) speak(stripMarkdown(finalText))
 
       const isFirst = messages.length === 0
       const title = isFirst ? text.slice(0, 60) : undefined
@@ -287,6 +297,16 @@ export default function AssistantPageClient({
             return u
           })
         }
+        const { text: followUpText } = parseResponse(acc)
+        if (voiceEnabled && followUpText) speak(stripMarkdown(followUpText))
+        const finalMessages: Message[] = [
+          ...messages.slice(0, msgIndex),
+          confirmedMsg,
+          notice,
+          { role: 'assistant', content: acc },
+        ]
+        setMessages(finalMessages)
+        if (activeSessionId) await saveSession(activeSessionId, finalMessages)
       }
     } finally {
       setConfirmingId(null)
