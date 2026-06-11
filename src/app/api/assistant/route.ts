@@ -22,7 +22,7 @@ Handling technical details (never expose these to the user):
 - Never mention API field names, formats, or technical constraints.
 
 Conversation flow:
-- At the start of every new session (first user message), call get_summary to load context.
+- Call get_summary only when you genuinely need an overview (overdue tasks, today's hours, active timer). Don't call it for every message — only when context would help.
 - After a write action succeeds, give a brief friendly confirmation ("Done! I've created that project for you.").
 - If something fails, explain it simply and suggest what to try next.
 - If the user reports a bug, gently point them to the "Report a bug" button and ask what they were doing.
@@ -61,90 +61,74 @@ export async function POST(request: Request) {
   }
 
   const anthropic = new Anthropic({ apiKey })
-
-  // Phase 1: non-streaming call to resolve tool calls
-  let currentMessages: Anthropic.MessageParam[] = cleanMessages
-  let iterations = 0
-  const MAX_ITERATIONS = 5
-
-  try {
-  while (iterations < MAX_ITERATIONS) {
-    iterations++
-    const result = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: buildSystemPrompt(),
-      tools: TOOL_SCHEMAS,
-      messages: currentMessages,
-    })
-
-    const toolUseBlocks = result.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
-    const textBlocks = result.content.filter((b): b is Anthropic.TextBlock => b.type === 'text')
-
-    if (toolUseBlocks.length === 0) {
-      const text = textBlocks.map(b => b.text).join('')
-      const encoder = new TextEncoder()
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(encoder.encode(text))
-          controller.close()
-        },
-      })
-      return new Response(stream, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
-      })
-    }
-
-    const readTools = toolUseBlocks.filter(b => isReadTool(b.name))
-    const writeTools = toolUseBlocks.filter(b => !isReadTool(b.name))
-
-    if (writeTools.length > 0) {
-      const preamble = textBlocks.map(b => b.text).join('')
-      const sentinels = writeTools
-        .map(t => `\n__ACTION__:${JSON.stringify({ tool: t.name, input: t.input, id: t.id })}`)
-        .join('')
-      const encoder = new TextEncoder()
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(encoder.encode(preamble + sentinels))
-          controller.close()
-        },
-      })
-      return new Response(stream, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
-      })
-    }
-
-    const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
-      readTools.map(async tool => {
-        const data = await executeReadTool(tool.name, tool.input as Record<string, unknown>, supabase, user.id)
-        return {
-          type: 'tool_result' as const,
-          tool_use_id: tool.id,
-          content: JSON.stringify(data),
-        }
-      }),
-    )
-
-    currentMessages = [
-      ...currentMessages,
-      { role: 'assistant' as const, content: result.content },
-      { role: 'user' as const, content: toolResults },
-    ]
-  }
-
   const encoder = new TextEncoder()
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(encoder.encode("I wasn't able to complete that in the expected number of steps. Please try again."))
-      controller.close()
+  // Compute once per request so the datetime is consistent across tool-resolution iterations
+  const systemPrompt = buildSystemPrompt()
+
+  const responseStream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let currentMessages: Anthropic.MessageParam[] = cleanMessages
+      const MAX_ITERATIONS = 5
+
+      try {
+        for (let i = 0; i < MAX_ITERATIONS; i++) {
+          // Use streaming for every call so text reaches the client as soon as the
+          // model starts generating — rather than buffering the full response first.
+          const finalMessage = await anthropic.messages
+            .stream({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 1024,
+              system: systemPrompt,
+              tools: TOOL_SCHEMAS,
+              messages: currentMessages,
+            })
+            .on('text', (text) => controller.enqueue(encoder.encode(text)))
+            .finalMessage()
+
+          const toolUseBlocks = finalMessage.content.filter(
+            (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
+          )
+
+          // No tool use — text was already forwarded to the client token by token
+          if (toolUseBlocks.length === 0) break
+
+          // Write tools — text preamble already streamed; append the action sentinel
+          const writeTools = toolUseBlocks.filter(b => !isReadTool(b.name))
+          if (writeTools.length > 0) {
+            const sentinels = writeTools
+              .map(t => `\n__ACTION__:${JSON.stringify({ tool: t.name, input: t.input, id: t.id })}`)
+              .join('')
+            controller.enqueue(encoder.encode(sentinels))
+            break
+          }
+
+          // Read tools — execute in parallel, add results, loop for text response
+          const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
+            toolUseBlocks.map(async tool => ({
+              type: 'tool_result' as const,
+              tool_use_id: tool.id,
+              content: JSON.stringify(
+                await executeReadTool(tool.name, tool.input as Record<string, unknown>, supabase, user.id),
+              ),
+            })),
+          )
+
+          currentMessages = [
+            ...currentMessages,
+            { role: 'assistant' as const, content: finalMessage.content },
+            { role: 'user' as const, content: toolResults },
+          ]
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'AI error'
+        controller.enqueue(encoder.encode(message))
+      } finally {
+        controller.close()
+      }
     },
   })
-  return new Response(stream, {
+
+  return new Response(responseStream, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
   })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'AI error'
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
 }
