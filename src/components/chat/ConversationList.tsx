@@ -2,6 +2,7 @@
 
 import { Megaphone, Plus } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
+import { displayName } from '@/lib/chat/types'
 import type { ChatConversation } from '@/lib/chat/types'
 
 function dmPeerId(conv: ChatConversation, userId: string): string | null {
@@ -20,7 +21,7 @@ export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
     if (conv.type === 'channel') return conv.title ?? 'Announcements'
     const peer = dmPeerId(conv, userId)
     const m = peer ? members[peer] : null
-    return m?.full_name || m?.email || 'Direct message'
+    return m ? displayName(m) : 'Direct message'
   }
 
   function row(conv: ChatConversation) {

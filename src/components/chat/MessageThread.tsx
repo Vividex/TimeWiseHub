@@ -5,13 +5,13 @@ import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import AttachmentChip from '@/components/chat/AttachmentChip'
+import { displayName } from '@/lib/chat/types'
 import type { ChatMessage } from '@/lib/chat/types'
 
 const MESSAGE_SELECT = 'id, conversation_id, sender_id, body, deleted_at, created_at, chat_attachments(*)'
 
 function senderName(members: ReturnType<typeof useChat>['members'], id: string): string {
-  const m = members[id]
-  return m?.full_name || m?.email || 'Unknown'
+  return displayName(members[id])
 }
 
 function canModerate(role: string | undefined): boolean {

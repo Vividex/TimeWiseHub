@@ -68,10 +68,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C10-3: [CONDUCTOR] Commit
 
 ### Task 11 — Chat display (MessageThread + ConversationList)
-- [ ] C11-1: Update `src/components/chat/MessageThread.tsx` per plan Task 11
-- [ ] C11-2: Update `src/components/chat/ConversationList.tsx` per plan Task 11
-- [ ] C11-3: [CONDUCTOR] Build check
-- [ ] C11-4: [CONDUCTOR] Commit
+- [x] C11-1: Update `src/components/chat/MessageThread.tsx` per plan Task 11
+- [x] C11-2: Update `src/components/chat/ConversationList.tsx` per plan Task 11
+- [x] C11-3: [CONDUCTOR] Build check
+- [x] C11-4: [CONDUCTOR] Commit
 
 ### Task 12 — NewDmDialog display names
 - [ ] C12-1: Update `src/components/chat/NewDmDialog.tsx` per plan Task 12
