@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
+import { displayName } from '@/lib/chat/types'
 
 export default function NewDmDialog({
   onClose,
@@ -49,11 +50,11 @@ export default function NewDmDialog({
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-gray-50 disabled:opacity-50 dark:hover:bg-slate-800"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-500 text-sm font-black text-white">
-                {(m.full_name || m.email || '?').slice(0, 1).toUpperCase()}
+                {displayName(m).slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {m.full_name || m.email}
+                  {displayName(m)}
                 </span>
                 <span className="block truncate text-xs font-medium capitalize text-gray-400">{m.role}</span>
               </span>

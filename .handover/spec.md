@@ -74,9 +74,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C11-4: [CONDUCTOR] Commit
 
 ### Task 12 — NewDmDialog display names
-- [ ] C12-1: Update `src/components/chat/NewDmDialog.tsx` per plan Task 12
-- [ ] C12-2: [CONDUCTOR] Build check
-- [ ] C12-3: [CONDUCTOR] Commit
+- [x] C12-1: Update `src/components/chat/NewDmDialog.tsx` per plan Task 12
+- [x] C12-2: [CONDUCTOR] Build check
+- [x] C12-3: [CONDUCTOR] Commit
 
 ### Task 13 — NicknameForm + Settings page
 - [ ] C13-1: Create `src/components/NicknameForm.tsx` per plan Task 13
