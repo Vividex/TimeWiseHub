@@ -27,11 +27,11 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-4: Write `supabase/schema-048-roster.sql` per plan Task 1 Step 4
 - [x] C1-5: [CONDUCTOR] Apply migrations 045–048 via Supabase MCP `apply_migration` in order
 - [x] C1-6: [CONDUCTOR] Create private `employee-docs` storage bucket via Supabase MCP
-- [ ] C1-7: [CONDUCTOR] Commit
+- [x] C1-7: [CONDUCTOR] Commit
 
 ### Task 2 — Navigation update
-- [ ] C2-1: Update `src/components/nav/SidebarNav.tsx` — add `CalendarRange` + `Users2` imports and Roster + Team items to People group per plan Task 2
-- [ ] C2-2: [CONDUCTOR] Build check (`pnpm run build`)
+- [x] C2-1: Update `src/components/nav/SidebarNav.tsx` — add `CalendarRange` + `Users2` imports and Roster + Team items to People group per plan Task 2
+- [x] C2-2: [CONDUCTOR] Build check (`pnpm run build`)
 - [ ] C2-3: [CONDUCTOR] Commit
 
 ### Task 3 — API routes
