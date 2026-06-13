@@ -39,9 +39,9 @@ function getWeekDates(anchor: Date): Date[] {
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, isManager }: {
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster }: {
   orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
-  leaveBlocks: LeaveBlock[]; isManager: boolean
+  leaveBlocks: LeaveBlock[]; canManageRoster: boolean
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
@@ -83,7 +83,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
           </span>
           <button onClick={nextWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">→</button>
         </div>
-        {isManager && unpublishedCount > 0 && (
+        {canManageRoster && unpublishedCount > 0 && (
           <button onClick={publishWeek} disabled={publishing}
             className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
             {publishing ? 'Publishing…' : `Publish week (${unpublishedCount} draft)`}
@@ -132,12 +132,12 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                           </div>
                         ))}
                         {dayShifts.map(s => (
-                          <button key={s.id} onClick={() => isManager && setFormState({ open: true, shift: s })}
+                          <button key={s.id} onClick={() => canManageRoster && setFormState({ open: true, shift: s })}
                             className={`mb-1 w-full rounded-lg px-2 py-1 text-left text-xs font-medium ${s.published ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}`}>
                             {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}
                           </button>
                         ))}
-                        {isManager && (
+                        {canManageRoster && (
                           <button onClick={() => setFormState({ open: true, defaultDate: iso })}
                             className="flex w-full items-center justify-center rounded-lg p-1 text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-500">
                             <Plus size={12} />

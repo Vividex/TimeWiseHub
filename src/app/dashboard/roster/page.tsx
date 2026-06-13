@@ -13,7 +13,7 @@ export default async function RosterPage() {
 
   const orgId = membership?.org_id ?? null
   const subscription = await getSubscription(user.id)
-  const isManager = ['owner','admin','manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const canManageRoster = ['owner','admin'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
   if (!orgId) return (
     <div className="px-4 py-8 sm:px-8">
@@ -75,7 +75,7 @@ export default async function RosterPage() {
           members={memberList}
           initialShifts={shifts ?? []}
           leaveBlocks={leaveData ?? []}
-          isManager={isManager}
+          canManageRoster={canManageRoster}
         />
       </div>
     </div>

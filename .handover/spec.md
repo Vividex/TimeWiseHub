@@ -26,13 +26,13 @@ Each checklist item maps to a Step there — implement the code VERBATIM from th
 - [x] C1-5: Edit `src/app/api/assistant/route.ts` — system prompt (2 changes)
 - [x] C1-6: Edit `src/app/terms/page.tsx` — "Team plan" → "Business plan"
 - [x] C1-7: [CONDUCTOR] `pnpm run build`
-- [ ] C1-8: [CONDUCTOR] Commit
+- [x] C1-8: [CONDUCTOR] Commit
 
 ### Task 2 — Roster permission tightening
-- [ ] C2-1: Edit `src/app/dashboard/roster/page.tsx` — `isManager` → `canManageRoster`, restrict to `['owner','admin']`
-- [ ] C2-2: Edit `src/components/roster/RosterGrid.tsx` — rename prop `isManager` → `canManageRoster`, update 3 internal uses
-- [ ] C2-3: [CONDUCTOR] `pnpm run build`
-- [ ] C2-4: [CONDUCTOR] Commit
+- [x] C2-1: Edit `src/app/dashboard/roster/page.tsx` — `isManager` → `canManageRoster`, restrict to `['owner','admin']`
+- [x] C2-2: Edit `src/components/roster/RosterGrid.tsx` — rename prop `isManager` → `canManageRoster`, update 3 internal uses
+- [x] C2-3: [CONDUCTOR] `pnpm run build`
+- [x] C2-4: [CONDUCTOR] Commit
 
 ### Task 3 — Team HR permission tightening
 - [ ] C3-1: Edit `src/app/dashboard/team/page.tsx` — `isManager` → `canManageTeam`, restrict to `['owner','admin']`
