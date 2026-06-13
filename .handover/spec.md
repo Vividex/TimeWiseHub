@@ -39,9 +39,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-3: [CONDUCTOR] Commit
 
 ### Task 5 — Registration page username field
-- [ ] C5-1: Replace `src/app/(auth)/register/page.tsx` per plan Task 5
-- [ ] C5-2: [CONDUCTOR] Build check
-- [ ] C5-3: [CONDUCTOR] Commit
+- [x] C5-1: Replace `src/app/(auth)/register/page.tsx` per plan Task 5
+- [x] C5-2: [CONDUCTOR] Build check
+- [x] C5-3: [CONDUCTOR] Commit
 
 ### Task 6 — Login page post-auth routing
 - [ ] C6-1: Replace `src/app/(auth)/login/page.tsx` per plan Task 6

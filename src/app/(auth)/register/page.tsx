@@ -4,34 +4,48 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import { isUsernameTaken } from '@/lib/username'
 
 type AccountType = 'personal' | 'org_owner'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [usernameError, setUsernameError] = useState<string | null>(null)
   const [accountType, setAccountType] = useState<AccountType>('personal')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  async function handleUsernameBlur() {
+    if (!username.trim()) return
+    const taken = await isUsernameTaken(username.trim())
+    setUsernameError(taken ? 'Username already taken' : null)
+  }
+
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
+    if (usernameError) return
     setLoading(true)
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { account_type: accountType },
+        data: { account_type: accountType, username: username.trim() },
         emailRedirectTo: `${location.origin}/auth/callback`,
       },
     })
 
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      if (signUpError.message.toLowerCase().includes('username')) {
+        setUsernameError('Username already taken')
+      } else {
+        setError(signUpError.message)
+      }
       setLoading(false)
       return
     }
@@ -112,6 +126,21 @@ export default function RegisterPage() {
             </div>
 
             <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-900 dark:text-slate-200">Username</label>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={e => { setUsername(e.target.value); setUsernameError(null) }}
+                onBlur={handleUsernameBlur}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              {usernameError && (
+                <p className="mt-1 text-xs font-semibold text-red-500">{usernameError}</p>
+              )}
+            </div>
+
+            <div>
               <label className="mb-1 block text-sm font-semibold text-slate-900 dark:text-slate-200">Email</label>
               <input
                 type="email"
@@ -138,7 +167,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!usernameError}
               className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
             >
               {loading ? 'Creating account...' : 'Create account'}
