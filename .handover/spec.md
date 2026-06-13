@@ -40,14 +40,14 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-3: Write `src/app/api/team/certifications/route.ts` per plan Task 3 Step 3
 - [x] C3-4: Write `src/app/api/team/onboarding/route.ts` per plan Task 3 Step 4
 - [x] C3-5: [CONDUCTOR] Build check
-- [ ] C3-6: [CONDUCTOR] Commit
+- [x] C3-6: [CONDUCTOR] Commit
 
 ### Task 4 — Roster page
-- [ ] C4-1: Write `src/components/roster/ShiftForm.tsx` per plan Task 4 Step 1
-- [ ] C4-2: Write `src/components/roster/RosterGrid.tsx` per plan Task 4 Step 2
-- [ ] C4-3: Write `src/app/dashboard/roster/page.tsx` per plan Task 4 Step 3
-- [ ] C4-4: [CONDUCTOR] Build check
-- [ ] C4-5: [CONDUCTOR] Commit
+- [x] C4-1: Write `src/components/roster/ShiftForm.tsx` per plan Task 4 Step 1
+- [x] C4-2: Write `src/components/roster/RosterGrid.tsx` per plan Task 4 Step 2
+- [x] C4-3: Write `src/app/dashboard/roster/page.tsx` per plan Task 4 Step 3
+- [x] C4-4: [CONDUCTOR] Build check
+- [x] C4-5: [CONDUCTOR] Commit
 
 ### Task 5 — Team page
 - [ ] C5-1: Write `src/components/team/CertExpiryPanel.tsx` per plan Task 5 Step 1
