@@ -9,8 +9,8 @@ type OnboardingItem = { label: string; required: boolean }
 type OnboardingProgress = { item_label: string; completed_at: string | null }
 type Tab = 'profile' | 'certifications' | 'onboarding'
 
-export default function EmployeeDrawer({ member, orgId, isManager, onClose }: {
-  member: { user_id: string; display_name: string }; orgId: string; isManager: boolean; onClose: () => void
+export default function EmployeeDrawer({ member, orgId, canManageTeam, onClose }: {
+  member: { user_id: string; display_name: string }; orgId: string; canManageTeam: boolean; onClose: () => void
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('profile')
@@ -95,13 +95,13 @@ export default function EmployeeDrawer({ member, orgId, isManager, onClose }: {
         {loading && <p className="text-sm text-gray-400">Loading…</p>}
         {!loading && tab === 'profile' && (
           <div className="space-y-4">
-            {(['Job title', 'job_title', jobTitle, setJobTitle, 'text', isManager] as const).length > 0 && (
+            {(['Job title', 'job_title', jobTitle, setJobTitle, 'text', canManageTeam] as const).length > 0 && (
               <>
                 <div><label className="mb-1 block text-xs font-medium text-gray-500">Job title</label>
-                  <input value={jobTitle} onChange={e => setJobTitle(e.target.value)} disabled={!isManager}
+                  <input value={jobTitle} onChange={e => setJobTitle(e.target.value)} disabled={!canManageTeam}
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm disabled:opacity-60" /></div>
                 <div><label className="mb-1 block text-xs font-medium text-gray-500">Start date</label>
-                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} disabled={!isManager}
+                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} disabled={!canManageTeam}
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm disabled:opacity-60" /></div>
                 <div><label className="mb-1 block text-xs font-medium text-gray-500">Emergency contact name</label>
                   <input value={emergencyName} onChange={e => setEmergencyName(e.target.value)}
@@ -109,10 +109,12 @@ export default function EmployeeDrawer({ member, orgId, isManager, onClose }: {
                 <div><label className="mb-1 block text-xs font-medium text-gray-500">Emergency contact phone</label>
                   <input value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" /></div>
-                <button onClick={saveProfile} disabled={savingProfile}
-                  className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
-                  {savingProfile ? 'Saving…' : 'Save profile'}
-                </button>
+                {canManageTeam && (
+                  <button onClick={saveProfile} disabled={savingProfile}
+                    className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+                    {savingProfile ? 'Saving…' : 'Save profile'}
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -133,33 +135,36 @@ export default function EmployeeDrawer({ member, orgId, isManager, onClose }: {
                       </p>
                     )}
                   </div>
-                  <button onClick={() => deleteCert(c.id)} className="text-gray-300 hover:text-red-400 ml-2 text-lg leading-none">×</button>
+                  {canManageTeam && <button onClick={() => deleteCert(c.id)} className="text-gray-300 hover:text-red-400 ml-2 text-lg leading-none">×</button>}
                 </div>
               )
             })}
-            <div className="rounded-xl border border-dashed border-gray-200 dark:border-slate-700 p-3 space-y-2">
-              <input value={newCertName} onChange={e => setNewCertName(e.target.value)} placeholder="Certification name"
-                className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
-              <input type="date" value={newCertExpiry} onChange={e => setNewCertExpiry(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
-              <button onClick={addCert} disabled={addingCert || !newCertName}
-                className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
-                {addingCert ? 'Adding…' : 'Add certification'}
-              </button>
-            </div>
+            {canManageTeam && (
+              <div className="rounded-xl border border-dashed border-gray-200 dark:border-slate-700 p-3 space-y-2">
+                <input value={newCertName} onChange={e => setNewCertName(e.target.value)} placeholder="Certification name"
+                  className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
+                <input type="date" value={newCertExpiry} onChange={e => setNewCertExpiry(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
+                <button onClick={addCert} disabled={addingCert || !newCertName}
+                  className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+                  {addingCert ? 'Adding…' : 'Add certification'}
+                </button>
+              </div>
+            )}
           </div>
         )}
         {!loading && tab === 'onboarding' && (
           <div className="space-y-2">
             {onboardingItems.length === 0 && (
-              <p className="text-sm text-gray-400">{isManager ? 'No onboarding template set up yet.' : "Your manager hasn't set up an onboarding checklist yet."}</p>
+              <p className="text-sm text-gray-400">{canManageTeam ? 'No onboarding template set up yet.' : "Your manager hasn't set up an onboarding checklist yet."}</p>
             )}
             {onboardingItems.map((item, i) => {
               const done = !!onboardingProgress.find(p => p.item_label === item.label)?.completed_at
               return (
                 <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-slate-800 p-3">
-                  <input type="checkbox" checked={done} onChange={() => toggleOnboarding(item.label, done)}
-                    className="h-4 w-4 rounded accent-cyan-500" />
+                  <input type="checkbox" checked={done} onChange={() => canManageTeam && toggleOnboarding(item.label, done)}
+                    disabled={!canManageTeam}
+                    className="h-4 w-4 rounded accent-cyan-500 disabled:opacity-50" />
                   <span className={`text-sm ${done ? 'line-through text-gray-400' : 'text-gray-800 dark:text-white'}`}>
                     {item.label}{item.required && <span className="ml-1 text-xs text-red-400">*</span>}
                   </span>

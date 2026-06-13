@@ -14,7 +14,7 @@ export default async function TeamPage() {
 
   const orgId = membership?.org_id ?? null
   const subscription = await getSubscription(user.id)
-  const isManager = ['owner','admin','manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const canManageTeam = ['owner','admin'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
   if (!orgId) return (
     <div className="px-4 py-8 sm:px-8">
@@ -70,7 +70,7 @@ export default async function TeamPage() {
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-white">Team</h1>
-        <TeamGrid orgId={orgId} isManager={isManager} members={members} expiring={expiring} />
+        <TeamGrid orgId={orgId} canManageTeam={canManageTeam} members={members} expiring={expiring} />
       </div>
     </div>
   )

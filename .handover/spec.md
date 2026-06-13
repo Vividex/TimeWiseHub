@@ -35,11 +35,11 @@ Each checklist item maps to a Step there — implement the code VERBATIM from th
 - [x] C2-4: [CONDUCTOR] Commit
 
 ### Task 3 — Team HR permission tightening
-- [ ] C3-1: Edit `src/app/dashboard/team/page.tsx` — `isManager` → `canManageTeam`, restrict to `['owner','admin']`
-- [ ] C3-2: Edit `src/components/team/TeamGrid.tsx` — rename prop `isManager` → `canManageTeam`
-- [ ] C3-3: Edit `src/components/team/EmployeeDrawer.tsx` — rename prop `isManager` → `canManageTeam`, update all internal uses
-- [ ] C3-4: [CONDUCTOR] `pnpm run build`
-- [ ] C3-5: [CONDUCTOR] Commit
+- [x] C3-1: Edit `src/app/dashboard/team/page.tsx` — `isManager` → `canManageTeam`, restrict to `['owner','admin']`
+- [x] C3-2: Edit `src/components/team/TeamGrid.tsx` — rename prop `isManager` → `canManageTeam`
+- [x] C3-3: Edit `src/components/team/EmployeeDrawer.tsx` — rename prop `isManager` → `canManageTeam`, update all internal uses
+- [x] C3-4: [CONDUCTOR] `pnpm run build`
+- [x] C3-5: [CONDUCTOR] Commit
 
 ### Task 4 — TeamTasks component
 - [ ] C4-1: Create `src/components/tasks/TeamTasks.tsx` per plan Task 4 Step 1
