@@ -5,6 +5,7 @@ import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 import ThemeSelector from '@/components/ThemeSelector'
 import InviteMember from '@/components/InviteMember'
 import { effectivePlan, getSubscription } from '@/lib/subscription'
+import NicknameForm from '@/components/NicknameForm'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -14,7 +15,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details')
+      .select('full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details, username, nickname')
       .eq('id', user.id)
       .single(),
     supabase
@@ -58,6 +59,18 @@ export default async function SettingsPage() {
           <div className="mt-4">
             <ThemeSelector />
           </div>
+        </div>
+
+        {/* Profile */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Profile</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
+            Your username is your unique handle. Your nickname is what others see in chat and tasks.
+          </p>
+          <NicknameForm
+            username={profile?.username ?? ''}
+            initialNickname={profile?.nickname ?? ''}
+          />
         </div>
 
         {/* Reports & data export */}

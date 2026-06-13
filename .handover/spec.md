@@ -79,10 +79,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C12-3: [CONDUCTOR] Commit
 
 ### Task 13 — NicknameForm + Settings page
-- [ ] C13-1: Create `src/components/NicknameForm.tsx` per plan Task 13
-- [ ] C13-2: Update `src/app/settings/page.tsx` per plan Task 13
-- [ ] C13-3: [CONDUCTOR] Build check (final clean build)
-- [ ] C13-4: [CONDUCTOR] Commit
+- [x] C13-1: Create `src/components/NicknameForm.tsx` per plan Task 13
+- [x] C13-2: Update `src/app/settings/page.tsx` per plan Task 13
+- [x] C13-3: [CONDUCTOR] Build check (final clean build)
+- [x] C13-4: [CONDUCTOR] Commit
 
 ### Task 14 — Install DiceBear packages
 - [ ] C14-1: [CONDUCTOR] `pnpm add @dicebear/core @dicebear/collection`
