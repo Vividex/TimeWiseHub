@@ -30,8 +30,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C2-3: [CONDUCTOR] Commit
 
 ### Task 3 — isUsernameTaken utility
-- [ ] C3-1: Create `src/lib/username.ts` per plan Task 3
-- [ ] C3-2: [CONDUCTOR] Commit
+- [x] C3-1: Create `src/lib/username.ts` per plan Task 3
+- [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — set-active-org route handler
 - [ ] C4-1: Create `src/app/api/set-active-org/route.ts` per plan Task 4
