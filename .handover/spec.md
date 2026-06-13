@@ -49,9 +49,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C6-3: [CONDUCTOR] Commit
 
 ### Task 7 — /setup-username page
-- [ ] C7-1: Create `src/app/setup-username/page.tsx` per plan Task 7
-- [ ] C7-2: [CONDUCTOR] Build check
-- [ ] C7-3: [CONDUCTOR] Commit
+- [x] C7-1: Create `src/app/setup-username/page.tsx` per plan Task 7
+- [x] C7-2: [CONDUCTOR] Build check
+- [x] C7-3: [CONDUCTOR] Commit
 
 ### Task 8 — /select-org page
 - [ ] C8-1: Create `src/app/select-org/page.tsx` per plan Task 8
