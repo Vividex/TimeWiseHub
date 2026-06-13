@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import type { ChatConversation, ChatMember } from '@/lib/chat/types'
+import { displayName } from '@/lib/chat/types'
+import type { AvatarConfig, ChatConversation, ChatMember } from '@/lib/chat/types'
 
 type LiveInsert = { conversationId: string; messageId: string; senderId: string; at: string }
 
@@ -34,7 +35,7 @@ function showInAppNotification(
 ) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return
   const m = members[senderId]
-  const name = m?.full_name || m?.email || 'New message'
+  const name = m ? displayName(m) : 'New message'
   const preview = body.trim().length > 80 ? body.trim().slice(0, 77) + '…' : body.trim() || 'Sent an attachment'
   const n = new Notification(name, {
     body: preview,
@@ -75,7 +76,7 @@ export function useChatUnreadTotal(): number {
   return useContext(ChatContext)?.unreadTotal ?? 0
 }
 
-export default function ChatRealtimeProvider({ userId, children }: { userId: string; children: React.ReactNode }) {
+export default function ChatRealtimeProvider({ userId, orgId, children }: { userId: string; orgId: string; children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [conversations, setConversations] = useState<ChatConversation[]>([])
   const [members, setMembers] = useState<Record<string, ChatMember>>({})
@@ -95,35 +96,30 @@ export default function ChatRealtimeProvider({ userId, children }: { userId: str
   }, [supabase])
 
   const loadMembers = useCallback(async () => {
-    const { data: membership } = await supabase
-      .from('organisation_members')
-      .select('org_id')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (!membership?.org_id) return
+    if (!orgId) return
     const { data } = await supabase
       .from('organisation_members')
-      .select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email)')
-      .eq('org_id', membership.org_id)
+      .select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email, username, nickname, avatar_url, avatar_config)')
+      .eq('org_id', orgId)
     const map: Record<string, ChatMember> = {}
     for (const row of (data ?? []) as unknown as {
       user_id: string
       role: ChatMember['role']
-      profiles: { full_name: string | null; email: string } | null
+      profiles: { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null; avatar_config: AvatarConfig | null } | null
     }[]) {
       map[row.user_id] = {
         user_id: row.user_id,
         role: row.role,
         full_name: row.profiles?.full_name ?? null,
         email: row.profiles?.email ?? '',
-        username: null,
-        nickname: null,
-        avatar_url: null,
-        avatar_config: null,
+        username: row.profiles?.username ?? null,
+        nickname: row.profiles?.nickname ?? null,
+        avatar_url: row.profiles?.avatar_url ?? null,
+        avatar_config: row.profiles?.avatar_config ?? null,
       }
     }
     setMembers(map)
-  }, [supabase, userId])
+  }, [supabase, orgId])
 
   const loadUnread = useCallback(async () => {
     const { data } = await supabase.rpc('get_chat_unread')

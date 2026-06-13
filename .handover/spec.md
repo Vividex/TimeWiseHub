@@ -63,9 +63,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C9-2: [CONDUCTOR] Commit (build expected to fail until Task 10)
 
 ### Task 10 — ChatRealtimeProvider orgId + loadMembers
-- [ ] C10-1: Update `src/components/chat/ChatRealtimeProvider.tsx` per plan Task 10 (3 edits)
-- [ ] C10-2: [CONDUCTOR] Build check (must pass clean)
-- [ ] C10-3: [CONDUCTOR] Commit
+- [x] C10-1: Update `src/components/chat/ChatRealtimeProvider.tsx` per plan Task 10 (3 edits)
+- [x] C10-2: [CONDUCTOR] Build check (must pass clean)
+- [x] C10-3: [CONDUCTOR] Commit
 
 ### Task 11 — Chat display (MessageThread + ConversationList)
 - [ ] C11-1: Update `src/components/chat/MessageThread.tsx` per plan Task 11
