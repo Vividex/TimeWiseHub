@@ -12,7 +12,7 @@ function PlanBadge({ plan }: { plan: string }) {
   }
   return (
     <span className={`rounded-xl px-3 py-1 text-xs font-black uppercase tracking-wide ${colours[plan] ?? colours.free}`}>
-      {plan}
+      {PLANS[plan as keyof typeof PLANS]?.label ?? plan}
     </span>
   )
 }
@@ -37,7 +37,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         {/* Success banner */}
         {success && (
           <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
-            Subscription activated — welcome to {sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1)}!
+            Subscription activated — welcome to {PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan}!
           </div>
         )}
 
@@ -104,7 +104,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             {/* Team */}
             <div className="rounded-2xl border-2 border-cyan-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-lg font-black text-gray-900">Team</p>
+                <p className="text-lg font-black text-gray-900">Business</p>
                 <PlanBadge plan="team" />
               </div>
               <p className="mb-1 text-3xl font-black text-gray-900">${PLANS.team.priceAud}<span className="text-sm font-semibold text-gray-400">/10 employees/mo</span></p>
@@ -116,7 +116,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <li>✓ Expense approvals</li>
                 <li>✓ Org shared calendar</li>
               </ul>
-              <UpgradeButton plan="team" seats={1} label="Upgrade to Team" />
+              <UpgradeButton plan="team" seats={1} label="Upgrade to Business" />
             </div>
 
           </div>
@@ -138,4 +138,3 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     </div>
   )
 }
-

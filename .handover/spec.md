@@ -1,73 +1,61 @@
-# Phase 17 — HR Depth (Roster, Employee Profiles, Onboarding, Certs)
+# Phase 18 — Role Clarity, Business Plan Rename, Manager Task Retrieval
 
 ## Goal
-Add rostering, employee profiles, onboarding checklists, and certification
-tracking to the People section to compete with Deputy and Employment Hero for
-small service businesses (1–20 staff).
+Three improvements: rename "Team" plan label to "Business" in UI; tighten
+roster + team HR editing to owner/admin only (managers become read-only);
+add a "Team Tasks" section for managers to see and retrieve assigned org tasks.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-13-hr-depth.md`
-Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
+`docs/superpowers/plans/2026-06-14-role-clarity-business-rename.md`
+Each checklist item maps to a Step there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-13-hr-depth-design.md`
+`docs/superpowers/specs/2026-06-14-role-clarity-business-rename.md`
 
 ## Division of labor
-- **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: applies DB migrations via Supabase MCP; creates storage bucket;
-  deploys edge function; schedules cron; runs all shell (`pnpm run build`, `git`);
-  verifies diffs; ticks boxes; commits.
+- **Codex**: all text file creation/edits (.ts/.tsx).
+- **Conductor**: runs `pnpm run build`; commits; no migrations needed this phase.
 
 ## Acceptance checklist
 
-### Task 1 — Database migrations
-- [x] C1-1: Write `supabase/schema-045-employee-profiles.sql` per plan Task 1 Step 1
-- [x] C1-2: Write `supabase/schema-046-certifications.sql` per plan Task 1 Step 2
-- [x] C1-3: Write `supabase/schema-047-onboarding.sql` per plan Task 1 Step 3
-- [x] C1-4: Write `supabase/schema-048-roster.sql` per plan Task 1 Step 4
-- [x] C1-5: [CONDUCTOR] Apply migrations 045–048 via Supabase MCP `apply_migration` in order
-- [x] C1-6: [CONDUCTOR] Create private `employee-docs` storage bucket via Supabase MCP
-- [x] C1-7: [CONDUCTOR] Commit
+### Task 1 — "Business" plan label rename
+- [x] C1-1: Edit `src/lib/stripe.ts` — change `label: 'Team'` to `label: 'Business'`
+- [x] C1-2: Edit `src/app/dashboard/billing/page.tsx` — welcome toast, Team card heading, UpgradeButton label, PlanBadge label (4 changes)
+- [x] C1-3: Edit `src/app/api/invitations/route.ts` — error message
+- [x] C1-4: Edit `src/app/api/projects/route.ts` — error message
+- [x] C1-5: Edit `src/app/api/assistant/route.ts` — system prompt (2 changes)
+- [x] C1-6: Edit `src/app/terms/page.tsx` — "Team plan" → "Business plan"
+- [x] C1-7: [CONDUCTOR] `pnpm run build`
+- [ ] C1-8: [CONDUCTOR] Commit
 
-### Task 2 — Navigation update
-- [x] C2-1: Update `src/components/nav/SidebarNav.tsx` — add `CalendarRange` + `Users2` imports and Roster + Team items to People group per plan Task 2
-- [x] C2-2: [CONDUCTOR] Build check (`pnpm run build`)
-- [x] C2-3: [CONDUCTOR] Commit
+### Task 2 — Roster permission tightening
+- [ ] C2-1: Edit `src/app/dashboard/roster/page.tsx` — `isManager` → `canManageRoster`, restrict to `['owner','admin']`
+- [ ] C2-2: Edit `src/components/roster/RosterGrid.tsx` — rename prop `isManager` → `canManageRoster`, update 3 internal uses
+- [ ] C2-3: [CONDUCTOR] `pnpm run build`
+- [ ] C2-4: [CONDUCTOR] Commit
 
-### Task 3 — API routes
-- [x] C3-1: Write `src/app/api/roster/route.ts` per plan Task 3 Step 1
-- [x] C3-2: Write `src/app/api/team/profile/route.ts` per plan Task 3 Step 2
-- [x] C3-3: Write `src/app/api/team/certifications/route.ts` per plan Task 3 Step 3
-- [x] C3-4: Write `src/app/api/team/onboarding/route.ts` per plan Task 3 Step 4
-- [x] C3-5: [CONDUCTOR] Build check
-- [x] C3-6: [CONDUCTOR] Commit
+### Task 3 — Team HR permission tightening
+- [ ] C3-1: Edit `src/app/dashboard/team/page.tsx` — `isManager` → `canManageTeam`, restrict to `['owner','admin']`
+- [ ] C3-2: Edit `src/components/team/TeamGrid.tsx` — rename prop `isManager` → `canManageTeam`
+- [ ] C3-3: Edit `src/components/team/EmployeeDrawer.tsx` — rename prop `isManager` → `canManageTeam`, update all internal uses
+- [ ] C3-4: [CONDUCTOR] `pnpm run build`
+- [ ] C3-5: [CONDUCTOR] Commit
 
-### Task 4 — Roster page
-- [x] C4-1: Write `src/components/roster/ShiftForm.tsx` per plan Task 4 Step 1
-- [x] C4-2: Write `src/components/roster/RosterGrid.tsx` per plan Task 4 Step 2
-- [x] C4-3: Write `src/app/dashboard/roster/page.tsx` per plan Task 4 Step 3
-- [x] C4-4: [CONDUCTOR] Build check
-- [x] C4-5: [CONDUCTOR] Commit
+### Task 4 — TeamTasks component
+- [ ] C4-1: Create `src/components/tasks/TeamTasks.tsx` per plan Task 4 Step 1
+- [ ] C4-2: [CONDUCTOR] `pnpm run build`
+- [ ] C4-3: [CONDUCTOR] Commit
 
-### Task 5 — Team page
-- [x] C5-1: Write `src/components/team/CertExpiryPanel.tsx` per plan Task 5 Step 1
-- [x] C5-2: Write `src/components/team/EmployeeDrawer.tsx` per plan Task 5 Step 2
-- [x] C5-3: Write `src/components/team/TeamGrid.tsx` per plan Task 5 Step 3
-- [x] C5-4: Write `src/app/dashboard/team/page.tsx` per plan Task 5 Step 4
-- [x] C5-5: [CONDUCTOR] Build check
-- [x] C5-6: [CONDUCTOR] Commit
-
-### Task 6 — Cert expiry Edge Function
-- [x] C6-1: Write `supabase/functions/cert-expiry-notify/index.ts` per plan Task 6 Step 1
-- [x] C6-2: [CONDUCTOR] Deploy Edge Function via Supabase MCP `deploy_edge_function`
-- [x] C6-3: [CONDUCTOR] Schedule nightly cron (Supabase dashboard → Cron → `0 8 * * *`)
-- [x] C6-4: [CONDUCTOR] Commit
+### Task 5 — Wire TeamTasks into dashboard
+- [ ] C5-1: Edit `src/app/dashboard/page.tsx` — import TeamTasks, add AssignedTask type, fetch assigned tasks in parallel, render TeamTasks section
+- [ ] C5-2: [CONDUCTOR] `pnpm run build`
+- [ ] C5-3: [CONDUCTOR] Commit
 
 ## Verification
-`pnpm run build` must pass clean after every [CONDUCTOR] build check step.
-No test runner — manual smoke after final commit:
-- Navigate to People → Roster: weekly grid renders, manager can add a shift, Publish button appears for unpublished shifts
-- Navigate to People → Team: member cards render, clicking opens drawer with Profile / Certifications / Onboarding tabs
-- Add a certification with an expiry date within 30 days → amber badge appears on the card and the CertExpiryPanel shows it
-- Incomplete required onboarding item → amber badge on the card
-- Employee login → sees only their own published shifts (roster read-only)
+`pnpm run build` must pass clean after every [CONDUCTOR] build check.
+Manual smoke after final commit:
+- Billing page shows "Business" in card heading, badge, and upgrade button; welcome toast says "Business"
+- Roster: manager-role user sees grid read-only (no add/publish); admin sees buttons
+- Team: manager sees drawer read-only (no edit controls); admin sees edit controls
+- Dashboard as manager: "Team tasks" section appears with assigned tasks + Retrieve buttons
+- Dashboard as employee: no Team tasks, no Unassigned tasks

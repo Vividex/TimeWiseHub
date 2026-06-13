@@ -37,7 +37,7 @@ export default function TermsPage() {
               <li>You may cancel at any time. Access continues until the end of the current billing period.</li>
               <li>We reserve the right to change pricing with 30 days&apos; notice.</li>
               <li>Refunds are issued at our discretion for billing errors.</li>
-              <li>The Team plan is billed per seat. Adding members increases your monthly charge at the next billing cycle.</li>
+              <li>The Business plan is billed per seat. Adding members increases your monthly charge at the next billing cycle.</li>
             </ul>
           </section>
 

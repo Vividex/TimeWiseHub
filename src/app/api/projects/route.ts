@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     if (ownerRow) {
       const ownerSubscription = await getSubscription(ownerRow.user_id)
       if (!isTeamPlan(ownerSubscription)) {
-        return NextResponse.json({ error: 'Team plan required for organisation projects' }, { status: 402 })
+        return NextResponse.json({ error: 'Business plan required for organisation projects' }, { status: 402 })
       }
     }
   }

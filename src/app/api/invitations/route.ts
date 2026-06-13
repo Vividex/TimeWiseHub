@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   const subscription = await getSubscription(user.id)
   if (!isTeamPlan(subscription)) {
-    return NextResponse.json({ error: 'Team plan required to invite members' }, { status: 402 })
+    return NextResponse.json({ error: 'Business plan required to invite members' }, { status: 402 })
   }
 
   const { org_id: orgId, email, role = 'employee' } = (await req.json()) as InvitePayload

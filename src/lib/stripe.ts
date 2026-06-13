@@ -36,7 +36,7 @@ export const PLANS = {
     unitSize: null,
   },
   team: {
-    label: 'Team',
+    label: 'Business',
     // $29 AUD per unit; 1 unit = 10 employees. Quantity passed to Stripe = Math.ceil(employeeCount / 10)
     priceAud: 29,
     priceId: process.env.STRIPE_TEAM_PRICE_ID!,
