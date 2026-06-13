@@ -50,12 +50,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-5: [CONDUCTOR] Commit
 
 ### Task 5 — Team page
-- [ ] C5-1: Write `src/components/team/CertExpiryPanel.tsx` per plan Task 5 Step 1
-- [ ] C5-2: Write `src/components/team/EmployeeDrawer.tsx` per plan Task 5 Step 2
-- [ ] C5-3: Write `src/components/team/TeamGrid.tsx` per plan Task 5 Step 3
-- [ ] C5-4: Write `src/app/dashboard/team/page.tsx` per plan Task 5 Step 4
-- [ ] C5-5: [CONDUCTOR] Build check
-- [ ] C5-6: [CONDUCTOR] Commit
+- [x] C5-1: Write `src/components/team/CertExpiryPanel.tsx` per plan Task 5 Step 1
+- [x] C5-2: Write `src/components/team/EmployeeDrawer.tsx` per plan Task 5 Step 2
+- [x] C5-3: Write `src/components/team/TeamGrid.tsx` per plan Task 5 Step 3
+- [x] C5-4: Write `src/app/dashboard/team/page.tsx` per plan Task 5 Step 4
+- [x] C5-5: [CONDUCTOR] Build check
+- [x] C5-6: [CONDUCTOR] Commit
 
 ### Task 6 — Cert expiry Edge Function
 - [ ] C6-1: Write `supabase/functions/cert-expiry-notify/index.ts` per plan Task 6 Step 1
