@@ -6,15 +6,19 @@ import { avataaars } from '@dicebear/collection'
 import type { AvatarConfig } from '@/lib/chat/types'
 
 function buildSvgUrl(config: AvatarConfig): string {
-  // DiceBear v9 expects every option as an array for randomisation support.
-  // Probability props are the correct way to hide optional parts (not a 'blank' value).
+  // DiceBear v9 expects every option as a single-element array to pin the value.
+  // Probability props suppress optional parts; mouth/eyes pinned to friendly defaults.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const opts: Record<string, any> = {
     seed: 'fixed',
-    backgroundColor: ['transparent'],
+    backgroundColor: [config.background ?? 'b6e3f4'],
     top: [config.top],
     hairColor: [config.hairColor],
     skinColor: [config.skinColor],
+    clothing: [config.clothing ?? 'shirtCrewNeck'],
+    mouth: ['smile'],
+    eyes: ['default'],
+    eyebrows: ['defaultNatural'],
     accessoriesProbability: config.accessories ? 100 : 0,
     facialHairProbability: config.facialHair ? 100 : 0,
   }

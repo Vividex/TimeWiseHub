@@ -95,12 +95,36 @@ const FACIAL_HAIR: { value: string | null; label: string }[] = [
   { value: 'moustacheMagnum',  label: 'Thick Moustache' },
 ]
 
+// Clothing — feminine styles listed first, then casual, then smart
+const CLOTHING: { value: string; label: string }[] = [
+  { value: 'shirtScoopNeck',    label: 'Scoop Neck' },
+  { value: 'shirtVNeck',        label: 'V-Neck' },
+  { value: 'overall',           label: 'Overall' },
+  { value: 'shirtCrewNeck',     label: 'Crew Neck' },
+  { value: 'hoodie',            label: 'Hoodie' },
+  { value: 'graphicShirt',      label: 'Graphic' },
+  { value: 'collarAndSweater',  label: 'Collar & Sweater' },
+  { value: 'blazerAndShirt',    label: 'Blazer & Shirt' },
+  { value: 'blazerAndSweater',  label: 'Blazer & Sweater' },
+]
+
+const BACKGROUNDS: { value: string; hex: string; label: string }[] = [
+  { value: 'b6e3f4', hex: '#b6e3f4', label: 'Sky Blue' },
+  { value: 'c0aede', hex: '#c0aede', label: 'Lavender' },
+  { value: 'd1f4d4', hex: '#d1f4d4', label: 'Mint' },
+  { value: 'ffd5dc', hex: '#ffd5dc', label: 'Blush' },
+  { value: 'ffdfbf', hex: '#ffdfbf', label: 'Peach' },
+  { value: 'f0f0f0', hex: '#f0f0f0', label: 'Light Grey' },
+]
+
 const DEFAULT_CONFIG: AvatarConfig = {
   top: 'shortCurly',
   hairColor: '724133',
   skinColor: 'edb98a',
   accessories: null,
   facialHair: null,
+  clothing: 'shirtCrewNeck',
+  background: 'b6e3f4',
 }
 
 function SwatchRow({
@@ -191,7 +215,8 @@ export default function AvatarBuilder({
   onSave: (config: AvatarConfig) => void
   saving: boolean
 }) {
-  const [config, setConfig] = useState<AvatarConfig>(initial ?? DEFAULT_CONFIG)
+  // Merge saved config with defaults so old saves missing new fields still work
+  const [config, setConfig] = useState<AvatarConfig>({ ...DEFAULT_CONFIG, ...(initial ?? {}) })
 
   function set<K extends keyof AvatarConfig>(key: K) {
     return (value: AvatarConfig[K]) => setConfig(prev => ({ ...prev, [key]: value }))
@@ -220,8 +245,20 @@ export default function AvatarBuilder({
         value={config.skinColor}
         onChange={set('skinColor') as (v: string | null) => void}
       />
+      <SwatchRow
+        label="Clothing Style"
+        options={CLOTHING}
+        value={config.clothing ?? 'shirtCrewNeck'}
+        onChange={set('clothing') as (v: string | null) => void}
+      />
       <SwatchRow label="Accessories" options={ACCESSORIES} value={config.accessories} onChange={set('accessories')} />
       <SwatchRow label="Facial Hair" options={FACIAL_HAIR} value={config.facialHair} onChange={set('facialHair')} />
+      <SwatchRow
+        label="Background"
+        options={BACKGROUNDS}
+        value={config.background ?? 'b6e3f4'}
+        onChange={set('background') as (v: string | null) => void}
+      />
 
       <button
         type="button"

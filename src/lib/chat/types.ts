@@ -30,10 +30,12 @@ export type ChatMessage = {
 
 export type AvatarConfig = {
   top: string
-  hairColor: string     // hex e.g. '724133'
-  skinColor: string     // hex e.g. 'edb98a'
+  hairColor: string           // hex e.g. '724133'
+  skinColor: string           // hex e.g. 'edb98a'
   accessories: string | null  // null = none
   facialHair: string | null   // null = none
+  clothing?: string           // optional — defaults to shirtCrewNeck
+  background?: string         // optional hex — defaults to b6e3f4 (light blue)
 }
 
 export type ChatMember = {
