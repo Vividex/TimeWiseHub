@@ -163,6 +163,49 @@ A new **Profile** card added to the existing `/settings` page (`src/app/settings
 
 ---
 
+---
+
+## Avatar
+
+Users can set a profile picture in two ways, both accessible from a new **Avatar** card in `/settings`:
+
+### Option A — Photo upload
+Upload a real photo → stored in Supabase Storage bucket `avatars` (public, path `{userId}/avatar`) → URL saved to `profiles.avatar_url`.
+
+### Option B — Avatar builder
+Select from visual pickers for hair style, hair colour, skin tone, accessories (glasses), and facial hair. Configuration stored as `avatar_config jsonb` on `profiles`. The avatar is rendered client-side from this config using the **DiceBear** library (`@dicebear/core` + `@dicebear/collection`, MIT licensed, no external API calls). Setting an avatar config clears `avatar_url`, and vice versa.
+
+### Display priority (everywhere a user's face appears)
+```
+avatar_url (photo) → avatar_config (DiceBear SVG) → initials fallback
+```
+
+### `UserAvatar` component
+Reusable `src/components/UserAvatar.tsx` — accepts `avatarUrl`, `avatarConfig`, `name`, and `size` props. Used in: chat message thread, conversation list, new DM dialog, and the settings page preview.
+
+### New DB additions (added to schema-044)
+| Column | Type | Purpose |
+|--------|------|---------|
+| `avatar_config` | `jsonb` | Stored DiceBear option selections |
+
+Plus: create `avatars` storage bucket (public) with upload/delete policies scoped to `auth.uid()`.
+
+### AvatarConfig shape stored in DB
+```json
+{
+  "top": "bigHair",
+  "hairColor": "brown",
+  "skin": "light",
+  "accessories": "blank",
+  "facialHair": "blank"
+}
+```
+
+### `ChatMember` additions
+Add `avatar_url: string | null` and `avatar_config: Record<string, string> | null` — fetched in `loadMembers()` and used by `UserAvatar` in chat.
+
+---
+
 ## Verification
 
 - `pnpm run build` passes clean.

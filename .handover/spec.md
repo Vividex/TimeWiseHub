@@ -1,98 +1,121 @@
-# Phase 15 — Navigation & Client Drill-Down Redesign
+# Phase 16 — Username & Nickname
 
 ## Goal
-Rebuild navigation around a client-centred drill-down (Client ▸ Projects/Sessions/Notes
-▸ Project ▸ Tasks), rendered through one shared tile component, with a reorganised
-sidebar and a mobile hamburger drawer replacing the horizontal scroll strip.
+Add `username` (stable unique handle, set at registration) and `nickname`
+(freely-editable display name) to every user profile. Show `nickname ?? username`
+everywhere a peer's name appears (chat messages, DM list, task assignment, notifications).
+Add a post-login org-selection flow so multi-org users can choose which org to enter.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-10-navigation-client-drilldown-redesign.md`
+`docs/superpowers/plans/2026-06-13-username-nickname.md`
 Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-10-navigation-client-drilldown-redesign-design.md`
+`docs/superpowers/specs/2026-06-13-username-nickname-design.md`
 
 ## Division of labor
-- **Codex**: all text file creation/edits (.ts/.tsx).
-- **Conductor**: runs all shell (`pnpm run build`, `git`); verifies diffs; ticks boxes; commits.
-  No DB migration this phase (no schema changes).
+- **Codex**: all text file creation/edits (.ts/.tsx/.sql).
+- **Conductor**: applies DB migration via Supabase MCP; runs all shell (`pnpm run build`, `git`); verifies diffs; ticks boxes; commits.
 
 ## Acceptance checklist
 
-### Task 1 — Shared Tile primitive
-- [x] C1-1: Create `src/components/ui/Tile.tsx` (`Tile` + `TileGrid`) per plan Task 1
-- [x] C1-2: Build check (`pnpm run build`)
-- [x] C1-3: Commit
+### Task 1 — DB Migration SQL
+- [ ] C1-1: Create `supabase/schema-044-username-nickname.sql` per plan Task 1
+- [ ] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
+- [ ] C1-3: [CONDUCTOR] Commit
 
-### Task 2 — Task drawer
-- [x] C2-1: Create `src/components/projects/TaskDrawer.tsx` per plan Task 2
-- [x] C2-2: Build check
-- [x] C2-3: Commit
+### Task 2 — ChatMember type + displayName helper
+- [ ] C2-1: Replace `src/lib/chat/types.ts` per plan Task 2
+- [ ] C2-2: [CONDUCTOR] Build check
+- [ ] C2-3: [CONDUCTOR] Commit
 
-### Task 3 — Project task grid
-- [x] C3-1: Create `src/components/projects/ProjectTaskGrid.tsx` per plan Task 3
-- [x] C3-2: Build check
-- [x] C3-3: Commit
+### Task 3 — isUsernameTaken utility
+- [ ] C3-1: Create `src/lib/username.ts` per plan Task 3
+- [ ] C3-2: [CONDUCTOR] Commit
 
-### Task 4 — Nested project home route
-- [x] C4-1: Create `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` per plan Task 4
-- [x] C4-2: Build check
-- [x] C4-3: Commit
+### Task 4 — set-active-org route handler
+- [ ] C4-1: Create `src/app/api/set-active-org/route.ts` per plan Task 4
+- [ ] C4-2: [CONDUCTOR] Build check
+- [ ] C4-3: [CONDUCTOR] Commit
 
-### Task 5 — Client projects grid
-- [x] C5-1: Read `src/components/projects/ProjectForm.tsx` props; create `src/app/dashboard/clients/[id]/projects/page.tsx` per plan Task 5 (creation must bind client)
-- [x] C5-2: Build check
-- [x] C5-3: Commit
+### Task 5 — Registration page username field
+- [ ] C5-1: Replace `src/app/(auth)/register/page.tsx` per plan Task 5
+- [ ] C5-2: [CONDUCTOR] Build check
+- [ ] C5-3: [CONDUCTOR] Commit
 
-### Task 6 — Client sessions grid
-- [x] C6-1: Create `src/app/dashboard/clients/[id]/sessions/page.tsx` per plan Task 6
-- [x] C6-2: Build check
-- [x] C6-3: Commit
+### Task 6 — Login page post-auth routing
+- [ ] C6-1: Replace `src/app/(auth)/login/page.tsx` per plan Task 6
+- [ ] C6-2: [CONDUCTOR] Build check
+- [ ] C6-3: [CONDUCTOR] Commit
 
-### Task 7 — Client notes feed
-- [x] C7-1: Create `src/app/dashboard/clients/[id]/notes/page.tsx` per plan Task 7
-- [x] C7-2: Build check
-- [x] C7-3: Commit
+### Task 7 — /setup-username page
+- [ ] C7-1: Create `src/app/setup-username/page.tsx` per plan Task 7
+- [ ] C7-2: [CONDUCTOR] Build check
+- [ ] C7-3: [CONDUCTOR] Commit
 
-### Task 8 — Client home category tiles
-- [x] C8-1: Replace `src/app/dashboard/clients/[id]/page.tsx` with category tiles per plan Task 8
-- [x] C8-2: Build check
-- [x] C8-3: Commit
+### Task 8 — /select-org page
+- [ ] C8-1: Create `src/app/select-org/page.tsx` per plan Task 8
+- [ ] C8-2: [CONDUCTOR] Build check
+- [ ] C8-3: [CONDUCTOR] Commit
 
-### Task 9 — Clients list as tiles
-- [x] C9-1: Modify `src/app/dashboard/clients/page.tsx` to render client tiles per plan Task 9
-- [x] C9-2: Build check
-- [x] C9-3: Commit
+### Task 9 — Dashboard layout org cookie
+- [ ] C9-1: Replace `src/app/dashboard/layout.tsx` per plan Task 9
+- [ ] C9-2: [CONDUCTOR] Commit (build expected to fail until Task 10)
 
-### Task 10 — Retire project/task routes (redirects)
-- [x] C10-1: Convert `projects/[id]`, `projects`, `tasks` pages to redirects per plan Task 10
-- [x] C10-2: Build check
-- [x] C10-3: Commit
+### Task 10 — ChatRealtimeProvider orgId + loadMembers
+- [ ] C10-1: Update `src/components/chat/ChatRealtimeProvider.tsx` per plan Task 10 (3 edits)
+- [ ] C10-2: [CONDUCTOR] Build check (must pass clean)
+- [ ] C10-3: [CONDUCTOR] Commit
 
-### Task 11 — Sidebar reorg + mobile drawer
-- [x] C11-1: Create `src/components/nav/SidebarNav.tsx` + `src/components/nav/MobileSidebar.tsx`; rewrite `src/components/DashboardShell.tsx` per plan Task 11
-- [x] C11-2: Build check
-- [x] C11-3: Commit
+### Task 11 — Chat display (MessageThread + ConversationList)
+- [ ] C11-1: Update `src/components/chat/MessageThread.tsx` per plan Task 11
+- [ ] C11-2: Update `src/components/chat/ConversationList.tsx` per plan Task 11
+- [ ] C11-3: [CONDUCTOR] Build check
+- [ ] C11-4: [CONDUCTOR] Commit
 
-### Task 12 — Merge Reports + Activity into Insights tabs
-- [x] C12-1: Extract Overview/Activity/Export panels; create `src/components/insights/InsightsTabs.tsx`; rewire insights page; redirect reports + activity per plan Task 12
-- [x] C12-2: Build check
-- [x] C12-3: Commit
+### Task 12 — NewDmDialog display names
+- [ ] C12-1: Update `src/components/chat/NewDmDialog.tsx` per plan Task 12
+- [ ] C12-2: [CONDUCTOR] Build check
+- [ ] C12-3: [CONDUCTOR] Commit
 
-### Task 13 — Home as "My Work"
-- [x] C13-1: Create `src/components/home/MyWork.tsx`; rewrite `src/app/dashboard/page.tsx`; carry over manager unassigned-pool per plan Task 13
-- [x] C13-2: Build check
-- [x] C13-3: Commit
+### Task 13 — NicknameForm + Settings page
+- [ ] C13-1: Create `src/components/NicknameForm.tsx` per plan Task 13
+- [ ] C13-2: Update `src/app/settings/page.tsx` per plan Task 13
+- [ ] C13-3: [CONDUCTOR] Build check (final clean build)
+- [ ] C13-4: [CONDUCTOR] Commit
+
+### Task 14 — Install DiceBear packages
+- [ ] C14-1: [CONDUCTOR] `pnpm add @dicebear/core @dicebear/collection`
+- [ ] C14-2: [CONDUCTOR] Build check
+- [ ] C14-3: [CONDUCTOR] Commit `package.json` + `pnpm-lock.yaml`
+
+### Task 15 — UserAvatar display component
+- [ ] C15-1: Create `src/components/UserAvatar.tsx` per plan Task 15
+- [ ] C15-2: [CONDUCTOR] Build check
+- [ ] C15-3: [CONDUCTOR] Commit
+
+### Task 16 — AvatarBuilder component
+- [ ] C16-1: Create `src/components/AvatarBuilder.tsx` per plan Task 16
+- [ ] C16-2: [CONDUCTOR] Build check
+- [ ] C16-3: [CONDUCTOR] Commit
+
+### Task 17 — AvatarPicker (tabbed Build / Upload)
+- [ ] C17-1: Create `src/components/AvatarPicker.tsx` per plan Task 17
+- [ ] C17-2: [CONDUCTOR] Build check
+- [ ] C17-3: [CONDUCTOR] Commit
+
+### Task 18 — Wire avatars into settings and chat
+- [ ] C18-1: Update `src/app/settings/page.tsx` per plan Task 18 step 18.1
+- [ ] C18-2: Update `src/components/chat/ConversationList.tsx` per plan Task 18 step 18.2
+- [ ] C18-3: Update `src/components/chat/NewDmDialog.tsx` per plan Task 18 step 18.3
+- [ ] C18-4: Update `src/components/chat/MessageThread.tsx` per plan Task 18 step 18.4
+- [ ] C18-5: [CONDUCTOR] Final build check
+- [ ] C18-6: [CONDUCTOR] Commit
 
 ## Verification
-After each item: `pnpm run build` must pass clean (tsc + eslint).
-Final smoke: Clients grid → client category tiles → projects grid → project task grid →
-task drawer edits persist; sessions grid → existing session detail; notes feed; old routes
-(`/projects`, `/tasks`, `/projects/[id]`, `/reports`, `/activity`) redirect; new sidebar
-groups with no Projects/Tasks; mobile hamburger opens/closes; Insights three tabs render.
-
-## Out of scope
-- No DB schema changes, no new npm dependencies.
-- No billing/Stripe/auth changes.
-- No task comments/subtasks/attachments (drawer stays light).
-- Do not drop the manager unassigned-task pool (must survive into Home).
+`pnpm run build` must pass clean after every [CONDUCTOR] build check step.
+No test runner — manual smoke after final commit:
+- Register a new account → username field present, inline "taken" error on blur for duplicate
+- Login as `admin@vividex.au` → redirected to /setup-username
+- Chat messages show nickname/username, never email
+- Settings page shows Profile card with read-only username and editable nickname
