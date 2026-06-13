@@ -90,9 +90,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C14-3: [CONDUCTOR] Commit `package.json` + `pnpm-lock.yaml`
 
 ### Task 15 — UserAvatar display component
-- [ ] C15-1: Create `src/components/UserAvatar.tsx` per plan Task 15
-- [ ] C15-2: [CONDUCTOR] Build check
-- [ ] C15-3: [CONDUCTOR] Commit
+- [x] C15-1: Create `src/components/UserAvatar.tsx` per plan Task 15
+- [x] C15-2: [CONDUCTOR] Build check
+- [x] C15-3: [CONDUCTOR] Commit
 
 ### Task 16 — AvatarBuilder component
 - [ ] C16-1: Create `src/components/AvatarBuilder.tsx` per plan Task 16

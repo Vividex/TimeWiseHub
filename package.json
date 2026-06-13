@@ -13,7 +13,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
     "@dicebear/collection": "^9.4.2",
-    "@dicebear/core": "^10.2.0",
+    "@dicebear/core": "^9.4.2",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/poppins": "^5.2.7",
     "@supabase/ssr": "^0.10.3",
