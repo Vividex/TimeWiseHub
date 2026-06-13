@@ -6,12 +6,21 @@ import { avataaars } from '@dicebear/collection'
 import type { AvatarConfig } from '@/lib/chat/types'
 
 function buildSvgUrl(config: AvatarConfig): string {
-  const svg = createAvatar(avataaars, {
+  // DiceBear v9 expects every option as an array for randomisation support.
+  // Probability props are the correct way to hide optional parts (not a 'blank' value).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opts: Record<string, any> = {
     seed: 'fixed',
     backgroundColor: ['transparent'],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...(config as any),
-  }).toString()
+    top: [config.top],
+    hairColor: [config.hairColor],
+    skinColor: [config.skinColor],
+    accessoriesProbability: config.accessories ? 100 : 0,
+    facialHairProbability: config.facialHair ? 100 : 0,
+  }
+  if (config.accessories) opts.accessories = [config.accessories]
+  if (config.facialHair) opts.facialHair = [config.facialHair]
+  const svg = createAvatar(avataaars, opts).toString()
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
 }
 

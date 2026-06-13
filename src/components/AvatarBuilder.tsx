@@ -4,79 +4,103 @@ import { useState } from 'react'
 import UserAvatar from '@/components/UserAvatar'
 import type { AvatarConfig } from '@/lib/chat/types'
 
-const HAIR_STYLES: { value: string; label: string }[] = [
-  { value: 'shortCurly',         label: 'Short Curly' },
-  { value: 'shortFlat',          label: 'Short Flat' },
-  { value: 'shortRound',         label: 'Short Round' },
-  { value: 'shortWaved',         label: 'Short Waved' },
-  { value: 'shavedSides',        label: 'Shaved Sides' },
-  { value: 'sides',              label: 'Sides' },
-  { value: 'straight01',         label: 'Straight' },
-  { value: 'straight02',         label: 'Straight Alt' },
-  { value: 'longButNotTooLong',  label: 'Long' },
+// Values from @dicebear/avataaars schema (verified via schema.properties)
+const SHORT_HAIR: { value: string; label: string }[] = [
+  { value: 'shortCurly',           label: 'Short Curly' },
+  { value: 'shortFlat',            label: 'Short Flat' },
+  { value: 'shortRound',           label: 'Short Round' },
+  { value: 'shortWaved',           label: 'Short Waved' },
+  { value: 'sides',                label: 'Sides' },
+  { value: 'shavedSides',          label: 'Shaved Sides' },
+  { value: 'theCaesar',            label: 'Caesar' },
+  { value: 'theCaesarAndSidePart', label: 'Caesar + Part' },
+  { value: 'dreads01',             label: 'Dreads Short' },
+  { value: 'dreads02',             label: 'Dreads Alt' },
+  { value: 'frizzle',              label: 'Frizzle' },
+  { value: 'shaggy',               label: 'Shaggy' },
+  { value: 'shaggyMullet',         label: 'Mullet' },
+]
+
+const LONG_HAIR: { value: string; label: string }[] = [
+  { value: 'bigHair',           label: 'Big Hair' },
+  { value: 'bob',               label: 'Bob' },
+  { value: 'bun',               label: 'Bun' },
+  { value: 'curly',             label: 'Curly' },
+  { value: 'curvy',             label: 'Curvy' },
+  { value: 'dreads',            label: 'Dreads' },
+  { value: 'frida',             label: 'Frida' },
+  { value: 'fro',               label: 'Afro' },
+  { value: 'froBand',           label: 'Afro + Band' },
+  { value: 'longButNotTooLong', label: 'Long' },
   { value: 'miaWallace',        label: 'Mia Wallace' },
-  { value: 'curly',              label: 'Curly' },
-  { value: 'curvy',              label: 'Curvy' },
-  { value: 'fro',                label: 'Afro' },
-  { value: 'froBand',            label: 'Afro Band' },
-  { value: 'dreads',             label: 'Dreads' },
-  { value: 'frida',              label: 'Frida' },
-  { value: 'bun',                label: 'Bun' },
-  { value: 'bob',                label: 'Bob' },
-  { value: 'winterHat1',         label: 'Beanie' },
-  { value: 'winterHat02',        label: 'Pompom Hat' },
-  { value: 'winterHat03',        label: 'Striped Hat' },
-  { value: 'winterHat04',        label: 'Knit Hat' },
+  { value: 'straight01',        label: 'Straight' },
+  { value: 'straight02',        label: 'Straight Alt' },
+  { value: 'straightAndStrand', label: 'Straight + Strand' },
 ]
 
+const HEADWEAR: { value: string; label: string }[] = [
+  { value: 'hat',        label: 'Hat' },
+  { value: 'hijab',      label: 'Hijab' },
+  { value: 'turban',     label: 'Turban' },
+  { value: 'winterHat1',  label: 'Beanie' },
+  { value: 'winterHat02', label: 'Pompom' },
+  { value: 'winterHat03', label: 'Striped Hat' },
+  { value: 'winterHat04', label: 'Knit Hat' },
+]
+
+// Hex values from @dicebear/avataaars schema defaults
 const HAIR_COLOURS: { value: string; hex: string; label: string }[] = [
-  { value: 'black',        hex: '#2c1b18', label: 'Black' },
-  { value: 'brown',        hex: '#724133', label: 'Brown' },
-  { value: 'brownDark',    hex: '#4a312c', label: 'Dark Brown' },
-  { value: 'auburn',       hex: '#a55728', label: 'Auburn' },
-  { value: 'blonde',       hex: '#b58143', label: 'Blonde' },
-  { value: 'blondeGolden', hex: '#d6b370', label: 'Golden Blonde' },
-  { value: 'red',          hex: '#c93305', label: 'Red' },
-  { value: 'pastelPink',   hex: '#f59797', label: 'Pink' },
-  { value: 'platinum',     hex: '#ecdcbf', label: 'Platinum' },
-  { value: 'silverGray',   hex: '#e8e1e1', label: 'Silver' },
+  { value: '2c1b18', hex: '#2c1b18', label: 'Black' },
+  { value: '724133', hex: '#724133', label: 'Brown' },
+  { value: '4a312c', hex: '#4a312c', label: 'Dark Brown' },
+  { value: 'a55728', hex: '#a55728', label: 'Auburn' },
+  { value: 'b58143', hex: '#b58143', label: 'Blonde' },
+  { value: 'd6b370', hex: '#d6b370', label: 'Golden Blonde' },
+  { value: 'c93305', hex: '#c93305', label: 'Red' },
+  { value: 'f59797', hex: '#f59797', label: 'Pink' },
+  { value: 'ecdcbf', hex: '#ecdcbf', label: 'Platinum' },
+  { value: 'e8e1e1', hex: '#e8e1e1', label: 'Silver' },
 ]
 
+// Hex values from @dicebear/avataaars schema defaults
 const SKIN_TONES: { value: string; hex: string; label: string }[] = [
-  { value: 'pale',      hex: '#ffdbb4', label: 'Pale' },
-  { value: 'light',     hex: '#edb98a', label: 'Light' },
-  { value: 'tanned',    hex: '#d08b5b', label: 'Tanned' },
-  { value: 'yellow',    hex: '#f8d25c', label: 'Yellow' },
-  { value: 'brown',     hex: '#ae5d29', label: 'Brown' },
-  { value: 'darkBrown', hex: '#614335', label: 'Dark Brown' },
-  { value: 'black',     hex: '#3c1a07', label: 'Deep' },
+  { value: 'ffdbb4', hex: '#ffdbb4', label: 'Pale' },
+  { value: 'edb98a', hex: '#edb98a', label: 'Light' },
+  { value: 'fd9841', hex: '#fd9841', label: 'Peach' },
+  { value: 'd08b5b', hex: '#d08b5b', label: 'Tanned' },
+  { value: 'f8d25c', hex: '#f8d25c', label: 'Yellow' },
+  { value: 'ae5d29', hex: '#ae5d29', label: 'Brown' },
+  { value: '614335', hex: '#614335', label: 'Deep' },
 ]
 
-const ACCESSORIES: { value: string; label: string }[] = [
-  { value: 'blank',          label: 'None' },
+// null = no accessories (accessoriesProbability: 0)
+const ACCESSORIES: { value: string | null; label: string }[] = [
+  { value: null,             label: 'None' },
   { value: 'round',          label: 'Round' },
   { value: 'prescription01', label: 'Classic' },
   { value: 'prescription02', label: 'Rimless' },
   { value: 'kurt',           label: 'Square' },
   { value: 'sunglasses',     label: 'Sunglasses' },
   { value: 'wayfarers',      label: 'Wayfarers' },
+  { value: 'eyepatch',       label: 'Eyepatch' },
 ]
 
-const FACIAL_HAIR: { value: string; label: string }[] = [
-  { value: 'blank',           label: 'None' },
-  { value: 'beardLight',      label: 'Stubble' },
-  { value: 'beardMedium',     label: 'Short Beard' },
-  { value: 'beardMagestic',   label: 'Full Beard' },
-  { value: 'moustacheFancy',  label: 'Moustache' },
-  { value: 'moustacheMagnum', label: 'Thick Moustache' },
+// null = no facial hair (facialHairProbability: 0)
+const FACIAL_HAIR: { value: string | null; label: string }[] = [
+  { value: null,               label: 'None' },
+  { value: 'beardLight',       label: 'Stubble' },
+  { value: 'beardMedium',      label: 'Short Beard' },
+  { value: 'beardMajestic',    label: 'Full Beard' },
+  { value: 'moustacheFancy',   label: 'Moustache' },
+  { value: 'moustacheMagnum',  label: 'Thick Moustache' },
 ]
 
 const DEFAULT_CONFIG: AvatarConfig = {
   top: 'shortCurly',
-  hairColor: 'brown',
-  skin: 'light',
-  accessories: 'blank',
-  facialHair: 'blank',
+  hairColor: '724133',
+  skinColor: 'edb98a',
+  accessories: null,
+  facialHair: null,
 }
 
 function SwatchRow({
@@ -86,9 +110,9 @@ function SwatchRow({
   onChange,
 }: {
   label: string
-  options: { value: string; hex?: string; label: string }[]
-  value: string
-  onChange: (v: string) => void
+  options: { value: string | null; hex?: string; label: string }[]
+  value: string | null
+  onChange: (v: string | null) => void
 }) {
   return (
     <div>
@@ -96,7 +120,7 @@ function SwatchRow({
       <div className="flex flex-wrap gap-2">
         {options.map(opt => (
           <button
-            key={opt.value}
+            key={opt.value ?? '__none__'}
             type="button"
             title={opt.label}
             onClick={() => onChange(opt.value)}
@@ -123,6 +147,39 @@ function SwatchRow({
   )
 }
 
+function HairStylePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const sections = [
+    { label: 'Short hair', options: SHORT_HAIR },
+    { label: 'Long hair', options: LONG_HAIR },
+    { label: 'Headwear', options: HEADWEAR },
+  ]
+  return (
+    <div className="space-y-3">
+      {sections.map(({ label, options }) => (
+        <div key={label}>
+          <p className="mb-1 text-xs font-semibold text-gray-400 dark:text-slate-500">{label}</p>
+          <div className="flex flex-wrap gap-2">
+            {options.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onChange(opt.value)}
+                className={`rounded-lg border-2 px-2 py-1 text-xs font-semibold transition-all ${
+                  value === opt.value
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
+                    : 'border-transparent bg-gray-100 text-slate-700 hover:border-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AvatarBuilder({
   initial,
   displayName,
@@ -136,8 +193,8 @@ export default function AvatarBuilder({
 }) {
   const [config, setConfig] = useState<AvatarConfig>(initial ?? DEFAULT_CONFIG)
 
-  function set(key: keyof AvatarConfig) {
-    return (value: string) => setConfig(prev => ({ ...prev, [key]: value }))
+  function set<K extends keyof AvatarConfig>(key: K) {
+    return (value: AvatarConfig[K]) => setConfig(prev => ({ ...prev, [key]: value }))
   }
 
   return (
@@ -147,9 +204,22 @@ export default function AvatarBuilder({
         <UserAvatar avatarConfig={config} name={displayName} size={96} />
       </div>
 
-      <SwatchRow label="Hair Style" options={HAIR_STYLES} value={config.top} onChange={set('top')} />
-      <SwatchRow label="Hair Colour" options={HAIR_COLOURS} value={config.hairColor} onChange={set('hairColor')} />
-      <SwatchRow label="Skin Tone" options={SKIN_TONES} value={config.skin} onChange={set('skin')} />
+      <div>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Hair Style</p>
+        <HairStylePicker value={config.top} onChange={set('top')} />
+      </div>
+      <SwatchRow
+        label="Hair Colour"
+        options={HAIR_COLOURS}
+        value={config.hairColor}
+        onChange={set('hairColor') as (v: string | null) => void}
+      />
+      <SwatchRow
+        label="Skin Tone"
+        options={SKIN_TONES}
+        value={config.skinColor}
+        onChange={set('skinColor') as (v: string | null) => void}
+      />
       <SwatchRow label="Accessories" options={ACCESSORIES} value={config.accessories} onChange={set('accessories')} />
       <SwatchRow label="Facial Hair" options={FACIAL_HAIR} value={config.facialHair} onChange={set('facialHair')} />
 
