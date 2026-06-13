@@ -9,34 +9,19 @@ import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
 
 type OpenWidget = 'assistant' | 'chat' | null
 
-export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
-  const [open, setOpen] = useState<OpenWidget>(null)
-  // null = not yet positioned; set on first open, persisted across open/close
-  const [chatPos, setChatPos] = useState<{ x: number; y: number } | null>(null)
-  const unread = useChatUnreadTotal()
-
-  function toggle(widget: 'assistant' | 'chat') {
-    const next = open === widget ? null : widget
-    if (next === 'chat' && chatPos === null) {
-      // Default: near bottom-right, offset so FAB buttons remain visible
-      setChatPos({
-        x: Math.max(16, window.innerWidth - 450),
-        y: Math.max(16, window.innerHeight - 630),
-      })
-    }
-    setOpen(next)
-  }
-
-  function handleHeaderPointerDown(e: React.PointerEvent) {
-    // Don't initiate drag when clicking a button or link inside the header
+function makeDragHandler(
+  getPos: () => { x: number; y: number } | null,
+  setPos: (p: { x: number; y: number }) => void,
+) {
+  return function handleHeaderPointerDown(e: React.PointerEvent) {
     if ((e.target as HTMLElement).closest('button, a')) return
-    if (!chatPos) return
-
-    const startPos = { ...chatPos }
+    const pos = getPos()
+    if (!pos) return
+    const startPos = { ...pos }
     const startMouse = { x: e.clientX, y: e.clientY }
 
     function onMove(ev: PointerEvent) {
-      setChatPos({
+      setPos({
         x: Math.max(0, Math.min(window.innerWidth - 80, startPos.x + ev.clientX - startMouse.x)),
         y: Math.max(0, Math.min(window.innerHeight - 48, startPos.y + ev.clientY - startMouse.y)),
       })
@@ -49,22 +34,64 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
     window.addEventListener('pointerup', onUp)
     e.preventDefault()
   }
+}
+
+export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
+  const [open, setOpen] = useState<OpenWidget>(null)
+  const [chatPos, setChatPos] = useState<{ x: number; y: number } | null>(null)
+  const [assistantPos, setAssistantPos] = useState<{ x: number; y: number } | null>(null)
+  const unread = useChatUnreadTotal()
+
+  function toggle(widget: 'assistant' | 'chat') {
+    const next = open === widget ? null : widget
+    if (next === 'chat' && chatPos === null) {
+      setChatPos({
+        x: Math.max(16, window.innerWidth - 450),
+        y: Math.max(16, window.innerHeight - 630),
+      })
+    }
+    if (next === 'assistant' && assistantPos === null) {
+      setAssistantPos({
+        x: Math.max(16, window.innerWidth - 450),
+        y: Math.max(16, window.innerHeight - 660),
+      })
+    }
+    setOpen(next)
+  }
+
+  const handleChatHeaderPointerDown = makeDragHandler(
+    () => chatPos,
+    setChatPos,
+  )
+
+  const handleAssistantHeaderPointerDown = makeDragHandler(
+    () => assistantPos,
+    setAssistantPos,
+  )
 
   return (
     <>
-      {/* Chat window — independently positioned so it can be dragged anywhere */}
+      {/* Chat window — independently positioned */}
       {open === 'chat' && chatPos && (
         <div style={{ position: 'fixed', left: chatPos.x, top: chatPos.y, zIndex: 50 }}>
-          <TeamChatWidget onClose={() => setOpen(null)} onHeaderPointerDown={handleHeaderPointerDown} />
+          <TeamChatWidget onClose={() => setOpen(null)} onHeaderPointerDown={handleChatHeaderPointerDown} />
+        </div>
+      )}
+
+      {/* Assistant window — independently positioned */}
+      {open === 'assistant' && assistantPos && (
+        <div style={{ position: 'fixed', left: assistantPos.x, top: assistantPos.y, zIndex: 50 }}>
+          <AssistantWidget
+            userEmail={userEmail}
+            open={true}
+            onClose={() => setOpen(null)}
+            onHeaderPointerDown={handleAssistantHeaderPointerDown}
+          />
         </div>
       )}
 
       {/* FAB button cluster — stays fixed bottom-right */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-        {open === 'assistant' && (
-          <AssistantWidget userEmail={userEmail} open={true} onClose={() => setOpen(null)} />
-        )}
-
         {/* Chat button (top) */}
         <button
           type="button"

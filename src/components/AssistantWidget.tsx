@@ -2,7 +2,7 @@
 'use client'
 
 import { FormEvent, useRef, useState } from 'react'
-import { Send, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
+import { Send, Mic, MicOff, Volume2, VolumeX, GripVertical } from 'lucide-react'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
 
@@ -33,10 +33,12 @@ export default function AssistantWidget({
   userEmail,
   open,
   onClose,
+  onHeaderPointerDown,
 }: {
   userEmail: string
   open: boolean
   onClose: () => void
+  onHeaderPointerDown?: (e: React.PointerEvent) => void
 }) {
   const [view, setView] = useState<View>('chat')
   const [input, setInput] = useState('')
@@ -250,16 +252,22 @@ export default function AssistantWidget({
   if (!open) return null
 
   return (
-    <div className="mb-1 flex h-[min(620px,calc(100vh-7rem))] w-[calc(100vw-2.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-slate-900 px-4 py-3 text-white dark:border-slate-700">
-        <div>
-          <h2 className="text-base font-black">
-            {view === 'chat' ? 'AI Assistant' : view === 'report' ? 'Report a bug' : 'Report sent'}
-          </h2>
-          <p className="text-xs font-medium text-slate-400">
-            {view === 'chat' ? 'Ask anything or take action.' : view === 'report' ? "Describe what went wrong and we'll look into it." : 'Our team has been notified.'}
-          </p>
+    <div className="flex h-[min(620px,calc(100vh-7rem))] w-[calc(100vw-2.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      {/* Header — drag handle */}
+      <div
+        className="flex items-center justify-between border-b border-gray-200 bg-slate-900 px-4 py-3 text-white dark:border-slate-700 select-none cursor-grab active:cursor-grabbing"
+        onPointerDown={onHeaderPointerDown}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <GripVertical size={14} className="shrink-0 text-slate-600" aria-hidden />
+          <div>
+            <h2 className="text-base font-black">
+              {view === 'chat' ? 'AI Assistant' : view === 'report' ? 'Report a bug' : 'Report sent'}
+            </h2>
+            <p className="text-xs font-medium text-slate-400">
+              {view === 'chat' ? 'Ask anything or take action.' : view === 'report' ? "Describe what went wrong and we'll look into it." : 'Our team has been notified.'}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <a
