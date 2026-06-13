@@ -32,14 +32,14 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ### Task 2 — Navigation update
 - [x] C2-1: Update `src/components/nav/SidebarNav.tsx` — add `CalendarRange` + `Users2` imports and Roster + Team items to People group per plan Task 2
 - [x] C2-2: [CONDUCTOR] Build check (`pnpm run build`)
-- [ ] C2-3: [CONDUCTOR] Commit
+- [x] C2-3: [CONDUCTOR] Commit
 
 ### Task 3 — API routes
-- [ ] C3-1: Write `src/app/api/roster/route.ts` per plan Task 3 Step 1
-- [ ] C3-2: Write `src/app/api/team/profile/route.ts` per plan Task 3 Step 2
-- [ ] C3-3: Write `src/app/api/team/certifications/route.ts` per plan Task 3 Step 3
-- [ ] C3-4: Write `src/app/api/team/onboarding/route.ts` per plan Task 3 Step 4
-- [ ] C3-5: [CONDUCTOR] Build check
+- [x] C3-1: Write `src/app/api/roster/route.ts` per plan Task 3 Step 1
+- [x] C3-2: Write `src/app/api/team/profile/route.ts` per plan Task 3 Step 2
+- [x] C3-3: Write `src/app/api/team/certifications/route.ts` per plan Task 3 Step 3
+- [x] C3-4: Write `src/app/api/team/onboarding/route.ts` per plan Task 3 Step 4
+- [x] C3-5: [CONDUCTOR] Build check
 - [ ] C3-6: [CONDUCTOR] Commit
 
 ### Task 4 — Roster page
