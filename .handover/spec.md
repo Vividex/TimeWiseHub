@@ -105,12 +105,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C17-3: [CONDUCTOR] Commit
 
 ### Task 18 — Wire avatars into settings and chat
-- [ ] C18-1: Update `src/app/settings/page.tsx` per plan Task 18 step 18.1
-- [ ] C18-2: Update `src/components/chat/ConversationList.tsx` per plan Task 18 step 18.2
-- [ ] C18-3: Update `src/components/chat/NewDmDialog.tsx` per plan Task 18 step 18.3
-- [ ] C18-4: Update `src/components/chat/MessageThread.tsx` per plan Task 18 step 18.4
-- [ ] C18-5: [CONDUCTOR] Final build check
-- [ ] C18-6: [CONDUCTOR] Commit
+- [x] C18-1: Update `src/app/settings/page.tsx` per plan Task 18 step 18.1
+- [x] C18-2: Update `src/components/chat/ConversationList.tsx` per plan Task 18 step 18.2
+- [x] C18-3: Update `src/components/chat/NewDmDialog.tsx` per plan Task 18 step 18.3
+- [x] C18-4: Update `src/components/chat/MessageThread.tsx` per plan Task 18 step 18.4
+- [x] C18-5: [CONDUCTOR] Final build check
+- [x] C18-6: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after every [CONDUCTOR] build check step.

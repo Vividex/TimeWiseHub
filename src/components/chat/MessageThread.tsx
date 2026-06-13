@@ -7,6 +7,7 @@ import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import AttachmentChip from '@/components/chat/AttachmentChip'
 import { displayName } from '@/lib/chat/types'
 import type { ChatMessage } from '@/lib/chat/types'
+import UserAvatar from '@/components/UserAvatar'
 
 const MESSAGE_SELECT = 'id, conversation_id, sender_id, body, deleted_at, created_at, chat_attachments(*)'
 
@@ -190,6 +191,14 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
         return (
           <div key={m.id} className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
             <div className="mb-0.5 flex items-center gap-2 px-1">
+              {!mine && (
+                <UserAvatar
+                  avatarUrl={members[m.sender_id]?.avatar_url}
+                  avatarConfig={members[m.sender_id]?.avatar_config}
+                  name={senderName(members, m.sender_id)}
+                  size={20}
+                />
+              )}
               <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                 {mine ? 'You' : senderName(members, m.sender_id)}
               </span>

@@ -4,6 +4,7 @@ import { Megaphone, Plus } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import type { ChatConversation } from '@/lib/chat/types'
+import UserAvatar from '@/components/UserAvatar'
 
 function dmPeerId(conv: ChatConversation, userId: string): string | null {
   if (conv.type !== 'dm' || !conv.dm_key) return null
@@ -40,9 +41,18 @@ export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
             <Megaphone size={16} />
           </span>
         ) : (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-sm font-black text-white">
-            {label(conv).slice(0, 1).toUpperCase()}
-          </span>
+          (() => {
+            const peer = dmPeerId(conv, userId)
+            const m = peer ? members[peer] : null
+            return (
+              <UserAvatar
+                avatarUrl={m?.avatar_url}
+                avatarConfig={m?.avatar_config}
+                name={label(conv)}
+                size={36}
+              />
+            )
+          })()
         )}
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{label(conv)}</span>
