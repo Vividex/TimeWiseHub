@@ -19,13 +19,52 @@ export default function LoginPage() {
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message)
+    if (authError || !user) {
+      setError(authError?.message ?? 'Sign in failed')
       setLoading(false)
       return
     }
+
+    // Gate 1: existing users who predate the username feature
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.username) {
+      router.push('/setup-username')
+      return
+    }
+
+    // Gate 2: org membership count
+    const { data: memberships } = await supabase
+      .from('organisation_members')
+      .select('org_id')
+      .eq('user_id', user.id)
+
+    const count = memberships?.length ?? 0
+
+    if (count === 0) {
+      router.push('/onboarding')
+      router.refresh()
+      return
+    }
+
+    if (count > 1) {
+      router.push('/select-org')
+      router.refresh()
+      return
+    }
+
+    // Single org — set cookie and go straight to dashboard
+    await fetch('/api/set-active-org', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orgId: memberships![0].org_id }),
+    })
 
     router.push('/dashboard')
     router.refresh()
