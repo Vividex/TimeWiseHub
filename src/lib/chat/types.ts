@@ -28,11 +28,29 @@ export type ChatMessage = {
   chat_attachments: ChatAttachment[]
 }
 
+export type AvatarConfig = {
+  top: string
+  hairColor: string
+  skin: string
+  accessories: string
+  facialHair: string
+}
+
 export type ChatMember = {
   user_id: string
   full_name: string | null
   email: string
   role: 'owner' | 'admin' | 'manager' | 'employee'
+  username: string | null
+  nickname: string | null
+  avatar_url: string | null
+  avatar_config: AvatarConfig | null
+}
+
+/** Peer-facing display name. Never returns the user's email. */
+export function displayName(member: ChatMember | null | undefined): string {
+  if (!member) return 'Unknown'
+  return member.nickname ?? member.username ?? 'Unknown'
 }
 
 export type QuietHours = {

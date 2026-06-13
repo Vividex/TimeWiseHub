@@ -116,6 +116,10 @@ export default function ChatRealtimeProvider({ userId, children }: { userId: str
         role: row.role,
         full_name: row.profiles?.full_name ?? null,
         email: row.profiles?.email ?? '',
+        username: null,
+        nickname: null,
+        avatar_url: null,
+        avatar_config: null,
       }
     }
     setMembers(map)

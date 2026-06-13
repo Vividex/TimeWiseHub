@@ -20,14 +20,14 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ## Acceptance checklist
 
 ### Task 1 — DB Migration SQL
-- [ ] C1-1: Create `supabase/schema-044-username-nickname.sql` per plan Task 1
-- [ ] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
-- [ ] C1-3: [CONDUCTOR] Commit
+- [x] C1-1: Create `supabase/schema-044-username-nickname.sql` per plan Task 1
+- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
+- [x] C1-3: [CONDUCTOR] Commit
 
 ### Task 2 — ChatMember type + displayName helper
-- [ ] C2-1: Replace `src/lib/chat/types.ts` per plan Task 2
-- [ ] C2-2: [CONDUCTOR] Build check
-- [ ] C2-3: [CONDUCTOR] Commit
+- [x] C2-1: Replace `src/lib/chat/types.ts` per plan Task 2
+- [x] C2-2: [CONDUCTOR] Build check
+- [x] C2-3: [CONDUCTOR] Commit
 
 ### Task 3 — isUsernameTaken utility
 - [ ] C3-1: Create `src/lib/username.ts` per plan Task 3
