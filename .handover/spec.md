@@ -1,121 +1,73 @@
-# Phase 16 — Username & Nickname
+# Phase 17 — HR Depth (Roster, Employee Profiles, Onboarding, Certs)
 
 ## Goal
-Add `username` (stable unique handle, set at registration) and `nickname`
-(freely-editable display name) to every user profile. Show `nickname ?? username`
-everywhere a peer's name appears (chat messages, DM list, task assignment, notifications).
-Add a post-login org-selection flow so multi-org users can choose which org to enter.
+Add rostering, employee profiles, onboarding checklists, and certification
+tracking to the People section to compete with Deputy and Employment Hero for
+small service businesses (1–20 staff).
 
 ## Source plan
-`docs/superpowers/plans/2026-06-13-username-nickname.md`
+`docs/superpowers/plans/2026-06-13-hr-depth.md`
 Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-13-username-nickname-design.md`
+`docs/superpowers/specs/2026-06-13-hr-depth-design.md`
 
 ## Division of labor
 - **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: applies DB migration via Supabase MCP; runs all shell (`pnpm run build`, `git`); verifies diffs; ticks boxes; commits.
+- **Conductor**: applies DB migrations via Supabase MCP; creates storage bucket;
+  deploys edge function; schedules cron; runs all shell (`pnpm run build`, `git`);
+  verifies diffs; ticks boxes; commits.
 
 ## Acceptance checklist
 
-### Task 1 — DB Migration SQL
-- [x] C1-1: Create `supabase/schema-044-username-nickname.sql` per plan Task 1
-- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
-- [x] C1-3: [CONDUCTOR] Commit
+### Task 1 — Database migrations
+- [x] C1-1: Write `supabase/schema-045-employee-profiles.sql` per plan Task 1 Step 1
+- [x] C1-2: Write `supabase/schema-046-certifications.sql` per plan Task 1 Step 2
+- [x] C1-3: Write `supabase/schema-047-onboarding.sql` per plan Task 1 Step 3
+- [x] C1-4: Write `supabase/schema-048-roster.sql` per plan Task 1 Step 4
+- [x] C1-5: [CONDUCTOR] Apply migrations 045–048 via Supabase MCP `apply_migration` in order
+- [x] C1-6: [CONDUCTOR] Create private `employee-docs` storage bucket via Supabase MCP
+- [ ] C1-7: [CONDUCTOR] Commit
 
-### Task 2 — ChatMember type + displayName helper
-- [x] C2-1: Replace `src/lib/chat/types.ts` per plan Task 2
-- [x] C2-2: [CONDUCTOR] Build check
-- [x] C2-3: [CONDUCTOR] Commit
+### Task 2 — Navigation update
+- [ ] C2-1: Update `src/components/nav/SidebarNav.tsx` — add `CalendarRange` + `Users2` imports and Roster + Team items to People group per plan Task 2
+- [ ] C2-2: [CONDUCTOR] Build check (`pnpm run build`)
+- [ ] C2-3: [CONDUCTOR] Commit
 
-### Task 3 — isUsernameTaken utility
-- [x] C3-1: Create `src/lib/username.ts` per plan Task 3
-- [x] C3-2: [CONDUCTOR] Commit
+### Task 3 — API routes
+- [ ] C3-1: Write `src/app/api/roster/route.ts` per plan Task 3 Step 1
+- [ ] C3-2: Write `src/app/api/team/profile/route.ts` per plan Task 3 Step 2
+- [ ] C3-3: Write `src/app/api/team/certifications/route.ts` per plan Task 3 Step 3
+- [ ] C3-4: Write `src/app/api/team/onboarding/route.ts` per plan Task 3 Step 4
+- [ ] C3-5: [CONDUCTOR] Build check
+- [ ] C3-6: [CONDUCTOR] Commit
 
-### Task 4 — set-active-org route handler
-- [x] C4-1: Create `src/app/api/set-active-org/route.ts` per plan Task 4
-- [x] C4-2: [CONDUCTOR] Build check
-- [x] C4-3: [CONDUCTOR] Commit
+### Task 4 — Roster page
+- [ ] C4-1: Write `src/components/roster/ShiftForm.tsx` per plan Task 4 Step 1
+- [ ] C4-2: Write `src/components/roster/RosterGrid.tsx` per plan Task 4 Step 2
+- [ ] C4-3: Write `src/app/dashboard/roster/page.tsx` per plan Task 4 Step 3
+- [ ] C4-4: [CONDUCTOR] Build check
+- [ ] C4-5: [CONDUCTOR] Commit
 
-### Task 5 — Registration page username field
-- [x] C5-1: Replace `src/app/(auth)/register/page.tsx` per plan Task 5
-- [x] C5-2: [CONDUCTOR] Build check
-- [x] C5-3: [CONDUCTOR] Commit
+### Task 5 — Team page
+- [ ] C5-1: Write `src/components/team/CertExpiryPanel.tsx` per plan Task 5 Step 1
+- [ ] C5-2: Write `src/components/team/EmployeeDrawer.tsx` per plan Task 5 Step 2
+- [ ] C5-3: Write `src/components/team/TeamGrid.tsx` per plan Task 5 Step 3
+- [ ] C5-4: Write `src/app/dashboard/team/page.tsx` per plan Task 5 Step 4
+- [ ] C5-5: [CONDUCTOR] Build check
+- [ ] C5-6: [CONDUCTOR] Commit
 
-### Task 6 — Login page post-auth routing
-- [x] C6-1: Replace `src/app/(auth)/login/page.tsx` per plan Task 6
-- [x] C6-2: [CONDUCTOR] Build check
-- [x] C6-3: [CONDUCTOR] Commit
-
-### Task 7 — /setup-username page
-- [x] C7-1: Create `src/app/setup-username/page.tsx` per plan Task 7
-- [x] C7-2: [CONDUCTOR] Build check
-- [x] C7-3: [CONDUCTOR] Commit
-
-### Task 8 — /select-org page
-- [x] C8-1: Create `src/app/select-org/page.tsx` per plan Task 8
-- [x] C8-2: [CONDUCTOR] Build check
-- [x] C8-3: [CONDUCTOR] Commit
-
-### Task 9 — Dashboard layout org cookie
-- [x] C9-1: Replace `src/app/dashboard/layout.tsx` per plan Task 9
-- [x] C9-2: [CONDUCTOR] Commit (build expected to fail until Task 10)
-
-### Task 10 — ChatRealtimeProvider orgId + loadMembers
-- [x] C10-1: Update `src/components/chat/ChatRealtimeProvider.tsx` per plan Task 10 (3 edits)
-- [x] C10-2: [CONDUCTOR] Build check (must pass clean)
-- [x] C10-3: [CONDUCTOR] Commit
-
-### Task 11 — Chat display (MessageThread + ConversationList)
-- [x] C11-1: Update `src/components/chat/MessageThread.tsx` per plan Task 11
-- [x] C11-2: Update `src/components/chat/ConversationList.tsx` per plan Task 11
-- [x] C11-3: [CONDUCTOR] Build check
-- [x] C11-4: [CONDUCTOR] Commit
-
-### Task 12 — NewDmDialog display names
-- [x] C12-1: Update `src/components/chat/NewDmDialog.tsx` per plan Task 12
-- [x] C12-2: [CONDUCTOR] Build check
-- [x] C12-3: [CONDUCTOR] Commit
-
-### Task 13 — NicknameForm + Settings page
-- [x] C13-1: Create `src/components/NicknameForm.tsx` per plan Task 13
-- [x] C13-2: Update `src/app/settings/page.tsx` per plan Task 13
-- [x] C13-3: [CONDUCTOR] Build check (final clean build)
-- [x] C13-4: [CONDUCTOR] Commit
-
-### Task 14 — Install DiceBear packages
-- [x] C14-1: [CONDUCTOR] `pnpm add @dicebear/core @dicebear/collection`
-- [x] C14-2: [CONDUCTOR] Build check
-- [x] C14-3: [CONDUCTOR] Commit `package.json` + `pnpm-lock.yaml`
-
-### Task 15 — UserAvatar display component
-- [x] C15-1: Create `src/components/UserAvatar.tsx` per plan Task 15
-- [x] C15-2: [CONDUCTOR] Build check
-- [x] C15-3: [CONDUCTOR] Commit
-
-### Task 16 — AvatarBuilder component
-- [x] C16-1: Create `src/components/AvatarBuilder.tsx` per plan Task 16
-- [x] C16-2: [CONDUCTOR] Build check
-- [x] C16-3: [CONDUCTOR] Commit
-
-### Task 17 — AvatarPicker (tabbed Build / Upload)
-- [x] C17-1: Create `src/components/AvatarPicker.tsx` per plan Task 17
-- [x] C17-2: [CONDUCTOR] Build check
-- [x] C17-3: [CONDUCTOR] Commit
-
-### Task 18 — Wire avatars into settings and chat
-- [x] C18-1: Update `src/app/settings/page.tsx` per plan Task 18 step 18.1
-- [x] C18-2: Update `src/components/chat/ConversationList.tsx` per plan Task 18 step 18.2
-- [x] C18-3: Update `src/components/chat/NewDmDialog.tsx` per plan Task 18 step 18.3
-- [x] C18-4: Update `src/components/chat/MessageThread.tsx` per plan Task 18 step 18.4
-- [x] C18-5: [CONDUCTOR] Final build check
-- [x] C18-6: [CONDUCTOR] Commit
+### Task 6 — Cert expiry Edge Function
+- [ ] C6-1: Write `supabase/functions/cert-expiry-notify/index.ts` per plan Task 6 Step 1
+- [ ] C6-2: [CONDUCTOR] Deploy Edge Function via Supabase MCP `deploy_edge_function`
+- [ ] C6-3: [CONDUCTOR] Schedule nightly cron (Supabase dashboard → Cron → `0 8 * * *`)
+- [ ] C6-4: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after every [CONDUCTOR] build check step.
 No test runner — manual smoke after final commit:
-- Register a new account → username field present, inline "taken" error on blur for duplicate
-- Login as `admin@vividex.au` → redirected to /setup-username
-- Chat messages show nickname/username, never email
-- Settings page shows Profile card with read-only username and editable nickname
+- Navigate to People → Roster: weekly grid renders, manager can add a shift, Publish button appears for unpublished shifts
+- Navigate to People → Team: member cards render, clicking opens drawer with Profile / Certifications / Onboarding tabs
+- Add a certification with an expiry date within 30 days → amber badge appears on the card and the CertExpiryPanel shows it
+- Incomplete required onboarding item → amber badge on the card
+- Employee login → sees only their own published shifts (roster read-only)
