@@ -22,7 +22,7 @@ export default async function RosterPage() {
   )
 
   const { data: members } = await supabase
-    .from('organisation_members').select('user_id, profiles(full_name, email)').eq('org_id', orgId)
+    .from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)
 
   const memberList = (members ?? []).map(m => ({
     user_id: m.user_id,

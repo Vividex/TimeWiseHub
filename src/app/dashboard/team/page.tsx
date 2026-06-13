@@ -27,7 +27,7 @@ export default async function TeamPage() {
   const thirtyDaysOutISO = thirtyDaysOut.toISOString().split('T')[0]
 
   const [{ data: membersData }, { data: profilesData }, { data: certsData }, { data: progressData }, { data: checklistData }] = await Promise.all([
-    supabase.from('organisation_members').select('user_id, profiles(full_name, email)').eq('org_id', orgId),
+    supabase.from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId),
     supabase.from('employee_profiles').select('user_id, job_title').eq('org_id', orgId),
     supabase.from('certifications').select('user_id, name, expiry_date').eq('org_id', orgId),
     supabase.from('onboarding_progress').select('user_id, item_label, completed_at').eq('org_id', orgId),
