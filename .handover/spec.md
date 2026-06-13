@@ -54,9 +54,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C7-3: [CONDUCTOR] Commit
 
 ### Task 8 — /select-org page
-- [ ] C8-1: Create `src/app/select-org/page.tsx` per plan Task 8
-- [ ] C8-2: [CONDUCTOR] Build check
-- [ ] C8-3: [CONDUCTOR] Commit
+- [x] C8-1: Create `src/app/select-org/page.tsx` per plan Task 8
+- [x] C8-2: [CONDUCTOR] Build check
+- [x] C8-3: [CONDUCTOR] Commit
 
 ### Task 9 — Dashboard layout org cookie
 - [ ] C9-1: Replace `src/app/dashboard/layout.tsx` per plan Task 9
