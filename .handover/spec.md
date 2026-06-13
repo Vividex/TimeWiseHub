@@ -58,10 +58,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-6: [CONDUCTOR] Commit
 
 ### Task 6 — Cert expiry Edge Function
-- [ ] C6-1: Write `supabase/functions/cert-expiry-notify/index.ts` per plan Task 6 Step 1
-- [ ] C6-2: [CONDUCTOR] Deploy Edge Function via Supabase MCP `deploy_edge_function`
-- [ ] C6-3: [CONDUCTOR] Schedule nightly cron (Supabase dashboard → Cron → `0 8 * * *`)
-- [ ] C6-4: [CONDUCTOR] Commit
+- [x] C6-1: Write `supabase/functions/cert-expiry-notify/index.ts` per plan Task 6 Step 1
+- [x] C6-2: [CONDUCTOR] Deploy Edge Function via Supabase MCP `deploy_edge_function`
+- [x] C6-3: [CONDUCTOR] Schedule nightly cron (Supabase dashboard → Cron → `0 8 * * *`)
+- [x] C6-4: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after every [CONDUCTOR] build check step.
