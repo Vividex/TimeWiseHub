@@ -6,6 +6,31 @@ import ShiftForm, { type RosterShift, type OrgMember } from './ShiftForm'
 
 const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
+export type LeaveBlock = {
+  id: string; user_id: string; leave_type: string
+  start_date: string; end_date: string; half_day: boolean
+}
+
+const LEAVE_COLOURS: Record<string, string> = {
+  annual:           'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
+  sick:             'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300',
+  personal:         'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+  long_service:     'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300',
+  'long service':   'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300',
+  parental:         'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300',
+  bereavement:      'bg-stone-100 text-stone-700 dark:bg-stone-800/60 dark:text-stone-300',
+  unpaid:           'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+}
+const DEFAULT_LEAVE_COLOUR = 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300'
+
+function leaveColour(type: string) {
+  return LEAVE_COLOURS[type.toLowerCase().replace(/ leave$/i, '').trim()] ?? DEFAULT_LEAVE_COLOUR
+}
+function leaveLabel(type: string, halfDay: boolean) {
+  const base = type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  return halfDay ? `${base} (½ day)` : base
+}
+
 function getWeekDates(anchor: Date): Date[] {
   const day = anchor.getDay()
   const monday = new Date(anchor)
@@ -14,8 +39,9 @@ function getWeekDates(anchor: Date): Date[] {
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, isManager }: {
-  orgId: string; members: OrgMember[]; initialShifts: RosterShift[]; isManager: boolean
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, isManager }: {
+  orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
+  leaveBlocks: LeaveBlock[]; isManager: boolean
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
@@ -64,6 +90,18 @@ export default function RosterGrid({ orgId, members, initialShifts, isManager }:
           </button>
         )}
       </div>
+
+      {/* Leave colour legend */}
+      <div className="mb-3 flex flex-wrap gap-2">
+        {Object.entries({
+          Annual: 'annual', Sick: 'sick', Personal: 'personal',
+          'Long Service': 'long service', Parental: 'parental',
+          Bereavement: 'bereavement', Unpaid: 'unpaid',
+        }).map(([label, key]) => (
+          <span key={key} className={`rounded-full px-2 py-0.5 text-xs font-medium ${leaveColour(key)}`}>{label}</span>
+        ))}
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
@@ -83,9 +121,16 @@ export default function RosterGrid({ orgId, members, initialShifts, isManager }:
                 {weekDates.map((d, i) => {
                   const iso = toISO(d)
                   const dayShifts = shifts.filter(s => s.user_id === member.user_id && s.date === iso)
+                  const dayLeave = leaveBlocks.filter(l => l.user_id === member.user_id && l.start_date <= iso && l.end_date >= iso)
                   return (
                     <td key={i} className="px-1 py-1 align-top">
                       <div className="min-h-[48px] rounded-lg p-1">
+                        {dayLeave.map(l => (
+                          <div key={l.id}
+                            className={`mb-1 w-full rounded-lg px-2 py-1 text-xs font-medium ${leaveColour(l.leave_type)}`}>
+                            {leaveLabel(l.leave_type, l.half_day)}
+                          </div>
+                        ))}
                         {dayShifts.map(s => (
                           <button key={s.id} onClick={() => isManager && setFormState({ open: true, shift: s })}
                             className={`mb-1 w-full rounded-lg px-2 py-1 text-left text-xs font-medium ${s.published ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}`}>

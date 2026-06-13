@@ -24,28 +24,59 @@ export default async function RosterPage() {
   const { data: members } = await supabase
     .from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)
 
+  type ProfileRow = { full_name: string | null; email: string } | null
+
   const memberList = (members ?? []).map(m => ({
     user_id: m.user_id,
     display_name:
-      (m.profiles as unknown as { full_name: string | null; email: string } | null)?.full_name
-      ?? (m.profiles as unknown as { full_name: string | null; email: string } | null)?.email
+      (m.profiles as unknown as ProfileRow)?.full_name
+      ?? (m.profiles as unknown as ProfileRow)?.email
       ?? m.user_id,
   }))
+
+  // Ensure the current user (e.g. org owner) always appears in the roster
+  if (!memberList.some(m => m.user_id === user.id)) {
+    const { data: ownProfile } = await supabase
+      .from('profiles').select('full_name, email').eq('id', user.id).maybeSingle()
+    memberList.unshift({
+      user_id: user.id,
+      display_name:
+        (ownProfile as ProfileRow | null)?.full_name
+        ?? (ownProfile as ProfileRow | null)?.email
+        ?? user.email
+        ?? user.id,
+    })
+  }
 
   const today = new Date()
   const from = new Date(today); from.setDate(today.getDate() - 14)
   const to = new Date(today); to.setDate(today.getDate() + 28)
+  const fromISO = from.toISOString().split('T')[0]
+  const toISO = to.toISOString().split('T')[0]
 
-  const { data: shifts } = await supabase
-    .from('roster_shifts').select('id, org_id, user_id, date, start_time, end_time, notes, published')
-    .eq('org_id', orgId).is('deleted_at', null)
-    .gte('date', from.toISOString().split('T')[0]).lte('date', to.toISOString().split('T')[0])
+  const [{ data: shifts }, { data: leaveData }] = await Promise.all([
+    supabase
+      .from('roster_shifts').select('id, org_id, user_id, date, start_time, end_time, notes, published')
+      .eq('org_id', orgId).is('deleted_at', null)
+      .gte('date', fromISO).lte('date', toISO),
+    supabase
+      .from('leave_requests').select('id, user_id, leave_type, start_date, end_date, half_day')
+      .eq('org_id', orgId).eq('status', 'approved')
+      .lte('start_date', toISO)
+      .gte('end_date', fromISO),
+  ])
 
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-white">Roster</h1>
-        <RosterGrid orgId={orgId} members={memberList} initialShifts={shifts ?? []} isManager={isManager} />
+        <RosterGrid
+          orgId={orgId}
+          members={memberList}
+          initialShifts={shifts ?? []}
+          leaveBlocks={leaveData ?? []}
+          isManager={isManager}
+        />
       </div>
     </div>
   )
