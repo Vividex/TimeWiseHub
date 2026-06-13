@@ -100,9 +100,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C16-3: [CONDUCTOR] Commit
 
 ### Task 17 — AvatarPicker (tabbed Build / Upload)
-- [ ] C17-1: Create `src/components/AvatarPicker.tsx` per plan Task 17
-- [ ] C17-2: [CONDUCTOR] Build check
-- [ ] C17-3: [CONDUCTOR] Commit
+- [x] C17-1: Create `src/components/AvatarPicker.tsx` per plan Task 17
+- [x] C17-2: [CONDUCTOR] Build check
+- [x] C17-3: [CONDUCTOR] Commit
 
 ### Task 18 — Wire avatars into settings and chat
 - [ ] C18-1: Update `src/app/settings/page.tsx` per plan Task 18 step 18.1
