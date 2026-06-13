@@ -34,9 +34,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — set-active-org route handler
-- [ ] C4-1: Create `src/app/api/set-active-org/route.ts` per plan Task 4
-- [ ] C4-2: [CONDUCTOR] Build check
-- [ ] C4-3: [CONDUCTOR] Commit
+- [x] C4-1: Create `src/app/api/set-active-org/route.ts` per plan Task 4
+- [x] C4-2: [CONDUCTOR] Build check
+- [x] C4-3: [CONDUCTOR] Commit
 
 ### Task 5 — Registration page username field
 - [ ] C5-1: Replace `src/app/(auth)/register/page.tsx` per plan Task 5
