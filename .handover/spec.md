@@ -85,9 +85,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C13-4: [CONDUCTOR] Commit
 
 ### Task 14 — Install DiceBear packages
-- [ ] C14-1: [CONDUCTOR] `pnpm add @dicebear/core @dicebear/collection`
-- [ ] C14-2: [CONDUCTOR] Build check
-- [ ] C14-3: [CONDUCTOR] Commit `package.json` + `pnpm-lock.yaml`
+- [x] C14-1: [CONDUCTOR] `pnpm add @dicebear/core @dicebear/collection`
+- [x] C14-2: [CONDUCTOR] Build check
+- [x] C14-3: [CONDUCTOR] Commit `package.json` + `pnpm-lock.yaml`
 
 ### Task 15 — UserAvatar display component
 - [ ] C15-1: Create `src/components/UserAvatar.tsx` per plan Task 15
