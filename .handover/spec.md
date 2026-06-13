@@ -42,9 +42,9 @@ Each checklist item maps to a Step there — implement the code VERBATIM from th
 - [x] C3-5: [CONDUCTOR] Commit
 
 ### Task 4 — TeamTasks component
-- [ ] C4-1: Create `src/components/tasks/TeamTasks.tsx` per plan Task 4 Step 1
-- [ ] C4-2: [CONDUCTOR] `pnpm run build`
-- [ ] C4-3: [CONDUCTOR] Commit
+- [x] C4-1: Create `src/components/tasks/TeamTasks.tsx` per plan Task 4 Step 1
+- [x] C4-2: [CONDUCTOR] `pnpm run build`
+- [x] C4-3: [CONDUCTOR] Commit
 
 ### Task 5 — Wire TeamTasks into dashboard
 - [ ] C5-1: Edit `src/app/dashboard/page.tsx` — import TeamTasks, add AssignedTask type, fetch assigned tasks in parallel, render TeamTasks section
