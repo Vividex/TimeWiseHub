@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import MyWork from '@/components/home/MyWork'
 import TaskPool from '@/components/tasks/TaskPool'
+import TeamTasks from '@/components/tasks/TeamTasks'
 import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
 import PushPermission from '@/components/PushPermission'
@@ -16,6 +17,16 @@ type PoolTask = {
   notes: string | null
   assignee_id: string | null
   completed_at: string | null
+  projects: { id: string; name: string; colour: string } | null
+}
+
+type AssignedTask = {
+  id: string
+  title: string
+  priority: string
+  status: string
+  due_date: string | null
+  assignee_id: string
   projects: { id: string; name: string; colour: string } | null
 }
 
@@ -58,21 +69,32 @@ export default async function DashboardHome() {
     ? (orgMembersRaw as any[]).map((m: any) => ({ userId: m.user_id as string, displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string }))
     : undefined
 
-  // Manager unassigned pool
+  // Manager unassigned pool + assigned team tasks
   let poolTasks: PoolTask[] = []
+  let assignedTasks: AssignedTask[] = []
   if (isManager && orgId) {
     const { data: orgProjects } = await supabase
       .from('projects').select('id').eq('org_id', orgId).eq('status', 'active')
     const orgProjectIds = (orgProjects ?? []).map(p => p.id)
     if (orgProjectIds.length > 0) {
-      const { data: pool } = await supabase
-        .from('tasks')
-        .select('id, title, priority, status, due_date, notes, assignee_id, completed_at, projects(id, name, colour)')
-        .is('assignee_id', null)
-        .neq('status', 'done')
-        .in('project_id', orgProjectIds)
-        .order('created_at', { ascending: false })
+      const [{ data: pool }, { data: assigned }] = await Promise.all([
+        supabase
+          .from('tasks')
+          .select('id, title, priority, status, due_date, notes, assignee_id, completed_at, projects(id, name, colour)')
+          .is('assignee_id', null)
+          .neq('status', 'done')
+          .in('project_id', orgProjectIds)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('tasks')
+          .select('id, title, priority, status, due_date, assignee_id, projects(id, name, colour)')
+          .not('assignee_id', 'is', null)
+          .neq('status', 'done')
+          .in('project_id', orgProjectIds)
+          .order('due_date', { ascending: true, nullsFirst: false }),
+      ])
       poolTasks = (pool ?? []) as unknown as PoolTask[]
+      assignedTasks = (assigned ?? []) as unknown as AssignedTask[]
     }
   }
 
@@ -104,6 +126,16 @@ export default async function DashboardHome() {
               orgMembers={mappedMembers ?? []}
               currentUserId={user.id}
               currentUserRole={role}
+            />
+          </div>
+        )}
+
+        {isManager && assignedTasks.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Team tasks</h2>
+            <TeamTasks
+              initialTasks={assignedTasks}
+              orgMembers={mappedMembers ?? []}
             />
           </div>
         )}

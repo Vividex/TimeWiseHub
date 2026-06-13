@@ -47,9 +47,9 @@ Each checklist item maps to a Step there — implement the code VERBATIM from th
 - [x] C4-3: [CONDUCTOR] Commit
 
 ### Task 5 — Wire TeamTasks into dashboard
-- [ ] C5-1: Edit `src/app/dashboard/page.tsx` — import TeamTasks, add AssignedTask type, fetch assigned tasks in parallel, render TeamTasks section
-- [ ] C5-2: [CONDUCTOR] `pnpm run build`
-- [ ] C5-3: [CONDUCTOR] Commit
+- [x] C5-1: Edit `src/app/dashboard/page.tsx` — import TeamTasks, add AssignedTask type, fetch assigned tasks in parallel, render TeamTasks section
+- [x] C5-2: [CONDUCTOR] `pnpm run build`
+- [x] C5-3: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after every [CONDUCTOR] build check.
