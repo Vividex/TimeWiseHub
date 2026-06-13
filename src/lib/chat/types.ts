@@ -36,6 +36,7 @@ export type AvatarConfig = {
   facialHair: string | null   // null = none
   clothing?: string           // optional — defaults to shirtCrewNeck
   background?: string         // optional hex — defaults to b6e3f4 (light blue)
+  hatColor?: string           // hex for headwear items; ignored for hair styles
 }
 
 export type ChatMember = {

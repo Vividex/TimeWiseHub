@@ -48,6 +48,8 @@ const HEADWEAR: { value: string; label: string }[] = [
   { value: 'winterHat04', label: 'Knit Hat' },
 ]
 
+const HEADWEAR_VALUES = new Set(HEADWEAR.map(h => h.value))
+
 // Hex values from @dicebear/avataaars schema defaults
 const HAIR_COLOURS: { value: string; hex: string; label: string }[] = [
   { value: '2c1b18', hex: '#2c1b18', label: 'Black' },
@@ -60,6 +62,25 @@ const HAIR_COLOURS: { value: string; hex: string; label: string }[] = [
   { value: 'f59797', hex: '#f59797', label: 'Pink' },
   { value: 'ecdcbf', hex: '#ecdcbf', label: 'Platinum' },
   { value: 'e8e1e1', hex: '#e8e1e1', label: 'Silver' },
+]
+
+// Hex values from @dicebear/avataaars hatColor schema defaults
+const HAT_COLOURS: { value: string; hex: string; label: string }[] = [
+  { value: '262e33', hex: '#262e33', label: 'Black' },
+  { value: '3c4f5c', hex: '#3c4f5c', label: 'Dark Blue' },
+  { value: '25557c', hex: '#25557c', label: 'Navy' },
+  { value: '5199e4', hex: '#5199e4', label: 'Blue' },
+  { value: '65c9ff', hex: '#65c9ff', label: 'Sky' },
+  { value: 'b1e2ff', hex: '#b1e2ff', label: 'Light Blue' },
+  { value: 'a7ffc4', hex: '#a7ffc4', label: 'Mint' },
+  { value: 'ffdeb5', hex: '#ffdeb5', label: 'Peach' },
+  { value: 'ffafb9', hex: '#ffafb9', label: 'Pink' },
+  { value: 'ff488e', hex: '#ff488e', label: 'Hot Pink' },
+  { value: 'ff5c5c', hex: '#ff5c5c', label: 'Red' },
+  { value: 'ffffb1', hex: '#ffffb1', label: 'Yellow' },
+  { value: 'e6e6e6', hex: '#e6e6e6', label: 'Light Grey' },
+  { value: '929598', hex: '#929598', label: 'Grey' },
+  { value: 'ffffff', hex: '#ffffff', label: 'White' },
 ]
 
 // Hex values from @dicebear/avataaars schema defaults
@@ -125,6 +146,7 @@ const DEFAULT_CONFIG: AvatarConfig = {
   facialHair: null,
   clothing: 'shirtCrewNeck',
   background: 'b6e3f4',
+  hatColor: '262e33',
 }
 
 function SwatchRow({
@@ -171,15 +193,24 @@ function SwatchRow({
   )
 }
 
-function HairStylePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const sections = [
+function HairStylePicker({
+  topValue,
+  hairValue,
+  onHairChange,
+  onHeadwearChange,
+}: {
+  topValue: string    // actual config.top — may be a headwear value
+  hairValue: string   // last selected hair style — always a hair value
+  onHairChange: (v: string) => void
+  onHeadwearChange: (v: string) => void
+}) {
+  const hairSections = [
     { label: 'Short hair', options: SHORT_HAIR },
     { label: 'Long hair', options: LONG_HAIR },
-    { label: 'Headwear', options: HEADWEAR },
   ]
   return (
     <div className="space-y-3">
-      {sections.map(({ label, options }) => (
+      {hairSections.map(({ label, options }) => (
         <div key={label}>
           <p className="mb-1 text-xs font-semibold text-gray-400 dark:text-slate-500">{label}</p>
           <div className="flex flex-wrap gap-2">
@@ -187,9 +218,9 @@ function HairStylePicker({ value, onChange }: { value: string; onChange: (v: str
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => onChange(opt.value)}
+                onClick={() => onHairChange(opt.value)}
                 className={`rounded-lg border-2 px-2 py-1 text-xs font-semibold transition-all ${
-                  value === opt.value
+                  hairValue === opt.value && !HEADWEAR_VALUES.has(topValue)
                     ? 'border-cyan-500 bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
                     : 'border-transparent bg-gray-100 text-slate-700 hover:border-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500'
                 }`}
@@ -200,6 +231,25 @@ function HairStylePicker({ value, onChange }: { value: string; onChange: (v: str
           </div>
         </div>
       ))}
+      <div>
+        <p className="mb-1 text-xs font-semibold text-gray-400 dark:text-slate-500">Headwear</p>
+        <div className="flex flex-wrap gap-2">
+          {HEADWEAR.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onHeadwearChange(opt.value)}
+              className={`rounded-lg border-2 px-2 py-1 text-xs font-semibold transition-all ${
+                topValue === opt.value
+                  ? 'border-cyan-500 bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
+                  : 'border-transparent bg-gray-100 text-slate-700 hover:border-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -215,12 +265,28 @@ export default function AvatarBuilder({
   onSave: (config: AvatarConfig) => void
   saving: boolean
 }) {
-  // Merge saved config with defaults so old saves missing new fields still work
   const [config, setConfig] = useState<AvatarConfig>({ ...DEFAULT_CONFIG, ...(initial ?? {}) })
+
+  // Remember last hair style separately so switching to headwear doesn't lose it
+  const [lastHairStyle, setLastHairStyle] = useState<string>(() => {
+    const t = initial?.top ?? DEFAULT_CONFIG.top
+    return HEADWEAR_VALUES.has(t) ? DEFAULT_CONFIG.top : t
+  })
 
   function set<K extends keyof AvatarConfig>(key: K) {
     return (value: AvatarConfig[K]) => setConfig(prev => ({ ...prev, [key]: value }))
   }
+
+  function handleHairChange(hairValue: string) {
+    setLastHairStyle(hairValue)
+    setConfig(prev => ({ ...prev, top: hairValue }))
+  }
+
+  function handleHeadwearChange(hatValue: string) {
+    setConfig(prev => ({ ...prev, top: hatValue }))
+  }
+
+  const isHeadwear = HEADWEAR_VALUES.has(config.top)
 
   return (
     <div className="space-y-5">
@@ -231,14 +297,30 @@ export default function AvatarBuilder({
 
       <div>
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Hair Style</p>
-        <HairStylePicker value={config.top} onChange={set('top')} />
+        <HairStylePicker
+          topValue={config.top}
+          hairValue={lastHairStyle}
+          onHairChange={handleHairChange}
+          onHeadwearChange={handleHeadwearChange}
+        />
       </div>
+
       <SwatchRow
         label="Hair Colour"
         options={HAIR_COLOURS}
         value={config.hairColor}
         onChange={set('hairColor') as (v: string | null) => void}
       />
+
+      {isHeadwear && (
+        <SwatchRow
+          label="Hat Colour"
+          options={HAT_COLOURS}
+          value={config.hatColor ?? '262e33'}
+          onChange={set('hatColor') as (v: string | null) => void}
+        />
+      )}
+
       <SwatchRow
         label="Skin Tone"
         options={SKIN_TONES}
