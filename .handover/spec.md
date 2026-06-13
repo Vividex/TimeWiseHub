@@ -59,8 +59,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C8-3: [CONDUCTOR] Commit
 
 ### Task 9 — Dashboard layout org cookie
-- [ ] C9-1: Replace `src/app/dashboard/layout.tsx` per plan Task 9
-- [ ] C9-2: [CONDUCTOR] Commit (build expected to fail until Task 10)
+- [x] C9-1: Replace `src/app/dashboard/layout.tsx` per plan Task 9
+- [x] C9-2: [CONDUCTOR] Commit (build expected to fail until Task 10)
 
 ### Task 10 — ChatRealtimeProvider orgId + loadMembers
 - [ ] C10-1: Update `src/components/chat/ChatRealtimeProvider.tsx` per plan Task 10 (3 edits)
