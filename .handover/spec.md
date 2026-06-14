@@ -34,8 +34,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-2: [CONDUCTOR] Commit
 
 ### Task 5 — Clean Up Settings Page
-- [ ] C5-1: Edit `src/app/settings/page.tsx` — remove `import type { AvatarConfig }` line; remove `avatar_config` from Supabase select string; replace Avatar section block with Profile photo section (exact edit in plan Task 5)
-- [ ] C5-2: [CONDUCTOR] Commit
+- [x] C5-1: Edit `src/app/settings/page.tsx` — remove `import type { AvatarConfig }` line; remove `avatar_config` from Supabase select string; replace Avatar section block with Profile photo section (exact edit in plan Task 5)
+- [x] C5-2: [CONDUCTOR] Commit
 
 ### Task 6 — Clean Up ChatRealtimeProvider
 - [ ] C6-1: Edit `src/components/chat/ChatRealtimeProvider.tsx` — remove AvatarConfig from import; remove `avatar_config` from select string; remove from inline row type; remove from member map (exact edit in plan Task 6)

@@ -8,7 +8,6 @@ import InviteMember from '@/components/InviteMember'
 import { effectivePlan, getSubscription } from '@/lib/subscription'
 import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
-import type { AvatarConfig } from '@/lib/chat/types'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -18,7 +17,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details, username, nickname, avatar_url, avatar_config')
+      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details, username, nickname, avatar_url')
       .eq('id', user.id)
       .single(),
     supabase
@@ -70,16 +69,15 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        {/* Avatar */}
+        {/* Profile Photo */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Avatar</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Profile photo</h2>
           <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
-            Build a custom avatar or upload a photo — shown in chat and across the app.
+            Upload a photo — shown in chat and across the app.
           </p>
           <AvatarPicker
             userId={profile?.id ?? user.id}
             initialAvatarUrl={profile?.avatar_url ?? null}
-            initialAvatarConfig={(profile?.avatar_config ?? null) as AvatarConfig | null}
             displayName={profile?.nickname ?? profile?.username ?? ''}
           />
         </div>
