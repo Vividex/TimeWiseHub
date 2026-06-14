@@ -26,8 +26,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP, run build, commit
 
 ### Task 2 — DB Migration: pay_week_start_day + drop Monday constraint
-- [ ] C2-1: [CODEX] Create `supabase/schema-052-pay-week-start.sql` (exact SQL in plan Task 2 Step C2-1, with corrected number 052)
-- [ ] C2-2: [CONDUCTOR] Verify constraint name, apply migration, run build, commit
+- [x] C2-1: [CODEX] Create `supabase/schema-052-pay-week-start.sql` (exact SQL in plan Task 2 Step C2-1, with corrected number 052)
+- [x] C2-2: [CONDUCTOR] Verify constraint name, apply migration, run build, commit
 
 ### Task 3 — Update derivePayPeriod() to respect weekStartDay
 - [ ] C3-1: [CODEX] Replace `src/lib/payroll/period.ts` (exact code in plan Task 3 Step C3-1)
