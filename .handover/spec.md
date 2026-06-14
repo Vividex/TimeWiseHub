@@ -1,96 +1,62 @@
-# Phase 20 — Roster-Driven Timesheets + Recurring Roster + Configurable Pay Week
+# Phase 21 — Group Chat
 
 ## Goal
-Make the published roster the authoritative source of weekly pay hours for Business-plan orgs — timesheets auto-generate at week-end from published roster shifts; admins can set a recurring shift template so fixed schedules don't need weekly re-entry; week boundaries are org-configurable (e.g. Thu–Wed for Friday pays).
+Add named group conversations (multi-member, dynamic membership) as a third chat
+type alongside existing channels and DMs. Any org member can create a group,
+invite others, add/remove members, rename the group, or leave it.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-14-roster-driven-timesheets.md`
+`docs/superpowers/plans/2026-06-14-group-chat.md`
 Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-14-roster-driven-timesheets-design.md`
+`docs/superpowers/specs/2026-06-14-group-chat.md`
 
 ## Division of labor
 - **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: applies Supabase migrations via MCP `apply_migration`; runs `pnpm run build`; commits; stores CRON_SECRET in DB before cron migration.
-
-## Migration numbers (IMPORTANT — plan was originally written with wrong numbers)
-- Task 1 → `supabase/schema-051-roster-templates.sql` (NOT 050)
-- Task 2 → `supabase/schema-052-pay-week-start.sql` (NOT 051)
-- Task 17 → `supabase/schema-053-roster-cron.sql` (NOT 052)
+- **Conductor**: runs Supabase MCP apply_migration; runs `pnpm run build`;
+  commits; any shell commands.
 
 ## Acceptance checklist
 
-### Task 1 — DB Migration: roster_shift_templates table
-- [x] C1-1: [CODEX] Create `supabase/schema-051-roster-templates.sql` (exact SQL in plan Task 1 Step C1-1, with corrected number 051)
-- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP, run build, commit
+### Task 1 — DB Migration
+- [x] C1-1: Create `supabase/schema-054-group-chat.sql` (exact SQL in plan Task 1 Step 1)
+- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
+- [x] C1-3: [CONDUCTOR] Commit
 
-### Task 2 — DB Migration: pay_week_start_day + drop Monday constraint
-- [x] C2-1: [CODEX] Create `supabase/schema-052-pay-week-start.sql` (exact SQL in plan Task 2 Step C2-1, with corrected number 052)
-- [x] C2-2: [CONDUCTOR] Verify constraint name, apply migration, run build, commit
+### Task 2 — TypeScript Types + Context
+- [ ] C2-1: Edit `src/lib/chat/types.ts` — extend ChatConversationType to include 'group'; add `created_by: string | null` to ChatConversation (exact edit in plan Task 2 Step 1)
+- [ ] C2-2: Edit `src/components/chat/ChatRealtimeProvider.tsx` — add `orgId: string` to ChatContextValue; add `created_by` to select string; add `orgId` to value object (exact edit in plan Task 2 Step 2)
+- [ ] C2-3: [CONDUCTOR] `pnpm run build` — must pass clean
+- [ ] C2-4: [CONDUCTOR] Commit
 
-### Task 3 — Update derivePayPeriod() to respect weekStartDay
-- [x] C3-1: [CODEX] Replace `src/lib/payroll/period.ts` (exact code in plan Task 3 Step C3-1)
-- [x] C3-2: [CONDUCTOR] Commit (bundled in C12-1)
+### Task 3 — NewGroupDialog Component
+- [ ] C3-1: Create `src/components/chat/NewGroupDialog.tsx` (exact code in plan Task 3 Step 1)
+- [ ] C3-2: [CONDUCTOR] Commit
 
-### Task 4 — Update pay-runs route to pass pay_week_start_day
-- [x] C4-1: [CODEX] Edit `src/app/api/pay-runs/route.ts` (exact edit in plan Task 4 Step C4-1)
-- [x] C4-2: [CONDUCTOR] Commit (bundled in C12-1)
+### Task 4 — Update ConversationList
+- [ ] C4-1: Replace `src/components/chat/ConversationList.tsx` (exact code in plan Task 4 Step 1)
+- [ ] C4-2: [CONDUCTOR] Commit
 
-### Task 5 — TimesheetSection: hide submit for roster-managed members
-- [x] C5-1: [CODEX] Edit `src/components/time/TimesheetSection.tsx` (exact edit in plan Task 5 Step C5-1)
-- [x] C5-2: [CONDUCTOR] Commit (bundled in C12-1)
+### Task 5 — GroupSettingsPanel Component
+- [ ] C5-1: Create `src/components/chat/GroupSettingsPanel.tsx` (exact code in plan Task 5 Step 1)
+- [ ] C5-2: [CONDUCTOR] Commit
 
-### Task 6 — RosterGrid: week anchor respects weekStartDay
-- [x] C6-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — update getWeekDates + props + call (exact edit in plan Task 6 Step C6-1)
-- [x] C6-2: [CONDUCTOR] Commit (bundled in C12-1)
+### Task 6 — Wire into ChatClient
+- [ ] C6-1: Replace `src/components/chat/ChatClient.tsx` (exact code in plan Task 6 Step 1)
+- [ ] C6-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [ ] C6-3: [CONDUCTOR] Commit
 
-### Task 7 — RosterGrid: "Set as recurring" button
-- [x] C7-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — add state + setAsRecurring + button (exact edit in plan Task 7 Step C7-1)
-- [x] C7-2: [CONDUCTOR] Commit (bundled in C12-1)
-
-### Task 8 — roster/page.tsx: fetch and pass pay_week_start_day
-- [x] C8-1: [CODEX] Edit `src/app/dashboard/roster/page.tsx` (exact edit in plan Task 8 Step C8-1)
-- [x] C8-2: [CONDUCTOR] Commit (bundled in C12-1)
-
-### Task 9 — time/page.tsx: getWeekStartStr + pay_week_start_day + rosterManaged
-- [x] C9-1: [CODEX] Edit `src/app/dashboard/time/page.tsx` (exact edit in plan Task 9 Step C9-1)
-- [x] C9-2: [CONDUCTOR] Commit (bundled in C12-1)
-
-### Task 10 — OrgBillingSettingsForm: add pay_week_start_day field
-- [x] C10-1: [CODEX] Edit `src/components/OrgBillingSettingsForm.tsx` (exact edit in plan Task 10 Step C10-1)
-- [x] C10-2: [CONDUCTOR] Commit (bundled in C12-1)
-
-### Task 11 — settings/page.tsx: fetch and pass pay_week_start_day
-- [x] C11-1: [CODEX] Edit `src/app/settings/page.tsx` (exact edit in plan Task 11 Step C11-1)
-- [x] C11-2: [CONDUCTOR] Commit (bundled in C12-1)
-
-### Task 12 — Build check + commit (Tasks 3–11)
-- [x] C12-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit all 8 changed files
-
-### Task 13 — POST /api/roster/set-template
-- [x] C13-1: [CODEX] Create `src/app/api/roster/set-template/route.ts` (exact code in plan Task 13 Step C13-1)
-- [x] C13-2: [CONDUCTOR] Commit (bundled in C16-1)
-
-### Task 14 — GET /api/roster/generate-from-template
-- [x] C14-1: [CODEX] Create `src/app/api/roster/generate-from-template/route.ts` (exact code in plan Task 14 Step C14-1)
-- [x] C14-2: [CONDUCTOR] Commit (bundled in C16-1)
-
-### Task 15 — GET /api/timesheets/generate-weekly
-- [x] C15-1: [CODEX] Create `src/app/api/timesheets/generate-weekly/route.ts` (exact code in plan Task 15 Step C15-1)
-- [x] C15-2: [CONDUCTOR] Commit (bundled in C16-1)
-
-### Task 16 — Build check + commit (Tasks 13–15)
-- [x] C16-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit the 3 new API route files
-
-### Task 17 — DB Migration: nightly cron jobs
-- [x] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
-- [x] C17-2: [CONDUCTOR] Store CRON_SECRET in DB via SQL, apply migration via MCP, run build, commit
+### Task 7 — Final Verification
+- [ ] C7-1: [CONDUCTOR] `pnpm run build` — final gate
+- [ ] C7-2: [CONDUCTOR] Manual smoke (see Verification section below)
 
 ## Verification
-After all tasks complete:
-1. `pnpm run build` passes clean (verified after C12 and C16 and C17)
-2. Settings smoke: admin changes "Pay week starts on" to Thursday → roster shows Thu–Wed columns → Time page week anchors on Thursday
-3. Recurring template smoke: fill a roster week → "Set as recurring" → query `roster_shift_templates`
-4. Timesheet auto-gen smoke: call `GET /api/timesheets/generate-weekly` → check `timesheets` table for submitted rows
-5. Employee view: Business plan employee sees "submitted automatically from your roster" instead of submit button
+`pnpm run build` must pass clean after Task 2 and again after Task 6.
+
+Manual smoke after C7-2:
+- Sidebar: Groups section between Channels and DMs, with `+` button
+- Create group: dialog opens with name input + multi-select member list; create button disabled until name + ≥1 member selected
+- Group thread: messages work; Settings gear icon in header (not visible on channels/DMs)
+- Group settings panel: rename saves; Add shows non-members; × removes (creator only); Leave removes user and clears active conversation
+- DMs and channels: unchanged
