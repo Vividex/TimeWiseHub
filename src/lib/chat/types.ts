@@ -1,4 +1,4 @@
-export type ChatConversationType = 'channel' | 'dm'
+export type ChatConversationType = 'channel' | 'dm' | 'group'
 
 export type ChatConversation = {
   id: string
@@ -6,6 +6,7 @@ export type ChatConversation = {
   type: ChatConversationType
   title: string | null
   dm_key: string | null
+  created_by: string | null
   created_at: string
 }
 

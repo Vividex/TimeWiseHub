@@ -25,10 +25,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-3: [CONDUCTOR] Commit
 
 ### Task 2 — TypeScript Types + Context
-- [ ] C2-1: Edit `src/lib/chat/types.ts` — extend ChatConversationType to include 'group'; add `created_by: string | null` to ChatConversation (exact edit in plan Task 2 Step 1)
-- [ ] C2-2: Edit `src/components/chat/ChatRealtimeProvider.tsx` — add `orgId: string` to ChatContextValue; add `created_by` to select string; add `orgId` to value object (exact edit in plan Task 2 Step 2)
-- [ ] C2-3: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C2-4: [CONDUCTOR] Commit
+- [x] C2-1: Edit `src/lib/chat/types.ts` — extend ChatConversationType to include 'group'; add `created_by: string | null` to ChatConversation (exact edit in plan Task 2 Step 1)
+- [x] C2-2: Edit `src/components/chat/ChatRealtimeProvider.tsx` — add `orgId: string` to ChatContextValue; add `created_by` to select string; add `orgId` to value object (exact edit in plan Task 2 Step 2)
+- [x] C2-3: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C2-4: [CONDUCTOR] Commit
 
 ### Task 3 — NewGroupDialog Component
 - [ ] C3-1: Create `src/components/chat/NewGroupDialog.tsx` (exact code in plan Task 3 Step 1)

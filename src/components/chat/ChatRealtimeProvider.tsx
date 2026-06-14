@@ -51,6 +51,7 @@ function showInAppNotification(
 
 type ChatContextValue = {
   userId: string
+  orgId: string
   loading: boolean
   conversations: ChatConversation[]
   members: Record<string, ChatMember>
@@ -90,7 +91,7 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
   const loadConversations = useCallback(async () => {
     const { data } = await supabase
       .from('chat_conversations')
-      .select('id, org_id, type, title, dm_key, created_at')
+      .select('id, org_id, type, title, dm_key, created_by, created_at')
       .order('created_at', { ascending: true })
     setConversations((data ?? []) as ChatConversation[])
   }, [supabase])
@@ -201,6 +202,7 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
 
   const value: ChatContextValue = {
     userId,
+    orgId,
     loading,
     conversations,
     members,
