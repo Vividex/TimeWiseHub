@@ -4,15 +4,16 @@
 
 ## Spending
 - spend-budget-usd: 0
-- All work is TypeScript/TSX edits only. No paid API calls. No DB migrations.
+- All work is TypeScript/TSX/SQL text edits only. No paid API calls.
+- Supabase MCP `apply_migration` is free (uses existing project quota).
 
-## Notes (Phase 18 — Role Clarity, Business Rename, Manager Task Retrieval)
-- Source of exact code: docs/superpowers/plans/2026-06-14-role-clarity-business-rename.md.
+## Notes (Phase 19 — Avatar Removal + Legal Pages)
+- Source of exact code: docs/superpowers/plans/2026-06-14-avatar-removal-and-legal-pages.md.
   Each checklist item maps to a Task there; implement the code VERBATIM.
-- Codex handles text edits only; conductor runs build/git.
+- Codex handles text edits only; conductor runs build/git/MCP.
 - pnpm is the package manager. Verification gate = `pnpm run build` (runs tsc + eslint). No test runner.
-- No new npm dependencies needed for this phase.
-- The internal plan key 'team' and STRIPE_TEAM_PRICE_ID are NEVER renamed — only display labels change.
-- isTeamPlan() function name is NEVER renamed.
+- DB migration: conductor applies via Supabase MCP after Codex creates the SQL file.
+- `git rm` for AvatarBuilder.tsx is a conductor step (shell command).
+- `pnpm remove @dicebear/core @dicebear/collection` is a conductor step.
 - Steps marked [CONDUCTOR] in spec.md are run by Claude, not Codex — Codex skips them by design.
 - New/changed files are listed per-task in the plan. Leave everything else untouched.
