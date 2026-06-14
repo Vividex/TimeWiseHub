@@ -35,7 +35,7 @@ const SLIDES: Slide[] = [
               <div
                 key={i}
                 className={`flex-1 h-6 rounded text-center leading-6 text-white text-xs ${
-                  v ? 'bg-violet-600' : 'bg-slate-700'
+                  v ? 'bg-cyan-600' : 'bg-slate-700'
                 }`}
               >
                 {v ? '9–5' : ''}
@@ -129,18 +129,18 @@ const SLIDES: Slide[] = [
           { name: 'You', msg: "Sure, I'll update it now", time: '9:43', self: true },
         ].map(({ name, msg, time, self }) => (
           <div key={time} className={`flex gap-2 ${self ? 'flex-row-reverse' : ''}`}>
-            <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold shrink-0">
+            <div className="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">
               {name[0]}
             </div>
             <div
               className={`rounded-lg px-3 py-1.5 max-w-[75%] ${
-                self ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-200'
+                self ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-200'
               }`}
             >
               <p>{msg}</p>
               <p
                 className={`text-right mt-0.5 text-xs ${
-                  self ? 'text-violet-300' : 'text-slate-500'
+                  self ? 'text-cyan-300' : 'text-slate-500'
                 }`}
               >
                 {time}
@@ -166,7 +166,7 @@ const SLIDES: Slide[] = [
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[
-            { name: 'Alice', color: 'bg-violet-600', speaking: true },
+            { name: 'Alice', color: 'bg-cyan-600', speaking: true },
             { name: 'Bob', color: 'bg-cyan-600', speaking: false },
             { name: 'You', color: 'bg-slate-600', speaking: false },
           ].map(({ name, color, speaking }) => (
@@ -224,7 +224,7 @@ const SLIDES: Slide[] = [
             >
               {priority}
             </span>
-            <div className="w-5 h-5 rounded-full bg-violet-700 flex items-center justify-center text-white text-xs">
+            <div className="w-5 h-5 rounded-full bg-cyan-700 flex items-center justify-center text-white text-xs">
               {a}
             </div>
           </div>
@@ -243,7 +243,7 @@ const SLIDES: Slide[] = [
             [
               ['Revenue', '$48,200', 'text-emerald-400'],
               ['Expenses', '$21,450', 'text-red-400'],
-              ['Net P&L', '$26,750', 'text-violet-400'],
+              ['Net P&L', '$26,750', 'text-cyan-400'],
             ] as string[][]
           ).map(([l, v, c]) => (
             <div key={l} className="bg-slate-700 rounded-lg p-2 text-center">
@@ -276,7 +276,7 @@ const SLIDES: Slide[] = [
           { name: 'Bob Smith', title: 'Technician', certs: ['First Aid'], ok: false },
         ].map(({ name, title, certs, ok }) => (
           <div key={name} className="flex items-start gap-3 py-2 border-t border-slate-700">
-            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold shrink-0">
+            <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">
               {name[0]}
             </div>
             <div className="flex-1">
@@ -317,11 +317,11 @@ const SLIDES: Slide[] = [
           </div>
         </div>
         <div className="flex gap-2">
-          <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white shrink-0 font-bold">
+          <div className="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-white shrink-0 font-bold">
             AI
           </div>
-          <div className="bg-violet-900/50 text-slate-200 rounded-lg px-3 py-1.5 border border-violet-700">
-            <span className="text-violet-300 font-semibold">Alice Chen</span> logged 44.5h — 4.5h
+          <div className="bg-cyan-900/50 text-slate-200 rounded-lg px-3 py-1.5 border border-cyan-700">
+            <span className="text-cyan-300 font-semibold">Alice Chen</span> logged 44.5h — 4.5h
             overtime. Carol Lee was second with 42h.
           </div>
         </div>
