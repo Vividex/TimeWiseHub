@@ -61,8 +61,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C10-2: [CONDUCTOR] Commit
 
 ### Task 11 — Final Build Verification
-- [x] C11-1: [CONDUCTOR] `pnpm run build` — must pass clean
-- [x] C11-2: [CONDUCTOR] Manual smoke: settings page, /terms, /privacy, register links, chat avatars
+- [ ] C11-1: [CONDUCTOR] `pnpm run build` — must pass clean
+- [ ] C11-2: [CONDUCTOR] Manual smoke: settings page, /terms, /privacy, register links, chat avatars
 
 ## Verification
 `pnpm run build` must pass clean after Task 8 and again after Task 10.
