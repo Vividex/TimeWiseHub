@@ -38,8 +38,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-2: [CONDUCTOR] Commit
 
 ### Task 6 — Clean Up ChatRealtimeProvider
-- [ ] C6-1: Edit `src/components/chat/ChatRealtimeProvider.tsx` — remove AvatarConfig from import; remove `avatar_config` from select string; remove from inline row type; remove from member map (exact edit in plan Task 6)
-- [ ] C6-2: [CONDUCTOR] Commit
+- [x] C6-1: Edit `src/components/chat/ChatRealtimeProvider.tsx` — remove AvatarConfig from import; remove `avatar_config` from select string; remove from inline row type; remove from member map (exact edit in plan Task 6)
+- [x] C6-2: [CONDUCTOR] Commit
 
 ### Task 7 — Clean Up Chat Display Components
 - [ ] C7-1: Edit `src/components/chat/MessageThread.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 1)

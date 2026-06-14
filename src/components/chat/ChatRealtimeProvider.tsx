@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { displayName } from '@/lib/chat/types'
-import type { AvatarConfig, ChatConversation, ChatMember } from '@/lib/chat/types'
+import type { ChatConversation, ChatMember } from '@/lib/chat/types'
 
 type LiveInsert = { conversationId: string; messageId: string; senderId: string; at: string }
 
@@ -99,13 +99,13 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
     if (!orgId) return
     const { data } = await supabase
       .from('organisation_members')
-      .select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email, username, nickname, avatar_url, avatar_config)')
+      .select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email, username, nickname, avatar_url)')
       .eq('org_id', orgId)
     const map: Record<string, ChatMember> = {}
     for (const row of (data ?? []) as unknown as {
       user_id: string
       role: ChatMember['role']
-      profiles: { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null; avatar_config: AvatarConfig | null } | null
+      profiles: { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null } | null
     }[]) {
       map[row.user_id] = {
         user_id: row.user_id,
@@ -115,7 +115,6 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
         username: row.profiles?.username ?? null,
         nickname: row.profiles?.nickname ?? null,
         avatar_url: row.profiles?.avatar_url ?? null,
-        avatar_config: row.profiles?.avatar_config ?? null,
       }
     }
     setMembers(map)
