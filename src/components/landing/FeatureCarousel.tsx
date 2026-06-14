@@ -369,41 +369,57 @@ export default function FeatureCarousel() {
 
   return (
     <section
-      className="bg-slate-950 py-24 px-6"
+      className="bg-slate-50 py-24 px-6"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div className="max-w-5xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-16">
           One platform. Every tool your team needs.
         </h2>
 
         <div className="grid md:grid-cols-2 gap-12 items-center min-h-72">
           {/* Text side */}
           <div>
-            <p className="text-slate-500 text-sm font-semibold uppercase tracking-widest mb-3">
+            <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-3">
               {String(active + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
             </p>
-            <h3 className="text-2xl font-bold text-white mb-4">{slide.title}</h3>
-            <p className="text-slate-400 text-lg leading-relaxed">{slide.description}</p>
+            <h3 className="text-2xl font-bold text-slate-900 mb-4">{slide.title}</h3>
+            <p className="text-slate-500 text-lg leading-relaxed">{slide.description}</p>
           </div>
 
-          {/* Mockup side */}
+          {/* Mockup side — dark panel intentionally shows the app's dark UI */}
           <div className="transition-opacity duration-300">{slide.mockup}</div>
         </div>
 
-        {/* Dot navigation */}
-        <div className="flex justify-center gap-2 mt-12">
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i === active ? 'bg-cyan-400 w-6' : 'bg-slate-600 hover:bg-slate-400'
-              }`}
-            />
-          ))}
+        {/* Dot navigation + arrows */}
+        <div className="flex items-center justify-center gap-4 mt-12">
+          <button
+            onClick={() => setActive((active - 1 + SLIDES.length) % SLIDES.length)}
+            aria-label="Previous slide"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-500 transition-colors hover:border-cyan-500 hover:text-cyan-500"
+          >
+            ‹
+          </button>
+          <div className="flex gap-2">
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === active ? 'bg-cyan-500 w-6' : 'w-2 bg-slate-300 hover:bg-slate-400'
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => setActive((active + 1) % SLIDES.length)}
+            aria-label="Next slide"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-500 transition-colors hover:border-cyan-500 hover:text-cyan-500"
+          >
+            ›
+          </button>
         </div>
       </div>
     </section>

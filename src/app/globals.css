@@ -28,10 +28,14 @@ h1, h2, h3 {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Dark-mode compatibility for dashboard components that predate dark: utilities.
-   Scoped away from .landing so the public marketing page keeps its light design. */
-html.dark :not(.landing) .bg-white {
+/* Dark-mode compatibility for dashboard components that predate dark: utilities. */
+html.dark .bg-white {
   background-color: #0f172a;
+}
+
+/* Landing page always stays light — override the rule above with higher specificity. */
+html.dark .landing .bg-white {
+  background-color: #ffffff;
 }
 
 html.dark .bg-gray-50 {
