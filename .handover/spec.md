@@ -43,12 +43,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-2: [CONDUCTOR] Commit
 
 ### Task 6 — Wire into ChatClient
-- [ ] C6-1: Replace `src/components/chat/ChatClient.tsx` (exact code in plan Task 6 Step 1)
-- [ ] C6-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C6-3: [CONDUCTOR] Commit
+- [x] C6-1: Replace `src/components/chat/ChatClient.tsx` (exact code in plan Task 6 Step 1)
+- [x] C6-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C6-3: [CONDUCTOR] Commit
 
 ### Task 7 — Final Verification
-- [ ] C7-1: [CONDUCTOR] `pnpm run build` — final gate
+- [x] C7-1: [CONDUCTOR] `pnpm run build` — final gate
 - [ ] C7-2: [CONDUCTOR] Manual smoke (see Verification section below)
 
 ## Verification
