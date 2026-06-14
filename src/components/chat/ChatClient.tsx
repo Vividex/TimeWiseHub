@@ -10,6 +10,7 @@ import MessageComposer from '@/components/chat/MessageComposer'
 import NewDmDialog from '@/components/chat/NewDmDialog'
 import NewGroupDialog from '@/components/chat/NewGroupDialog'
 import GroupSettingsPanel from '@/components/chat/GroupSettingsPanel'
+import StartCallButton from '@/components/video/StartCallButton'
 import PushPermission from '@/components/PushPermission'
 import type { ChatConversation } from '@/lib/chat/types'
 
@@ -24,7 +25,7 @@ function canModerate(role: string | undefined): boolean {
 }
 
 export default function ChatClient() {
-  const { userId, conversations, members, activeConversationId, setActiveConversation, loading } = useChat()
+  const { userId, orgId, conversations, members, activeConversationId, setActiveConversation, loading } = useChat()
   const [showNewDm, setShowNewDm] = useState(false)
   const [showNewGroup, setShowNewGroup] = useState(false)
   const [showGroupSettings, setShowGroupSettings] = useState(false)
@@ -95,6 +96,9 @@ export default function ChatClient() {
                     <p className="text-xs font-medium text-gray-400">Org-wide · managers can post</p>
                   )}
                 </div>
+                {(isChannel || isGroup) && orgId && (
+                  <StartCallButton orgId={orgId} />
+                )}
                 {isGroup && (
                   <button
                     onClick={() => setShowGroupSettings(v => !v)}
