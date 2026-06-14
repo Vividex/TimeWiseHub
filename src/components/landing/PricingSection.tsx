@@ -106,7 +106,7 @@ export default function PricingSection() {
           <PricingCard
             label={PLANS.pro.label}
             price={`$${PLANS.pro.priceAud}`}
-            note="For solo professionals"
+            note="For solo professionals — 1 user"
             features={PRO_FEATURES}
             highlight={true}
           />

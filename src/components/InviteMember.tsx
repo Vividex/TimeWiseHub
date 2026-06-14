@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 type Role = 'admin' | 'manager' | 'employee'
 
-export default function InviteMember({ orgId }: { orgId: string }) {
+export default function InviteMember({ orgId, canInvite }: { orgId: string; canInvite: boolean }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<Role>('employee')
   const [inviteLink, setInviteLink] = useState<string | null>(null)

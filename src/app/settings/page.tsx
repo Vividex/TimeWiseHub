@@ -5,7 +5,7 @@ import AccountSettingsForm from '@/components/AccountSettingsForm'
 import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 import ThemeSelector from '@/components/ThemeSelector'
 import InviteMember from '@/components/InviteMember'
-import { effectivePlan, getSubscription } from '@/lib/subscription'
+import { effectivePlan, getSubscription, isTeamPlan } from '@/lib/subscription'
 import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
 
@@ -133,7 +133,22 @@ export default async function SettingsPage() {
 
         {isOrgAdmin && membership?.org_id && (
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <InviteMember orgId={membership.org_id} />
+            {isTeamPlan(subscription) ? (
+              <InviteMember orgId={membership.org_id} canInvite={true} />
+            ) : (
+              <div>
+                <h3 className="mb-1 text-xl font-bold text-gray-900 dark:text-slate-100">Invite a team member</h3>
+                <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+                  Inviting team members is a Business plan feature. Pro is a single-user plan.
+                </p>
+                <Link
+                  href="/dashboard/billing"
+                  className="inline-flex rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-600 transition-colors"
+                >
+                  Upgrade to Business
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
