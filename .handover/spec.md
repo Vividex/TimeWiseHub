@@ -69,19 +69,19 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C12-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit all 8 changed files
 
 ### Task 13 — POST /api/roster/set-template
-- [ ] C13-1: [CODEX] Create `src/app/api/roster/set-template/route.ts` (exact code in plan Task 13 Step C13-1)
-- [ ] C13-2: [CONDUCTOR] Commit (bundled in C16-1)
+- [x] C13-1: [CODEX] Create `src/app/api/roster/set-template/route.ts` (exact code in plan Task 13 Step C13-1)
+- [x] C13-2: [CONDUCTOR] Commit (bundled in C16-1)
 
 ### Task 14 — GET /api/roster/generate-from-template
-- [ ] C14-1: [CODEX] Create `src/app/api/roster/generate-from-template/route.ts` (exact code in plan Task 14 Step C14-1)
-- [ ] C14-2: [CONDUCTOR] Commit (bundled in C16-1)
+- [x] C14-1: [CODEX] Create `src/app/api/roster/generate-from-template/route.ts` (exact code in plan Task 14 Step C14-1)
+- [x] C14-2: [CONDUCTOR] Commit (bundled in C16-1)
 
 ### Task 15 — GET /api/timesheets/generate-weekly
-- [ ] C15-1: [CODEX] Create `src/app/api/timesheets/generate-weekly/route.ts` (exact code in plan Task 15 Step C15-1)
-- [ ] C15-2: [CONDUCTOR] Commit (bundled in C16-1)
+- [x] C15-1: [CODEX] Create `src/app/api/timesheets/generate-weekly/route.ts` (exact code in plan Task 15 Step C15-1)
+- [x] C15-2: [CONDUCTOR] Commit (bundled in C16-1)
 
 ### Task 16 — Build check + commit (Tasks 13–15)
-- [ ] C16-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit the 3 new API route files
+- [x] C16-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit the 3 new API route files
 
 ### Task 17 — DB Migration: nightly cron jobs
 - [ ] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
