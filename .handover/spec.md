@@ -33,8 +33,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — API: DELETE /api/video/rooms/[name] (end call)
-- [ ] C4-1: Create `src/app/api/video/rooms/[name]/route.ts` (exact code in plan Task 4 Step C4-1)
-- [ ] C4-2: [CONDUCTOR] Commit
+- [x] C4-1: Create `src/app/api/video/rooms/[name]/route.ts` (exact code in plan Task 4 Step C4-1)
+- [x] C4-2: [CONDUCTOR] Commit
 
 ### Task 5 — API: GET /api/video/token
 - [ ] C5-1: Create `src/app/api/video/token/route.ts` (exact code in plan Task 5 Step C5-1)
