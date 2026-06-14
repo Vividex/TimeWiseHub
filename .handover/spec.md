@@ -22,8 +22,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-3: [CONDUCTOR] Commit migration file
 
 ### Task 2 — Simplify UserAvatar Component
-- [ ] C2-1: Replace `src/components/UserAvatar.tsx` — remove all DiceBear imports and SVG branch; keep avatarUrl photo branch and initials fallback only (exact code in plan Task 2 Step 1)
-- [ ] C2-2: [CONDUCTOR] Commit
+- [x] C2-1: Replace `src/components/UserAvatar.tsx` — remove all DiceBear imports and SVG branch; keep avatarUrl photo branch and initials fallback only (exact code in plan Task 2 Step 1)
+- [x] C2-2: [CONDUCTOR] Commit
 
 ### Task 3 — Simplify AvatarPicker + Delete AvatarBuilder
 - [ ] C3-1: Replace `src/components/AvatarPicker.tsx` — upload-only component, no tabs, no AvatarBuilder import (exact code in plan Task 3 Step 1)
