@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Clock, CalendarDays, Palmtree, Receipt, Users, FileText,
   TrendingUp, BarChart3, CreditCard, Download, HelpCircle, Settings,
-  MessageSquare, Sparkles, CalendarRange, Users2, type LucideIcon,
+  MessageSquare, Sparkles, CalendarRange, Users2, Video, type LucideIcon,
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
@@ -26,6 +26,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'Communication', items: [
     { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare },
+    { label: 'Video', href: '/dashboard/video', icon: Video },
     { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles },
   ] },
   { title: 'Money', items: [

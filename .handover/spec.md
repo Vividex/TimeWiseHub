@@ -77,8 +77,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C14-2: [CONDUCTOR] Commit
 
 ### Task 15 — Update SidebarNav
-- [ ] C15-1: Edit `src/components/nav/SidebarNav.tsx` (exact edit in plan Task 15 Step C15-1)
-- [ ] C15-2: [CONDUCTOR] Commit
+- [x] C15-1: Edit `src/components/nav/SidebarNav.tsx` (exact edit in plan Task 15 Step C15-1)
+- [x] C15-2: [CONDUCTOR] Commit
 
 ### Task 16 — Add StartCallButton to ChatClient header
 - [ ] C16-1: Edit `src/components/chat/ChatClient.tsx` (exact edit in plan Task 16 Step C16-1)
