@@ -69,12 +69,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C12-2: [CONDUCTOR] Commit
 
 ### Task 13 — Call room page
-- [ ] C13-1: Create `src/app/dashboard/video/[roomId]/page.tsx` (exact code in plan Task 13 Step C13-1)
-- [ ] C13-2: [CONDUCTOR] Commit
+- [x] C13-1: Create `src/app/dashboard/video/[roomId]/page.tsx` (exact code in plan Task 13 Step C13-1)
+- [x] C13-2: [CONDUCTOR] Commit
 
 ### Task 14 — Guest join page
-- [ ] C14-1: Create `src/app/join/[guestToken]/page.tsx` AND `src/components/video/GuestJoinClient.tsx` (exact code in plan Task 14 Step C14-1)
-- [ ] C14-2: [CONDUCTOR] Commit
+- [x] C14-1: Create `src/app/join/[guestToken]/page.tsx` AND `src/components/video/GuestJoinClient.tsx` (exact code in plan Task 14 Step C14-1)
+- [x] C14-2: [CONDUCTOR] Commit
 
 ### Task 15 — Update SidebarNav
 - [ ] C15-1: Edit `src/components/nav/SidebarNav.tsx` (exact edit in plan Task 15 Step C15-1)
