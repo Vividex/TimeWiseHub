@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { invoiceLetterhead } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
-import { getSubscription } from '@/lib/subscription'
+import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -83,6 +83,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
               invoiceId={id}
               status={invoice.status}
               paymentLink={invoice.payment_link}
+              canSend={isPaidPlan(subscription)}
             />
           </div>
         </div>

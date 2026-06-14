@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { sendEmail } from '@/lib/email-notifications'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 const DAILY_API = 'https://api.daily.co/v1'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -36,6 +37,9 @@ export async function POST(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const sub = await getSubscription(user.id)
+  if (!isTeamPlan(sub)) return NextResponse.json({ error: 'Upgrade to Business to use video calls.' }, { status: 403 })
 
   const { org_id: orgId, title, starts_at: startsAt, ends_at: endsAt, invitees = [] } =
     (await req.json()) as SchedulePayload

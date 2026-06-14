@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { TOOL_SCHEMAS, isReadTool, executeReadTool } from '@/lib/assistant/tools'
+import { getSubscription, isPaidPlan } from '@/lib/subscription'
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
@@ -83,6 +84,9 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const sub = await getSubscription(user.id)
+  if (!isPaidPlan(sub)) return NextResponse.json({ error: 'Upgrade to Pro to use the AI assistant.' }, { status: 403 })
 
   let messages: ChatMessage[]
   try {

@@ -49,6 +49,10 @@ export function isPaidPlan(sub: Subscription): boolean {
   return plan === 'pro' || plan === 'team'
 }
 
+export function isProPlan(sub: Subscription): boolean {
+  return effectivePlan(sub) === 'pro'
+}
+
 export function isTeamPlan(sub: Subscription): boolean {
   return effectivePlan(sub) === 'team'
 }

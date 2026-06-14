@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 const DAILY_API = 'https://api.daily.co/v1'
 
@@ -35,6 +36,9 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (!membership) return NextResponse.json({ error: 'Not an org member' }, { status: 403 })
+
+  const sub = await getSubscription(user.id)
+  if (!isTeamPlan(sub)) return NextResponse.json({ error: 'Upgrade to Business to use video calls.' }, { status: 403 })
 
   const exp = Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
 

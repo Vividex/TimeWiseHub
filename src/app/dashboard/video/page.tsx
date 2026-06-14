@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import VideoCalendar from '@/components/video/VideoCalendar'
 import VideoPageClient from '@/components/video/VideoPageClient'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 type OrgMember = {
   userId: string
@@ -29,6 +31,22 @@ export default async function VideoPage() {
     .maybeSingle()
 
   if (!membership) redirect('/dashboard')
+
+  const sub = await getSubscription(user.id)
+  if (!isTeamPlan(sub)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] px-6 text-center">
+        <div className="text-4xl mb-4">📹</div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Video calls are a Business feature</h2>
+        <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
+          Start instant calls or schedule team meetings with calendar invites and email reminders. Upgrade to Business to unlock it.
+        </p>
+        <Link href="/dashboard/billing" className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 transition-colors">
+          Upgrade to Business
+        </Link>
+      </div>
+    )
+  }
 
   const orgId = membership.org_id
   const canSchedule = ['owner', 'admin', 'manager'].includes(membership.role)

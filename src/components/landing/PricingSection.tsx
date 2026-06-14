@@ -6,7 +6,7 @@ const FREE_FEATURES = [
   '30-day history',
   'Team chat (channels & DMs)',
   'Tasks & timesheets',
-  'Basic invoicing',
+  'Create & manage invoices',
 ]
 
 const PRO_FEATURES = [
@@ -15,11 +15,13 @@ const PRO_FEATURES = [
   'Full history',
   'Finance & P&L reporting',
   'AI assistant',
-  'Payslip vault',
+  'Email invoices to clients',
+  'Export reports',
 ]
 
 const BUSINESS_FEATURES = [
   'Everything in Pro',
+  'Video calls & scheduling',
   'Roster-driven timesheets',
   'Payroll processing',
   'HR profiles & certifications',
@@ -104,7 +106,7 @@ export default function PricingSection() {
           <PricingCard
             label={PLANS.pro.label}
             price={`$${PLANS.pro.priceAud}`}
-            note="For growing teams"
+            note="For solo professionals"
             features={PRO_FEATURES}
             highlight={true}
           />

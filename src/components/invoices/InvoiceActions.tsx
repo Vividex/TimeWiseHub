@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function InvoiceActions({ invoiceId, status, paymentLink }: {
+export default function InvoiceActions({ invoiceId, status, paymentLink, canSend }: {
   invoiceId: string
   status: string
   paymentLink: string | null
+  canSend: boolean
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
@@ -57,17 +58,31 @@ export default function InvoiceActions({ invoiceId, status, paymentLink }: {
       {notice && <span className="basis-full text-xs font-semibold text-green-700">{notice}</span>}
 
       {status === 'draft' && (
-        <button onClick={handleSend} disabled={loading === 'send'}
-          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
-          {loading === 'send' ? 'Sending…' : 'Send invoice'}
-        </button>
+        canSend ? (
+          <button onClick={handleSend} disabled={loading === 'send'}
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+            {loading === 'send' ? 'Sending…' : 'Send invoice'}
+          </button>
+        ) : (
+          <a href="/dashboard/billing"
+            className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-bold text-cyan-700 transition-colors hover:bg-cyan-100">
+            Upgrade to Pro to send invoices
+          </a>
+        )
       )}
 
       {(status === 'sent' || status === 'overdue') && (
-        <button onClick={handleSend} disabled={loading === 'send'}
-          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
-          {loading === 'send' ? 'Sending…' : 'Email invoice'}
-        </button>
+        canSend ? (
+          <button onClick={handleSend} disabled={loading === 'send'}
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+            {loading === 'send' ? 'Sending…' : 'Email invoice'}
+          </button>
+        ) : (
+          <a href="/dashboard/billing"
+            className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-bold text-cyan-700 transition-colors hover:bg-cyan-100">
+            Upgrade to Pro to email invoices
+          </a>
+        )
       )}
 
       {(status === 'sent' || status === 'overdue') && paymentLink && (

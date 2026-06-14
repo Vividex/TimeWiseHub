@@ -5,7 +5,7 @@ import { getStripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/email-notifications'
 import { invoiceLetterhead } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
-import { getSubscription } from '@/lib/subscription'
+import { getSubscription, isPaidPlan } from '@/lib/subscription'
 
 function escapeHtml(value: string) {
   return value
@@ -38,6 +38,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
   if (invoice.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const sub = await getSubscription(user.id)
+  if (!isPaidPlan(sub)) return NextResponse.json({ error: 'Upgrade to Pro to email invoices.' }, { status: 403 })
   if (invoice.status === 'paid' || invoice.status === 'cancelled') {
     return NextResponse.json({ error: 'This invoice can no longer be sent.' }, { status: 409 })
   }
