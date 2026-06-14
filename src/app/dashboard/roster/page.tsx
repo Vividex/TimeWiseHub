@@ -34,6 +34,8 @@ export default async function RosterPage() {
       ?? m.user_id,
   }))
 
+  memberList.sort((a, b) => a.display_name.localeCompare(b.display_name))
+
   // Ensure the current user (e.g. org owner) always appears in the roster
   if (!memberList.some(m => m.user_id === user.id)) {
     const { data: ownProfile } = await supabase
