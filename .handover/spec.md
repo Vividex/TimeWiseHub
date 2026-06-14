@@ -41,8 +41,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-2: [CONDUCTOR] Commit
 
 ### Task 6 — API: POST /api/video/schedule
-- [ ] C6-1: Create `src/app/api/video/schedule/route.ts` (exact code in plan Task 6 Step C6-1)
-- [ ] C6-2: [CONDUCTOR] Commit
+- [x] C6-1: Create `src/app/api/video/schedule/route.ts` (exact code in plan Task 6 Step C6-1)
+- [x] C6-2: [CONDUCTOR] Commit
 
 ### Task 7 — API: GET /api/video/send-reminders (cron target)
 - [ ] C7-1: Create `src/app/api/video/send-reminders/route.ts` (exact code in plan Task 7 Step C7-1)
