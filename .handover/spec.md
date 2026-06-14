@@ -25,8 +25,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-3: [CONDUCTOR] Commit
 
 ### Task 2 — Install Daily.co browser SDK
-- [ ] C2-1: [CONDUCTOR] `pnpm add @daily-co/daily-js`
-- [ ] C2-2: [CONDUCTOR] Commit
+- [x] C2-1: [CONDUCTOR] `pnpm add @daily-co/daily-js`
+- [x] C2-2: [CONDUCTOR] Commit
 
 ### Task 3 — API: POST /api/video/rooms (instant call)
 - [ ] C3-1: Create `src/app/api/video/rooms/route.ts` (exact code in plan Task 3 Step C3-1)
