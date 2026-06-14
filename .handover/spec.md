@@ -48,9 +48,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C7-4: [CONDUCTOR] Commit
 
 ### Task 8 — Remove @dicebear Packages + Build
-- [ ] C8-1: [CONDUCTOR] `pnpm remove @dicebear/core @dicebear/collection`
-- [ ] C8-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C8-3: [CONDUCTOR] Commit package.json + pnpm-lock.yaml
+- [x] C8-1: [CONDUCTOR] `pnpm remove @dicebear/core @dicebear/collection`
+- [x] C8-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C8-3: [CONDUCTOR] Commit package.json + pnpm-lock.yaml
 
 ### Task 9 — Rewrite Terms of Service Page
 - [ ] C9-1: Replace `src/app/terms/page.tsx` — full rewrite (exact code in plan Task 9 Step 1)
