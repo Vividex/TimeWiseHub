@@ -84,7 +84,7 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C16-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit the 3 new API route files
 
 ### Task 17 — DB Migration: nightly cron jobs
-- [ ] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
+- [x] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
 - [ ] C17-2: [CONDUCTOR] Store CRON_SECRET in DB via SQL, apply migration via MCP, run build, commit
 
 ## Verification
