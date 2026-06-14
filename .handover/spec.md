@@ -26,8 +26,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C2-2: [CONDUCTOR] Commit
 
 ### Task 3 — Simplify AvatarPicker + Delete AvatarBuilder
-- [ ] C3-1: Replace `src/components/AvatarPicker.tsx` — upload-only component, no tabs, no AvatarBuilder import (exact code in plan Task 3 Step 1)
-- [ ] C3-2: [CONDUCTOR] `git rm src/components/AvatarBuilder.tsx` and commit
+- [x] C3-1: Replace `src/components/AvatarPicker.tsx` — upload-only component, no tabs, no AvatarBuilder import (exact code in plan Task 3 Step 1)
+- [x] C3-2: [CONDUCTOR] `git rm src/components/AvatarBuilder.tsx` and commit
 
 ### Task 4 — Remove AvatarConfig Type from chat/types.ts
 - [ ] C4-1: Edit `src/lib/chat/types.ts` — delete AvatarConfig type block; remove `avatar_config: AvatarConfig | null` from ChatMember (exact edit in plan Task 4)
