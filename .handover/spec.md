@@ -61,12 +61,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C10-2: [CONDUCTOR] Commit
 
 ### Task 11 — StartCallButton component
-- [ ] C11-1: Create `src/components/video/StartCallButton.tsx` (exact code in plan Task 11 Step C11-1)
-- [ ] C11-2: [CONDUCTOR] Commit
+- [x] C11-1: Create `src/components/video/StartCallButton.tsx` (exact code in plan Task 11 Step C11-1)
+- [x] C11-2: [CONDUCTOR] Commit
 
 ### Task 12 — Dashboard video hub page
-- [ ] C12-1: Create `src/app/dashboard/video/page.tsx` AND `src/components/video/VideoPageClient.tsx` (exact code in plan Task 12 Step C12-1 — use the SECOND version with VideoPageClient)
-- [ ] C12-2: [CONDUCTOR] Commit
+- [x] C12-1: Create `src/app/dashboard/video/page.tsx` AND `src/components/video/VideoPageClient.tsx` (exact code in plan Task 12 Step C12-1 — use the SECOND version with VideoPageClient)
+- [x] C12-2: [CONDUCTOR] Commit
 
 ### Task 13 — Call room page
 - [ ] C13-1: Create `src/app/dashboard/video/[roomId]/page.tsx` (exact code in plan Task 13 Step C13-1)
