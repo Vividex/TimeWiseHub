@@ -343,11 +343,23 @@ export default function FeatureCarousel() {
   const [paused, setPaused] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Reset pause when the user returns to the tab/window so the interval
+  // doesn't stay stuck after hovering then switching away.
+  useEffect(() => {
+    function resume() { setPaused(false) }
+    document.addEventListener('visibilitychange', resume)
+    window.addEventListener('focus', resume)
+    return () => {
+      document.removeEventListener('visibilitychange', resume)
+      window.removeEventListener('focus', resume)
+    }
+  }, [])
+
   useEffect(() => {
     if (paused) return
     intervalRef.current = setInterval(() => {
       setActive((prev) => (prev + 1) % SLIDES.length)
-    }, 2000)
+    }, 4000)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
