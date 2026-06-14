@@ -57,8 +57,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C9-2: [CONDUCTOR] Commit
 
 ### Task 10 — Create Privacy Policy Page
-- [ ] C10-1: Create `src/app/privacy/page.tsx` (exact code in plan Task 10 Step 1)
-- [ ] C10-2: [CONDUCTOR] Commit
+- [x] C10-1: Create `src/app/privacy/page.tsx` (exact code in plan Task 10 Step 1)
+- [x] C10-2: [CONDUCTOR] Commit
 
 ### Task 11 — Final Build Verification
 - [ ] C11-1: [CONDUCTOR] `pnpm run build` — must pass clean
