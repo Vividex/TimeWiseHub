@@ -28,17 +28,6 @@ export type ChatMessage = {
   chat_attachments: ChatAttachment[]
 }
 
-export type AvatarConfig = {
-  top: string
-  hairColor: string           // hex e.g. '724133'
-  skinColor: string           // hex e.g. 'edb98a'
-  accessories: string | null  // null = none
-  facialHair: string | null   // null = none
-  clothing?: string           // optional — defaults to shirtCrewNeck
-  background?: string         // optional hex — defaults to b6e3f4 (light blue)
-  hatColor?: string           // hex for headwear items; ignored for hair styles
-}
-
 export type ChatMember = {
   user_id: string
   full_name: string | null
@@ -47,7 +36,6 @@ export type ChatMember = {
   username: string | null
   nickname: string | null
   avatar_url: string | null
-  avatar_config: AvatarConfig | null
 }
 
 /** Peer-facing display name. Never returns the user's email. */

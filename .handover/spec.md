@@ -30,8 +30,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-2: [CONDUCTOR] `git rm src/components/AvatarBuilder.tsx` and commit
 
 ### Task 4 — Remove AvatarConfig Type from chat/types.ts
-- [ ] C4-1: Edit `src/lib/chat/types.ts` — delete AvatarConfig type block; remove `avatar_config: AvatarConfig | null` from ChatMember (exact edit in plan Task 4)
-- [ ] C4-2: [CONDUCTOR] Commit
+- [x] C4-1: Edit `src/lib/chat/types.ts` — delete AvatarConfig type block; remove `avatar_config: AvatarConfig | null` from ChatMember (exact edit in plan Task 4)
+- [x] C4-2: [CONDUCTOR] Commit
 
 ### Task 5 — Clean Up Settings Page
 - [ ] C5-1: Edit `src/app/settings/page.tsx` — remove `import type { AvatarConfig }` line; remove `avatar_config` from Supabase select string; replace Avatar section block with Profile photo section (exact edit in plan Task 5)
