@@ -45,8 +45,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C6-2: [CONDUCTOR] Commit
 
 ### Task 7 — API: GET /api/video/send-reminders (cron target)
-- [ ] C7-1: Create `src/app/api/video/send-reminders/route.ts` (exact code in plan Task 7 Step C7-1)
-- [ ] C7-2: [CONDUCTOR] Commit
+- [x] C7-1: Create `src/app/api/video/send-reminders/route.ts` (exact code in plan Task 7 Step C7-1)
+- [x] C7-2: [CONDUCTOR] Commit
 
 ### Task 8 — CallRoom component
 - [ ] C8-1: Create `src/components/video/CallRoom.tsx` (exact code in plan Task 8 Step C8-1)
