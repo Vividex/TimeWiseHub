@@ -53,8 +53,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C8-3: [CONDUCTOR] Commit package.json + pnpm-lock.yaml
 
 ### Task 9 — Rewrite Terms of Service Page
-- [ ] C9-1: Replace `src/app/terms/page.tsx` — full rewrite (exact code in plan Task 9 Step 1)
-- [ ] C9-2: [CONDUCTOR] Commit
+- [x] C9-1: Replace `src/app/terms/page.tsx` — full rewrite (exact code in plan Task 9 Step 1)
+- [x] C9-2: [CONDUCTOR] Commit
 
 ### Task 10 — Create Privacy Policy Page
 - [ ] C10-1: Create `src/app/privacy/page.tsx` (exact code in plan Task 10 Step 1)
