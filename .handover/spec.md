@@ -33,9 +33,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — Wire page.tsx + build gate
-- [ ] C4-1: Replace `src/app/page.tsx` (exact code in plan Task 4 Step C4-1)
-- [ ] C4-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C4-3: [CONDUCTOR] Commit
+- [x] C4-1: Replace `src/app/page.tsx` (exact code in plan Task 4 Step C4-1)
+- [x] C4-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C4-3: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after Task 4.
