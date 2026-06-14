@@ -31,8 +31,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C2-4: [CONDUCTOR] Commit
 
 ### Task 3 — NewGroupDialog Component
-- [ ] C3-1: Create `src/components/chat/NewGroupDialog.tsx` (exact code in plan Task 3 Step 1)
-- [ ] C3-2: [CONDUCTOR] Commit
+- [x] C3-1: Create `src/components/chat/NewGroupDialog.tsx` (exact code in plan Task 3 Step 1)
+- [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — Update ConversationList
 - [ ] C4-1: Replace `src/components/chat/ConversationList.tsx` (exact code in plan Task 4 Step 1)
