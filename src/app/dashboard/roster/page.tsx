@@ -54,7 +54,7 @@ export default async function RosterPage() {
   const fromISO = from.toISOString().split('T')[0]
   const toISO = to.toISOString().split('T')[0]
 
-  const [{ data: shifts }, { data: leaveData }] = await Promise.all([
+  const [{ data: shifts }, { data: leaveData }, { data: orgSettings }] = await Promise.all([
     supabase
       .from('roster_shifts').select('id, org_id, user_id, date, start_time, end_time, notes, published')
       .eq('org_id', orgId).is('deleted_at', null)
@@ -64,6 +64,9 @@ export default async function RosterPage() {
       .eq('org_id', orgId).eq('status', 'approved')
       .lte('start_date', toISO)
       .gte('end_date', fromISO),
+    supabase
+      .from('organisations').select('pay_week_start_day')
+      .eq('id', orgId).maybeSingle(),
   ])
 
   return (
@@ -76,6 +79,7 @@ export default async function RosterPage() {
           initialShifts={shifts ?? []}
           leaveBlocks={leaveData ?? []}
           canManageRoster={canManageRoster}
+          weekStartDay={orgSettings?.pay_week_start_day ?? 1}
         />
       </div>
     </div>

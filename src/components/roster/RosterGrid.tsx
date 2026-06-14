@@ -31,25 +31,27 @@ function leaveLabel(type: string, halfDay: boolean) {
   return halfDay ? `${base} (½ day)` : base
 }
 
-function getWeekDates(anchor: Date): Date[] {
+function getWeekDates(anchor: Date, weekStartDay: number): Date[] {
   const day = anchor.getDay()
-  const monday = new Date(anchor)
-  monday.setDate(anchor.getDate() - ((day + 6) % 7))
-  return Array.from({ length: 7 }, (_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d })
+  const start = new Date(anchor)
+  const offset = (day - weekStartDay + 7) % 7
+  start.setDate(anchor.getDate() - offset)
+  return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d })
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster }: {
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay }: {
   orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
-  leaveBlocks: LeaveBlock[]; canManageRoster: boolean
+  leaveBlocks: LeaveBlock[]; canManageRoster: boolean; weekStartDay: number
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
   const [weekAnchor, setWeekAnchor] = useState(() => new Date())
   const [formState, setFormState] = useState<{ open: boolean; shift?: RosterShift; defaultDate?: string }>({ open: false })
   const [publishing, setPublishing] = useState(false)
+  const [settingTemplate, setSettingTemplate] = useState(false)
 
-  const weekDates = getWeekDates(weekAnchor)
+  const weekDates = getWeekDates(weekAnchor, weekStartDay)
   const weekStart = toISO(weekDates[0])
   const weekEnd = toISO(weekDates[6])
 
@@ -71,6 +73,24 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
     router.refresh()
   }
 
+  async function setAsRecurring() {
+    setSettingTemplate(true)
+    const weekShifts = shifts.filter(s => s.date >= weekStart && s.date <= weekEnd)
+    const templateShifts = weekShifts.map(s => ({
+      userId: s.user_id,
+      dayOfWeek: new Date(s.date + 'T12:00:00Z').getUTCDay(),
+      startTime: s.start_time,
+      endTime: s.end_time,
+      notes: s.notes,
+    }))
+    await fetch('/api/roster/set-template', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orgId, shifts: templateShifts }),
+    })
+    setSettingTemplate(false)
+  }
+
   const unpublishedCount = shifts.filter(s => s.date >= weekStart && s.date <= weekEnd && !s.published).length
 
   return (
@@ -87,6 +107,12 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
           <button onClick={publishWeek} disabled={publishing}
             className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
             {publishing ? 'Publishing…' : `Publish week (${unpublishedCount} draft)`}
+          </button>
+        )}
+        {canManageRoster && (
+          <button onClick={setAsRecurring} disabled={settingTemplate}
+            className="rounded-xl border border-purple-200 px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-900/20">
+            {settingTemplate ? 'Saving…' : 'Set as recurring'}
           </button>
         )}
       </div>
@@ -109,7 +135,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
               <th className="w-32 py-2 pr-3 text-left text-xs font-medium text-gray-500">Member</th>
               {weekDates.map((d, i) => (
                 <th key={i} className="min-w-[110px] px-2 py-2 text-center text-xs font-medium text-gray-500">
-                  {DAY_LABELS[i]} <span className="text-gray-400">{d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
+                  {d.toLocaleDateString('en-AU', { weekday: 'short' })} <span className="text-gray-400">{d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
                 </th>
               ))}
             </tr>

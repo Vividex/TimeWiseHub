@@ -23,14 +23,13 @@ function localMidnight(timezone: string, offsetDays = 0): string {
   return new Date(`${dateStr}T00:00:00${tzSuffix(timezone)}`).toISOString()
 }
 
-function getMondayDateStr(timezone: string): string {
+function getWeekStartStr(timezone: string, weekStartDay: number): string {
   const now = new Date()
-  const localDate = now.toLocaleDateString('en-CA', { timeZone: timezone }) // YYYY-MM-DD
-  // Use noon UTC to safely manipulate the date without DST edge cases
+  const localDate = now.toLocaleDateString('en-CA', { timeZone: timezone })
   const d = new Date(localDate + 'T12:00:00Z')
-  const day = d.getUTCDay() // 0=Sun, 1=Mon … 6=Sat
-  const diff = day === 0 ? -6 : 1 - day
-  d.setUTCDate(d.getUTCDate() + diff)
+  const day = d.getUTCDay() // 0=Sun … 6=Sat
+  const diff = (day - weekStartDay + 7) % 7
+  d.setUTCDate(d.getUTCDate() - diff)
   return d.toISOString().slice(0, 10)
 }
 
@@ -43,26 +42,36 @@ export default async function TimePage() {
   const timezone = profile?.timezone ?? 'UTC'
 
   const todayStart = localMidnight(timezone)
-  const weekStartDay = getMondayDateStr(timezone)
   const tz = tzSuffix(timezone)
-  const weekStart = new Date(`${weekStartDay}T00:00:00${tz}`).toISOString()
-  const weekEndDay = new Date(weekStartDay + 'T12:00:00Z')
+
+  const { data: membership } = await supabase
+    .from('organisation_members').select('role, org_id').eq('user_id', user.id).maybeSingle()
+
+  const orgId = membership?.org_id ?? null
+  let weekStartDay = 1
+  if (orgId) {
+    const { data: orgSettings } = await supabase
+      .from('organisations').select('pay_week_start_day').eq('id', orgId).maybeSingle()
+    weekStartDay = orgSettings?.pay_week_start_day ?? 1
+  }
+
+  const weekStartDayStr = getWeekStartStr(timezone, weekStartDay)
+  const weekEndDay = new Date(weekStartDayStr + 'T12:00:00Z')
   weekEndDay.setUTCDate(weekEndDay.getUTCDate() + 7)
+  const weekStart = new Date(`${weekStartDayStr}T00:00:00${tz}`).toISOString()
   const weekEnd = new Date(`${weekEndDay.toISOString().slice(0, 10)}T00:00:00${tz}`).toISOString()
 
   const [
     { data: todayEntries },
     { data: weekEntries },
     { data: activeEntry },
-    { data: membership },
     { data: timesheet },
     subscription,
   ] = await Promise.all([
     supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).gte('started_at', todayStart).order('started_at', { ascending: false }),
     supabase.from('time_entries').select('duration_seconds').eq('user_id', user.id).gte('started_at', weekStart).lt('started_at', weekEnd).not('ended_at', 'is', null),
     supabase.from('time_entries').select('*, tasks(title)').eq('user_id', user.id).is('ended_at', null).maybeSingle(),
-    supabase.from('organisation_members').select('role, org_id').eq('user_id', user.id).maybeSingle(),
-    supabase.from('timesheets').select('id, status, total_seconds, review_note').eq('user_id', user.id).eq('week_start', weekStartDay).maybeSingle(),
+    supabase.from('timesheets').select('id, status, total_seconds, review_note').eq('user_id', user.id).eq('week_start', weekStartDayStr).maybeSingle(),
     getSubscription(user.id),
   ])
 
@@ -77,15 +86,16 @@ export default async function TimePage() {
         <TimeSection activeEntry={activeEntry} initialEntries={todayEntries ?? []} userId={user.id} />
         <TimesheetSection
           userId={user.id}
-          orgId={membership?.org_id ?? null}
-          weekStart={weekStartDay}
+          orgId={orgId}
+          weekStart={weekStartDayStr}
           totalSeconds={weekSeconds}
           initialTimesheet={timesheet ?? null}
+          rosterManaged={isTeamPlan(subscription) && !!orgId}
         />
-        {isManager && membership?.org_id && (
+        {isManager && orgId && (
           <>
-            <ManagerTimeView orgId={membership.org_id} />
-            <ManagerTimesheetView orgId={membership.org_id} />
+            <ManagerTimeView orgId={orgId} />
+            <ManagerTimesheetView orgId={orgId} />
           </>
         )}
       </div>

@@ -19,6 +19,7 @@ export default function OrgBillingSettingsForm({
   initialRoundingMinutes,
   initialPayCadence,
   initialSuperRate,
+  initialPayWeekStartDay,
   initialOrgName,
   initialInvoiceLetterhead,
   initialInvoicePaymentDetails,
@@ -29,6 +30,7 @@ export default function OrgBillingSettingsForm({
   initialRoundingMinutes: number
   initialPayCadence: string
   initialSuperRate: number
+  initialPayWeekStartDay: number
   initialOrgName: string
   initialInvoiceLetterhead: string
   initialInvoicePaymentDetails: InvoicePaymentDetails
@@ -39,6 +41,7 @@ export default function OrgBillingSettingsForm({
   const [roundingEnabled, setRoundingEnabled] = useState(initialRoundingMinutes === 15)
   const [payCadence, setPayCadence] = useState(initialPayCadence)
   const [superRate, setSuperRate] = useState(String(initialSuperRate))
+  const [payWeekStartDay, setPayWeekStartDay] = useState(initialPayWeekStartDay)
   const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
   const [paymentDetails, setPaymentDetails] = useState<InvoicePaymentDetails>(() => normaliseInvoicePaymentDetails(initialInvoicePaymentDetails))
   const [rates, setRates] = useState<Record<string, string>>(() =>
@@ -65,6 +68,7 @@ export default function OrgBillingSettingsForm({
         time_rounding_minutes: roundingEnabled ? 15 : 0,
         pay_cadence: payCadence,
         super_rate: superRate.trim() ? Number(superRate) : 12,
+        pay_week_start_day: payWeekStartDay,
         invoice_payment_details: paymentDetails,
         ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
       })
@@ -216,6 +220,24 @@ export default function OrgBillingSettingsForm({
             className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="payWeekStartDay" className="block text-sm font-bold text-gray-900">Pay week starts on</label>
+        <select
+          id="payWeekStartDay" value={payWeekStartDay}
+          onChange={e => setPayWeekStartDay(Number(e.target.value))}
+          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        >
+          <option value={0}>Sunday</option>
+          <option value={1}>Monday</option>
+          <option value={2}>Tuesday</option>
+          <option value={3}>Wednesday</option>
+          <option value={4}>Thursday</option>
+          <option value={5}>Friday</option>
+          <option value={6}>Saturday</option>
+        </select>
+        <p className="mt-1 text-xs font-medium text-gray-500">Roster weeks and timesheets are anchored to this day.</p>
       </div>
 
       <SearchInput value={query} onChange={setQuery} placeholder="Search employees…" />

@@ -21,14 +21,15 @@ export async function POST(request: Request) {
 
   const { data: org } = await supabase
     .from('organisations')
-    .select('pay_cadence, super_rate')
+    .select('pay_cadence, super_rate, pay_week_start_day')
     .eq('id', ctx.orgId)
     .single()
   if (!org) return NextResponse.json({ error: 'Organisation not found' }, { status: 404 })
 
   const cadence = org.pay_cadence as PayCadence
   const superRate = Number(org.super_rate)
-  const { periodStart, periodEnd } = derivePayPeriod(cadence, anchor)
+  const weekStartDay = typeof org.pay_week_start_day === 'number' ? org.pay_week_start_day : 1
+  const { periodStart, periodEnd } = derivePayPeriod(cadence, anchor, weekStartDay)
 
   const { data: sheets } = await supabase
     .from('timesheets')

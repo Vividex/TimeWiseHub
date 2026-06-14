@@ -45,12 +45,14 @@ export default function TimesheetSection({
   weekStart,
   totalSeconds,
   initialTimesheet,
+  rosterManaged,
 }: {
   userId: string
   orgId: string | null
   weekStart: string
   totalSeconds: number
   initialTimesheet: Timesheet | null
+  rosterManaged: boolean
 }) {
   const router = useRouter()
   const [timesheet, setTimesheet] = useState(initialTimesheet)
@@ -104,14 +106,20 @@ export default function TimesheetSection({
             <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-600">Join or create an organisation before submitting timesheets for approval.</p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={submitTimesheet}
-          disabled={disabled}
-          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {submitting ? 'Submitting...' : status === 'rejected' ? 'Resubmit for approval' : 'Submit for approval'}
-        </button>
+        {rosterManaged ? (
+          <p className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700">
+            Your timesheet is submitted automatically from your roster.
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={submitTimesheet}
+            disabled={disabled}
+            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting ? 'Submitting...' : status === 'rejected' ? 'Resubmit for approval' : 'Submit for approval'}
+          </button>
+        )}
       </div>
     </div>
   )

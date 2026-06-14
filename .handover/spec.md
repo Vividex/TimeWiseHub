@@ -30,43 +30,43 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C2-2: [CONDUCTOR] Verify constraint name, apply migration, run build, commit
 
 ### Task 3 — Update derivePayPeriod() to respect weekStartDay
-- [ ] C3-1: [CODEX] Replace `src/lib/payroll/period.ts` (exact code in plan Task 3 Step C3-1)
-- [ ] C3-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C3-1: [CODEX] Replace `src/lib/payroll/period.ts` (exact code in plan Task 3 Step C3-1)
+- [x] C3-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 4 — Update pay-runs route to pass pay_week_start_day
-- [ ] C4-1: [CODEX] Edit `src/app/api/pay-runs/route.ts` (exact edit in plan Task 4 Step C4-1)
-- [ ] C4-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C4-1: [CODEX] Edit `src/app/api/pay-runs/route.ts` (exact edit in plan Task 4 Step C4-1)
+- [x] C4-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 5 — TimesheetSection: hide submit for roster-managed members
-- [ ] C5-1: [CODEX] Edit `src/components/time/TimesheetSection.tsx` (exact edit in plan Task 5 Step C5-1)
-- [ ] C5-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C5-1: [CODEX] Edit `src/components/time/TimesheetSection.tsx` (exact edit in plan Task 5 Step C5-1)
+- [x] C5-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 6 — RosterGrid: week anchor respects weekStartDay
-- [ ] C6-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — update getWeekDates + props + call (exact edit in plan Task 6 Step C6-1)
-- [ ] C6-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C6-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — update getWeekDates + props + call (exact edit in plan Task 6 Step C6-1)
+- [x] C6-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 7 — RosterGrid: "Set as recurring" button
-- [ ] C7-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — add state + setAsRecurring + button (exact edit in plan Task 7 Step C7-1)
-- [ ] C7-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C7-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — add state + setAsRecurring + button (exact edit in plan Task 7 Step C7-1)
+- [x] C7-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 8 — roster/page.tsx: fetch and pass pay_week_start_day
-- [ ] C8-1: [CODEX] Edit `src/app/dashboard/roster/page.tsx` (exact edit in plan Task 8 Step C8-1)
-- [ ] C8-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C8-1: [CODEX] Edit `src/app/dashboard/roster/page.tsx` (exact edit in plan Task 8 Step C8-1)
+- [x] C8-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 9 — time/page.tsx: getWeekStartStr + pay_week_start_day + rosterManaged
-- [ ] C9-1: [CODEX] Edit `src/app/dashboard/time/page.tsx` (exact edit in plan Task 9 Step C9-1)
-- [ ] C9-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C9-1: [CODEX] Edit `src/app/dashboard/time/page.tsx` (exact edit in plan Task 9 Step C9-1)
+- [x] C9-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 10 — OrgBillingSettingsForm: add pay_week_start_day field
-- [ ] C10-1: [CODEX] Edit `src/components/OrgBillingSettingsForm.tsx` (exact edit in plan Task 10 Step C10-1)
-- [ ] C10-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C10-1: [CODEX] Edit `src/components/OrgBillingSettingsForm.tsx` (exact edit in plan Task 10 Step C10-1)
+- [x] C10-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 11 — settings/page.tsx: fetch and pass pay_week_start_day
-- [ ] C11-1: [CODEX] Edit `src/app/settings/page.tsx` (exact edit in plan Task 11 Step C11-1)
-- [ ] C11-2: [CONDUCTOR] Commit (bundled in C12-1)
+- [x] C11-1: [CODEX] Edit `src/app/settings/page.tsx` (exact edit in plan Task 11 Step C11-1)
+- [x] C11-2: [CONDUCTOR] Commit (bundled in C12-1)
 
 ### Task 12 — Build check + commit (Tasks 3–11)
-- [ ] C12-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit all 8 changed files
+- [x] C12-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit all 8 changed files
 
 ### Task 13 — POST /api/roster/set-template
 - [ ] C13-1: [CODEX] Create `src/app/api/roster/set-template/route.ts` (exact code in plan Task 13 Step C13-1)

@@ -34,7 +34,7 @@ export default async function SettingsPage() {
     ? await Promise.all([
       supabase
         .from('organisations')
-        .select('name, time_rounding_minutes, pay_cadence, super_rate, invoice_letterhead, invoice_payment_details')
+        .select('name, time_rounding_minutes, pay_cadence, super_rate, pay_week_start_day, invoice_letterhead, invoice_payment_details')
         .eq('id', membership.org_id)
         .single(),
       supabase
@@ -143,6 +143,7 @@ export default async function SettingsPage() {
             initialRoundingMinutes={organisation?.time_rounding_minutes ?? 0}
             initialPayCadence={organisation?.pay_cadence ?? 'fortnightly'}
             initialSuperRate={organisation?.super_rate ?? 12}
+            initialPayWeekStartDay={organisation?.pay_week_start_day ?? 1}
             initialOrgName={organisation?.name ?? ''}
             initialInvoiceLetterhead={organisation?.invoice_letterhead ?? ''}
             initialInvoicePaymentDetails={organisation?.invoice_payment_details ?? {}}
