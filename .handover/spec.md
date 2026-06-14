@@ -1,74 +1,96 @@
-# Phase 19 — Avatar Removal + Legal Pages
+# Phase 20 — Roster-Driven Timesheets + Recurring Roster + Configurable Pay Week
 
 ## Goal
-Remove the DiceBear cartoon avatar builder entirely (keep photo uploads + initials fallback), drop the `avatar_config` DB column, then rewrite the Terms of Service page and create a new Privacy Policy page at `/privacy`.
+Make the published roster the authoritative source of weekly pay hours for Business-plan orgs — timesheets auto-generate at week-end from published roster shifts; admins can set a recurring shift template so fixed schedules don't need weekly re-entry; week boundaries are org-configurable (e.g. Thu–Wed for Friday pays).
 
 ## Source plan
-`docs/superpowers/plans/2026-06-14-avatar-removal-and-legal-pages.md`
+`docs/superpowers/plans/2026-06-14-roster-driven-timesheets.md`
 Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-14-avatar-removal-and-legal-pages.md`
+`docs/superpowers/specs/2026-06-14-roster-driven-timesheets-design.md`
 
 ## Division of labor
 - **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: runs Supabase MCP apply_migration; runs `pnpm remove` and `pnpm run build`; commits; deletes AvatarBuilder.tsx (git rm).
+- **Conductor**: applies Supabase migrations via MCP `apply_migration`; runs `pnpm run build`; commits; stores CRON_SECRET in DB before cron migration.
+
+## Migration numbers (IMPORTANT — plan was originally written with wrong numbers)
+- Task 1 → `supabase/schema-051-roster-templates.sql` (NOT 050)
+- Task 2 → `supabase/schema-052-pay-week-start.sql` (NOT 051)
+- Task 17 → `supabase/schema-053-roster-cron.sql` (NOT 052)
 
 ## Acceptance checklist
 
-### Task 1 — DB Migration: Drop avatar_config Column
-- [x] C1-1: Create `supabase/schema-050-drop-avatar-config.sql` with `ALTER TABLE profiles DROP COLUMN IF EXISTS avatar_config;`
-- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP `apply_migration`
-- [x] C1-3: [CONDUCTOR] Commit migration file
+### Task 1 — DB Migration: roster_shift_templates table
+- [ ] C1-1: [CODEX] Create `supabase/schema-051-roster-templates.sql` (exact SQL in plan Task 1 Step C1-1, with corrected number 051)
+- [ ] C1-2: [CONDUCTOR] Apply migration via Supabase MCP, run build, commit
 
-### Task 2 — Simplify UserAvatar Component
-- [x] C2-1: Replace `src/components/UserAvatar.tsx` — remove all DiceBear imports and SVG branch; keep avatarUrl photo branch and initials fallback only (exact code in plan Task 2 Step 1)
-- [x] C2-2: [CONDUCTOR] Commit
+### Task 2 — DB Migration: pay_week_start_day + drop Monday constraint
+- [ ] C2-1: [CODEX] Create `supabase/schema-052-pay-week-start.sql` (exact SQL in plan Task 2 Step C2-1, with corrected number 052)
+- [ ] C2-2: [CONDUCTOR] Verify constraint name, apply migration, run build, commit
 
-### Task 3 — Simplify AvatarPicker + Delete AvatarBuilder
-- [x] C3-1: Replace `src/components/AvatarPicker.tsx` — upload-only component, no tabs, no AvatarBuilder import (exact code in plan Task 3 Step 1)
-- [x] C3-2: [CONDUCTOR] `git rm src/components/AvatarBuilder.tsx` and commit
+### Task 3 — Update derivePayPeriod() to respect weekStartDay
+- [ ] C3-1: [CODEX] Replace `src/lib/payroll/period.ts` (exact code in plan Task 3 Step C3-1)
+- [ ] C3-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 4 — Remove AvatarConfig Type from chat/types.ts
-- [x] C4-1: Edit `src/lib/chat/types.ts` — delete AvatarConfig type block; remove `avatar_config: AvatarConfig | null` from ChatMember (exact edit in plan Task 4)
-- [x] C4-2: [CONDUCTOR] Commit
+### Task 4 — Update pay-runs route to pass pay_week_start_day
+- [ ] C4-1: [CODEX] Edit `src/app/api/pay-runs/route.ts` (exact edit in plan Task 4 Step C4-1)
+- [ ] C4-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 5 — Clean Up Settings Page
-- [x] C5-1: Edit `src/app/settings/page.tsx` — remove `import type { AvatarConfig }` line; remove `avatar_config` from Supabase select string; replace Avatar section block with Profile photo section (exact edit in plan Task 5)
-- [x] C5-2: [CONDUCTOR] Commit
+### Task 5 — TimesheetSection: hide submit for roster-managed members
+- [ ] C5-1: [CODEX] Edit `src/components/time/TimesheetSection.tsx` (exact edit in plan Task 5 Step C5-1)
+- [ ] C5-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 6 — Clean Up ChatRealtimeProvider
-- [x] C6-1: Edit `src/components/chat/ChatRealtimeProvider.tsx` — remove AvatarConfig from import; remove `avatar_config` from select string; remove from inline row type; remove from member map (exact edit in plan Task 6)
-- [x] C6-2: [CONDUCTOR] Commit
+### Task 6 — RosterGrid: week anchor respects weekStartDay
+- [ ] C6-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — update getWeekDates + props + call (exact edit in plan Task 6 Step C6-1)
+- [ ] C6-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 7 — Clean Up Chat Display Components
-- [x] C7-1: Edit `src/components/chat/MessageThread.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 1)
-- [x] C7-2: Edit `src/components/chat/ConversationList.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 2)
-- [x] C7-3: Edit `src/components/chat/NewDmDialog.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 3)
-- [x] C7-4: [CONDUCTOR] Commit
+### Task 7 — RosterGrid: "Set as recurring" button
+- [ ] C7-1: [CODEX] Edit `src/components/roster/RosterGrid.tsx` — add state + setAsRecurring + button (exact edit in plan Task 7 Step C7-1)
+- [ ] C7-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 8 — Remove @dicebear Packages + Build
-- [x] C8-1: [CONDUCTOR] `pnpm remove @dicebear/core @dicebear/collection`
-- [x] C8-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [x] C8-3: [CONDUCTOR] Commit package.json + pnpm-lock.yaml
+### Task 8 — roster/page.tsx: fetch and pass pay_week_start_day
+- [ ] C8-1: [CODEX] Edit `src/app/dashboard/roster/page.tsx` (exact edit in plan Task 8 Step C8-1)
+- [ ] C8-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 9 — Rewrite Terms of Service Page
-- [x] C9-1: Replace `src/app/terms/page.tsx` — full rewrite (exact code in plan Task 9 Step 1)
-- [x] C9-2: [CONDUCTOR] Commit
+### Task 9 — time/page.tsx: getWeekStartStr + pay_week_start_day + rosterManaged
+- [ ] C9-1: [CODEX] Edit `src/app/dashboard/time/page.tsx` (exact edit in plan Task 9 Step C9-1)
+- [ ] C9-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 10 — Create Privacy Policy Page
-- [x] C10-1: Create `src/app/privacy/page.tsx` (exact code in plan Task 10 Step 1)
-- [x] C10-2: [CONDUCTOR] Commit
+### Task 10 — OrgBillingSettingsForm: add pay_week_start_day field
+- [ ] C10-1: [CODEX] Edit `src/components/OrgBillingSettingsForm.tsx` (exact edit in plan Task 10 Step C10-1)
+- [ ] C10-2: [CONDUCTOR] Commit (bundled in C12-1)
 
-### Task 11 — Final Build Verification
-- [x] C11-1: [CONDUCTOR] `pnpm run build` — must pass clean
-- [x] C11-2: [CONDUCTOR] Manual smoke: settings page, /terms, /privacy, register links, chat avatars
+### Task 11 — settings/page.tsx: fetch and pass pay_week_start_day
+- [ ] C11-1: [CODEX] Edit `src/app/settings/page.tsx` (exact edit in plan Task 11 Step C11-1)
+- [ ] C11-2: [CONDUCTOR] Commit (bundled in C12-1)
+
+### Task 12 — Build check + commit (Tasks 3–11)
+- [ ] C12-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit all 8 changed files
+
+### Task 13 — POST /api/roster/set-template
+- [ ] C13-1: [CODEX] Create `src/app/api/roster/set-template/route.ts` (exact code in plan Task 13 Step C13-1)
+- [ ] C13-2: [CONDUCTOR] Commit (bundled in C16-1)
+
+### Task 14 — GET /api/roster/generate-from-template
+- [ ] C14-1: [CODEX] Create `src/app/api/roster/generate-from-template/route.ts` (exact code in plan Task 14 Step C14-1)
+- [ ] C14-2: [CONDUCTOR] Commit (bundled in C16-1)
+
+### Task 15 — GET /api/timesheets/generate-weekly
+- [ ] C15-1: [CODEX] Create `src/app/api/timesheets/generate-weekly/route.ts` (exact code in plan Task 15 Step C15-1)
+- [ ] C15-2: [CONDUCTOR] Commit (bundled in C16-1)
+
+### Task 16 — Build check + commit (Tasks 13–15)
+- [ ] C16-1: [CONDUCTOR] `pnpm run build` must pass clean; then commit the 3 new API route files
+
+### Task 17 — DB Migration: nightly cron jobs
+- [ ] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
+- [ ] C17-2: [CONDUCTOR] Store CRON_SECRET in DB via SQL, apply migration via MCP, run build, commit
 
 ## Verification
-`pnpm run build` must pass clean after Task 8 and again after Task 10.
-Manual smoke after C11-2:
-- Settings: section heading says "Profile photo", single upload button, no tabs, no avatar builder
-- `/terms`: 15 sections render, governing law says New South Wales, contact shows admin@vividex.au
-- `/privacy`: page renders with processor table and 9 sections, contact shows admin@vividex.au
-- Register page: both /terms and /privacy links resolve correctly
-- Chat: UserAvatar shows photo or initials circle — no broken images, no TypeScript errors
+After all tasks complete:
+1. `pnpm run build` passes clean (verified after C12 and C16 and C17)
+2. Settings smoke: admin changes "Pay week starts on" to Thursday → roster shows Thu–Wed columns → Time page week anchors on Thursday
+3. Recurring template smoke: fill a roster week → "Set as recurring" → query `roster_shift_templates`
+4. Timesheet auto-gen smoke: call `GET /api/timesheets/generate-weekly` → check `timesheets` table for submitted rows
+5. Employee view: Business plan employee sees "submitted automatically from your roster" instead of submit button
