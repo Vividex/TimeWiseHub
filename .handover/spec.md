@@ -49,7 +49,7 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 
 ### Task 7 — Final Verification
 - [x] C7-1: [CONDUCTOR] `pnpm run build` — final gate
-- [ ] C7-2: [CONDUCTOR] Manual smoke (see Verification section below)
+- [x] C7-2: [CONDUCTOR] Manual smoke (see Verification section below)
 
 ## Verification
 `pnpm run build` must pass clean after Task 2 and again after Task 6.
