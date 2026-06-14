@@ -41,42 +41,39 @@ function PricingCard({ label, price, note, features, highlight }: CardProps) {
     <div
       className={`relative flex flex-col rounded-2xl p-8 ${
         highlight
-          ? 'bg-zinc-950 text-white'
-          : 'bg-white text-zinc-900 ring-1 ring-zinc-200'
+          ? 'bg-cyan-500 text-white ring-2 ring-cyan-400'
+          : 'bg-white text-slate-900 ring-1 ring-slate-200'
       }`}
     >
       {highlight && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-cyan-500 text-white tracking-wide">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full bg-cyan-400 text-white">
           Most popular
         </span>
       )}
-      <h3 className={`text-sm font-bold tracking-widest uppercase ${highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>
-        {label}
-      </h3>
+      <h3 className={`text-xl font-bold ${highlight ? 'text-white' : 'text-slate-900'}`}>{label}</h3>
       <div className="mt-4 flex items-end gap-1">
-        <span className={`font-['Poppins'] text-5xl font-black ${highlight ? 'text-white' : 'text-zinc-950'}`}>
-          {price}
-        </span>
+        <span className={`text-4xl font-bold ${highlight ? 'text-white' : 'text-slate-900'}`}>{price}</span>
         {price !== 'Free' && (
-          <span className={`text-sm mb-2 ml-1 ${highlight ? 'text-zinc-500' : 'text-zinc-400'}`}>/mo</span>
+          <span className={`text-sm mb-1 ${highlight ? 'text-cyan-100' : 'text-slate-500'}`}>
+            /mo
+          </span>
         )}
       </div>
-      <p className={`text-sm mt-1 mb-6 ${highlight ? 'text-zinc-500' : 'text-zinc-400'}`}>{note}</p>
-      <div className={`h-px w-full mb-6 ${highlight ? 'bg-zinc-800' : 'bg-zinc-100'}`} />
-      <ul className="space-y-3 flex-1">
+      <p className={`text-sm mt-1 ${highlight ? 'text-cyan-100' : 'text-slate-500'}`}>{note}</p>
+      <ul className="mt-6 space-y-2 flex-1">
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-2.5 text-sm">
-            <span className="mt-0.5 text-cyan-500 shrink-0">✓</span>
-            <span className={highlight ? 'text-zinc-300' : 'text-zinc-600'}>{f}</span>
+          <li key={f} className="flex items-start gap-2 text-sm">
+            <span className={`mt-0.5 ${highlight ? 'text-cyan-100' : 'text-cyan-500'}`}>✓</span>
+            <span className={highlight ? 'text-white' : 'text-slate-600'}>{f}</span>
           </li>
         ))}
       </ul>
       <Link
         href="/register"
-        className={`mt-8 block text-center py-3.5 rounded-xl font-bold text-sm transition-colors tracking-wide ${
+        className={`mt-8 block text-center py-3 rounded-xl font-semibold text-sm transition-colors ${
           highlight
-            ? 'bg-cyan-500 text-white hover:bg-cyan-400'
-            : 'bg-zinc-950 text-white hover:bg-zinc-800'
+            ? 'bg-white text-cyan-600 hover:bg-cyan-50'
+            : 'bg-cyan-500 text-white hover:bg-cyan-600'
         }`}
       >
         Get started free
@@ -87,16 +84,12 @@ function PricingCard({ label, price, note, features, highlight }: CardProps) {
 
 export default function PricingSection() {
   return (
-    <section className="landing bg-[#FAFAF8] py-24 px-6">
+    <section className="bg-slate-50 py-24 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="block h-px w-10 bg-cyan-500 shrink-0" />
-          <span className="text-xs font-semibold tracking-[0.18em] uppercase text-cyan-600">Pricing</span>
-        </div>
-        <h2 className="text-4xl md:text-5xl font-black text-zinc-950 mb-4">
-          Simple,<br className="hidden sm:block" /> transparent pricing.
+        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
+          Simple, transparent pricing
         </h2>
-        <p className="text-zinc-500 mb-16">
+        <p className="text-slate-500 text-center mb-16">
           Start free. Upgrade when your team grows.
         </p>
 

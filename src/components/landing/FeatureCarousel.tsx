@@ -369,27 +369,23 @@ export default function FeatureCarousel() {
 
   return (
     <section
-      className="bg-white py-24 px-6 border-y border-zinc-100"
+      className="bg-slate-50 py-24 px-6"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="block h-px w-10 bg-cyan-500 shrink-0" />
-          <span className="text-xs font-semibold tracking-[0.18em] uppercase text-cyan-600">Features</span>
-        </div>
-        <h2 className="text-4xl md:text-5xl font-black text-zinc-950 mb-16">
-          Every tool your<br className="hidden sm:block" /> team needs.
+        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-16">
+          One platform. Every tool your team needs.
         </h2>
 
         <div className="grid md:grid-cols-2 gap-12 items-center min-h-72">
           {/* Text side */}
           <div>
-            <p className="text-zinc-300 text-sm font-bold uppercase tracking-widest mb-4">
+            <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-3">
               {String(active + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
             </p>
-            <h3 className="text-2xl font-black text-zinc-950 mb-4">{slide.title}</h3>
-            <p className="text-zinc-500 text-lg leading-relaxed">{slide.description}</p>
+            <h3 className="text-2xl font-bold text-slate-900 mb-4">{slide.title}</h3>
+            <p className="text-slate-500 text-lg leading-relaxed">{slide.description}</p>
           </div>
 
           {/* Mockup side — dark panel intentionally shows the app's dark UI */}
