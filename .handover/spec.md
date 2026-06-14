@@ -1,62 +1,48 @@
-# Phase 21 — Group Chat
+# Phase 22 — Landing Page
 
 ## Goal
-Add named group conversations (multi-member, dynamic membership) as a third chat
-type alongside existing channels and DMs. Any org member can create a group,
-invite others, add/remove members, rename the group, or leave it.
+Build a public-facing marketing page at `/` with a sticky navbar, full-viewport
+hero, auto-advancing feature carousel (8 slides), pricing cards, and footer.
+Authenticated users are redirected to `/dashboard`.
 
 ## Source plan
-`docs/superpowers/plans/2026-06-14-group-chat.md`
+`docs/superpowers/plans/2026-06-14-landing-page.md`
 Each checklist item maps to a Task there — implement the code VERBATIM from the plan.
 
 ## Source spec
-`docs/superpowers/specs/2026-06-14-group-chat.md`
+`docs/superpowers/specs/2026-06-14-landing-page-design.md`
 
 ## Division of labor
-- **Codex**: all text file creation/edits (.ts/.tsx/.sql).
-- **Conductor**: runs Supabase MCP apply_migration; runs `pnpm run build`;
-  commits; any shell commands.
+- **Codex**: all text file creation/edits (.tsx).
+- **Conductor**: runs `pnpm run build`; commits; any shell commands.
 
 ## Acceptance checklist
 
-### Task 1 — DB Migration
-- [x] C1-1: Create `supabase/schema-054-group-chat.sql` (exact SQL in plan Task 1 Step 1)
-- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP
-- [x] C1-3: [CONDUCTOR] Commit
+### Task 1 — Static layout components
+- [x] C1-1: Create `src/components/landing/Navbar.tsx` (exact code in plan Task 1 Step C1-1)
+- [x] C1-2: Create `src/components/landing/HeroSection.tsx` (exact code in plan Task 1 Step C1-2)
+- [x] C1-3: Create `src/components/landing/Footer.tsx` (exact code in plan Task 1 Step C1-3)
+- [x] C1-4: [CONDUCTOR] Commit
 
-### Task 2 — TypeScript Types + Context
-- [x] C2-1: Edit `src/lib/chat/types.ts` — extend ChatConversationType to include 'group'; add `created_by: string | null` to ChatConversation (exact edit in plan Task 2 Step 1)
-- [x] C2-2: Edit `src/components/chat/ChatRealtimeProvider.tsx` — add `orgId: string` to ChatContextValue; add `created_by` to select string; add `orgId` to value object (exact edit in plan Task 2 Step 2)
-- [x] C2-3: [CONDUCTOR] `pnpm run build` — must pass clean
-- [x] C2-4: [CONDUCTOR] Commit
+### Task 2 — FeatureCarousel
+- [ ] C2-1: Create `src/components/landing/FeatureCarousel.tsx` (exact code in plan Task 2 Step C2-1)
+- [ ] C2-2: [CONDUCTOR] Commit
 
-### Task 3 — NewGroupDialog Component
-- [x] C3-1: Create `src/components/chat/NewGroupDialog.tsx` (exact code in plan Task 3 Step 1)
-- [x] C3-2: [CONDUCTOR] Commit
+### Task 3 — PricingSection
+- [ ] C3-1: Create `src/components/landing/PricingSection.tsx` (exact code in plan Task 3 Step C3-1)
+- [ ] C3-2: [CONDUCTOR] Commit
 
-### Task 4 — Update ConversationList
-- [x] C4-1: Replace `src/components/chat/ConversationList.tsx` (exact code in plan Task 4 Step 1)
-- [x] C4-2: [CONDUCTOR] Commit
-
-### Task 5 — GroupSettingsPanel Component
-- [x] C5-1: Create `src/components/chat/GroupSettingsPanel.tsx` (exact code in plan Task 5 Step 1)
-- [x] C5-2: [CONDUCTOR] Commit
-
-### Task 6 — Wire into ChatClient
-- [x] C6-1: Replace `src/components/chat/ChatClient.tsx` (exact code in plan Task 6 Step 1)
-- [x] C6-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [x] C6-3: [CONDUCTOR] Commit
-
-### Task 7 — Final Verification
-- [x] C7-1: [CONDUCTOR] `pnpm run build` — final gate
-- [x] C7-2: [CONDUCTOR] Manual smoke (see Verification section below)
+### Task 4 — Wire page.tsx + build gate
+- [ ] C4-1: Replace `src/app/page.tsx` (exact code in plan Task 4 Step C4-1)
+- [ ] C4-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [ ] C4-3: [CONDUCTOR] Commit
 
 ## Verification
-`pnpm run build` must pass clean after Task 2 and again after Task 6.
+`pnpm run build` must pass clean after Task 4.
 
-Manual smoke after C7-2:
-- Sidebar: Groups section between Channels and DMs, with `+` button
-- Create group: dialog opens with name input + multi-select member list; create button disabled until name + ≥1 member selected
-- Group thread: messages work; Settings gear icon in header (not visible on channels/DMs)
-- Group settings panel: rename saves; Add shows non-members; × removes (creator only); Leave removes user and clears active conversation
-- DMs and channels: unchanged
+Manual smoke after C4-3:
+- Visit `/` while logged out → landing page renders (navbar, hero, carousel, pricing, footer)
+- Auto-advance cycles through 8 slides; hover pauses it; dot nav jumps to slide
+- "Get started free" → `/register`; "Log in" → `/login`
+- Visit `/` while logged in → redirects to `/dashboard`
+- Pricing cards show Free $0, Pro $12, Business $29
