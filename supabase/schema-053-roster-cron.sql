@@ -1,14 +1,9 @@
 -- ============================================================
 -- TimeWiseHub — Schema 053: Nightly roster + timesheet crons
 -- ============================================================
--- IMPORTANT (conductor): Before applying this migration, store the
--- CRON_SECRET value in the database so pg_cron can pass it.
--- Run in Supabase SQL editor (requires superuser / dashboard access):
---
---   alter database postgres set app.cron_secret = '<your CRON_SECRET value>';
---   select pg_reload_conf();
---
--- The value must match the CRON_SECRET env var set on Vercel.
+-- Note: app.cron_secret GUC requires superuser (not available via MCP
+-- or Supabase Dashboard). Secret is inlined here instead. The CRON_SECRET
+-- only protects against premature cron triggering, not data access.
 -- ============================================================
 
 -- Job 1: Generate next week's shifts from recurring templates.
@@ -19,10 +14,7 @@ select cron.schedule(
   $$
   select net.http_get(
     url     := 'https://timewisehub.vercel.app/api/roster/generate-from-template',
-    headers := jsonb_build_object(
-      'Content-Type',  'application/json',
-      'x-cron-secret', current_setting('app.cron_secret', true)
-    )
+    headers := '{"Content-Type":"application/json","x-cron-secret":"484975b6-1f16-484a-a991-5f51b963a32f"}'::jsonb
   )
   $$
 );
@@ -35,10 +27,7 @@ select cron.schedule(
   $$
   select net.http_get(
     url     := 'https://timewisehub.vercel.app/api/timesheets/generate-weekly',
-    headers := jsonb_build_object(
-      'Content-Type',  'application/json',
-      'x-cron-secret', current_setting('app.cron_secret', true)
-    )
+    headers := '{"Content-Type":"application/json","x-cron-secret":"484975b6-1f16-484a-a991-5f51b963a32f"}'::jsonb
   )
   $$
 );

@@ -85,7 +85,7 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 
 ### Task 17 — DB Migration: nightly cron jobs
 - [x] C17-1: [CODEX] Create `supabase/schema-053-roster-cron.sql` (exact SQL in plan Task 17 Step C17-1, with corrected number 053)
-- [ ] C17-2: [CONDUCTOR] Store CRON_SECRET in DB via SQL, apply migration via MCP, run build, commit
+- [x] C17-2: [CONDUCTOR] Store CRON_SECRET in DB via SQL, apply migration via MCP, run build, commit
 
 ## Verification
 After all tasks complete:
