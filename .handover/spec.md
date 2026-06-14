@@ -39,8 +39,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-2: [CONDUCTOR] Commit
 
 ### Task 5 — GroupSettingsPanel Component
-- [ ] C5-1: Create `src/components/chat/GroupSettingsPanel.tsx` (exact code in plan Task 5 Step 1)
-- [ ] C5-2: [CONDUCTOR] Commit
+- [x] C5-1: Create `src/components/chat/GroupSettingsPanel.tsx` (exact code in plan Task 5 Step 1)
+- [x] C5-2: [CONDUCTOR] Commit
 
 ### Task 6 — Wire into ChatClient
 - [ ] C6-1: Replace `src/components/chat/ChatClient.tsx` (exact code in plan Task 6 Step 1)
