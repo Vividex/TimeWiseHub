@@ -57,8 +57,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C9-2: [CONDUCTOR] Commit
 
 ### Task 10 — ScheduleCallDialog component
-- [ ] C10-1: Create `src/components/video/ScheduleCallDialog.tsx` (exact code in plan Task 10 Step C10-1)
-- [ ] C10-2: [CONDUCTOR] Commit
+- [x] C10-1: Create `src/components/video/ScheduleCallDialog.tsx` (exact code in plan Task 10 Step C10-1)
+- [x] C10-2: [CONDUCTOR] Commit
 
 ### Task 11 — StartCallButton component
 - [ ] C11-1: Create `src/components/video/StartCallButton.tsx` (exact code in plan Task 11 Step C11-1)
