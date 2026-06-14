@@ -25,8 +25,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-4: [CONDUCTOR] Commit
 
 ### Task 2 — FeatureCarousel
-- [ ] C2-1: Create `src/components/landing/FeatureCarousel.tsx` (exact code in plan Task 2 Step C2-1)
-- [ ] C2-2: [CONDUCTOR] Commit
+- [x] C2-1: Create `src/components/landing/FeatureCarousel.tsx` (exact code in plan Task 2 Step C2-1)
+- [x] C2-2: [CONDUCTOR] Commit
 
 ### Task 3 — PricingSection
 - [ ] C3-1: Create `src/components/landing/PricingSection.tsx` (exact code in plan Task 3 Step C3-1)
