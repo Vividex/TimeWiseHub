@@ -50,7 +50,7 @@ export default function NewDmDialog({
               disabled={busy}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-gray-50 disabled:opacity-50 dark:hover:bg-slate-800"
             >
-              <UserAvatar avatarUrl={m.avatar_url} avatarConfig={m.avatar_config} name={displayName(m)} size={36} />
+              <UserAvatar avatarUrl={m.avatar_url} name={displayName(m)} size={36} />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {displayName(m)}

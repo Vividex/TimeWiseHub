@@ -194,7 +194,6 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
               {!mine && (
                 <UserAvatar
                   avatarUrl={members[m.sender_id]?.avatar_url}
-                  avatarConfig={members[m.sender_id]?.avatar_config}
                   name={senderName(members, m.sender_id)}
                   size={20}
                 />

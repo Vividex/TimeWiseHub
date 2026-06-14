@@ -42,10 +42,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C6-2: [CONDUCTOR] Commit
 
 ### Task 7 — Clean Up Chat Display Components
-- [ ] C7-1: Edit `src/components/chat/MessageThread.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 1)
-- [ ] C7-2: Edit `src/components/chat/ConversationList.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 2)
-- [ ] C7-3: Edit `src/components/chat/NewDmDialog.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 3)
-- [ ] C7-4: [CONDUCTOR] Commit
+- [x] C7-1: Edit `src/components/chat/MessageThread.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 1)
+- [x] C7-2: Edit `src/components/chat/ConversationList.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 2)
+- [x] C7-3: Edit `src/components/chat/NewDmDialog.tsx` — remove `avatarConfig` prop from UserAvatar (exact edit in plan Task 7 Step 3)
+- [x] C7-4: [CONDUCTOR] Commit
 
 ### Task 8 — Remove @dicebear Packages + Build
 - [ ] C8-1: [CONDUCTOR] `pnpm remove @dicebear/core @dicebear/collection`

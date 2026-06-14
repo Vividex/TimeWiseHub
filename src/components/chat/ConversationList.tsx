@@ -47,7 +47,6 @@ export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
             return (
               <UserAvatar
                 avatarUrl={m?.avatar_url}
-                avatarConfig={m?.avatar_config}
                 name={label(conv)}
                 size={36}
               />
