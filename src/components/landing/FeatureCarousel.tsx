@@ -400,7 +400,7 @@ export default function FeatureCarousel() {
               onClick={() => setActive(i)}
               aria-label={`Go to slide ${i + 1}`}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i === active ? 'bg-violet-400 w-6' : 'bg-slate-600 hover:bg-slate-400'
+                i === active ? 'bg-cyan-400 w-6' : 'bg-slate-600 hover:bg-slate-400'
               }`}
             />
           ))}
