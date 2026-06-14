@@ -22,8 +22,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 ## Acceptance checklist
 
 ### Task 1 — DB Migration: roster_shift_templates table
-- [ ] C1-1: [CODEX] Create `supabase/schema-051-roster-templates.sql` (exact SQL in plan Task 1 Step C1-1, with corrected number 051)
-- [ ] C1-2: [CONDUCTOR] Apply migration via Supabase MCP, run build, commit
+- [x] C1-1: [CODEX] Create `supabase/schema-051-roster-templates.sql` (exact SQL in plan Task 1 Step C1-1, with corrected number 051)
+- [x] C1-2: [CONDUCTOR] Apply migration via Supabase MCP, run build, commit
 
 ### Task 2 — DB Migration: pay_week_start_day + drop Monday constraint
 - [ ] C2-1: [CODEX] Create `supabase/schema-052-pay-week-start.sql` (exact SQL in plan Task 2 Step C2-1, with corrected number 052)
