@@ -1,6 +1,6 @@
 'use client'
 
-import { Megaphone, Plus } from 'lucide-react'
+import { Megaphone, Plus, Users } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import type { ChatConversation } from '@/lib/chat/types'
@@ -12,14 +12,22 @@ function dmPeerId(conv: ChatConversation, userId: string): string | null {
   return a === userId ? b : a
 }
 
-export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
+export default function ConversationList({
+  onNewDm,
+  onNewGroup,
+}: {
+  onNewDm: () => void
+  onNewGroup: () => void
+}) {
   const { userId, conversations, members, unreadByConversation, activeConversationId, setActiveConversation } = useChat()
 
   const channels = conversations.filter(c => c.type === 'channel')
+  const groups = conversations.filter(c => c.type === 'group')
   const dms = conversations.filter(c => c.type === 'dm')
 
   function label(conv: ChatConversation): string {
     if (conv.type === 'channel') return conv.title ?? 'Announcements'
+    if (conv.type === 'group') return conv.title ?? 'Group chat'
     const peer = dmPeerId(conv, userId)
     const m = peer ? members[peer] : null
     return m ? displayName(m) : 'Direct message'
@@ -40,17 +48,15 @@ export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-950">
             <Megaphone size={16} />
           </span>
+        ) : conv.type === 'group' ? (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600 dark:bg-violet-950">
+            <Users size={16} />
+          </span>
         ) : (
           (() => {
             const peer = dmPeerId(conv, userId)
             const m = peer ? members[peer] : null
-            return (
-              <UserAvatar
-                avatarUrl={m?.avatar_url}
-                name={label(conv)}
-                size={36}
-              />
-            )
+            return <UserAvatar avatarUrl={m?.avatar_url} name={label(conv)} size={36} />
           })()
         )}
         <span className="min-w-0 flex-1">
@@ -67,20 +73,52 @@ export default function ConversationList({ onNewDm }: { onNewDm: () => void }) {
 
   return (
     <div className="flex h-full w-72 shrink-0 flex-col border-r border-gray-200 dark:border-slate-800">
-      <div className="flex items-center justify-between px-4 py-4">
+      <div className="px-4 py-4">
         <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">Messages</h2>
-        <button
-          onClick={onNewDm}
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500 text-white transition-colors hover:bg-cyan-600"
-          title="New message"
-        >
-          <Plus size={16} />
-        </button>
       </div>
-      <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-4">
-        {channels.map(row)}
-        {dms.length > 0 && <div className="my-2 border-t border-gray-100 dark:border-slate-800" />}
-        {dms.map(row)}
+      <div className="flex-1 overflow-y-auto px-2 pb-4">
+        {channels.length > 0 && (
+          <div className="mb-1">
+            <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Channels</p>
+            <div className="space-y-0.5">{channels.map(row)}</div>
+          </div>
+        )}
+
+        <div className="mb-1 mt-3">
+          <div className="flex items-center justify-between px-3 pb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Groups</p>
+            <button
+              onClick={onNewGroup}
+              className="text-gray-400 transition-colors hover:text-cyan-500"
+              title="New group"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+          {groups.length === 0 ? (
+            <p className="px-3 py-1 text-xs text-gray-300 dark:text-slate-600">No groups yet.</p>
+          ) : (
+            <div className="space-y-0.5">{groups.map(row)}</div>
+          )}
+        </div>
+
+        <div className="mt-3">
+          <div className="flex items-center justify-between px-3 pb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Direct messages</p>
+            <button
+              onClick={onNewDm}
+              className="text-gray-400 transition-colors hover:text-cyan-500"
+              title="New message"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+          {dms.length === 0 ? (
+            <p className="px-3 py-1 text-xs text-gray-300 dark:text-slate-600">No messages yet.</p>
+          ) : (
+            <div className="space-y-0.5">{dms.map(row)}</div>
+          )}
+        </div>
       </div>
     </div>
   )
