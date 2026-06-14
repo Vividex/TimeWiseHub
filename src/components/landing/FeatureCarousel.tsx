@@ -152,6 +152,42 @@ const SLIDES: Slide[] = [
     ),
   },
   {
+    title: 'Video Calls',
+    description:
+      'Start instant video calls from any group chat, or schedule team meetings with calendar invites and email reminders.',
+    mockup: (
+      <div className="w-full rounded-xl bg-slate-800 p-4 text-xs space-y-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-slate-400 font-semibold">Team Standup · Live</span>
+          <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            3 in call
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { name: 'Alice', color: 'bg-violet-600', speaking: true },
+            { name: 'Bob', color: 'bg-cyan-600', speaking: false },
+            { name: 'You', color: 'bg-slate-600', speaking: false },
+          ].map(({ name, color, speaking }) => (
+            <div
+              key={name}
+              className={`rounded-lg aspect-video flex flex-col items-center justify-center gap-1 ${color} ${speaking ? 'ring-2 ring-emerald-400' : ''}`}
+            >
+              <span className="text-white font-bold text-base">{name[0]}</span>
+              <span className="text-white/70 text-xs">{name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center gap-3 pt-1">
+          <div className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300">Mute</div>
+          <div className="px-3 py-1.5 rounded-lg bg-red-600 text-white font-semibold">End</div>
+          <div className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300">Chat</div>
+        </div>
+      </div>
+    ),
+  },
+  {
     title: 'Tasks & Projects',
     description:
       'Assign tasks, set due dates, and track progress across projects — from a single dashboard view.',
@@ -311,7 +347,7 @@ export default function FeatureCarousel() {
     if (paused) return
     intervalRef.current = setInterval(() => {
       setActive((prev) => (prev + 1) % SLIDES.length)
-    }, 4000)
+    }, 2000)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
