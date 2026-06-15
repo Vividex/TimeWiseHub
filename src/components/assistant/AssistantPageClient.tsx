@@ -10,8 +10,15 @@ import { useVoice } from '@/hooks/useVoice'
 type Message = {
   role: 'user' | 'assistant' | 'notice'
   content: string
-  action?: ActionProposal
+  actions?: ActionProposal[]   // current: array of proposals
+  action?: ActionProposal      // legacy: single proposal from old saved sessions
   actionStatus?: 'pending' | 'confirmed' | 'cancelled'
+}
+
+function getActions(msg: Message): ActionProposal[] {
+  if (msg.actions && msg.actions.length > 0) return msg.actions
+  if (msg.action) return [msg.action]
+  return []
 }
 
 type Session = { id: string; title: string | null; updated_at: string }
@@ -28,16 +35,15 @@ function stripMarkdown(text: string): string {
     .trim()
 }
 
-function parseResponse(raw: string): { text: string; action: ActionProposal | null } {
-  const idx = raw.indexOf(ACTION_SENTINEL)
-  if (idx === -1) return { text: raw, action: null }
-  const text = raw.slice(0, idx)
-  try {
-    const action = JSON.parse(raw.slice(idx + ACTION_SENTINEL.length)) as ActionProposal
-    return { text, action }
-  } catch {
-    return { text: raw, action: null }
+function parseResponse(raw: string): { text: string; actions: ActionProposal[] } {
+  const parts = raw.split(ACTION_SENTINEL)
+  const text = parts[0]
+  if (parts.length === 1) return { text, actions: [] }
+  const actions: ActionProposal[] = []
+  for (let i = 1; i < parts.length; i++) {
+    try { actions.push(JSON.parse(parts[i]) as ActionProposal) } catch { /* skip malformed */ }
   }
+  return { text, actions }
 }
 
 export default function AssistantPageClient({
@@ -218,11 +224,11 @@ export default function AssistantPageClient({
         })
       }
 
-      const { text: finalText, action } = parseResponse(accumulated)
+      const { text: finalText, actions } = parseResponse(accumulated)
       const finalMessages: Message[] = [
         ...nextMessages,
-        action
-          ? { role: 'assistant', content: finalText, action, actionStatus: 'pending' as const }
+        actions.length > 0
+          ? { role: 'assistant', content: finalText, actions, actionStatus: 'pending' as const }
           : { role: 'assistant', content: finalText },
       ]
       setMessages(finalMessages)
@@ -250,28 +256,41 @@ export default function AssistantPageClient({
 
   async function handleConfirm(msgIndex: number) {
     const msg = messages[msgIndex]
-    if (!msg.action) return
-    setConfirmingId(msg.action.id)
+    const actions = getActions(msg)
+    if (actions.length === 0) return
+    setConfirmingId(actions[0].id)
 
     try {
-      const res = await fetch('/api/assistant/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: msg.action.tool, input: msg.action.input }),
-      })
-      const data = await res.json()
+      // Execute all actions in parallel
+      const results = await Promise.allSettled(
+        actions.map(action =>
+          fetch('/api/assistant/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool: action.tool, input: action.input }),
+          }).then(r => r.json())
+        )
+      )
 
+      const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value?.ok))
+      const allOk = failures.length === 0
       const confirmedMsg: Message = { ...msg, actionStatus: 'confirmed' as const }
-      const followUp = res.ok
-        ? `Action confirmed and completed. Result: ${JSON.stringify(data.result)}`
-        : `The action failed: ${data.error}`
+
+      const followUp = allOk
+        ? `${actions.length} action${actions.length > 1 ? 's' : ''} confirmed and completed. Results: ${JSON.stringify(results.map(r => r.status === 'fulfilled' ? r.value?.result : null))}`
+        : `${actions.length - failures.length} of ${actions.length} actions succeeded. Failures: ${JSON.stringify(failures)}`
 
       const historyWithFollowUp = [
         ...buildHistory([...messages.slice(0, msgIndex), confirmedMsg]),
         { role: 'user' as const, content: followUp },
       ]
 
-      const notice: Message = { role: 'notice', content: res.ok ? 'Action confirmed.' : `Failed: ${data.error}` }
+      const notice: Message = {
+        role: 'notice',
+        content: allOk
+          ? (actions.length > 1 ? `${actions.length} actions confirmed.` : 'Action confirmed.')
+          : `${failures.length} action${failures.length > 1 ? 's' : ''} failed.`,
+      }
       const nextMessages: Message[] = [
         ...messages.slice(0, msgIndex),
         confirmedMsg,
@@ -303,10 +322,10 @@ export default function AssistantPageClient({
             return u
           })
         }
-        const { text: followUpText, action: followUpAction } = parseResponse(acc)
+        const { text: followUpText, actions: followUpActions } = parseResponse(acc)
         if (voiceEnabled && followUpText) speak(stripMarkdown(followUpText))
-        const followUpMsg: Message = followUpAction
-          ? { role: 'assistant', content: followUpText, action: followUpAction, actionStatus: 'pending' as const }
+        const followUpMsg: Message = followUpActions.length > 0
+          ? { role: 'assistant', content: followUpText, actions: followUpActions, actionStatus: 'pending' as const }
           : { role: 'assistant', content: followUpText }
         const finalMessages: Message[] = [
           ...messages.slice(0, msgIndex),
@@ -392,20 +411,28 @@ export default function AssistantPageClient({
                   <p className="whitespace-pre-wrap">
                     {msg.content || (loading && i === messages.length - 1 ? 'Thinking…' : '')}
                   </p>
-                  {msg.action && msg.actionStatus === 'pending' && (
-                    <ActionCard
-                      proposal={msg.action}
-                      onConfirm={() => handleConfirm(i)}
-                      onCancel={() => handleCancel(i)}
-                      loading={confirmingId === msg.action.id}
-                    />
-                  )}
-                  {msg.action && msg.actionStatus === 'confirmed' && (
-                    <p className="mt-2 text-xs font-semibold text-green-600 dark:text-green-400">✓ Confirmed</p>
-                  )}
-                  {msg.action && msg.actionStatus === 'cancelled' && (
-                    <p className="mt-2 text-xs font-semibold text-gray-400">Cancelled</p>
-                  )}
+                  {(() => {
+                    const msgActions = getActions(msg)
+                    if (msgActions.length === 0) return null
+                    return (
+                      <>
+                        {msg.actionStatus === 'pending' && (
+                          <ActionCard
+                            proposals={msgActions}
+                            onConfirm={() => handleConfirm(i)}
+                            onCancel={() => handleCancel(i)}
+                            loading={confirmingId === msgActions[0].id}
+                          />
+                        )}
+                        {msg.actionStatus === 'confirmed' && (
+                          <p className="mt-2 text-xs font-semibold text-green-600 dark:text-green-400">✓ Confirmed</p>
+                        )}
+                        {msg.actionStatus === 'cancelled' && (
+                          <p className="mt-2 text-xs font-semibold text-gray-400">Cancelled</p>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             )
