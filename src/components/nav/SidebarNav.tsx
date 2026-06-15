@@ -11,23 +11,24 @@ import {
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
+import { useTutorial } from '@/components/tutorial/TutorialProvider'
 
-type NavItem = { label: string; href: string; icon: LucideIcon }
+type NavItem = { label: string; href: string; icon: LucideIcon; tutorialId?: string }
 type NavGroup = { title: string; items: NavItem[] }
 
 export const NAV_GROUPS: NavGroup[] = [
   { title: 'Home', items: [
-    { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Home', href: '/dashboard', icon: LayoutDashboard, tutorialId: 'home' },
   ] },
   { title: 'Delivery', items: [
-    { label: 'Clients', href: '/dashboard/clients', icon: Users },
+    { label: 'Clients', href: '/dashboard/clients', icon: Users, tutorialId: 'clients' },
     { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
-    { label: 'Time', href: '/dashboard/time', icon: Clock },
+    { label: 'Time', href: '/dashboard/time', icon: Clock, tutorialId: 'time' },
   ] },
   { title: 'Communication', items: [
-    { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare },
+    { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare, tutorialId: 'chat' },
     { label: 'Video', href: '/dashboard/video', icon: Video },
-    { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles },
+    { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles, tutorialId: 'assistant' },
   ] },
   { title: 'Money', items: [
     { label: 'Invoices', href: '/dashboard/invoices', icon: FileText },
@@ -36,7 +37,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'People', items: [
     { label: 'Leave',   href: '/dashboard/leave',  icon: Palmtree },
-    { label: 'Roster',  href: '/dashboard/roster', icon: CalendarRange },
+    { label: 'Roster',  href: '/dashboard/roster', icon: CalendarRange, tutorialId: 'roster' },
     { label: 'Team',    href: '/dashboard/team',   icon: Users2 },
   ] },
   { title: 'Insights', items: [
@@ -62,12 +63,19 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const Icon = item.icon
   const unread = useChatUnreadTotal()
   const badge = item.href === '/dashboard/chat' && unread > 0 ? (unread > 99 ? '99+' : unread) : null
+  const { activeTarget } = useTutorial()
+
+  const isBlocked = !!activeTarget && item.tutorialId !== activeTarget
+  const isSpotlit = !!activeTarget && item.tutorialId === activeTarget
+
   return (
     <Link
       href={item.href}
+      data-tutorial={item.tutorialId}
+      tabIndex={isBlocked ? -1 : undefined}
       className={`flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-colors ${
         active ? 'border-cyan-400 bg-slate-800 text-cyan-400' : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-white'
-      }`}
+      } ${isBlocked ? 'pointer-events-none opacity-30' : ''} ${isSpotlit ? 'relative' : ''}`}
     >
       <Icon size={16} className="shrink-0" />
       {item.label}
