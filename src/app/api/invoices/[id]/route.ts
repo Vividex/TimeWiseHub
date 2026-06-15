@@ -129,3 +129,45 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   return NextResponse.json({ ok: true, status: newStatus })
 }
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const service = createServiceClient()
+
+  const { data: invoice } = await service
+    .from('invoices')
+    .select('id, owner_id, org_id, status')
+    .eq('id', id)
+    .single()
+
+  if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Only quotes can be deleted this way; use cancel flow for sent/overdue invoices
+  if (invoice.status !== 'quote') {
+    return NextResponse.json({ error: 'Only quotes can be deleted' }, { status: 400 })
+  }
+
+  const isOwner = invoice.owner_id === user.id
+  if (invoice.org_id) {
+    const { data: membership } = await supabase
+      .from('organisation_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('org_id', invoice.org_id)
+      .maybeSingle()
+    const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+    if (!isOwner && !isManager) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  } else if (!isOwner) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  await service.from('invoice_items').delete().eq('invoice_id', id)
+  const { error } = await service.from('invoices').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ ok: true })
+}

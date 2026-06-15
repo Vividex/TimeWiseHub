@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
+import DeleteQuoteButton from '@/components/quotes/DeleteQuoteButton'
 
 const STATUS_STYLE: Record<string, string> = {
   pending_approval: 'bg-amber-100 text-amber-700',
@@ -69,6 +70,7 @@ export default async function ClientQuotesPage({ params }: { params: Promise<{ i
                   <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Valid until</th>
                   <th className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-gray-400">Amount</th>
                   <th className="px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Status</th>
+                  <th className="px-3 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
@@ -89,6 +91,9 @@ export default async function ClientQuotesPage({ params }: { params: Promise<{ i
                       <span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[q.status] ?? 'bg-gray-100 text-gray-600'}`}>
                         {q.status === 'pending_approval' ? 'Pending' : 'Quote'}
                       </span>
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <DeleteQuoteButton quoteId={q.id} quoteNumber={q.invoice_number} />
                     </td>
                   </tr>
                 ))}
