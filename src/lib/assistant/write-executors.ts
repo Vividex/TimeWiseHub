@@ -98,6 +98,7 @@ export async function executeWriteTool(
             name: input.name as string,
             email: (input.email as string) ?? null,
             phone: (input.phone as string) ?? null,
+            address: (input.address as string) ?? null,
           })
           .select('id, name')
           .single()
