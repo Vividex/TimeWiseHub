@@ -6,7 +6,7 @@ export const READ_TOOLS = new Set([
   'get_tasks', 'get_projects', 'get_clients', 'get_time_entries',
   'get_expenses', 'get_team_members', 'get_leave_requests',
   'get_calendar_events', 'get_summary',
-  'get_sessions', 'get_progress_notes',
+  'get_sessions', 'get_progress_notes', 'get_invoices',
 ])
 
 export const WRITE_TOOLS = new Set([
@@ -14,6 +14,7 @@ export const WRITE_TOOLS = new Set([
   'create_client', 'update_client', 'create_time_entry', 'start_timer',
   'stop_timer', 'create_expense', 'create_calendar_event', 'create_leave_request',
   'create_session', 'update_session', 'add_session_todo', 'check_session_todo', 'add_progress_note',
+  'create_quote',
 ])
 
 export function isReadTool(name: string): boolean {
@@ -378,6 +379,49 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
       required: ['client_id', 'body'],
     },
   },
+
+  // ── Invoice / Quote tools ────────────────────────────────────
+  {
+    name: 'get_invoices',
+    description: 'Fetch invoices or quotes the user can see. Use to look up existing documents for context.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Filter by client UUID' },
+        type: { type: 'string', enum: ['quote', 'invoice', 'all'], description: 'quote = status quote only, invoice = all non-quote statuses, all = everything. Default: all' },
+        status: { type: 'string', enum: ['quote', 'draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending_approval'], description: 'Filter by exact status (overrides type)' },
+        limit: { type: 'number', description: 'Max results (default 10)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'create_quote',
+    description: 'Propose creating a new quote with professional line items. Write polished, specific descriptions for each item — not vague labels. Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        client_id: { type: 'string', description: 'Client UUID' },
+        items: {
+          type: 'array' as const,
+          description: 'Line items for the quote',
+          items: {
+            type: 'object' as const,
+            properties: {
+              description: { type: 'string', description: 'Professional description of this service or product. Be specific — include scope, deliverables, or inclusions.' },
+              quantity: { type: 'number', description: 'Quantity (default 1). Use hours for time-based work.' },
+              unit_price: { type: 'number', description: 'Price per unit in the quote currency' },
+            },
+            required: ['description', 'unit_price'],
+          },
+        },
+        currency: { type: 'string', description: 'Currency code e.g. AUD, USD. Default: AUD' },
+        due_date: { type: 'string', description: 'Quote expiry date ISO (YYYY-MM-DD). Suggest 30 days from today if not specified.' },
+        notes: { type: 'string', description: 'Payment terms or conditions. Write professional terms if the user has not specified any.' },
+      },
+      required: ['client_id', 'items'],
+    },
+  },
 ]
 
 // ── Read executors ────────────────────────────────────────────
@@ -566,6 +610,24 @@ export async function executeReadTool(
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
         .limit(Number(input.limit ?? 20))
+      return data ?? []
+    }
+
+    case 'get_invoices': {
+      let q = supabase
+        .from('invoices')
+        .select('id, invoice_number, status, issue_date, due_date, subtotal, currency, notes, clients(name)')
+        .order('created_at', { ascending: false })
+        .limit(Number(input.limit ?? 10))
+      if (input.client_id) q = q.eq('client_id', input.client_id as string)
+      if (input.status) {
+        q = q.eq('status', input.status as string)
+      } else if (input.type === 'quote') {
+        q = q.eq('status', 'quote')
+      } else if (input.type === 'invoice') {
+        q = q.neq('status', 'quote')
+      }
+      const { data } = await q
       return data ?? []
     }
 

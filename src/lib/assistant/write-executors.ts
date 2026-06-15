@@ -1,6 +1,7 @@
 // src/lib/assistant/write-executors.ts
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { notifyTaskAssigned } from '@/lib/task-notifications'
+import { createServiceClient } from '@/lib/supabase-service'
 
 type ToolInput = Record<string, unknown>
 
@@ -336,6 +337,61 @@ export async function executeWriteTool(
           .single()
         if (error) return { ok: false, error: error.message }
         return { ok: true, result: data }
+      }
+
+      case 'create_quote': {
+        const { data: membership } = await supabase
+          .from('organisation_members')
+          .select('org_id')
+          .eq('user_id', userId)
+          .maybeSingle()
+
+        // Use service role to count all user's quotes for sequential numbering
+        const service = createServiceClient()
+        const { count: qCount } = await service
+          .from('invoices')
+          .select('id', { count: 'exact', head: true })
+          .eq('owner_id', userId)
+          .eq('status', 'quote')
+        const year = new Date().getFullYear()
+        const invoiceNumber = `Q-${year}-${String((qCount ?? 0) + 1).padStart(3, '0')}`
+
+        type QuoteItem = { description: string; quantity?: number; unit_price: number }
+        const items = (input.items as QuoteItem[]) ?? []
+        const subtotal = items.reduce((s, i) => s + ((i.quantity ?? 1) * i.unit_price), 0)
+
+        const { data: quote, error } = await supabase
+          .from('invoices')
+          .insert({
+            owner_id: userId,
+            org_id: membership?.org_id ?? null,
+            client_id: (input.client_id as string) ?? null,
+            invoice_number: invoiceNumber,
+            status: 'quote',
+            issue_date: new Date().toISOString().slice(0, 10),
+            due_date: (input.due_date as string) ?? null,
+            currency: (input.currency as string) ?? 'AUD',
+            subtotal,
+            notes: (input.notes as string) ?? null,
+          })
+          .select('id, invoice_number')
+          .single()
+
+        if (error || !quote) return { ok: false, error: error?.message ?? 'Failed to create quote.' }
+
+        if (items.length > 0) {
+          await supabase.from('invoice_items').insert(
+            items.map((item, idx) => ({
+              invoice_id: quote.id,
+              description: item.description,
+              quantity: item.quantity ?? 1,
+              unit_price: item.unit_price,
+              sort_order: idx,
+            }))
+          )
+        }
+
+        return { ok: true, result: { id: quote.id, invoice_number: invoiceNumber, subtotal } }
       }
 
       default:
