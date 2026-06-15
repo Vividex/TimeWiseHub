@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
+import { notifyApprovalRequired } from '@/lib/invoice-notifications'
 
 type LineItemInput = { description: string; quantity: number; unit_price: number }
 
@@ -109,6 +110,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       sort_order: idx,
     }))
   )
+
+  // Notify crew managers (or org managers) when an employee submits for approval
+  if (newStatus === 'pending_approval' && invoice.org_id) {
+    try {
+      await notifyApprovalRequired({
+        invoiceId: id,
+        orgId: invoice.org_id,
+        submitterId: user.id,
+        invoiceNumber: invoice.invoice_number,
+        subtotal,
+        currency,
+      })
+    } catch {
+      // Push failure must not affect the response
+    }
+  }
 
   return NextResponse.json({ ok: true, status: newStatus })
 }
