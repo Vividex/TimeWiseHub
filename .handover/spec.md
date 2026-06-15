@@ -82,8 +82,8 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 
 ### Task 16 — Add StartCallButton to ChatClient header
 - [x] C16-1: Edit `src/components/chat/ChatClient.tsx` (exact edit in plan Task 16 Step C16-1)
-- [ ] C16-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C16-3: [CONDUCTOR] Commit
+- [x] C16-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C16-3: [CONDUCTOR] Commit
 
 ## Verification
 `pnpm run build` must pass clean after Task 16.
