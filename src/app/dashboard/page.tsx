@@ -7,6 +7,8 @@ import TeamTasks from '@/components/tasks/TeamTasks'
 import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
 import PushPermission from '@/components/PushPermission'
+import OrgDocuments from '@/components/home/OrgDocuments'
+import PendingApprovals from '@/components/home/PendingApprovals'
 
 type PoolTask = {
   id: string
@@ -138,6 +140,14 @@ export default async function DashboardHome() {
               orgMembers={mappedMembers ?? []}
             />
           </div>
+        )}
+
+        {isManager && orgId && (
+          <PendingApprovals orgId={orgId} userId={user.id} role={role} />
+        )}
+
+        {isManager && orgId && (
+          <OrgDocuments orgId={orgId} />
         )}
       </div>
     </div>
