@@ -357,9 +357,12 @@ export async function executeWriteTool(
         const year = new Date().getFullYear()
         const invoiceNumber = `Q-${year}-${String((qCount ?? 0) + 1).padStart(3, '0')}`
 
-        type QuoteItem = { description: string; quantity?: number; unit_price: number }
+        type QuoteItem = { description: string; quantity?: number; unit_price?: number }
         const items = (input.items as QuoteItem[]) ?? []
-        const subtotal = items.reduce((s, i) => s + ((i.quantity ?? 1) * i.unit_price), 0)
+        // Use explicit total when provided (lump-sum quotes with no individual pricing)
+        const subtotal = typeof input.total === 'number'
+          ? input.total
+          : items.reduce((s, i) => s + ((i.quantity ?? 1) * (i.unit_price ?? 0)), 0)
 
         const { data: quote, error } = await supabase
           .from('invoices')
@@ -386,7 +389,7 @@ export async function executeWriteTool(
               invoice_id: quote.id,
               description: item.description,
               quantity: item.quantity ?? 1,
-              unit_price: item.unit_price,
+              unit_price: item.unit_price ?? 0,
               sort_order: idx,
             }))
           )

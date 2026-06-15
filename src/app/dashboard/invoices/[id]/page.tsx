@@ -89,7 +89,11 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
 
         {/* Header actions */}
         <div className="flex items-center justify-between gap-4">
-          <Link href="/dashboard/invoices" className="text-sm font-bold text-cyan-600 hover:underline">← All invoices</Link>
+          {invoice.status === 'quote' && invoice.client_id ? (
+            <Link href={`/dashboard/clients/${invoice.client_id}/quotes`} className="text-sm font-bold text-cyan-600 hover:underline">← Quotes</Link>
+          ) : (
+            <Link href="/dashboard/invoices" className="text-sm font-bold text-cyan-600 hover:underline">← All invoices</Link>
+          )}
           <div className="flex items-center gap-3">
             {canEdit && (
               <Link href={`/dashboard/invoices/${id}/edit`}
