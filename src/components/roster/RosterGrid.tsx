@@ -92,6 +92,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
   }
 
   const unpublishedCount = shifts.filter(s => s.date >= weekStart && s.date <= weekEnd && !s.published).length
+  const todayISO = toISO(new Date())
 
   return (
     <div>
@@ -103,69 +104,99 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
           </span>
           <button onClick={nextWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">→</button>
         </div>
-        {canManageRoster && unpublishedCount > 0 && (
-          <button onClick={publishWeek} disabled={publishing}
-            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
-            {publishing ? 'Publishing…' : `Publish week (${unpublishedCount} draft)`}
-          </button>
-        )}
-        {canManageRoster && (
-          <button onClick={setAsRecurring} disabled={settingTemplate}
-            className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
-            {settingTemplate ? 'Saving…' : 'Set as recurring'}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {canManageRoster && unpublishedCount > 0 && (
+            <button onClick={publishWeek} disabled={publishing}
+              className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+              {publishing ? 'Publishing…' : `Publish week (${unpublishedCount} draft)`}
+            </button>
+          )}
+          {canManageRoster && (
+            <button onClick={setAsRecurring} disabled={settingTemplate}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+              {settingTemplate ? 'Saving…' : 'Set as recurring'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Leave colour legend */}
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {Object.entries({
           Annual: 'annual', Sick: 'sick', Personal: 'personal',
           'Long Service': 'long service', Parental: 'parental',
           Bereavement: 'bereavement', Unpaid: 'unpaid',
         }).map(([label, key]) => (
-          <span key={key} className={`rounded-full px-2 py-0.5 text-xs font-medium ${leaveColour(key)}`}>{label}</span>
+          <span key={key} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${leaveColour(key)}`}>{label}</span>
         ))}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr>
-              <th className="w-32 py-2 pr-3 text-left text-xs font-medium text-gray-500">Member</th>
-              {weekDates.map((d, i) => (
-                <th key={i} className="min-w-[110px] px-2 py-2 text-center text-xs font-medium text-gray-500">
-                  {d.toLocaleDateString('en-AU', { weekday: 'short' })} <span className="text-gray-400">{d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
-                </th>
-              ))}
+            <tr className="divide-x divide-gray-200 dark:divide-slate-700 bg-gray-50 dark:bg-slate-800">
+              <th className="w-36 border-b border-gray-200 dark:border-slate-700 py-3 pl-4 pr-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                Member
+              </th>
+              {weekDates.map((d, i) => {
+                const iso = toISO(d)
+                const isToday = iso === todayISO
+                const isWeekend = d.getDay() === 0 || d.getDay() === 6
+                return (
+                  <th key={i} className={`min-w-[110px] border-b border-gray-200 dark:border-slate-700 px-2 py-3 text-center ${
+                    isToday ? 'bg-cyan-50 dark:bg-cyan-900/20' : isWeekend ? 'bg-slate-100/80 dark:bg-slate-700/40' : ''
+                  }`}>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className={`text-xs font-bold ${isToday ? 'text-cyan-600 dark:text-cyan-400' : isWeekend ? 'text-slate-500 dark:text-slate-400' : 'text-gray-700 dark:text-slate-300'}`}>
+                        {d.toLocaleDateString('en-AU', { weekday: 'short' })}
+                      </span>
+                      <span className={`text-[11px] ${isToday ? 'font-bold text-cyan-500' : 'text-gray-400 dark:text-slate-500'}`}>
+                        {d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                      </span>
+                      {isToday && <span className="mt-0.5 h-1 w-1 rounded-full bg-cyan-500" />}
+                    </div>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
-          <tbody>
-            {members.map(member => (
-              <tr key={member.user_id} className="border-t border-gray-100 dark:border-slate-800">
-                <td className="py-2 pr-3 text-xs font-medium text-gray-700 dark:text-slate-300 whitespace-nowrap">{member.display_name}</td>
+          <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+            {members.map((member, memberIdx) => (
+              <tr key={member.user_id}
+                className={`divide-x divide-gray-100 dark:divide-slate-800 ${memberIdx % 2 === 1 ? 'bg-gray-50/60 dark:bg-slate-800/30' : 'bg-white dark:bg-slate-900/20'}`}>
+                <td className="py-2 pl-4 pr-3 text-xs font-semibold text-gray-700 dark:text-slate-300 whitespace-nowrap">
+                  {member.display_name}
+                </td>
                 {weekDates.map((d, i) => {
                   const iso = toISO(d)
+                  const isToday = iso === todayISO
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6
                   const dayShifts = shifts.filter(s => s.user_id === member.user_id && s.date === iso)
                   const dayLeave = leaveBlocks.filter(l => l.user_id === member.user_id && l.start_date <= iso && l.end_date >= iso)
                   return (
-                    <td key={i} className="px-1 py-1 align-top">
-                      <div className="min-h-[48px] rounded-lg p-1">
+                    <td key={i} className={`px-1.5 py-1.5 align-top ${
+                      isToday ? 'bg-cyan-50/50 dark:bg-cyan-900/10' : isWeekend ? 'bg-slate-50/80 dark:bg-slate-800/40' : ''
+                    }`}>
+                      <div className="min-h-[52px]">
                         {dayLeave.map(l => (
                           <div key={l.id}
-                            className={`mb-1 w-full rounded-lg px-2 py-1 text-xs font-medium ${leaveColour(l.leave_type)}`}>
+                            className={`mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold ${leaveColour(l.leave_type)}`}>
                             {leaveLabel(l.leave_type, l.half_day)}
                           </div>
                         ))}
                         {dayShifts.map(s => (
                           <button key={s.id} onClick={() => canManageRoster && setFormState({ open: true, shift: s })}
-                            className={`mb-1 w-full rounded-lg px-2 py-1 text-left text-xs font-medium ${s.published ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}`}>
+                            className={`mb-1 w-full rounded-lg px-2 py-1.5 text-left text-xs font-semibold shadow-sm ${
+                              s.published
+                                ? 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-900/40 dark:text-cyan-300'
+                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300'
+                            }`}>
                             {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}
                           </button>
                         ))}
                         {canManageRoster && (
                           <button onClick={() => setFormState({ open: true, defaultDate: iso })}
-                            className="flex w-full items-center justify-center rounded-lg p-1 text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-500">
+                            className="flex w-full items-center justify-center rounded-lg p-1 text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-500">
                             <Plus size={12} />
                           </button>
                         )}
