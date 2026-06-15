@@ -155,15 +155,35 @@ export default function AssistantWidget({
     setConfirmingId(actions[0].id)
 
     try {
-      const results = await Promise.allSettled(
-        actions.map(action =>
-          fetch('/api/assistant/execute', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool: action.tool, input: action.input }),
-          }).then(r => r.json())
+      const allSameTool = actions.every(a => a.tool === actions[0].tool)
+      type ExecResult = { ok?: boolean; result?: unknown; error?: string }
+      let results: PromiseSettledResult<ExecResult>[]
+      if (allSameTool && actions.length > 1) {
+        const settled: PromiseSettledResult<ExecResult>[] = []
+        for (const action of actions) {
+          try {
+            const data = await fetch('/api/assistant/execute', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tool: action.tool, input: action.input }),
+            }).then(r => r.json() as Promise<ExecResult>)
+            settled.push({ status: 'fulfilled', value: data })
+          } catch (e) {
+            settled.push({ status: 'rejected', reason: e })
+          }
+        }
+        results = settled
+      } else {
+        results = await Promise.allSettled(
+          actions.map(action =>
+            fetch('/api/assistant/execute', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tool: action.tool, input: action.input }),
+            }).then(r => r.json() as Promise<ExecResult>)
+          )
         )
-      )
+      }
 
       const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value?.ok))
       const allOk = failures.length === 0

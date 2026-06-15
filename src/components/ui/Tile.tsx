@@ -39,7 +39,7 @@ function TileInner({ title, meta, stat, icon: Icon, accent, progress, badge }: T
             </span>
           )}
           <div className="min-w-0">
-            <p className="font-bold leading-snug text-gray-900 dark:text-slate-100 sm:truncate">{title}</p>
+            <p className="font-bold leading-snug text-gray-900 dark:text-slate-100">{title}</p>
             {meta && <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">{meta}</p>}
           </div>
         </div>
