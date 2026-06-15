@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 
-type Nudge = { type: 'deadline' | 'priority' | 'idle'; message: string }
+type Nudge = { type: 'deadline' | 'priority'; message: string }
 
 export default function NudgeBanner({ userId }: { userId: string }) {
   const [nudges, setNudges] = useState<Nudge[]>([])
@@ -18,13 +18,6 @@ export default function NudgeBanner({ userId }: { userId: string }) {
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
       const tomorrowStr = tomorrow.toLocaleDateString('en-CA')
-      // Local midnight as UTC timestamp for time_entries query
-      const offset = -new Date().getTimezoneOffset()
-      const sign = offset >= 0 ? '+' : '-'
-      const hh = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')
-      const mm = String(Math.abs(offset) % 60).padStart(2, '0')
-      const todayStartISO = new Date(`${todayStr}T00:00:00${sign}${hh}:${mm}`).toISOString()
-
       // Check for tasks due today or tomorrow
       const { data: dueSoon } = await supabase
         .from('tasks')
@@ -62,19 +55,6 @@ export default function NudgeBanner({ userId }: { userId: string }) {
         }
       }
 
-      // Check idle — no time logged today
-      const { data: todayTime } = await supabase
-        .from('time_entries')
-        .select('id')
-        .eq('user_id', userId)
-        .gte('started_at', todayStartISO)
-        .limit(1)
-
-      const hour = new Date().getHours()
-      if ((!todayTime || todayTime.length === 0) && hour >= 10) {
-        found.push({ type: 'idle', message: 'No time logged today. Don\'t forget to track your work.' })
-      }
-
       setNudges(found)
     }
     check()
@@ -82,7 +62,7 @@ export default function NudgeBanner({ userId }: { userId: string }) {
 
   if (nudges.length === 0 || dismissed) return null
 
-  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-600', priority: 'bg-amber-50 border-amber-200 text-amber-600', idle: 'bg-amber-50 border-amber-200 text-amber-600' }
+  const COLOURS = { deadline: 'bg-red-50 border-red-200 text-red-600', priority: 'bg-amber-50 border-amber-200 text-amber-600' }
 
   return (
     <div className="space-y-2">

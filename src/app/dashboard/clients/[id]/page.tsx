@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknote } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
+import DeleteClientButton from '@/components/clients/DeleteClientButton'
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -63,10 +64,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← Clients</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">{client.name}</h1>
-          {client.email && <p className="mt-1 text-sm text-gray-500">{client.email}</p>}
-          {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
-          {client.address && <p className="mt-1 text-xs text-gray-400">{client.address}</p>}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">{client.name}</h1>
+              {client.email && <p className="mt-1 text-sm text-gray-500">{client.email}</p>}
+              {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
+              {client.address && <p className="mt-1 text-xs text-gray-400">{client.address}</p>}
+            </div>
+            {isAdmin && <DeleteClientButton clientId={id} clientName={client.name} />}
+          </div>
         </div>
 
         <div className="space-y-3">

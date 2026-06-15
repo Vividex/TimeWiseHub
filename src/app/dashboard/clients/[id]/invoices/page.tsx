@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -50,8 +51,10 @@ export default async function ClientInvoicesPage({ params }: { params: Promise<{
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">
-          ← {client.name}
+        <Link href={`/dashboard/clients/${id}`}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          <ChevronLeft className="h-4 w-4" />
+          {client.name}
         </Link>
 
         <div className="flex items-center justify-between gap-4">
