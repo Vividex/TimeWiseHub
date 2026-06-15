@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function InvoiceActions({ invoiceId, status, paymentLink, canSend }: {
+export default function InvoiceActions({ invoiceId, status, paymentLink, canSend, canApprove = false, isEmployee = false }: {
   invoiceId: string
   status: string
   paymentLink: string | null
   canSend: boolean
+  canApprove?: boolean
+  isEmployee?: boolean
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
@@ -61,6 +63,34 @@ export default function InvoiceActions({ invoiceId, status, paymentLink, canSend
   }
 
   if (status === 'paid' || status === 'cancelled') return null
+
+  if (status === 'pending_approval') {
+    if (canApprove) {
+      return (
+        <div className="flex items-center gap-2">
+          {error && <span className="text-xs font-semibold text-red-600">{error}</span>}
+          <span className="text-xs font-semibold text-amber-600">Awaiting your approval</span>
+          <button onClick={async () => {
+            setLoading('approve')
+            setError(null)
+            const res = await fetch(`/api/invoices/${invoiceId}/approve`, { method: 'POST' })
+            const data = await res.json()
+            if (!res.ok) { setError(data.error); setLoading(null); return }
+            router.refresh()
+            setLoading(null)
+          }} disabled={loading === 'approve'}
+            className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-50">
+            {loading === 'approve' ? 'Approving…' : 'Approve'}
+          </button>
+        </div>
+      )
+    }
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
+        {isEmployee ? 'Submitted — awaiting manager approval' : 'Pending approval'}
+      </div>
+    )
+  }
 
   if (status === 'quote') {
     return (

@@ -7,6 +7,7 @@ import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
 
 const STATUS_STYLE: Record<string, string> = {
+  pending_approval: 'bg-amber-100 text-amber-700',
   quote:     'bg-violet-100 text-violet-700',
   draft:     'bg-gray-100 text-gray-600',
   sent:      'bg-cyan-100 text-cyan-700',
@@ -36,7 +37,21 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
     .eq('id', id)
     .single()
 
-  if (!invoice || invoice.owner_id !== user.id) notFound()
+  if (!invoice) notFound()
+
+  // Determine role — RLS already ensures the user has read access
+  let memberRole: string | null = null
+  if (invoice.org_id) {
+    const { data: membership } = await supabase
+      .from('organisation_members').select('role').eq('user_id', user.id).eq('org_id', (invoice as { org_id: string }).org_id).maybeSingle()
+    memberRole = membership?.role ?? null
+  }
+  const isOwner = invoice.owner_id === user.id
+  if (!isOwner && !memberRole) notFound()
+
+  const canApprove = ['owner', 'admin', 'manager'].includes(memberRole ?? '')
+  const isEmployee = !!invoice.org_id && !canApprove
+  const canEdit = !['paid', 'cancelled'].includes(invoice.status as string)
 
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
     supabase
@@ -76,15 +91,23 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
         <div className="flex items-center justify-between gap-4">
           <Link href="/dashboard/invoices" className="text-sm font-bold text-cyan-600 hover:underline">← All invoices</Link>
           <div className="flex items-center gap-3">
+            {canEdit && (
+              <Link href={`/dashboard/invoices/${id}/edit`}
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">
+                Edit
+              </Link>
+            )}
             <Link href={`/dashboard/invoices/${id}/print`} target="_blank"
               className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">
               Print / PDF
             </Link>
             <InvoiceActions
               invoiceId={id}
-              status={invoice.status}
-              paymentLink={invoice.payment_link}
+              status={invoice.status as string}
+              paymentLink={invoice.payment_link as string | null}
               canSend={isPaidPlan(subscription)}
+              canApprove={canApprove}
+              isEmployee={isEmployee}
             />
           </div>
         </div>

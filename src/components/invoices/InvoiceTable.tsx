@@ -5,6 +5,7 @@ import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
 
 const STATUS_STYLE: Record<string, string> = {
+  pending_approval: 'bg-amber-100 text-amber-700',
   quote: 'bg-violet-100 text-violet-700',
   draft: 'bg-gray-100 text-gray-600', sent: 'bg-cyan-100 text-cyan-700',
   paid: 'bg-green-100 text-green-700', overdue: 'bg-red-100 text-red-700', cancelled: 'bg-gray-100 text-gray-400',
@@ -72,7 +73,7 @@ export default function InvoiceTable({
                 <td className="px-5 py-4 text-gray-500">{fmtDate(inv.issue_date)}</td>
                 <td className="px-5 py-4 text-gray-500">{inv.due_date ? fmtDate(inv.due_date) : '—'}</td>
                 <td className="px-5 py-4 text-right font-bold text-gray-900">{inv.currency} {Number(inv.subtotal).toFixed(2)}</td>
-                <td className="px-5 py-4 text-center"><span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[inv.status]}`}>{inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
+                <td className="px-5 py-4 text-center"><span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[inv.status] ?? 'bg-gray-100 text-gray-600'}`}>{inv.status === 'pending_approval' ? 'Pending approval' : inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
               </tr>
             ))}
           </tbody>
