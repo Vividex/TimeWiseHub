@@ -207,9 +207,13 @@ export default function AssistantPageClient({
         const { value, done } = await reader.read()
         if (done) break
         accumulated += decoder.decode(value, { stream: true })
+        // Strip the sentinel and everything after it from the live display —
+        // parseResponse handles the final split after streaming ends.
+        const sentinelIdx = accumulated.indexOf(ACTION_SENTINEL)
+        const displayText = sentinelIdx === -1 ? accumulated : accumulated.slice(0, sentinelIdx)
         setMessages(cur => {
           const u = [...cur]
-          u[u.length - 1] = { role: 'assistant', content: accumulated }
+          u[u.length - 1] = { role: 'assistant', content: displayText }
           return u
         })
       }
@@ -291,19 +295,24 @@ export default function AssistantPageClient({
           const { value, done } = await reader.read()
           if (done) break
           acc += decoder.decode(value, { stream: true })
+          const sentinelIdx = acc.indexOf(ACTION_SENTINEL)
+          const displayText = sentinelIdx === -1 ? acc : acc.slice(0, sentinelIdx)
           setMessages(cur => {
             const u = [...cur]
-            u[u.length - 1] = { role: 'assistant', content: acc }
+            u[u.length - 1] = { role: 'assistant', content: displayText }
             return u
           })
         }
-        const { text: followUpText } = parseResponse(acc)
+        const { text: followUpText, action: followUpAction } = parseResponse(acc)
         if (voiceEnabled && followUpText) speak(stripMarkdown(followUpText))
+        const followUpMsg: Message = followUpAction
+          ? { role: 'assistant', content: followUpText, action: followUpAction, actionStatus: 'pending' as const }
+          : { role: 'assistant', content: followUpText }
         const finalMessages: Message[] = [
           ...messages.slice(0, msgIndex),
           confirmedMsg,
           notice,
-          { role: 'assistant', content: acc },
+          followUpMsg,
         ]
         setMessages(finalMessages)
         if (activeSessionId) await saveSession(activeSessionId, finalMessages)
