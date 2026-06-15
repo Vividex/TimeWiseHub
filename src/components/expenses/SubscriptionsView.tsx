@@ -74,6 +74,7 @@ export default function SubscriptionsView({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+  const [pendingMarkPaid, setPendingMarkPaid] = useState<Subscription | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
@@ -296,7 +297,7 @@ export default function SubscriptionsView({
                     <p className="text-xs font-medium text-gray-500">Next: {sub.next_billing_date}</p>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
-                    <button onClick={() => advanceBilling(sub)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800">
+                    <button onClick={() => setPendingMarkPaid(sub)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800">
                       Mark paid
                     </button>
                     <button onClick={() => startEdit(sub)} className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
@@ -312,6 +313,19 @@ export default function SubscriptionsView({
           })}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={!!pendingMarkPaid}
+        title="Mark as paid"
+        message={pendingMarkPaid
+          ? `This will record the payment and advance the next billing date to ${addInterval(pendingMarkPaid.next_billing_date, pendingMarkPaid.recurrence_interval)}. The billing cycle will continue from that date.`
+          : ''}
+        confirmLabel="Mark as paid"
+        onConfirm={() => {
+          if (pendingMarkPaid) { advanceBilling(pendingMarkPaid); setPendingMarkPaid(null) }
+        }}
+        onCancel={() => setPendingMarkPaid(null)}
+      />
 
       <ConfirmDialog
         open={!!pendingDelete}
