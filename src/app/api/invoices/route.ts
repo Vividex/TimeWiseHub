@@ -7,19 +7,30 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { clientId, orgId, items, dueDate, notes, currency, issueDate, invoicedEntryIds } = await req.json()
+  const { clientId, orgId, items, dueDate, notes, currency, issueDate, invoicedEntryIds, isQuote } = await req.json()
   if (!items?.length) return NextResponse.json({ error: 'Invoice must have at least one line item' }, { status: 400 })
 
   const service = createServiceClient()
 
-  // Generate invoice number: INV-YYYY-NNN
   const year = new Date().getFullYear()
-  const { count } = await service
-    .from('invoices')
-    .select('id', { count: 'exact', head: true })
-    .eq('owner_id', user.id)
-  const seq = String((count ?? 0) + 1).padStart(3, '0')
-  const invoiceNumber = `INV-${year}-${seq}`
+  let invoiceNumber: string
+  if (isQuote) {
+    // Q-YYYY-NNN: count only existing quotes
+    const { count: qCount } = await service
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', user.id)
+      .eq('status', 'quote')
+    invoiceNumber = `Q-${year}-${String((qCount ?? 0) + 1).padStart(3, '0')}`
+  } else {
+    // INV-YYYY-NNN: count only non-quote invoices
+    const { count } = await service
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', user.id)
+      .neq('status', 'quote')
+    invoiceNumber = `INV-${year}-${String((count ?? 0) + 1).padStart(3, '0')}`
+  }
 
   const subtotal = items.reduce((s: number, i: { quantity: number; unit_price: number }) => s + (i.quantity * i.unit_price), 0)
 
@@ -30,6 +41,7 @@ export async function POST(req: Request) {
       org_id: orgId || null,
       client_id: clientId || null,
       invoice_number: invoiceNumber,
+      status: isQuote ? 'quote' : 'draft',
       issue_date: issueDate || new Date().toISOString().slice(0, 10),
       due_date: dueDate || null,
       currency: currency || 'AUD',

@@ -7,6 +7,7 @@ import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
 
 const STATUS_STYLE: Record<string, string> = {
+  quote:     'bg-violet-100 text-violet-700',
   draft:     'bg-gray-100 text-gray-600',
   sent:      'bg-cyan-100 text-cyan-700',
   paid:      'bg-green-100 text-green-700',
@@ -95,7 +96,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           <div className="flex items-start justify-between gap-6">
             <div>
               <p className="mb-4 text-xl font-black tracking-tight text-slate-900">{letterhead}</p>
-              <p className="text-3xl font-black tracking-tight text-slate-900">INVOICE</p>
+              <p className="text-3xl font-black tracking-tight text-slate-900">{invoice.status === 'quote' ? 'QUOTE' : 'INVOICE'}</p>
               <p className="mt-1 text-lg font-bold text-cyan-600">{invoice.invoice_number}</p>
             </div>
             <span className={`rounded-xl px-3 py-1 text-sm font-black ${STATUS_STYLE[invoice.status]}`}>

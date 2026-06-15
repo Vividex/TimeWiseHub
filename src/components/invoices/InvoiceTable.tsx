@@ -5,6 +5,7 @@ import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
 
 const STATUS_STYLE: Record<string, string> = {
+  quote: 'bg-violet-100 text-violet-700',
   draft: 'bg-gray-100 text-gray-600', sent: 'bg-cyan-100 text-cyan-700',
   paid: 'bg-green-100 text-green-700', overdue: 'bg-red-100 text-red-700', cancelled: 'bg-gray-100 text-gray-400',
 }
@@ -23,7 +24,15 @@ function clientName(c: InvoiceRow['clients']): string {
   return Array.isArray(c) ? (c[0]?.name ?? '') : (c?.name ?? '')
 }
 
-export default function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
+export default function InvoiceTable({
+  invoices,
+  emptyMessage = 'No invoices yet.',
+  emptyLink = { href: '/dashboard/invoices/new', label: 'Create your first invoice →' },
+}: {
+  invoices: InvoiceRow[]
+  emptyMessage?: string
+  emptyLink?: { href: string; label: string }
+}) {
   const { query, setQuery, filtered } = useTextFilter(
     invoices,
     i => `${i.invoice_number} ${clientName(i.clients)} ${i.status}`,
@@ -32,8 +41,8 @@ export default function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
   if (invoices.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm font-semibold text-gray-400">No invoices yet.</p>
-        <Link href="/dashboard/invoices/new" className="mt-3 inline-block text-sm font-bold text-cyan-600 hover:underline">Create your first invoice →</Link>
+        <p className="text-sm font-semibold text-gray-400">{emptyMessage}</p>
+        <Link href={emptyLink.href} className="mt-3 inline-block text-sm font-bold text-cyan-600 hover:underline">{emptyLink.label}</Link>
       </div>
     )
   }

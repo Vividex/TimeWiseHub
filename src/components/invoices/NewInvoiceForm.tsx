@@ -14,10 +14,12 @@ export default function NewInvoiceForm({
   orgId,
   userId,
   initialClientId,
+  isQuote = false,
 }: {
   orgId: string | null
   userId: string
   initialClientId?: string
+  isQuote?: boolean
 }) {
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
@@ -40,11 +42,17 @@ export default function NewInvoiceForm({
       : supabase.from('clients').select('id, name, default_rate, currency').eq('owner_id', userId).eq('archived', false).order('name')
     q.then(({ data }) => {
       setClients(data ?? [])
-      const selected = data?.find(c => c.id === initialClientId) ?? data?.[0]
-      if (selected) { setClientId(selected.id); setCurrency(selected.currency) }
+      // For quotes, don't auto-select a client — they can be client-free
+      if (!isQuote) {
+        const selected = data?.find(c => c.id === initialClientId) ?? data?.[0]
+        if (selected) { setClientId(selected.id); setCurrency(selected.currency) }
+      } else if (initialClientId) {
+        const selected = data?.find(c => c.id === initialClientId)
+        if (selected) { setClientId(selected.id); setCurrency(selected.currency) }
+      }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId, userId, initialClientId])
+  }, [orgId, userId, initialClientId, isQuote])
 
   async function loadEntries() {
     if (!clientId) return
@@ -145,7 +153,7 @@ export default function NewInvoiceForm({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        clientId,
+        clientId: clientId || null,
         orgId,
         userId: user?.id,
         currency,
@@ -154,6 +162,7 @@ export default function NewInvoiceForm({
         notes: notes || null,
         items: lineItems.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })),
         invoicedEntryIds: allEntryIds,
+        isQuote,
       }),
     })
 
@@ -170,7 +179,9 @@ export default function NewInvoiceForm({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="sm:col-span-1">
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Client</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">
+              Client{isQuote && <span className="ml-1 font-normal text-gray-400">(optional)</span>}
+            </label>
             <select value={clientId} onChange={e => { setClientId(e.target.value); const c = clients.find(x => x.id === e.target.value); if (c) setCurrency(c.currency) }}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
               <option value="">— Select client —</option>
@@ -196,7 +207,7 @@ export default function NewInvoiceForm({
       </div>
 
       {/* Line items */}
-      {(lineItems.length > 0 || error) && (
+      {(lineItems.length > 0 || error || isQuote) && (
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Line items</h2>
 
@@ -261,7 +272,7 @@ export default function NewInvoiceForm({
           </div>
           <button onClick={handleSubmit} disabled={submitting}
             className="w-full rounded-xl bg-cyan-500 py-3 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
-            {submitting ? 'Creating invoice…' : 'Create invoice'}
+            {submitting ? (isQuote ? 'Creating quote…' : 'Creating invoice…') : (isQuote ? 'Create quote' : 'Create invoice')}
           </button>
         </div>
       )}

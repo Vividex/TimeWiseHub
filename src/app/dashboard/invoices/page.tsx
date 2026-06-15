@@ -15,6 +15,7 @@ export default async function InvoicesPage() {
   const invoiceQuery = supabase
     .from('invoices')
     .select('id, invoice_number, status, issue_date, due_date, subtotal, currency, clients(name)')
+    .neq('status', 'quote')
     .order('created_at', { ascending: false })
 
   const { data: invoices } = orgId
