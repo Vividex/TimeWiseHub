@@ -32,6 +32,7 @@ export default function MessageComposer({
   const [files, setFiles] = useState<File[]>([])
   const [sending, setSending] = useState(false)
   const [hint, setHint] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
@@ -142,7 +143,23 @@ export default function MessageComposer({
   }
 
   return (
-    <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-800">
+    <div
+      className="relative border-t border-gray-200 px-4 py-3 dark:border-slate-800"
+      onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+      onDragLeave={e => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false)
+      }}
+      onDrop={e => {
+        e.preventDefault()
+        setIsDragging(false)
+        setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)])
+      }}
+    >
+      {isDragging && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-cyan-400 bg-cyan-50/90 dark:bg-slate-800/90">
+          <p className="text-sm font-semibold text-cyan-600 dark:text-cyan-400">Drop to attach</p>
+        </div>
+      )}
       {hint && (
         <p className="mb-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
           {hint}
@@ -151,7 +168,11 @@ export default function MessageComposer({
       {files.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {files.map((f, i) => (
-            <span key={i} className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            <span key={i} className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {f.type.startsWith('image/') && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={URL.createObjectURL(f)} alt="" className="h-4 w-4 rounded object-cover" />
+              )}
               {f.name}
               <button onClick={() => setFiles(prev => prev.filter((_, j) => j !== i))}>
                 <X size={12} />
@@ -173,7 +194,7 @@ export default function MessageComposer({
           type="file"
           multiple
           className="hidden"
-          onChange={e => setFiles(Array.from(e.target.files ?? []))}
+          onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])])}
         />
         <textarea
           value={body}
@@ -181,8 +202,15 @@ export default function MessageComposer({
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
           }}
+          onPaste={e => {
+            const imgs = Array.from(e.clipboardData.items).filter(i => i.kind === 'file' && i.type.startsWith('image/'))
+            if (imgs.length === 0) return
+            e.preventDefault()
+            const pastedFiles = imgs.map(i => i.getAsFile()).filter((f): f is File => f !== null)
+            setFiles(prev => [...prev, ...pastedFiles])
+          }}
           rows={1}
-          placeholder="Type a message…"
+          placeholder="Type a message… or paste / drop images"
           className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />
         <button

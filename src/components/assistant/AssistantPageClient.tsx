@@ -2,16 +2,22 @@
 'use client'
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat } from 'lucide-react'
+import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
+import { resizeImageToBase64 } from '@/lib/imageUtils'
+
+type ImageBlock = { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
+type TextBlock = { type: 'text'; text: string }
+type ContentBlock = ImageBlock | TextBlock
 
 type Message = {
   role: 'user' | 'assistant' | 'notice'
   content: string
-  actions?: ActionProposal[]   // current: array of proposals
-  action?: ActionProposal      // legacy: single proposal from old saved sessions
+  images?: string[]           // base64 data URLs — in-memory only, stripped before DB save
+  actions?: ActionProposal[]  // current: array of proposals
+  action?: ActionProposal     // legacy: single proposal from old saved sessions
   actionStatus?: 'pending' | 'confirmed' | 'cancelled'
 }
 
@@ -61,6 +67,8 @@ export default function AssistantPageClient({
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [pendingImages, setPendingImages] = useState<string[]>([])
+  const [isDragging, setIsDragging] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -142,9 +150,11 @@ export default function AssistantPageClient({
   }
 
   async function saveSession(id: string, msgs: Message[], title?: string) {
+    // Strip base64 images before persisting — they're large and display-only
+    const serializable = msgs.map(m => m.images ? { ...m, images: undefined } : m)
     await supabase
       .from('assistant_sessions')
-      .update({ messages: msgs, ...(title ? { title } : {}) })
+      .update({ messages: serializable, ...(title ? { title } : {}) })
       .eq('id', id)
   }
 
@@ -161,21 +171,47 @@ export default function AssistantPageClient({
     return ''
   }
 
-  function buildHistory(msgs: Message[]) {
+  function buildHistory(msgs: Message[]): Array<{ role: 'user' | 'assistant'; content: string | ContentBlock[] }> {
     const filtered = msgs
       .filter(m => m.role === 'user' || m.role === 'assistant')
-      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content || '' }))
-      .filter(m => m.content.trim())
+      .map(m => {
+        if (m.role === 'user' && m.images && m.images.length > 0) {
+          const blocks: ContentBlock[] = [
+            ...m.images.map((dataUrl): ImageBlock => {
+              const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
+              return {
+                type: 'image',
+                source: { type: 'base64', media_type: match?.[1] ?? 'image/jpeg', data: match?.[2] ?? dataUrl.split(',')[1] },
+              }
+            }),
+            { type: 'text', text: m.content || '' },
+          ]
+          return { role: 'user' as const, content: blocks }
+        }
+        return { role: m.role as 'user' | 'assistant', content: m.content || '' }
+      })
+      .filter(m => {
+        const c = m.content
+        if (typeof c === 'string') return c.trim().length > 0
+        return c.length > 0
+      })
     // Anthropic requires the first message to be from the user
     const firstUser = filtered.findIndex(m => m.role === 'user')
     return firstUser === -1 ? [] : filtered.slice(firstUser)
+  }
+
+  async function processImageFiles(fileList: FileList | File[]) {
+    const images = Array.from(fileList).filter(f => f.type.startsWith('image/'))
+    if (images.length === 0) return
+    const bases = await Promise.all(images.map(f => resizeImageToBase64(f)))
+    setPendingImages(prev => [...prev, ...bases])
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const text = (voiceTextRef.current || input).trim()
     voiceTextRef.current = ''
-    if (!text || loading) return
+    if ((!text && pendingImages.length === 0) || loading) return
 
     let sessionId = activeSessionId
     if (!sessionId) {
@@ -183,10 +219,16 @@ export default function AssistantPageClient({
       setActiveSessionId(sessionId)
     }
 
-    const nextMessages: Message[] = [...messages, { role: 'user', content: text }]
+    const userMsg: Message = {
+      role: 'user',
+      content: text,
+      ...(pendingImages.length > 0 ? { images: [...pendingImages] } : {}),
+    }
+    const nextMessages: Message[] = [...messages, userMsg]
     const withPlaceholder: Message[] = [...nextMessages, { role: 'assistant', content: '' }]
     setMessages(withPlaceholder)
     setInput('')
+    setPendingImages([])
     setLoading(true)
 
     const abort = new AbortController()
@@ -301,7 +343,7 @@ export default function AssistantPageClient({
         ? `${actions.length} action${actions.length > 1 ? 's' : ''} confirmed and completed. Results: ${JSON.stringify(results.map(r => r.status === 'fulfilled' ? r.value?.result : null))}`
         : `${actions.length - failures.length} of ${actions.length} actions succeeded. Failures: ${JSON.stringify(failures)}`
 
-      const historyWithFollowUp = [
+      const historyWithFollowUp: Array<{ role: 'user' | 'assistant'; content: string | ContentBlock[] }> = [
         ...buildHistory([...messages.slice(0, msgIndex), confirmedMsg]),
         { role: 'user' as const, content: followUp },
       ]
@@ -416,6 +458,7 @@ export default function AssistantPageClient({
             <div className="flex h-full flex-col items-center justify-center text-center text-gray-400">
               <p className="text-lg font-black text-slate-900 dark:text-slate-100">What can I help with?</p>
               <p className="mt-2 text-sm">Ask about your tasks, projects, time, expenses, or anything else.</p>
+              <p className="mt-1 text-xs text-gray-400">You can also paste or drag-and-drop images.</p>
             </div>
           )}
           {messages.map((msg, i) => {
@@ -429,6 +472,13 @@ export default function AssistantPageClient({
                     ? 'bg-cyan-500 text-white'
                     : 'border border-gray-100 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'
                 }`}>
+                  {msg.role === 'user' && msg.images && msg.images.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                      {msg.images.map((src, j) => (
+                        <img key={j} src={src} alt="" className="max-h-48 max-w-xs rounded-xl object-contain" />
+                      ))}
+                    </div>
+                  )}
                   <p className="whitespace-pre-wrap">
                     {msg.content || (loading && i === messages.length - 1 ? 'Thinking…' : '')}
                   </p>
@@ -461,7 +511,39 @@ export default function AssistantPageClient({
           <div ref={bottomRef} />
         </div>
 
-        <div className="border-t border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div
+          className="relative border-t border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+          onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={e => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false)
+          }}
+          onDrop={async e => {
+            e.preventDefault()
+            setIsDragging(false)
+            await processImageFiles(e.dataTransfer.files)
+          }}
+        >
+          {isDragging && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-cyan-400 bg-cyan-50/90 dark:bg-slate-800/90">
+              <p className="text-sm font-semibold text-cyan-600 dark:text-cyan-400">Drop image to attach</p>
+            </div>
+          )}
+          {pendingImages.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {pendingImages.map((src, i) => (
+                <div key={i} className="relative">
+                  <img src={src} alt="" className="h-16 w-16 rounded-lg border border-gray-200 object-cover dark:border-slate-700" />
+                  <button
+                    type="button"
+                    onClick={() => setPendingImages(prev => prev.filter((_, j) => j !== i))}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 text-white shadow"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <form ref={formRef} onSubmit={handleSubmit} data-assistant-form>
             <div className="flex items-end gap-3">
               <textarea
@@ -470,13 +552,21 @@ export default function AssistantPageClient({
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit() }
                 }}
+                onPaste={async e => {
+                  const items = Array.from(e.clipboardData.items)
+                  const imgItems = items.filter(i => i.kind === 'file' && i.type.startsWith('image/'))
+                  if (imgItems.length === 0) return
+                  e.preventDefault()
+                  const files = imgItems.map(i => i.getAsFile()).filter((f): f is File => f !== null)
+                  await processImageFiles(files)
+                }}
                 rows={2}
-                placeholder="Ask the assistant…"
+                placeholder="Ask the assistant… or paste / drop an image"
                 className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
               <button
                 type="submit"
-                disabled={loading || !input.trim()}
+                disabled={loading || (!input.trim() && pendingImages.length === 0)}
                 className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500 text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
               >
                 <Send size={18} />

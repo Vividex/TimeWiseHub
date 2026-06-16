@@ -5,7 +5,10 @@ import { createClient } from '@/lib/supabase-server'
 import { TOOL_SCHEMAS, isReadTool, executeReadTool } from '@/lib/assistant/tools'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
 
-type ChatMessage = { role: 'user' | 'assistant'; content: string }
+type ContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
+type ChatMessage = { role: 'user' | 'assistant'; content: string | ContentBlock[] }
 
 const SYSTEM_PROMPT_BASE = `You are the TimeWiseHub AI assistant — friendly, warm, and conversational. You have access to the user's real data and can propose actions (the user confirms before anything is changed).
 
@@ -106,10 +109,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
   }
 
-  const cleanMessages = messages
-    .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+  const cleanMessages = (messages as ChatMessage[])
+    .filter(m => {
+      if (m.role !== 'user' && m.role !== 'assistant') return false
+      if (typeof m.content === 'string') return m.content.trim().length > 0
+      return Array.isArray(m.content) && m.content.length > 0
+    })
     .slice(-20)
-    .map(m => ({ role: m.role, content: m.content.trim() }))
+    .map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: typeof m.content === 'string' ? m.content.trim() : m.content,
+    }))
 
   if (!cleanMessages.length || cleanMessages[cleanMessages.length - 1].role !== 'user') {
     return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
@@ -124,7 +134,10 @@ export async function POST(request: Request) {
   const messagesWithContext: Anthropic.MessageParam[] = [
     { role: 'user', content: `[Context: Current datetime (UTC) is ${new Date().toISOString()}]` },
     { role: 'assistant', content: 'Understood.' },
-    ...cleanMessages,
+    ...cleanMessages.map(m => ({
+      role: m.role,
+      content: m.content as unknown as Anthropic.MessageParam['content'],
+    })),
   ]
 
   const responseStream = new ReadableStream<Uint8Array>({
