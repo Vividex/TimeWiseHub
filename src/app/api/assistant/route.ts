@@ -65,7 +65,7 @@ INSIGHTS
 Insights — charts showing time tracked, tasks completed, expenses, and team productivity over time. You cannot read insights data. Tell the user to go to Insights in the sidebar.
 
 OTHER SECTIONS (accessible from sidebar or settings)
-Projects — group work into projects linked to clients. Projects have a name, colour, due date, and status (active or archived). You can read, create, and update projects.
+Projects — group work into projects linked to clients. Projects have a name, colour, due date, and status (active or archived). You can read, create, and update projects. Each project also has a project expenses list — costs incurred on the job such as materials, equipment hire, or subcontractor charges. Use get_project_expenses to see what has been spent on a project and its total. When drafting a quote or invoice, always check project expenses first if you have the project ID — the user may want to include or reference those costs.
 Tasks — to-do items that belong to projects, with assignee, priority (urgent/high/normal/low), due date, and status (todo/in_progress/done). You can read, create, and update tasks.
 Reports — export time logs, expense reports, and leave summaries as CSV files for payroll or accounting. You cannot generate reports. Tell the user to go to Reports in the sidebar.
 Team — org members with roles: owner, admin, manager, employee. Admins can invite new members from Settings. You can read team members.

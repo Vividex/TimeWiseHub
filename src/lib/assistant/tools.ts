@@ -7,6 +7,7 @@ export const READ_TOOLS = new Set([
   'get_expenses', 'get_team_members', 'get_leave_requests',
   'get_calendar_events', 'get_summary',
   'get_sessions', 'get_progress_notes', 'get_invoices',
+  'get_project_expenses',
 ])
 
 export const WRITE_TOOLS = new Set([
@@ -382,6 +383,19 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
     },
   },
 
+  // ── Project expenses ─────────────────────────────────────────
+  {
+    name: 'get_project_expenses',
+    description: 'Fetch all expenses logged against a project, including a running total. Use when drafting quotes or invoices to see what has actually been spent on a job.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        project_id: { type: 'string', description: 'Project UUID' },
+      },
+      required: ['project_id'],
+    },
+  },
+
   // ── Invoice / Quote tools ────────────────────────────────────
   {
     name: 'get_invoices',
@@ -614,6 +628,16 @@ export async function executeReadTool(
         .order('created_at', { ascending: false })
         .limit(Number(input.limit ?? 20))
       return data ?? []
+    }
+
+    case 'get_project_expenses': {
+      const { data } = await supabase
+        .from('project_expenses')
+        .select('id, description, amount, expense_date, category')
+        .eq('project_id', input.project_id as string)
+        .order('expense_date', { ascending: false })
+      const total = (data ?? []).reduce((s: number, e: { amount: number }) => s + Number(e.amount), 0)
+      return { expenses: data ?? [], total_aud: total }
     }
 
     case 'get_invoices': {

@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import ProjectTaskGrid from '@/components/projects/ProjectTaskGrid'
+import ProjectExpensesPanel, { type ProjectExpense } from '@/components/projects/ProjectExpensesPanel'
 import DocumentPanel from '@/components/projects/DocumentPanel'
 import ArchiveButton from '@/components/projects/ArchiveButton'
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton'
@@ -17,16 +18,18 @@ export default async function ClientProjectPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }] = await Promise.all([
+  const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }, { data: expenses }] = await Promise.all([
     supabase.from('projects').select('*, clients(name)').eq('id', projectId).single(),
     supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: true }),
     supabase.from('project_documents').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
     supabase.from('organisation_members').select('org_id, role').eq('user_id', user.id).maybeSingle(),
+    supabase.from('project_expenses').select('id, description, amount, expense_date, category, created_by').eq('project_id', projectId).order('expense_date', { ascending: false }),
   ])
   if (!project) notFound()
 
   const orgId = membership?.org_id ?? null
   const canManageConfidential = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
+  const isAdmin = ['owner', 'admin'].includes(membership?.role ?? '')
   const isOrgProject = project.org_id !== null
 
   const orgMembers = orgId
@@ -65,6 +68,16 @@ export default async function ClientProjectPage({
         <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Tasks</h2>
           <ProjectTaskGrid projectId={project.id} assigneeId={user.id} initialTasks={tasks ?? []} orgMembers={mappedOrgMembers} />
+        </div>
+
+        <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Expenses</h2>
+          <ProjectExpensesPanel
+            projectId={project.id}
+            initialExpenses={(expenses ?? []) as ProjectExpense[]}
+            userId={user.id}
+            canDeleteAny={isAdmin}
+          />
         </div>
 
         <DocumentPanel
