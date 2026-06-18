@@ -55,23 +55,23 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C5-3: [CONDUCTOR] Commit
 
 ### Task 6 — Debug APK smoke test (requires USB device — user present)
-- [ ] C6-1: [CONDUCTOR] Connect Android device, run `adb devices` — device must show `device` status
-- [ ] C6-2: [CONDUCTOR] Run `pnpm tauri android dev`, manually verify on device (see plan for checklist)
-- [ ] C6-3: [CONDUCTOR] Checkpoint commit
+- [x] C6-1: [CONDUCTOR] Connect Android device, run `adb devices` — device must show `device` status
+- [x] C6-2: [CONDUCTOR] Run `pnpm tauri android dev`, manually verify on device (see plan for checklist)
+- [x] C6-3: [CONDUCTOR] Checkpoint commit
 
 ### Task 7 — Release keystore (requires interactive keytool — user present)
-- [ ] C7-1: [CONDUCTOR] Generate `timewisehub-release.keystore` with `keytool` (outside repo), save to password manager
-- [ ] C7-2: [CONDUCTOR] Set `ANDROID_KEYSTORE_PATH`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD` env vars
+- [x] C7-1: [CONDUCTOR] Generate `timewisehub-release.keystore` with `keytool` (outside repo), save to password manager
+- [x] C7-2: [CONDUCTOR] Set `ANDROID_KEYSTORE_PATH`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD` env vars
 
 ### Task 8 — Release signing config
-- [ ] C8-1: Add `signingConfigs { create("release") { ... } }` and `signingConfig = signingConfigs.getByName("release")` to `src-tauri/gen/android/app/build.gradle.kts`
-- [ ] C8-2: [CONDUCTOR] Commit
+- [x] C8-1: Add `signingConfigs { create("release") { ... } }` and `signingConfig = signingConfigs.getByName("release")` to `src-tauri/gen/android/app/build.gradle.kts`
+- [x] C8-2: [CONDUCTOR] Commit
 
 ### Task 9 — Release AAB build
-- [ ] C9-1: [CONDUCTOR] Confirm signing env vars are set
-- [ ] C9-2: [CONDUCTOR] Run `pnpm tauri android build`
-- [ ] C9-3: [CONDUCTOR] Verify `src-tauri/gen/android/app/build/outputs/bundle/release/app-release.aab` exists
-- [ ] C9-4: [CONDUCTOR] Commit and push
+- [x] C9-1: [CONDUCTOR] Confirm signing env vars are set
+- [x] C9-2: [CONDUCTOR] Run `pnpm tauri android build`
+- [x] C9-3: [CONDUCTOR] Verify `src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab` exists (13.5 MB, signed CN=Bradley Abbott)
+- [x] C9-4: [CONDUCTOR] Commit and push
 
 ## Verification
 - `pnpm run build` passes clean after Task 5 (web build unaffected by CSS addition)
