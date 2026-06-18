@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Track time, manage projects, and stay on top of deadlines.",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "TimeWiseHub",
   },
 };
@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning style={{ backgroundColor: '#020617' }}>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="twh-theme">
           <ServiceWorkerRegistration />
