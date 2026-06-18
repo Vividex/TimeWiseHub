@@ -1,7 +1,7 @@
 // src/components/FloatingWidgets.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageSquare, Sparkles, X } from 'lucide-react'
 import AssistantWidget from '@/components/AssistantWidget'
 import TeamChatWidget from '@/components/chat/TeamChatWidget'
@@ -40,17 +40,25 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
   const [open, setOpen] = useState<OpenWidget>(null)
   const [chatPos, setChatPos] = useState<{ x: number; y: number } | null>(null)
   const [assistantPos, setAssistantPos] = useState<{ x: number; y: number } | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const unread = useChatUnreadTotal()
+
+  useEffect(() => {
+    function check() { setIsMobile(window.innerWidth < 640) }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   function toggle(widget: 'assistant' | 'chat') {
     const next = open === widget ? null : widget
-    if (next === 'chat' && chatPos === null) {
+    if (next === 'chat' && chatPos === null && !isMobile) {
       setChatPos({
         x: Math.max(16, window.innerWidth - 450),
         y: Math.max(16, window.innerHeight - 630),
       })
     }
-    if (next === 'assistant' && assistantPos === null) {
+    if (next === 'assistant' && assistantPos === null && !isMobile) {
       setAssistantPos({
         x: Math.max(16, window.innerWidth - 450),
         y: Math.max(16, window.innerHeight - 660),
@@ -71,23 +79,45 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
 
   return (
     <>
-      {/* Chat window — independently positioned */}
-      {open === 'chat' && chatPos && (
-        <div style={{ position: 'fixed', left: chatPos.x, top: chatPos.y, zIndex: 50 }}>
-          <TeamChatWidget onClose={() => setOpen(null)} onHeaderPointerDown={handleChatHeaderPointerDown} />
-        </div>
+      {/* Chat window */}
+      {open === 'chat' && (isMobile || chatPos) && (
+        isMobile ? (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setOpen(null) }}
+          >
+            <TeamChatWidget onClose={() => setOpen(null)} />
+          </div>
+        ) : (
+          <div style={{ position: 'fixed', left: chatPos!.x, top: chatPos!.y, zIndex: 50 }}>
+            <TeamChatWidget onClose={() => setOpen(null)} onHeaderPointerDown={handleChatHeaderPointerDown} />
+          </div>
+        )
       )}
 
-      {/* Assistant window — independently positioned */}
-      {open === 'assistant' && assistantPos && (
-        <div style={{ position: 'fixed', left: assistantPos.x, top: assistantPos.y, zIndex: 50 }}>
-          <AssistantWidget
-            userEmail={userEmail}
-            open={true}
-            onClose={() => setOpen(null)}
-            onHeaderPointerDown={handleAssistantHeaderPointerDown}
-          />
-        </div>
+      {/* Assistant window */}
+      {open === 'assistant' && (isMobile || assistantPos) && (
+        isMobile ? (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setOpen(null) }}
+          >
+            <AssistantWidget
+              userEmail={userEmail}
+              open={true}
+              onClose={() => setOpen(null)}
+            />
+          </div>
+        ) : (
+          <div style={{ position: 'fixed', left: assistantPos!.x, top: assistantPos!.y, zIndex: 50 }}>
+            <AssistantWidget
+              userEmail={userEmail}
+              open={true}
+              onClose={() => setOpen(null)}
+              onHeaderPointerDown={handleAssistantHeaderPointerDown}
+            />
+          </div>
+        )
       )}
 
       {/* FAB button cluster — stays fixed bottom-right */}

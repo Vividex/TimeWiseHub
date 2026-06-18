@@ -14,6 +14,11 @@ export default function PushPermission() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    // Web push is not available inside the Tauri native app shell
+    if ('__TAURI_INTERNALS__' in window) {
+      setState('unsupported')
+      return
+    }
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
       setState('unsupported')
       return
