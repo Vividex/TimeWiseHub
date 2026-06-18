@@ -4,15 +4,20 @@
 
 ## Spending
 - spend-budget-usd: 0
-- All work is TypeScript/TSX/SQL text edits only. No paid API calls.
-- Supabase MCP `apply_migration` is free (uses existing project quota).
+- All work is Rust/Kotlin/CSS/JSON/XML text edits + shell commands on existing toolchain.
+  No paid API calls. No new npm packages.
+- `pnpm tauri android build` uses local toolchain only — no cloud build service.
 
-## Notes (Phase 21 — Group Chat)
-- Source of exact code: docs/superpowers/plans/2026-06-14-group-chat.md.
+## Notes (Phase 24 — Android App)
+- Source of exact code: docs/superpowers/plans/2026-06-18-android-app.md
   Each checklist item maps to a Task there; implement the code VERBATIM.
-- Codex handles text edits only; conductor runs build/git/MCP.
-- pnpm is the package manager. Verification gate = `pnpm run build` (runs tsc + eslint). No test runner.
-- DB migration: conductor applies via Supabase MCP after Codex creates the SQL file.
-- Steps marked [CONDUCTOR] in spec.md are run by Claude, not Codex — Codex skips them by design.
-- New/changed files are listed per-task in the plan. Leave everything else untouched.
-- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Codex does text edits only.
+- Codex handles text edits only; conductor runs ALL shell/build/git/adb/keytool commands.
+- pnpm is the package manager. Web verification gate = `pnpm run build`.
+- Android verification gate = `pnpm tauri android build` producing a valid AAB.
+- Steps marked [CONDUCTOR] in spec.md are run by Claude, not Codex — Codex skips them.
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only.
+- Tasks 6 and 7 require user presence (USB device + interactive keytool). Conductor
+  will pause at those tasks and ask the user to proceed interactively.
+- The generated Android project lives at src-tauri/gen/android/ — these files are
+  committed to the repo (created by Task 2) and then modified by Tasks 4 and 8.
+- Keystore must be stored OUTSIDE the repo. Never commit it.

@@ -39,7 +39,7 @@ yarn-error.log*
 
 # tauri
 /src-tauri/target/
-/src-tauri/gen/
+# src-tauri/gen/ is committed — Android project lives there and has custom edits
 
 # typescript
 *.tsbuildinfo
