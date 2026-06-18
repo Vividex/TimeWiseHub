@@ -44,10 +44,10 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — Permissions and dark splash theme
-- [ ] C4-1: Add `POST_NOTIFICATIONS` and `RECEIVE_BOOT_COMPLETED` permissions to `src-tauri/gen/android/app/src/main/AndroidManifest.xml`
-- [ ] C4-2: Add `splash_background` color `#020617` to `src-tauri/gen/android/app/src/main/res/values/colors.xml` (create file if absent)
-- [ ] C4-3: Add `windowBackground`, `windowTranslucentStatus`, `windowTranslucentNavigation` items to the app theme in `src-tauri/gen/android/app/src/main/res/values/themes.xml` (or `styles.xml` — whichever Tauri generated)
-- [ ] C4-4: [CONDUCTOR] Commit
+- [x] C4-1: Add `POST_NOTIFICATIONS` and `RECEIVE_BOOT_COMPLETED` permissions to `src-tauri/gen/android/app/src/main/AndroidManifest.xml`
+- [x] C4-2: Add `splash_background` color `#020617` to `src-tauri/gen/android/app/src/main/res/values/colors.xml` (create file if absent)
+- [x] C4-3: Add `windowBackground`, `windowTranslucentStatus`, `windowTranslucentNavigation` items to the app theme in `src-tauri/gen/android/app/src/main/res/values/themes.xml` (or `styles.xml` — whichever Tauri generated)
+- [x] C4-4: [CONDUCTOR] Commit
 
 ### Task 5 — Safe area insets
 - [ ] C5-1: Append `@supports (padding-top: env(safe-area-inset-top))` block to `src/app/globals.css`
