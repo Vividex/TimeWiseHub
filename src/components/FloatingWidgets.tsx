@@ -120,8 +120,11 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
         )
       )}
 
-      {/* FAB button cluster — stays fixed bottom-right */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+      {/* FAB button cluster — stays fixed bottom-right, clear of nav bar */}
+      <div
+        className="fixed right-5 z-50 flex flex-col items-end gap-3"
+        style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         {/* Chat button (top) */}
         <button
           type="button"

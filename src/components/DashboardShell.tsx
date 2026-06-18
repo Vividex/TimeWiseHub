@@ -56,7 +56,10 @@ export default function DashboardShell({
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-4 sm:px-8 dark:border-slate-800 dark:bg-slate-900">
+        <header
+          className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 sm:px-8 dark:border-slate-800 dark:bg-slate-900"
+          style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))', paddingBottom: '1rem' }}
+        >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <MobileSidebar email={email} />
