@@ -77,10 +77,12 @@ Signing config uses env vars:
 
 ### 7 — Play Store assets
 
+Done after the build, once the app is running on a physical device (screenshots require a real working build).
+
 Required before submission:
 - **App icon**: 512×512 PNG (use existing `public/icon-512.png`)
-- **Feature graphic**: 1024×500 PNG (needs to be created)
-- **Screenshots**: minimum 2, maximum 8, phone screenshots (needs to be created)
+- **Feature graphic**: 1024×500 PNG — created manually after build
+- **Screenshots**: minimum 2, maximum 8, phone screenshots — taken from the running app on device
 - **Short description**: ≤80 chars
 - **Full description**: ≤4000 chars
 - **Privacy policy URL**: `https://timewisehub.com.au/privacy` (already exists)
