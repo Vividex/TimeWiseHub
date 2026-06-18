@@ -170,11 +170,11 @@ export default async function CompanyFinanceView({
       profiles: { full_name: string | null; email: string } | null
     }[]).map(p => ({
       id: p.id, label: p.label, pay_date: p.pay_date, file_path: p.file_path, uploaded_at: p.uploaded_at,
-      employeeName: p.profiles?.full_name ?? p.profiles?.email ?? 'Unknown',
+      employeeName: p.profiles?.full_name || p.profiles?.email || 'Unknown',
     }))
     payslipMembers = ((membersForPayslips ?? []) as unknown as {
       user_id: string; profiles: { full_name: string | null; email: string } | null
-    }[]).map(m => ({ user_id: m.user_id, name: m.profiles?.full_name ?? m.profiles?.email ?? 'Unknown' }))
+    }[]).map(m => ({ user_id: m.user_id, name: m.profiles?.full_name || m.profiles?.email || 'Unknown' }))
   }
 
   // Period-filtered payroll cost (gross + super) for the P&L summary.

@@ -68,7 +68,7 @@ export default async function TeamApprovalsView({ orgId, userId }: { orgId: stri
                 {timesheets.map(ts => (
                   <tr key={ts.id} className="border-b border-gray-50 last:border-0 dark:border-slate-800">
                     <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
-                      {ts.profiles?.full_name ?? ts.profiles?.email ?? 'Unknown'}
+                      {ts.profiles?.full_name || ts.profiles?.email || 'Unknown'}
                     </td>
                     <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{ts.week_start}</td>
                     <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-slate-100">{formatHours(ts.total_seconds)}</td>

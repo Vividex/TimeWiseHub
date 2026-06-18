@@ -45,7 +45,7 @@ export default async function TeamPage() {
     const p = m.profiles as unknown as ProfileRow
     return {
       user_id: m.user_id,
-      display_name: p?.full_name ?? p?.email ?? m.user_id,
+      display_name: p?.full_name || p?.email || m.user_id,
       job_title: profile?.job_title ?? null,
       has_expired_cert: memberCerts.some(c => c.expiry_date && c.expiry_date < today),
       has_expiring_cert: memberCerts.some(c => c.expiry_date && c.expiry_date >= today && c.expiry_date <= thirtyDaysOutISO),
@@ -59,7 +59,7 @@ export default async function TeamPage() {
       const m = (membersData ?? []).find(x => x.user_id === c.user_id)
       const p = m?.profiles as unknown as ProfileRow
       return {
-        user_name: p?.full_name ?? p?.email ?? c.user_id,
+        user_name: p?.full_name || p?.email || c.user_id,
         cert_name: c.name,
         expiry_date: c.expiry_date!,
         days_until: Math.ceil((new Date(c.expiry_date!).getTime() - Date.now()) / 86400000),

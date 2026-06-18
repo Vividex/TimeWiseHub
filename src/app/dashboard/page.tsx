@@ -68,7 +68,7 @@ export default async function DashboardHome() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mappedMembers = orgMembersRaw
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? (orgMembersRaw as any[]).map((m: any) => ({ userId: m.user_id as string, displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string }))
+    ? (orgMembersRaw as any[]).map((m: any) => ({ userId: m.user_id as string, displayName: (m.profiles?.full_name || m.profiles?.email || m.user_id) as string }))
     : undefined
 
   // Manager unassigned pool + assigned team tasks

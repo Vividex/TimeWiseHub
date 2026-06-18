@@ -40,7 +40,7 @@ export default async function ClientProjectPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? (orgMembers as any[]).map((m: any) => ({
         userId: m.user_id as string,
-        displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string,
+        displayName: (m.profiles?.full_name || m.profiles?.email || m.user_id) as string,
       }))
     : undefined
 

@@ -330,7 +330,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     ;(data ?? []).forEach(e => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const p = (e as any).profiles as { full_name: string | null; email: string } | null
-      const name = p?.full_name ?? p?.email ?? e.user_id
+      const name = p?.full_name || p?.email || e.user_id
       const secs = e.duration_seconds ?? 0
       const day = new Date(e.started_at).toLocaleDateString('en-AU', { weekday: 'long' })
       const employeeWeek = `${e.user_id}:${weekKey(e.started_at)}`
@@ -383,7 +383,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const task = (entry as any).tasks as { title: string; projects: { name: string } | null } | null
       rows.push([
-        profile?.full_name ?? profile?.email ?? entry.user_id,
+        profile?.full_name || profile?.email || entry.user_id,
         fmtDate(entry.started_at),
         'DRAFT',
         decimalHours(entry.duration_seconds ?? 0),
@@ -415,7 +415,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const p = (r as any).profiles as { full_name: string | null; email: string } | null
       rows.push([
-        p?.full_name ?? p?.email ?? r.user_id, p?.email ?? '',
+        p?.full_name || p?.email || r.user_id, p?.email ?? '',
         LEAVE_LABELS[r.leave_type] ?? r.leave_type,
         fmtDate(r.start_date), fmtDate(r.end_date),
         workingDays(r.start_date, r.end_date, r.half_day),
@@ -430,7 +430,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     ;(data ?? []).filter(r => r.status === 'approved').forEach(r => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const p = (r as any).profiles as { full_name: string | null; email: string } | null
-      const name = p?.full_name ?? p?.email ?? r.user_id
+      const name = p?.full_name || p?.email || r.user_id
       const lt = LEAVE_LABELS[r.leave_type] ?? r.leave_type
       summary[name] ??= {}
       summary[name][lt] = (summary[name][lt] ?? 0) + workingDays(r.start_date, r.end_date, r.half_day)
@@ -468,7 +468,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cat = (e as any).expense_categories as { name: string } | null
       rows.push([
-        p?.full_name ?? p?.email ?? e.user_id, p?.email ?? '',
+        p?.full_name || p?.email || e.user_id, p?.email ?? '',
         fmtDate(e.expense_date), cat?.name ?? '',
         e.description ?? '', Number(e.amount).toFixed(2),
         e.currency, e.status,

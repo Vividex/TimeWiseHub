@@ -57,23 +57,24 @@ export default function InvoiceTable({
         <table className="w-full text-sm">
           <thead className="border-b border-gray-100">
             <tr>
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Invoice</th>
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Client</th>
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Issued</th>
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Due</th>
-              <th className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-gray-400">Amount</th>
-              <th className="px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Invoice</th>
+              <th className="hidden px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400 sm:table-cell">Issued</th>
+              <th className="hidden px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400 sm:table-cell">Due</th>
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-gray-400">Amount</th>
+              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {filtered.map(inv => (
               <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-5 py-4"><Link href={`/dashboard/invoices/${inv.id}`} className="font-bold text-slate-900 hover:text-cyan-600">{inv.invoice_number}</Link></td>
-                <td className="px-5 py-4 text-gray-600">{clientName(inv.clients) || '—'}</td>
-                <td className="px-5 py-4 text-gray-500">{fmtDate(inv.issue_date)}</td>
-                <td className="px-5 py-4 text-gray-500">{inv.due_date ? fmtDate(inv.due_date) : '—'}</td>
-                <td className="px-5 py-4 text-right font-bold text-gray-900">{inv.currency} {Number(inv.subtotal).toFixed(2)}</td>
-                <td className="px-5 py-4 text-center"><span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[inv.status] ?? 'bg-gray-100 text-gray-600'}`}>{inv.status === 'pending_approval' ? 'Pending approval' : inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
+                <td className="px-4 py-4">
+                  <Link href={`/dashboard/invoices/${inv.id}`} className="font-bold text-slate-900 hover:text-cyan-600">{inv.invoice_number}</Link>
+                  {clientName(inv.clients) && <p className="mt-0.5 text-xs text-gray-500">{clientName(inv.clients)}</p>}
+                </td>
+                <td className="hidden px-4 py-4 text-gray-500 sm:table-cell">{fmtDate(inv.issue_date)}</td>
+                <td className="hidden px-4 py-4 text-gray-500 sm:table-cell">{inv.due_date ? fmtDate(inv.due_date) : '—'}</td>
+                <td className="px-4 py-4 text-right font-bold text-gray-900 whitespace-nowrap">{inv.currency} {Number(inv.subtotal).toFixed(2)}</td>
+                <td className="px-4 py-4 text-center"><span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[inv.status] ?? 'bg-gray-100 text-gray-600'}`}>{inv.status === 'pending_approval' ? 'Pending' : inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
               </tr>
             ))}
           </tbody>

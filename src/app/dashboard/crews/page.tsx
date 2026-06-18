@@ -35,7 +35,7 @@ export default async function CrewsPage() {
   const orgMembers: OrgMember[] = (orgMembersRaw ?? []).map((m: any) => ({
     userId: m.user_id as string,
     role: m.role as string,
-    displayName: (m.profiles?.full_name ?? m.profiles?.email ?? m.user_id) as string,
+    displayName: (m.profiles?.full_name || m.profiles?.email || m.user_id) as string,
   }))
 
   const memberLookup = new Map(orgMembers.map(m => [m.userId, m.displayName]))

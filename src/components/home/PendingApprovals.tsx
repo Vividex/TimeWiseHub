@@ -71,7 +71,7 @@ export default async function PendingApprovals({
   const { data: profiles } = await supabase
     .from('profiles').select('id, full_name, email').in('id', ownerIds)
   const nameMap = new Map(
-    (profiles ?? []).map(p => [p.id, p.full_name ?? p.email ?? 'Unknown'])
+    (profiles ?? []).map(p => [p.id, p.full_name || p.email || 'Unknown'])
   )
 
   return (

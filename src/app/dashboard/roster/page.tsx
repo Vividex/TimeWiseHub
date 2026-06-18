@@ -30,8 +30,8 @@ export default async function RosterPage() {
     user_id: m.user_id,
     display_name:
       (m.profiles as unknown as ProfileRow)?.full_name
-      ?? (m.profiles as unknown as ProfileRow)?.email
-      ?? m.user_id,
+      || (m.profiles as unknown as ProfileRow)?.email
+      || m.user_id,
   }))
 
   memberList.sort((a, b) => a.display_name.localeCompare(b.display_name))
