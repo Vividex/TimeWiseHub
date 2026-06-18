@@ -36,12 +36,12 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C1-3: [CONDUCTOR] Commit
 
 ### Task 2 — Android project init
-- [ ] C2-1: [CONDUCTOR] Run `pnpm tauri android init` (answer App name: TimeWiseHub if prompted)
-- [ ] C2-2: [CONDUCTOR] `git add src-tauri/gen/` and commit generated Android project
+- [x] C2-1: [CONDUCTOR] Run `pnpm tauri android init` (answer App name: TimeWiseHub if prompted)
+- [x] C2-2: [CONDUCTOR] `git add src-tauri/gen/` and commit generated Android project
 
 ### Task 3 — Android Tauri config
-- [ ] C3-1: Create `src-tauri/tauri.android.conf.json` with `bundle.android.minSdkVersion: 24`
-- [ ] C3-2: [CONDUCTOR] Commit
+- [x] C3-1: Create `src-tauri/tauri.android.conf.json` with `bundle.android.minSdkVersion: 24`
+- [x] C3-2: [CONDUCTOR] Commit
 
 ### Task 4 — Permissions and dark splash theme
 - [ ] C4-1: Add `POST_NOTIFICATIONS` and `RECEIVE_BOOT_COMPLETED` permissions to `src-tauri/gen/android/app/src/main/AndroidManifest.xml`
