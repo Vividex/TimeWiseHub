@@ -77,3 +77,12 @@ html.dark input::placeholder,
 html.dark textarea::placeholder {
   color: #64748b;
 }
+
+/* Android edge-to-edge: push content clear of status bar and navigation bar.
+   env() vars are 0 on desktop/web — no effect outside the Android Tauri app. */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

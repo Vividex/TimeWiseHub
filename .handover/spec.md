@@ -50,9 +50,9 @@ Each checklist item maps to a Task there — implement the code VERBATIM from th
 - [x] C4-4: [CONDUCTOR] Commit
 
 ### Task 5 — Safe area insets
-- [ ] C5-1: Append `@supports (padding-top: env(safe-area-inset-top))` block to `src/app/globals.css`
-- [ ] C5-2: [CONDUCTOR] `pnpm run build` — must pass clean
-- [ ] C5-3: [CONDUCTOR] Commit
+- [x] C5-1: Append `@supports (padding-top: env(safe-area-inset-top))` block to `src/app/globals.css`
+- [x] C5-2: [CONDUCTOR] `pnpm run build` — must pass clean
+- [x] C5-3: [CONDUCTOR] Commit
 
 ### Task 6 — Debug APK smoke test (requires USB device — user present)
 - [ ] C6-1: [CONDUCTOR] Connect Android device, run `adb devices` — device must show `device` status
