@@ -2,7 +2,7 @@
 'use client'
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat, X } from 'lucide-react'
+import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat, X, MessageSquare } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
@@ -69,6 +69,7 @@ export default function AssistantPageClient({
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [pendingImages, setPendingImages] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -415,8 +416,8 @@ export default function AssistantPageClient({
 
   return (
     <div className="flex h-full w-full">
-      {/* Sidebar */}
-      <div className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden md:flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between px-4 py-4">
           <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">Conversations</h2>
           <button
@@ -451,9 +452,77 @@ export default function AssistantPageClient({
         </div>
       </div>
 
+      {/* Mobile history overlay */}
+      {mobileHistoryOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileHistoryOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl dark:bg-slate-900"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-4">
+              <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">Conversations</h2>
+              <button
+                onClick={() => setMobileHistoryOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+              {sessions.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => { loadSession(s.id); setMobileHistoryOpen(false) }}
+                  className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                    s.id === activeSessionId
+                      ? 'bg-cyan-50 font-semibold text-cyan-700 dark:bg-slate-800 dark:text-cyan-400'
+                      : 'text-slate-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/60'
+                  }`}
+                >
+                  <span className="block truncate">{s.title ?? 'Untitled'}</span>
+                  <span className="text-xs text-gray-400">{new Date(s.updated_at).toLocaleDateString()}</span>
+                </button>
+              ))}
+              {sessions.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-400">No conversations yet.</p>
+              )}
+            </div>
+            <div className="border-t border-gray-100 p-3 dark:border-slate-800">
+              <button
+                onClick={() => { setMessages([]); setActiveSessionId(null); setMobileHistoryOpen(false) }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cyan-600"
+              >
+                <Plus size={16} /> New conversation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chat area */}
       <div className="flex flex-1 flex-col min-w-0 bg-gray-50 dark:bg-slate-950">
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Mobile top bar — shows current session title + history/new buttons */}
+        <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-2.5 md:hidden dark:border-slate-800 dark:bg-slate-900">
+          <button
+            onClick={() => setMobileHistoryOpen(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            title="Conversation history"
+          >
+            <MessageSquare size={18} />
+          </button>
+          <span className="flex-1 truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {sessions.find(s => s.id === activeSessionId)?.title ?? 'New conversation'}
+          </span>
+          <button
+            onClick={() => { setMessages([]); setActiveSessionId(null) }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500 text-white transition-colors hover:bg-cyan-600"
+            title="New conversation"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
           {messages.length === 0 && (
             <div className="flex h-full flex-col items-center justify-center text-center text-gray-400">
               <p className="text-lg font-black text-slate-900 dark:text-slate-100">What can I help with?</p>

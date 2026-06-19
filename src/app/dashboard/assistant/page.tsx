@@ -33,7 +33,7 @@ export default async function AssistantPage() {
     .limit(30)
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden dark:bg-slate-950">
+    <div className="flex overflow-hidden dark:bg-slate-950" style={{ height: 'calc(100dvh - env(safe-area-inset-top, 0px) - 4.75rem)' }}>
       <AssistantPageClient
         userId={user.id}
         userEmail={user.email ?? ''}
