@@ -48,7 +48,9 @@ export async function OverviewPanel() {
   const subscription = await getSubscription(user.id)
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
-  const [timeResult, tasksResult, expensesResult, projectsResult, incomeResult, expenseResult] = await Promise.all([
+  const sevenDaysAgoDate = sevenDaysAgo.toISOString().slice(0, 10)
+
+  const [timeResult, tasksResult, expensesResult, projectsResult, incomeResult, expenseResult, rosterResult] = await Promise.all([
     supabase
       .from('time_entries')
       .select('started_at, duration_seconds, task_id, tasks(project_id)')
@@ -80,10 +82,28 @@ export async function OverviewPanel() {
     orgId
       ? supabase.from('expenses').select('expense_date, amount').eq('org_id', orgId).gte('expense_date', sixMonthsAgoStr)
       : supabase.from('expenses').select('expense_date, amount').eq('user_id', user.id).gte('expense_date', sixMonthsAgoStr),
+
+    supabase
+      .from('roster_shifts')
+      .select('date, start_time, end_time')
+      .eq('user_id', user.id)
+      .eq('published', true)
+      .is('deleted_at', null)
+      .gte('date', sevenDaysAgoDate)
+      .lte('date', todayStr),
   ])
 
   const entries = timeResult.data ?? []
   const projects = projectsResult.data ?? []
+
+  // Build a per-day map of roster shift seconds (published, non-deleted, in the 7-day window)
+  const rosterSecsByDay = new Map<string, number>()
+  for (const shift of rosterResult.data ?? []) {
+    const [sh, sm] = (shift.start_time as string).split(':').map(Number)
+    const [eh, em] = (shift.end_time as string).split(':').map(Number)
+    const dur = (eh * 3600 + em * 60) - (sh * 3600 + sm * 60)
+    if (dur > 0) rosterSecsByDay.set(shift.date as string, (rosterSecsByDay.get(shift.date as string) ?? 0) + dur)
+  }
 
   const monthLabels = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
@@ -100,22 +120,33 @@ export async function OverviewPanel() {
     ? await supabase.from('tasks').select('project_id, status').in('project_id', projectIds)
     : { data: [] as { project_id: string; status: string }[] }
 
-  const hoursThisWeek = entries
-    .filter(e => e.started_at >= weekStart.toISOString())
-    .reduce((s, e) => s + (e.duration_seconds ?? 0), 0) / 3600
+  const weekStartStr = weekStart.toISOString().slice(0, 10)
 
-  const hoursToday = entries
-    .filter(e => e.started_at.slice(0, 10) === todayStr)
-    .reduce((s, e) => s + (e.duration_seconds ?? 0), 0) / 3600
+  const hoursThisWeek = (
+    entries
+      .filter(e => e.started_at >= weekStart.toISOString())
+      .reduce((s, e) => s + (e.duration_seconds ?? 0), 0) +
+    [...rosterSecsByDay.entries()]
+      .filter(([date]) => date >= weekStartStr)
+      .reduce((s, [, secs]) => s + secs, 0)
+  ) / 3600
+
+  const hoursToday = (
+    entries
+      .filter(e => e.started_at.slice(0, 10) === todayStr)
+      .reduce((s, e) => s + (e.duration_seconds ?? 0), 0) +
+    (rosterSecsByDay.get(todayStr) ?? 0)
+  ) / 3600
 
   const expensesThisMonth = (expensesResult.data ?? [])
     .reduce((s, e) => s + Number(e.amount), 0)
 
-  const activeDaysSet = new Set(
-    entries
+  const activeDaysSet = new Set([
+    ...entries
       .filter(e => e.started_at >= weekStart.toISOString())
-      .map(e => e.started_at.slice(0, 10))
-  )
+      .map(e => e.started_at.slice(0, 10)),
+    ...[...rosterSecsByDay.keys()].filter(date => date >= weekStartStr),
+  ])
   const activeDays = activeDaysSet.size
 
   const dayBars: DayBar[] = Array.from({ length: 7 }, (_, i) => {
@@ -123,10 +154,10 @@ export async function OverviewPanel() {
     d.setDate(sevenDaysAgo.getDate() + i)
     const dateStr = d.toISOString().slice(0, 10)
     const label = d.toLocaleDateString('en', { weekday: 'short' })
-    const seconds = entries
+    const entrySeconds = entries
       .filter(e => e.started_at.slice(0, 10) === dateStr)
       .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-    return { label, hours: seconds / 3600 }
+    return { label, hours: (entrySeconds + (rosterSecsByDay.get(dateStr) ?? 0)) / 3600 }
   })
 
   const projectHoursMap = new Map<string, number>()
