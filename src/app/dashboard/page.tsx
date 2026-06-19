@@ -6,7 +6,6 @@ import TaskPool from '@/components/tasks/TaskPool'
 import TeamTasks from '@/components/tasks/TeamTasks'
 import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
-import PushPermission from '@/components/PushPermission'
 import OrgDocuments from '@/components/home/OrgDocuments'
 import PendingApprovals from '@/components/home/PendingApprovals'
 
@@ -114,9 +113,6 @@ export default async function DashboardHome() {
 
         <WelcomeBanner firstName={firstName} />
         <NudgeBanner userId={user.id} />
-        <div className="flex justify-end">
-          <PushPermission />
-        </div>
 
         <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
 
