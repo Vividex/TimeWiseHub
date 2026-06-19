@@ -59,7 +59,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         label="Tasks complete"
         iconClass="bg-emerald-500/15 text-emerald-400"
         glowClass="bg-emerald-500"
-        href="/dashboard/tasks"
+        href="#my-tasks"
       />
       <MetricCard
         icon={Users}

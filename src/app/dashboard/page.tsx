@@ -234,7 +234,9 @@ export default async function DashboardHome() {
         <PersonalTodos />
 
         {/* My tasks */}
-        <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
+        <div id="my-tasks">
+          <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
+        </div>
 
         {isManager && poolTasks.length > 0 && (
           <div className="space-y-3">
