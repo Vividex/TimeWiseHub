@@ -77,7 +77,7 @@ export default function SplashScreen({
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(0deg)',
-                  filter: 'brightness(1.25) drop-shadow(0 0 18px rgba(56,189,248,0.9))',
+                  filter: 'brightness(0) invert(1) drop-shadow(0 0 16px rgba(56,189,248,1)) drop-shadow(0 0 4px white)',
                 }}
               />
               <img
@@ -93,7 +93,7 @@ export default function SplashScreen({
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
-                  filter: 'brightness(1.25) drop-shadow(0 0 18px rgba(56,189,248,0.9))',
+                  filter: 'brightness(0) invert(1) drop-shadow(0 0 16px rgba(56,189,248,1)) drop-shadow(0 0 4px white)',
                 }}
               />
             </div>
