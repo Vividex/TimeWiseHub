@@ -26,8 +26,12 @@ export default async function InvoicesPage() {
     .filter(i => i.status === 'sent' || i.status === 'overdue')
     .reduce((s, i) => s + Number(i.subtotal), 0)
 
+  const now = new Date()
+  const fyStartYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+  const fyStart = `${fyStartYear}-07-01`
+  const fyEnd = `${fyStartYear + 1}-06-30`
   const totalPaid = (invoices ?? [])
-    .filter(i => i.status === 'paid')
+    .filter(i => i.status === 'paid' && i.issue_date && i.issue_date >= fyStart && i.issue_date <= fyEnd)
     .reduce((s, i) => s + Number(i.subtotal), 0)
 
   return (
@@ -41,7 +45,7 @@ export default async function InvoicesPage() {
             <p className="mt-1 text-3xl font-black text-amber-600">${totalOutstanding.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Paid (all time)</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Paid (FY{String(fyStartYear).slice(2)}–{String(fyStartYear + 1).slice(2)})</p>
             <p className="mt-1 text-3xl font-black text-green-600">${totalPaid.toFixed(2)}</p>
           </div>
           <div className="col-span-2 sm:col-span-1 flex items-center">
