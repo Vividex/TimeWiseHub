@@ -4,12 +4,13 @@ import EmployeeDrawer from './EmployeeDrawer'
 import CertExpiryPanel, { type ExpiringCert } from './CertExpiryPanel'
 
 export type TeamMember = {
-  user_id: string; display_name: string; job_title: string | null
+  user_id: string; display_name: string; job_title: string | null; role: string
   has_incomplete_onboarding: boolean; has_expiring_cert: boolean; has_expired_cert: boolean
 }
 
-export default function TeamGrid({ orgId, canManageTeam, members, expiring }: {
-  orgId: string; canManageTeam: boolean; members: TeamMember[]; expiring: ExpiringCert[]
+export default function TeamGrid({ orgId, canManageTeam, canChangeRole, viewerUserId, members, expiring }: {
+  orgId: string; canManageTeam: boolean; canChangeRole: boolean; viewerUserId: string
+  members: TeamMember[]; expiring: ExpiringCert[]
 }) {
   const [selected, setSelected] = useState<TeamMember | null>(null)
   return (
@@ -33,7 +34,7 @@ export default function TeamGrid({ orgId, canManageTeam, members, expiring }: {
       {selected && (
         <>
           <div className="fixed inset-0 z-30 bg-black/30" onClick={() => setSelected(null)} />
-          <EmployeeDrawer member={selected} orgId={orgId} canManageTeam={canManageTeam} onClose={() => setSelected(null)} />
+          <EmployeeDrawer member={selected} orgId={orgId} canManageTeam={canManageTeam} canChangeRole={canChangeRole && selected.user_id !== viewerUserId && selected.role !== 'owner'} onClose={() => setSelected(null)} />
         </>
       )}
     </div>

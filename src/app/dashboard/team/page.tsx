@@ -28,7 +28,7 @@ export default async function TeamPage() {
   const thirtyDaysOutISO = thirtyDaysOut.toISOString().split('T')[0]
 
   const [{ data: membersData }, { data: profilesData }, { data: certsData }, { data: progressData }, { data: checklistData }] = await Promise.all([
-    supabase.from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId),
+    supabase.from('organisation_members').select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId),
     supabase.from('employee_profiles').select('user_id, job_title').eq('org_id', orgId),
     supabase.from('certifications').select('user_id, name, expiry_date').eq('org_id', orgId),
     supabase.from('onboarding_progress').select('user_id, item_label, completed_at').eq('org_id', orgId),
@@ -46,6 +46,7 @@ export default async function TeamPage() {
     const p = m.profiles as unknown as ProfileRow
     return {
       user_id: m.user_id,
+      role: m.role as string,
       display_name: p?.full_name || p?.email || m.user_id,
       job_title: profile?.job_title ?? null,
       has_expired_cert: memberCerts.some(c => c.expiry_date && c.expiry_date < today),
@@ -76,7 +77,7 @@ export default async function TeamPage() {
             <InviteMember orgId={orgId} canInvite={true} />
           </div>
         )}
-        <TeamGrid orgId={orgId} canManageTeam={canManageTeam} members={members} expiring={expiring} />
+        <TeamGrid orgId={orgId} canManageTeam={canManageTeam} canChangeRole={membership?.role === 'owner'} viewerUserId={user.id} members={members} expiring={expiring} />
       </div>
     </div>
   )

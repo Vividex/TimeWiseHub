@@ -9,8 +9,9 @@ type OnboardingItem = { label: string; required: boolean }
 type OnboardingProgress = { item_label: string; completed_at: string | null }
 type Tab = 'profile' | 'certifications' | 'onboarding'
 
-export default function EmployeeDrawer({ member, orgId, canManageTeam, onClose }: {
-  member: { user_id: string; display_name: string }; orgId: string; canManageTeam: boolean; onClose: () => void
+export default function EmployeeDrawer({ member, orgId, canManageTeam, canChangeRole, onClose }: {
+  member: { user_id: string; display_name: string; role: string }; orgId: string
+  canManageTeam: boolean; canChangeRole: boolean; onClose: () => void
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('profile')
@@ -20,6 +21,9 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, onClose }
   const [emergencyName, setEmergencyName] = useState('')
   const [emergencyPhone, setEmergencyPhone] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [memberRole, setMemberRole] = useState(member.role)
+  const [savingRole, setSavingRole] = useState(false)
+  const [roleSaved, setRoleSaved] = useState(false)
   const [certs, setCerts] = useState<Cert[]>([])
   const [newCertName, setNewCertName] = useState('')
   const [newCertExpiry, setNewCertExpiry] = useState('')
@@ -50,6 +54,22 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, onClose }
       body: JSON.stringify({ user_id: member.user_id, org_id: orgId, job_title: jobTitle || null,
         start_date: startDate || null, emergency_contact_name: emergencyName || null, emergency_contact_phone: emergencyPhone || null }) })
     setSavingProfile(false); router.refresh()
+  }
+
+  async function saveRole(newRole: string) {
+    setSavingRole(true)
+    const res = await fetch('/api/team/role', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_user_id: member.user_id, org_id: orgId, new_role: newRole }),
+    })
+    setSavingRole(false)
+    if (res.ok) {
+      setMemberRole(newRole)
+      setRoleSaved(true)
+      setTimeout(() => setRoleSaved(false), 2500)
+      router.refresh()
+    }
   }
 
   async function addCert() {
@@ -114,6 +134,26 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, onClose }
                     className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
                     {savingProfile ? 'Saving…' : 'Save profile'}
                   </button>
+                )}
+                {canChangeRole && (
+                  <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
+                    <label className="mb-1 block text-xs font-medium text-gray-500">Role</label>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={memberRole}
+                        onChange={e => saveRole(e.target.value)}
+                        disabled={savingRole}
+                        className="flex-1 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm disabled:opacity-60"
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="employee">Employee</option>
+                      </select>
+                      {roleSaved && <span className="text-xs font-semibold text-green-600 dark:text-green-400">Saved ✓</span>}
+                      {savingRole && <span className="text-xs text-gray-400">Saving…</span>}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">Admins can manage the team and roster. Managers can manage the roster. Employees have read-only access.</p>
+                  </div>
                 )}
               </>
             )}
