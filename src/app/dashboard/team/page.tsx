@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import TeamGrid, { type TeamMember } from '@/components/team/TeamGrid'
 import type { ExpiringCert } from '@/components/team/CertExpiryPanel'
+import InviteMember from '@/components/InviteMember'
 
 export default async function TeamPage() {
   const supabase = await createClient()
@@ -70,6 +71,11 @@ export default async function TeamPage() {
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-white">Team</h1>
+        {canManageTeam && (
+          <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <InviteMember orgId={orgId} canInvite={true} />
+          </div>
+        )}
         <TeamGrid orgId={orgId} canManageTeam={canManageTeam} members={members} expiring={expiring} />
       </div>
     </div>

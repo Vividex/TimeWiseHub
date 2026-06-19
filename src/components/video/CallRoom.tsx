@@ -45,9 +45,11 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator }: P
   }, [])
 
   async function handleLeave() {
-    if (isCreator) {
-      await fetch(`/api/video/rooms/${dailyRoomName}`, { method: 'DELETE' })
-    }
+    frameRef.current?.leave()
+  }
+
+  async function handleEndForEveryone() {
+    await fetch(`/api/video/rooms/${dailyRoomName}`, { method: 'DELETE' })
     frameRef.current?.leave()
   }
 
@@ -57,13 +59,21 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator }: P
       <div ref={containerRef} className="relative flex-1" />
 
       {/* Leave button overlay */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
         <button
           onClick={handleLeave}
-          className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-xl"
+          className="px-6 py-3 rounded-xl bg-slate-700 text-white font-semibold hover:bg-slate-600 transition-colors shadow-xl"
         >
-          {isCreator ? 'End call for everyone' : 'Leave call'}
+          Leave call
         </button>
+        {isCreator && (
+          <button
+            onClick={handleEndForEveryone}
+            className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-xl"
+          >
+            End for everyone
+          </button>
+        )}
       </div>
     </div>
   )
