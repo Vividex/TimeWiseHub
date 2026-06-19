@@ -12,6 +12,12 @@ export default function MobileSidebar({ email }: { email: string }) {
 
   useEffect(() => { setOpen(false) }, [pathname])
 
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   return (
     <>
       <button

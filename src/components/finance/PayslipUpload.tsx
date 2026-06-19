@@ -44,18 +44,26 @@ export default function PayslipUpload({
       setError(upErr.message); setLoading(false); return
     }
 
-    const { error: rowErr } = await supabase.from('payslips').insert({
+    const { data: insertedRow, error: rowErr } = await supabase.from('payslips').insert({
       org_id: orgId,
       user_id: employeeId,
       label: label.trim(),
       pay_date: payDate,
       file_path: path,
       uploaded_by: uploadedBy,
-    })
+    }).select('id').single()
 
     if (rowErr) {
       await supabase.storage.from('payslips').remove([path]) // avoid orphaned file
       setError(rowErr.message); setLoading(false); return
+    }
+
+    if (insertedRow?.id) {
+      fetch('/api/notifications/payslip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payslipId: insertedRow.id }),
+      }).catch(err => console.error('Payslip notification failed', err))
     }
 
     setLabel(''); setPayDate(''); setFile(null); setDone(true)

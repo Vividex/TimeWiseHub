@@ -185,6 +185,70 @@ export async function sendReviewNotification(
   })
 }
 
+export async function sendTimesheetSubmissionAlert(
+  service: SupabaseClient,
+  orgId: string,
+  employeeName: string,
+  weekStart: string,
+  totalSeconds: number
+) {
+  const { data: managers } = await service
+    .from('organisation_members')
+    .select('profiles!organisation_members_user_id_fkey(id, email, full_name, notification_preferences)')
+    .eq('org_id', orgId)
+    .in('role', ['owner', 'admin', 'manager'])
+
+  for (const row of managers ?? []) {
+    const profile = normaliseProfile((row as unknown as { profiles?: unknown }).profiles)
+    if (!profile?.email) continue
+    await sendEmail({
+      to: profile.email,
+      subject: `Timesheet submitted for review: ${employeeName}`,
+      text: [
+        `Hi ${greeting(profile)},`,
+        `${employeeName} has submitted their timesheet for the week starting ${formatDate(weekStart)}.`,
+        `Total time: ${formatDuration(totalSeconds)}.`,
+        `Review pending timesheets: ${APP_URL}/dashboard/time`,
+      ].join('\n\n'),
+      html: paragraph([
+        `Hi ${greeting(profile)},`,
+        `${employeeName} has submitted their timesheet for the week starting ${formatDate(weekStart)}.`,
+        `Total time: ${formatDuration(totalSeconds)}.`,
+        `Review pending timesheets: ${APP_URL}/dashboard/time`,
+      ]),
+    })
+  }
+}
+
+export async function sendPayslipUploadedNotification(
+  service: SupabaseClient,
+  userId: string,
+  label: string,
+  payDate: string
+) {
+  const { data: profileData } = await service
+    .from('profiles')
+    .select('id, email, full_name, notification_preferences')
+    .eq('id', userId)
+    .single()
+  const profile = normaliseProfile(profileData)
+  if (!profile?.email) return { skipped: true }
+  return sendEmail({
+    to: profile.email,
+    subject: `New payslip available: ${label}`,
+    text: [
+      `Hi ${greeting(profile)},`,
+      `A new payslip "${label}" has been uploaded for pay date ${formatDate(payDate)}.`,
+      `View your payslips: ${APP_URL}/dashboard/finance`,
+    ].join('\n\n'),
+    html: paragraph([
+      `Hi ${greeting(profile)},`,
+      `A new payslip "${label}" has been uploaded for pay date ${formatDate(payDate)}.`,
+      `View your payslips: ${APP_URL}/dashboard/finance`,
+    ]),
+  })
+}
+
 export async function sendDailyDigest(service: SupabaseClient, profile: Profile, today: string, tomorrow: string) {
   if (!profile.email || !isEnabled(profile, 'daily_digest')) return { skipped: true }
 

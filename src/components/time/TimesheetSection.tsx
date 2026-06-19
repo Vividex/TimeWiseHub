@@ -83,6 +83,11 @@ export default function TimesheetSection({
     if (!error && data) {
       setTimesheet(data as Timesheet)
       router.refresh()
+      fetch('/api/notifications/timesheet-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timesheetId: data.id }),
+      }).catch(err => console.error('Timesheet notification failed', err))
     }
 
     setSubmitting(false)
