@@ -58,6 +58,13 @@ function formatDateTime(iso: string): string {
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+function agendaDateLabel(date: Date, now: Date): string {
+  if (sameDay(date, now)) return 'Today'
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1)
+  if (sameDay(date, tomorrow)) return 'Tomorrow'
+  return date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 export default function VideoCalendar({ calls: initialCalls, canManage = false }: Props) {
   const [calls, setCalls] = useState(initialCalls)
   const [view, setView] = useState<'week' | 'month'>('week')
@@ -298,6 +305,80 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     )
   }
 
+  // --- Mobile agenda view ---
+  function AgendaView() {
+    const sorted = [...calls]
+      .filter(c => c.starts_at)
+      .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+
+    const groups: { date: Date; items: ScheduledCall[] }[] = []
+    for (const call of sorted) {
+      const d = new Date(call.starts_at!)
+      const existing = groups.find(g => sameDay(g.date, d))
+      if (existing) existing.items.push(call)
+      else groups.push({ date: d, items: [call] })
+    }
+
+    if (groups.length === 0) {
+      return (
+        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center">
+          <Video size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+          <p className="text-sm font-semibold text-slate-400">No upcoming meetings</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-4">
+        {groups.map(group => (
+          <div key={group.date.toISOString()}>
+            <p className={`mb-2 text-xs font-bold uppercase tracking-wide ${
+              sameDay(group.date, now) ? 'text-violet-600' : 'text-slate-400 dark:text-slate-500'
+            }`}>
+              {agendaDateLabel(group.date, now)}
+            </p>
+            <div className="space-y-2">
+              {group.items.map(call => {
+                const live = isLive(call)
+                return (
+                  <button
+                    key={call.id}
+                    onClick={() => openCall(call)}
+                    className={`w-full text-left rounded-2xl border px-4 py-3 transition-colors ${
+                      live
+                        ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
+                        : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-violet-200 dark:hover:border-violet-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className={`truncate text-sm font-bold ${live ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                          {call.title}
+                        </p>
+                        {call.starts_at && (
+                          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            {formatTime(call.starts_at)}
+                            {call.ends_at && ` – ${formatTime(call.ends_at)}`}
+                          </p>
+                        )}
+                      </div>
+                      {live ? (
+                        <span className="shrink-0 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">LIVE</span>
+                      ) : (
+                        <ChevronRight size={16} className="shrink-0 text-slate-300 dark:text-slate-600" />
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // --- Desktop grid views ---
   if (view === 'week') {
     const weekStart = startOfWeek(anchor)
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
@@ -306,7 +387,8 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     return (
       <>
         <CallModal />
-        <div>
+        <div className="md:hidden"><AgendaView /></div>
+        <div className="hidden md:block">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <button onClick={() => setAnchor(a => addDays(a, -7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
@@ -361,7 +443,8 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
   return (
     <>
       <CallModal />
-      <div>
+      <div className="md:hidden"><AgendaView /></div>
+      <div className="hidden md:block">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() - 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
