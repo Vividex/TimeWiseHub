@@ -8,7 +8,10 @@ import NudgeBanner from '@/components/NudgeBanner'
 import OrgDocuments from '@/components/home/OrgDocuments'
 import PendingApprovals from '@/components/home/PendingApprovals'
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
+import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
+import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
+import type { UpcomingMeeting, UpcomingEvent } from '@/components/dashboard/DashboardUpcoming'
 
 type PoolTask = {
   id: string
@@ -100,17 +103,23 @@ export default async function DashboardHome() {
     }
   }
 
-  // Metric card data
+  // Date helpers
   const now = new Date()
   const dow = now.getDay()
   const weekStart = new Date(now)
   weekStart.setDate(now.getDate() - ((dow + 6) % 7))
   weekStart.setHours(0, 0, 0, 0)
 
-  const weekStartDate = weekStart.toISOString().slice(0, 10)
-  const todayDate = now.toISOString().slice(0, 10)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+  const nextWeek   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-  const [timeRes, projectsRes, tasksRes, clientsRes, rosterRes] = await Promise.all([
+  const weekStartDate  = weekStart.toISOString().slice(0, 10)
+  const todayDate      = now.toISOString().slice(0, 10)
+  const todayStartIso  = todayStart.toISOString()
+  const nextWeekIso    = nextWeek.toISOString()
+
+  // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
+  const [timeRes, projectsRes, clientsRes, rosterRes, meetingsRes, calendarRes] = await Promise.all([
     supabase
       .from('time_entries')
       .select('duration_seconds')
@@ -118,14 +127,8 @@ export default async function DashboardHome() {
       .not('ended_at', 'is', null)
       .gte('started_at', weekStart.toISOString()),
     orgId
-      ? supabase.from('projects').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active')
-      : supabase.from('projects').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('status', 'active'),
-    supabase
-      .from('tasks')
-      .select('id', { count: 'exact', head: true })
-      .eq('assignee_id', user.id)
-      .eq('status', 'done')
-      .gte('completed_at', weekStart.toISOString()),
+      ? supabase.from('projects').select('id', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active')
+      : supabase.from('projects').select('id', { count: 'exact' }).eq('owner_id', user.id).eq('status', 'active'),
     orgId
       ? supabase.from('clients').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('archived', false)
       : supabase.from('clients').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('archived', false),
@@ -137,6 +140,45 @@ export default async function DashboardHome() {
       .is('deleted_at', null)
       .gte('date', weekStartDate)
       .lte('date', todayDate),
+    orgId
+      ? supabase
+          .from('scheduled_calls')
+          .select('id, title, starts_at')
+          .eq('org_id', orgId)
+          .gte('starts_at', now.toISOString())
+          .lte('starts_at', nextWeekIso)
+          .order('starts_at')
+          .limit(5)
+      : Promise.resolve({ data: [] as { id: string; title: string; starts_at: string }[], error: null }),
+    supabase
+      .from('calendar_events')
+      .select('id, title, start_at, end_at, all_day')
+      .eq('created_by', user.id)
+      .gte('start_at', todayStartIso)
+      .lte('start_at', nextWeekIso)
+      .order('start_at')
+      .limit(10),
+  ])
+
+  // Stage 2: task counts scoped to active projects
+  const activeProjectIds = (projectsRes.data ?? []).map((p: { id: string }) => p.id)
+
+  const [tasksDoneRes, tasksTotalRes] = await Promise.all([
+    activeProjectIds.length > 0
+      ? supabase
+          .from('tasks')
+          .select('id', { count: 'exact', head: true })
+          .eq('assignee_id', user.id)
+          .eq('status', 'done')
+          .in('project_id', activeProjectIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
+    activeProjectIds.length > 0
+      ? supabase
+          .from('tasks')
+          .select('id', { count: 'exact', head: true })
+          .eq('assignee_id', user.id)
+          .in('project_id', activeProjectIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
   ])
 
   const timeEntrySeconds = (timeRes.data ?? []).reduce((s: number, e: { duration_seconds: number | null }) => s + (e.duration_seconds ?? 0), 0)
@@ -146,10 +188,15 @@ export default async function DashboardHome() {
     const dur = (eh * 3600 + em * 60) - (sh * 3600 + sm * 60)
     return s + (dur > 0 ? dur : 0)
   }, 0)
-  const hoursThisWeek = (timeEntrySeconds + rosterSeconds) / 3600
-  const activeProjects = projectsRes.count ?? 0
-  const tasksThisWeek = tasksRes.count ?? 0
-  const activeClients = clientsRes.count ?? 0
+
+  const hoursThisWeek   = (timeEntrySeconds + rosterSeconds) / 3600
+  const activeProjects  = projectsRes.count ?? 0
+  const activeClients   = clientsRes.count ?? 0
+  const tasksCompleted  = tasksDoneRes.count ?? 0
+  const tasksTotal      = tasksTotalRes.count ?? 0
+
+  const meetings = (meetingsRes.data ?? []) as UpcomingMeeting[]
+  const events   = (calendarRes.data ?? []) as UpcomingEvent[]
 
   return (
     <div className="px-4 py-6 sm:px-8">
@@ -168,16 +215,23 @@ export default async function DashboardHome() {
         <WelcomeBanner firstName={firstName} />
         <NudgeBanner userId={user.id} />
 
-        {/* Metric cards */}
+        {/* Metric cards — all clickable */}
         <DashboardMetrics
           hoursThisWeek={hoursThisWeek}
           activeProjects={activeProjects}
-          tasksThisWeek={tasksThisWeek}
+          tasksCompleted={tasksCompleted}
+          tasksTotal={tasksTotal}
           activeClients={activeClients}
         />
 
         {/* Quick actions */}
         <QuickActions />
+
+        {/* Upcoming meetings + calendar events */}
+        <DashboardUpcoming meetings={meetings} events={events} />
+
+        {/* Personal to-dos */}
+        <PersonalTodos />
 
         {/* My tasks */}
         <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
