@@ -27,7 +27,8 @@ type IncomeEntry = {
 type ExpenseEntry = {
   amount: number
   expense_date: string
-  expense_categories: { name: string } | null
+  category_id: string | null
+  description: string | null
 }
 
 type PayStatementRow = {
@@ -107,7 +108,7 @@ export default async function CompanyFinanceView({
 
   let expenseQuery = supabase
     .from('expenses')
-    .select('amount, expense_date, expense_categories(name)')
+    .select('amount, expense_date, category_id, description')
     .eq(scopeColumn, scopeValue)
     .order('expense_date', { ascending: false })
 
@@ -121,11 +122,12 @@ export default async function CompanyFinanceView({
     expenseQuery = expenseQuery.lte('expense_date', to)
   }
 
-  const [incomeResult, expenseResult, allIncomeResult, allExpenseResult] = await Promise.all([
+  const [incomeResult, expenseResult, allIncomeResult, allExpenseResult, categoriesResult] = await Promise.all([
     incomeQuery,
     expenseQuery,
     supabase.from('income_entries').select('amount, date').eq(scopeColumn, scopeValue),
-    supabase.from('expenses').select('amount, expense_date, expense_categories(name)').eq(scopeColumn, scopeValue),
+    supabase.from('expenses').select('amount, expense_date').eq(scopeColumn, scopeValue),
+    supabase.from('expense_categories').select('id, name'),
   ])
 
   const incomeEntries = (incomeResult.data ?? []) as IncomeEntry[]
@@ -186,16 +188,36 @@ export default async function CompanyFinanceView({
     .filter(s => (!from || s.period_start >= from) && (!to || s.period_start <= to))
     .reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
 
-  const allExpenses = (allExpenseResult.data ?? []) as unknown as ExpenseEntry[]
+  const allExpenses = (allExpenseResult.data ?? []) as { amount: number; expense_date: string }[]
   const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenses, payStatements)
+
+  // Build category lookup from the separate categories fetch (avoids PostgREST join issues)
+  const categoryLookup = new Map<string, string>()
+  for (const cat of (categoriesResult.data ?? []) as { id: string; name: string }[]) {
+    categoryLookup.set(cat.id, cat.name)
+  }
+
+  // Keyword-based fallback for expenses with no category_id
+  function guessCategory(desc: string): string {
+    const d = desc.toLowerCase()
+    if (/software|subscription|saas|plugin|tool|license|licence|domain|hosting/.test(d)) return 'Software'
+    if (/office|stationery|supplies|paper|printer/.test(d)) return 'Office Supplies'
+    if (/travel|flight|transport|taxi|uber|fuel|petrol|toll/.test(d)) return 'Travel'
+    if (/meal|food|lunch|dinner|breakfast|coffee|cafe|restaurant/.test(d)) return 'Meals'
+    if (/hotel|accommodation|airbnb|motel/.test(d)) return 'Accommodation'
+    if (/marketing|advertising|\bads\b|campaign|seo/.test(d)) return 'Marketing'
+    if (/equipment|hardware|computer|phone|device/.test(d)) return 'Equipment'
+    return 'Other'
+  }
 
   // Expense breakdown by category (period-filtered)
   const categoryMap = new Map<string, number>()
   for (const exp of expenses) {
-    const name = exp.expense_categories?.name ?? 'Other'
+    const name = exp.category_id
+      ? (categoryLookup.get(exp.category_id) ?? 'Other')
+      : guessCategory(exp.description ?? '')
     categoryMap.set(name, (categoryMap.get(name) ?? 0) + Number(exp.amount))
   }
-  // Payroll is its own category in the pie
   const categorySlices: CategorySlice[] = [...categoryMap.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([name, value]) => ({ name, value }))
