@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import ShiftForm, { type RosterShift, type OrgMember } from './ShiftForm'
+import AvailabilityPanel from './AvailabilityPanel'
 
 const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
@@ -40,10 +41,10 @@ function getWeekDates(anchor: Date, weekStartDay: number): Date[] {
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay, leaveToday }: {
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay, currentUserId }: {
   orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
   leaveBlocks: LeaveBlock[]; canManageRoster: boolean; weekStartDay: number
-  leaveToday?: Record<string, string>
+  currentUserId: string
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
@@ -52,6 +53,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
   const [publishing, setPublishing] = useState(false)
   const [settingTemplate, setSettingTemplate] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
+  const [selectedAvailMember, setSelectedAvailMember] = useState<OrgMember | null>(null)
 
   const weekDates = getWeekDates(weekAnchor, weekStartDay)
   const weekStart = toISO(weekDates[0])
@@ -177,17 +179,17 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
             {members.map((member, memberIdx) => (
               <tr key={member.user_id}
                 className={`divide-x divide-gray-100 dark:divide-slate-800 ${memberIdx % 2 === 1 ? 'bg-gray-50/60 dark:bg-slate-800/30' : 'bg-white dark:bg-slate-900/20'}`}>
-                <td className="py-2 pl-4 pr-3 text-xs font-semibold text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                  <span className="flex items-center gap-1.5">
-                    <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${
-                      leaveToday?.[member.user_id] === undefined
-                        ? 'bg-emerald-400'
-                        : leaveToday[member.user_id] === 'sick'
-                          ? 'bg-red-400'
-                          : 'bg-amber-400'
-                    }`} />
+                <td className="py-2 pl-4 pr-3 text-xs font-semibold whitespace-nowrap">
+                  <button
+                    onClick={() => setSelectedAvailMember(prev => prev?.user_id === member.user_id ? null : member)}
+                    className={`text-left transition-colors hover:text-cyan-400 ${
+                      selectedAvailMember?.user_id === member.user_id
+                        ? 'text-cyan-400'
+                        : 'text-gray-700 dark:text-slate-300'
+                    }`}
+                  >
                     {member.display_name}
-                  </span>
+                  </button>
                 </td>
                 {weekDates.map((d, i) => {
                   const iso = toISO(d)
@@ -237,6 +239,21 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
         <ShiftForm orgId={orgId} members={members} shift={formState.shift} defaultDate={formState.defaultDate}
           onSaved={handleSaved} onDeleted={handleDeleted} onClose={() => setFormState({ open: false })} />
       )}
+
+      <div className="mt-8">
+        <h2 className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-500">Availability</h2>
+        <p className="mb-3 text-xs text-slate-600">
+          Click an employee name above to view their weekly schedule.
+        </p>
+        {selectedAvailMember && (
+          <AvailabilityPanel
+            member={selectedAvailMember}
+            orgId={orgId}
+            canEdit={canManageRoster || selectedAvailMember.user_id === currentUserId}
+            onClose={() => setSelectedAvailMember(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }
