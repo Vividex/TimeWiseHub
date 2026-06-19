@@ -37,7 +37,7 @@ export default function ChatClient() {
   }, [searchParams, conversations.length])
 
   useEffect(() => {
-    if (!loading && !activeConversationId && conversations.length > 0) {
+    if (!loading && !activeConversationId && conversations.length > 0 && window.innerWidth >= 768) {
       setActiveConversation(conversations[0].id)
     }
   }, [loading, activeConversationId, conversations, setActiveConversation])
