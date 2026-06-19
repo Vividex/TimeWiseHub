@@ -2,6 +2,7 @@
 'use client'
 
 import { FormEvent, useRef, useState } from 'react'
+import Image from 'next/image'
 import { Send, Mic, MicOff, Volume2, VolumeX, GripVertical } from 'lucide-react'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
@@ -51,7 +52,7 @@ export default function AssistantWidget({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I can read your tasks, projects, expenses, time entries, and more — and help you create or update them. What would you like to do?",
+      content: "What can I help with?",
     },
   ])
   const [loading, setLoading] = useState(false)
@@ -338,8 +339,11 @@ export default function AssistantWidget({
                 )
               }
               return (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] px-4 py-3 text-sm leading-6 ${
+                <div key={i} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'assistant' && (
+                    <Image src="/ai-avatar.png" alt="AI" width={26} height={26} className="mb-1 shrink-0 rounded-full" />
+                  )}
+                  <div className={`max-w-[80%] px-4 py-3 text-sm leading-6 ${
                     msg.role === 'user'
                       ? 'rounded-2xl rounded-br-sm bg-cyan-500 text-white'
                       : 'rounded-2xl rounded-bl-sm border border-slate-700 bg-slate-800 text-slate-100'

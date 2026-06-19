@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import FinanceSummary from '@/components/finance/FinanceSummary'
 import FinanceChart, { type MonthBar } from '@/components/finance/FinanceChart'
+import ExpensePieChart, { type CategorySlice } from '@/components/finance/ExpensePieChart'
 import IncomeForm from '@/components/finance/IncomeForm'
 import IncomeList from '@/components/finance/IncomeList'
 import RunPayControl from '@/components/finance/RunPayControl'
@@ -26,6 +27,7 @@ type IncomeEntry = {
 type ExpenseEntry = {
   amount: number
   expense_date: string
+  expense_categories: { name: string } | null
 }
 
 type PayStatementRow = {
@@ -36,7 +38,7 @@ type PayStatementRow = {
 
 function getMonthlyData(
   incomeEntries: Pick<IncomeEntry, 'amount' | 'date'>[],
-  expenses: ExpenseEntry[],
+  expenses: Pick<ExpenseEntry, 'amount' | 'expense_date'>[],
   payStatements: PayStatementRow[],
 ): MonthBar[] {
   const months: MonthBar[] = []
@@ -69,7 +71,8 @@ function getMonthlyData(
       })
       .reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
 
-    months.push({ label, income, expenses: expenseTotal, payroll })
+    const totalExpenses = expenseTotal + payroll
+    months.push({ label, income, totalExpenses, profit: income - totalExpenses })
   }
 
   return months
@@ -104,7 +107,7 @@ export default async function CompanyFinanceView({
 
   let expenseQuery = supabase
     .from('expenses')
-    .select('amount, expense_date')
+    .select('amount, expense_date, expense_categories(name)')
     .eq(scopeColumn, scopeValue)
     .order('expense_date', { ascending: false })
 
@@ -122,11 +125,11 @@ export default async function CompanyFinanceView({
     incomeQuery,
     expenseQuery,
     supabase.from('income_entries').select('amount, date').eq(scopeColumn, scopeValue),
-    supabase.from('expenses').select('amount, expense_date').eq(scopeColumn, scopeValue),
+    supabase.from('expenses').select('amount, expense_date, expense_categories(name)').eq(scopeColumn, scopeValue),
   ])
 
   const incomeEntries = (incomeResult.data ?? []) as IncomeEntry[]
-  const expenses = (expenseResult.data ?? []) as ExpenseEntry[]
+  const expenses = (expenseResult.data ?? []) as unknown as ExpenseEntry[]
   const totalIncome = incomeEntries.reduce((sum, entry) => sum + Number(entry.amount), 0)
   const totalExpenses = expenses.reduce((sum, entry) => sum + Number(entry.amount), 0)
   // Payroll section data — org scope only.
@@ -183,7 +186,19 @@ export default async function CompanyFinanceView({
     .filter(s => (!from || s.period_start >= from) && (!to || s.period_start <= to))
     .reduce((sum, s) => sum + Number(s.gross) + Number(s.super_amount), 0)
 
-  const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenseResult.data ?? [], payStatements)
+  const allExpenses = (allExpenseResult.data ?? []) as unknown as ExpenseEntry[]
+  const monthlyData = getMonthlyData(allIncomeResult.data ?? [], allExpenses, payStatements)
+
+  // Expense breakdown by category (period-filtered)
+  const categoryMap = new Map<string, number>()
+  for (const exp of expenses) {
+    const name = exp.expense_categories?.name ?? 'Other'
+    categoryMap.set(name, (categoryMap.get(name) ?? 0) + Number(exp.amount))
+  }
+  // Payroll is its own category in the pie
+  const categorySlices: CategorySlice[] = [...categoryMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value }))
 
   return (
     <div className="min-h-full px-4 py-8 sm:px-8 dark:bg-slate-950">
@@ -206,8 +221,16 @@ export default async function CompanyFinanceView({
           ))}
         </div>
 
-        <FinanceSummary totalIncome={totalIncome} totalExpenses={totalExpenses} currency="AUD" />
+        <FinanceSummary totalIncome={totalIncome} totalExpenses={totalExpenses + (scope.type === 'org' ? periodPayroll : 0)} currency="AUD" />
         <FinanceChart months={monthlyData} />
+        {categorySlices.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ExpensePieChart data={[
+              ...categorySlices,
+              ...(scope.type === 'org' && periodPayroll > 0 ? [{ name: 'Payroll', value: periodPayroll }] : []),
+            ]} />
+          </div>
+        )}
 
         {scope.type === 'org' && (
           <div className="space-y-4">

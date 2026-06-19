@@ -2,7 +2,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MessageSquare, Sparkles, X } from 'lucide-react'
+import Image from 'next/image'
+import { MessageSquare, X } from 'lucide-react'
 import AssistantWidget from '@/components/AssistantWidget'
 import TeamChatWidget from '@/components/chat/TeamChatWidget'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
@@ -147,7 +148,9 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
           className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg transition-colors hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2"
           aria-label="Open AI assistant"
         >
-          {open === 'assistant' ? <X size={20} /> : <Sparkles size={20} />}
+          {open === 'assistant'
+            ? <X size={20} />
+            : <Image src="/ai-avatar.png" alt="AI" width={50} height={50} className="rounded-full" />}
         </button>
       </div>
     </>
