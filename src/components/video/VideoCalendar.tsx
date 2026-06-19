@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Users, Video, X } from 'lucide-react'
 
 type ScheduledCall = {
   id: string
@@ -12,8 +12,11 @@ type ScheduledCall = {
   daily_room_name: string | null
 }
 
+type Invitee = { email: string; display_name: string | null }
+
 type Props = {
   calls: ScheduledCall[]
+  canManage?: boolean
 }
 
 function startOfWeek(date: Date): Date {
@@ -45,12 +48,26 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
 }
 
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('en-AU', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Sydney',
+  })
+}
+
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-export default function VideoCalendar({ calls }: Props) {
+export default function VideoCalendar({ calls: initialCalls, canManage = false }: Props) {
+  const [calls, setCalls] = useState(initialCalls)
   const [view, setView] = useState<'week' | 'month'>('week')
   const [anchor, setAnchor] = useState(() => new Date())
+  const [selectedCall, setSelectedCall] = useState<ScheduledCall | null>(null)
+  const [invitees, setInvitees] = useState<Invitee[]>([])
+  const [loadingDetails, setLoadingDetails] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
   const router = useRouter()
 
   const now = new Date()
@@ -69,8 +86,154 @@ export default function VideoCalendar({ calls }: Props) {
     return now >= start && now <= end
   }
 
-  function handleCallClick(call: ScheduledCall) {
-    router.push(`/dashboard/video/${call.id}`)
+  async function openCall(call: ScheduledCall) {
+    setSelectedCall(call)
+    setConfirmCancel(false)
+    setCancelError(null)
+    setLoadingDetails(true)
+    try {
+      const res = await fetch(`/api/video/schedule/${call.id}`)
+      if (res.ok) {
+        const data = await res.json() as { invitees: Invitee[] }
+        setInvitees(data.invitees)
+      }
+    } finally {
+      setLoadingDetails(false)
+    }
+  }
+
+  function closeModal() {
+    setSelectedCall(null)
+    setInvitees([])
+    setConfirmCancel(false)
+    setCancelError(null)
+  }
+
+  async function handleCancel() {
+    if (!selectedCall) return
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      const res = await fetch(`/api/video/schedule/${selectedCall.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setCalls(prev => prev.filter(c => c.id !== selectedCall.id))
+        closeModal()
+      } else {
+        const data = await res.json() as { error?: string }
+        setCancelError(data.error ?? 'Could not cancel the meeting.')
+        setConfirmCancel(false)
+      }
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  function CallModal() {
+    if (!selectedCall) return null
+    const live = isLive(selectedCall)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeModal}>
+        <div
+          className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-5 dark:border-slate-800">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-violet-600">Scheduled call</p>
+              <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">{selectedCall.title}</h2>
+            </div>
+            <button onClick={closeModal} className="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="space-y-4 p-5">
+            {selectedCall.starts_at && (
+              <div className="flex items-start gap-3">
+                <Clock size={16} className="mt-0.5 shrink-0 text-violet-500" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {formatDateTime(selectedCall.starts_at)}
+                  </p>
+                  {selectedCall.ends_at && (
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      until {formatTime(selectedCall.ends_at)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-start gap-3">
+              <Users size={16} className="mt-0.5 shrink-0 text-violet-500" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Participants {!loadingDetails && `(${invitees.length})`}
+                </p>
+                {loadingDetails ? (
+                  <p className="mt-1 text-xs text-gray-400">Loading…</p>
+                ) : invitees.length === 0 ? (
+                  <p className="mt-1 text-xs text-gray-400">No invitees added</p>
+                ) : (
+                  <ul className="mt-1 space-y-0.5">
+                    {invitees.map(inv => (
+                      <li key={inv.email} className="text-xs text-gray-600 dark:text-slate-400">
+                        {inv.display_name ? `${inv.display_name} (${inv.email})` : inv.email}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {cancelError && (
+              <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-950">
+                {cancelError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t border-gray-100 p-5 dark:border-slate-800">
+            {canManage && !confirmCancel && (
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
+              >
+                Cancel meeting
+              </button>
+            )}
+            {canManage && confirmCancel && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500">Send cancellation emails and delete?</span>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                >
+                  {cancelling ? 'Cancelling…' : 'Yes, cancel it'}
+                </button>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="text-xs font-semibold text-gray-400 hover:text-gray-600"
+                >
+                  Keep
+                </button>
+              </div>
+            )}
+            {!canManage && <span />}
+            <button
+              onClick={() => router.push(`/dashboard/video/${selectedCall.id}`)}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white transition-colors ${
+                live ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-violet-600 hover:bg-violet-700'
+              }`}
+            >
+              <Video size={14} />
+              {live ? 'Join now' : 'Join call'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (view === 'week') {
@@ -79,50 +242,53 @@ export default function VideoCalendar({ calls }: Props) {
     const weekLabel = `${days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – ${days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
     return (
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <button onClick={() => setAnchor(a => addDays(a, -7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{weekLabel}</span>
-            <button onClick={() => setAnchor(a => addDays(a, 7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
+      <>
+        <CallModal />
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setAnchor(a => addDays(a, -7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{weekLabel}</span>
+              <button onClick={() => setAnchor(a => addDays(a, 7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
+            </div>
+            <button onClick={() => setView('month')} className="text-xs text-violet-600 hover:underline">Month view</button>
           </div>
-          <button onClick={() => setView('month')} className="text-xs text-violet-600 hover:underline">Month view</button>
+          <div className="grid grid-cols-7 gap-1">
+            {DAYS.map(d => (
+              <div key={d} className="text-center text-xs font-semibold text-slate-500 py-1">{d}</div>
+            ))}
+            {days.map((day, i) => {
+              const dayCalls = callsForDay(day)
+              const isToday = sameDay(day, now)
+              return (
+                <div key={i} className={`min-h-24 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+                  <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
+                  {dayCalls.map(call => (
+                    <button
+                      key={call.id}
+                      onClick={() => openCall(call)}
+                      className={`w-full text-left text-xs rounded px-1.5 py-1 mb-1 truncate font-medium transition-colors ${
+                        isLive(call)
+                          ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                          : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900'
+                      }`}
+                    >
+                      {call.starts_at && formatTime(call.starts_at)} {call.title}
+                      {isLive(call) && ' • LIVE'}
+                    </button>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
         </div>
-        <div className="grid grid-cols-7 gap-1">
-          {DAYS.map(d => (
-            <div key={d} className="text-center text-xs font-semibold text-slate-500 py-1">{d}</div>
-          ))}
-          {days.map((day, i) => {
-            const dayCalls = callsForDay(day)
-            const isToday = sameDay(day, now)
-            return (
-              <div key={i} className={`min-h-24 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
-                <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
-                {dayCalls.map(call => (
-                  <button
-                    key={call.id}
-                    onClick={() => handleCallClick(call)}
-                    className={`w-full text-left text-xs rounded px-1.5 py-1 mb-1 truncate font-medium transition-colors ${
-                      isLive(call)
-                        ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                        : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900'
-                    }`}
-                  >
-                    {call.starts_at && formatTime(call.starts_at)} {call.title}
-                    {isLive(call) && ' • LIVE'}
-                  </button>
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      </>
     )
   }
 
   // Month view
   const monthStart = startOfMonth(anchor)
-  const firstDayOfWeek = ((monthStart.getDay() + 6) % 7) // 0=Mon
+  const firstDayOfWeek = ((monthStart.getDay() + 6) % 7)
   const daysInMonth = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0).getDate()
   const cells: (Date | null)[] = [
     ...Array(firstDayOfWeek).fill(null),
@@ -131,44 +297,47 @@ export default function VideoCalendar({ calls }: Props) {
   const monthLabel = `${MONTHS[anchor.getMonth()]} ${anchor.getFullYear()}`
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() - 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
-          <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{monthLabel}</span>
-          <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() + 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
+    <>
+      <CallModal />
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() - 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft size={18} /></button>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{monthLabel}</span>
+            <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() + 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
+          </div>
+          <button onClick={() => setView('week')} className="text-xs text-violet-600 hover:underline">Week view</button>
         </div>
-        <button onClick={() => setView('week')} className="text-xs text-violet-600 hover:underline">Week view</button>
+        <div className="grid grid-cols-7 gap-1">
+          {DAYS.map(d => (
+            <div key={d} className="text-center text-xs font-semibold text-slate-500 py-1">{d}</div>
+          ))}
+          {cells.map((day, i) => {
+            if (!day) return <div key={`empty-${i}`} />
+            const dayCalls = callsForDay(day)
+            const isToday = sameDay(day, now)
+            return (
+              <div key={i} className={`min-h-16 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+                <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
+                {dayCalls.slice(0, 2).map(call => (
+                  <button
+                    key={call.id}
+                    onClick={() => openCall(call)}
+                    className={`w-full text-left text-xs rounded px-1 py-0.5 mb-0.5 truncate ${
+                      isLive(call) ? 'bg-emerald-500 text-white' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
+                    }`}
+                  >
+                    {call.title}
+                  </button>
+                ))}
+                {dayCalls.length > 2 && (
+                  <p className="text-xs text-slate-400">+{dayCalls.length - 2} more</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
-      <div className="grid grid-cols-7 gap-1">
-        {DAYS.map(d => (
-          <div key={d} className="text-center text-xs font-semibold text-slate-500 py-1">{d}</div>
-        ))}
-        {cells.map((day, i) => {
-          if (!day) return <div key={`empty-${i}`} />
-          const dayCalls = callsForDay(day)
-          const isToday = sameDay(day, now)
-          return (
-            <div key={i} className={`min-h-16 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
-              <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
-              {dayCalls.slice(0, 2).map(call => (
-                <button
-                  key={call.id}
-                  onClick={() => handleCallClick(call)}
-                  className={`w-full text-left text-xs rounded px-1 py-0.5 mb-0.5 truncate ${
-                    isLive(call) ? 'bg-emerald-500 text-white' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
-                  }`}
-                >
-                  {call.title}
-                </button>
-              ))}
-              {dayCalls.length > 2 && (
-                <p className="text-xs text-slate-400">+{dayCalls.length - 2} more</p>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
+    </>
   )
 }

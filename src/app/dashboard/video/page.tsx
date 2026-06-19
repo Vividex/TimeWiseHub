@@ -86,7 +86,7 @@ export default async function VideoPage() {
         </div>
         <VideoPageClient orgId={orgId} members={members} canSchedule={canSchedule} />
       </div>
-      <VideoCalendar calls={(calls ?? []) as ScheduledCall[]} />
+      <VideoCalendar calls={(calls ?? []) as ScheduledCall[]} canManage={canSchedule} />
     </div>
   )
 }
