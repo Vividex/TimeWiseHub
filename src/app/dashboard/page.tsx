@@ -44,8 +44,8 @@ export default async function DashboardHome() {
   const isManager = ['owner', 'admin', 'manager'].includes(role)
 
   const { data: profile } = await supabase
-    .from('profiles').select('full_name').eq('id', user.id).maybeSingle()
-  const firstName = profile?.full_name?.split(' ')[0] ?? ''
+    .from('profiles').select('full_name, nickname').eq('id', user.id).maybeSingle()
+  const firstName = profile?.full_name?.split(' ')[0] ?? profile?.nickname ?? ''
 
   const { data: rawTasks } = await supabase
     .from('tasks')

@@ -11,9 +11,11 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
+  const [dismissed, setDismissed] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    if (localStorage.getItem('push_prompt_dismissed')) { setDismissed(true) }
     // Web push is not available inside the Tauri native app shell
     if ('__TAURI_INTERNALS__' in window) {
       setState('unsupported')
@@ -73,7 +75,7 @@ export default function PushPermission() {
     }
   }
 
-  if (state === 'unsupported') return null
+  if (state === 'unsupported' || dismissed) return null
 
   if (state === 'subscribed') {
     return (
@@ -91,10 +93,18 @@ export default function PushPermission() {
   }
 
   return (
-    <button onClick={enable} disabled={loading}
-      className="flex items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-600 transition-colors hover:bg-cyan-100 disabled:opacity-50">
-      🔔 {loading ? 'Enabling...' : 'Enable notifications'}
-    </button>
+    <div className="flex items-center gap-2">
+      <button onClick={enable} disabled={loading}
+        className="flex items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-600 transition-colors hover:bg-cyan-100 disabled:opacity-50">
+        🔔 {loading ? 'Enabling...' : 'Enable notifications'}
+      </button>
+      <button
+        onClick={() => { localStorage.setItem('push_prompt_dismissed', '1'); setDismissed(true) }}
+        className="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+      >
+        Not now
+      </button>
+    </div>
   )
 }
 

@@ -103,6 +103,11 @@ export default function AcceptInvitePage() {
         password,
       })
       if (signInError) { setError(signInError.message); setLoading(false); return }
+
+      // New users never have a username — send them through profile setup first
+      router.push('/setup-username')
+      router.refresh()
+      return
     }
 
     router.push('/dashboard')

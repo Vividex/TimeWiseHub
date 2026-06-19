@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
 export default function NicknameForm({
@@ -43,10 +44,21 @@ export default function NicknameForm({
     <form onSubmit={handleSave} className="mt-4 space-y-4">
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-900 dark:text-slate-200">Username</label>
-        <p className="rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3 py-2 font-mono text-sm text-slate-600 dark:text-slate-400">
-          {username}
-        </p>
-        <p className="mt-1 text-xs text-gray-400">Your unique handle — contact support to change it.</p>
+        {username ? (
+          <>
+            <p className="rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3 py-2 font-mono text-sm text-slate-600 dark:text-slate-400">
+              {username}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">Your unique handle — fixed after first set.</p>
+          </>
+        ) : (
+          <Link
+            href="/setup-username"
+            className="mt-1 inline-flex items-center gap-1 rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-600 hover:bg-cyan-100 dark:border-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400"
+          >
+            Set your username →
+          </Link>
+        )}
       </div>
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-900 dark:text-slate-200">
