@@ -68,6 +68,10 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
   const [cancelling, setCancelling] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  const [addEmail, setAddEmail] = useState('')
+  const [addName, setAddName] = useState('')
+  const [addingInvitee, setAddingInvitee] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
   const router = useRouter()
 
   const now = new Date()
@@ -107,6 +111,33 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     setInvitees([])
     setConfirmCancel(false)
     setCancelError(null)
+    setAddEmail('')
+    setAddName('')
+    setAddError(null)
+  }
+
+  async function handleAddInvitee(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedCall || !addEmail.trim()) return
+    setAddingInvitee(true)
+    setAddError(null)
+    try {
+      const res = await fetch(`/api/video/schedule/${selectedCall.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: addEmail.trim(), displayName: addName.trim() || undefined }),
+      })
+      const data = await res.json() as { email?: string; display_name?: string | null; error?: string }
+      if (res.ok) {
+        setInvitees(prev => [...prev, { email: data.email!, display_name: data.display_name ?? null }])
+        setAddEmail('')
+        setAddName('')
+      } else {
+        setAddError(data.error ?? 'Could not add invitee.')
+      }
+    } finally {
+      setAddingInvitee(false)
+    }
   }
 
   async function handleCancel() {
@@ -190,6 +221,37 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
               <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-950">
                 {cancelError}
               </p>
+            )}
+
+            {canManage && (
+              <form onSubmit={handleAddInvitee} className="rounded-xl border border-gray-100 dark:border-slate-700 p-3 space-y-2">
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Add invitee</p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    required
+                    value={addEmail}
+                    onChange={e => setAddEmail(e.target.value)}
+                    placeholder="email@example.com"
+                    className="flex-1 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  />
+                  <input
+                    type="text"
+                    value={addName}
+                    onChange={e => setAddName(e.target.value)}
+                    placeholder="Name (optional)"
+                    className="w-28 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={addingInvitee || !addEmail.trim()}
+                    className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+                  >
+                    {addingInvitee ? '…' : 'Invite'}
+                  </button>
+                </div>
+                {addError && <p className="text-xs font-semibold text-red-500">{addError}</p>}
+              </form>
             )}
           </div>
 
