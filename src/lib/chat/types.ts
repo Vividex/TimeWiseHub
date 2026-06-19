@@ -42,7 +42,7 @@ export type ChatMember = {
 /** Peer-facing display name. Never returns the user's email. */
 export function displayName(member: ChatMember | null | undefined): string {
   if (!member) return 'Unknown'
-  return member.nickname ?? member.username ?? 'Unknown'
+  return member.nickname ?? member.full_name ?? member.username ?? 'Unknown'
 }
 
 export type QuietHours = {
