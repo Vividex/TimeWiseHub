@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { Clock, FolderOpen, CheckSquare, Users } from 'lucide-react'
 
@@ -15,23 +17,29 @@ type CardProps = {
   label: string
   iconClass: string
   glowClass: string
-  href: string
-}
+} & ({ href: string; onClick?: never } | { onClick: () => void; href?: never })
 
-function MetricCard({ icon: Icon, value, label, iconClass, glowClass, href }: CardProps) {
-  return (
-    <Link
-      href={href}
-      className="relative block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-5 transition-colors hover:border-slate-700 hover:bg-slate-800/60"
-    >
+function MetricCard({ icon: Icon, value, label, iconClass, glowClass, href, onClick }: CardProps) {
+  const inner = (
+    <>
       <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-10 blur-2xl ${glowClass}`} />
       <div className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}>
         <Icon size={18} />
       </div>
       <p className="text-2xl font-black text-white">{value}</p>
       <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</p>
-    </Link>
+    </>
   )
+
+  const cls = 'relative block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-5 transition-colors hover:border-slate-700 hover:bg-slate-800/60 text-left w-full'
+
+  return href
+    ? <Link href={href} className={cls}>{inner}</Link>
+    : <button onClick={onClick} className={cls}>{inner}</button>
+}
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
 export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients }: Props) {
@@ -59,7 +67,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         label="Tasks complete"
         iconClass="bg-emerald-500/15 text-emerald-400"
         glowClass="bg-emerald-500"
-        href="#my-tasks"
+        onClick={() => scrollTo('my-tasks')}
       />
       <MetricCard
         icon={Users}
