@@ -160,6 +160,24 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
     return () => { cancelled = true }
   }, [loadConversations, loadMembers, loadUnread])
 
+  // Reload member list when someone joins or leaves the org.
+  useEffect(() => {
+    const channel = supabase
+      .channel('org-members')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'organisation_members', filter: `org_id=eq.${orgId}` },
+        () => { loadMembers() }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'organisation_members', filter: `org_id=eq.${orgId}` },
+        () => { loadMembers() }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase, orgId, loadMembers])
+
   // Single Postgres-Changes subscription; RLS filters to our conversations.
   useEffect(() => {
     const channel = supabase
