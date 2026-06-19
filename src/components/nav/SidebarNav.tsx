@@ -75,8 +75,8 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
       href={item.href}
       data-tutorial={item.tutorialId}
       tabIndex={isBlocked ? -1 : undefined}
-      className={`flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-colors ${
-        active ? 'border-cyan-400 bg-slate-800 text-cyan-400' : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-white'
+      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+        active ? 'bg-cyan-500/10 text-cyan-400 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
       } ${isBlocked ? 'pointer-events-none opacity-30' : ''} ${isSpotlit ? 'relative' : ''}`}
     >
       <Icon size={16} className="shrink-0" />

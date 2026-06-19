@@ -62,15 +62,15 @@ export default function DashboardShell({
 
       <div className="lg:pl-64">
         <header
-          className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 sm:px-8 dark:border-slate-800 dark:bg-slate-900"
+          className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-8 dark:border-slate-800 dark:bg-slate-900/95"
           style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))', paddingBottom: '1rem' }}
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <MobileSidebar email={email} />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>
-                <h1 className="font-['Poppins'] text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>
+                <p className="text-xs font-bold uppercase tracking-widest text-cyan-500">TimeWiseHub</p>
+                <h1 className="font-['Poppins'] text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ export default function DashboardShell({
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Signed in</p>
                 <p className="max-w-[220px] truncate text-sm font-bold text-slate-900 dark:text-slate-100">{email}</p>
               </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-500 text-sm font-black text-white shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-500 text-sm font-black text-white shadow-lg shadow-cyan-500/30">
                 {initials(email)}
               </div>
             </div>

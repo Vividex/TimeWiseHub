@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import MyWork from '@/components/home/MyWork'
 import TaskPool from '@/components/tasks/TaskPool'
@@ -8,6 +7,8 @@ import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
 import OrgDocuments from '@/components/home/OrgDocuments'
 import PendingApprovals from '@/components/home/PendingApprovals'
+import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
+import QuickActions from '@/components/dashboard/QuickActions'
 
 type PoolTask = {
   id: string
@@ -99,26 +100,73 @@ export default async function DashboardHome() {
     }
   }
 
+  // Metric card data
+  const now = new Date()
+  const dow = now.getDay()
+  const weekStart = new Date(now)
+  weekStart.setDate(now.getDate() - ((dow + 6) % 7))
+  weekStart.setHours(0, 0, 0, 0)
+
+  const [timeRes, projectsRes, tasksRes, clientsRes] = await Promise.all([
+    supabase
+      .from('time_entries')
+      .select('duration_seconds')
+      .eq('user_id', user.id)
+      .not('ended_at', 'is', null)
+      .gte('started_at', weekStart.toISOString()),
+    orgId
+      ? supabase.from('projects').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active')
+      : supabase.from('projects').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('status', 'active'),
+    supabase
+      .from('tasks')
+      .select('id', { count: 'exact', head: true })
+      .eq('assignee_id', user.id)
+      .eq('status', 'done')
+      .gte('completed_at', weekStart.toISOString()),
+    orgId
+      ? supabase.from('clients').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('archived', false)
+      : supabase.from('clients').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('archived', false),
+  ])
+
+  const hoursThisWeek = (timeRes.data ?? []).reduce((s: number, e: { duration_seconds: number | null }) => s + (e.duration_seconds ?? 0), 0) / 3600
+  const activeProjects = projectsRes.count ?? 0
+  const tasksThisWeek = tasksRes.count ?? 0
+  const activeClients = clientsRes.count ?? 0
+
   return (
-    <div className="px-4 py-8 sm:px-8">
+    <div className="px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-8">
+
+        {/* Greeting */}
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">
-            {firstName ? `Hi, ${firstName}` : 'My Work'}
+          <h1 className="text-3xl font-black text-white">
+            {firstName ? `Hi, ${firstName} 👋` : 'Dashboard'}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Jump to <Link href="/dashboard/clients" className="font-semibold text-cyan-600 hover:underline">Clients</Link> to browse projects and sessions.
+          <p className="mt-1 text-sm text-slate-400">
+            Here&apos;s what&apos;s happening across your business today.
           </p>
         </div>
 
         <WelcomeBanner firstName={firstName} />
         <NudgeBanner userId={user.id} />
 
+        {/* Metric cards */}
+        <DashboardMetrics
+          hoursThisWeek={hoursThisWeek}
+          activeProjects={activeProjects}
+          tasksThisWeek={tasksThisWeek}
+          activeClients={activeClients}
+        />
+
+        {/* Quick actions */}
+        <QuickActions />
+
+        {/* My tasks */}
         <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
 
         {isManager && poolTasks.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Unassigned tasks</h2>
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Unassigned tasks</h2>
             <TaskPool
               initialTasks={poolTasks}
               orgMembers={mappedMembers ?? []}
@@ -129,8 +177,8 @@ export default async function DashboardHome() {
         )}
 
         {isManager && assignedTasks.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Team tasks</h2>
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Team tasks</h2>
             <TeamTasks
               initialTasks={assignedTasks}
               orgMembers={mappedMembers ?? []}

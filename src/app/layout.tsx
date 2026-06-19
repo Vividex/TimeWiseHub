@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning style={{ backgroundColor: '#020617' }}>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="twh-theme">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="twh-theme">
           <ServiceWorkerRegistration />
           <NavHistoryProvider>
             <BackButton />
