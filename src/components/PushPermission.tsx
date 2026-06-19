@@ -11,20 +11,11 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
-  const [dismissed, setDismissed] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem('push_prompt_dismissed')) { setDismissed(true) }
-    // Web push is not available inside the Tauri native app shell
-    if ('__TAURI_INTERNALS__' in window) {
-      setState('unsupported')
-      return
-    }
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      setState('unsupported')
-      return
-    }
+    if ('__TAURI_INTERNALS__' in window) { setState('unsupported'); return }
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) { setState('unsupported'); return }
     if (Notification.permission === 'denied') { setState('denied'); return }
     navigator.serviceWorker.ready.then(reg =>
       reg.pushManager.getSubscription().then(sub => {
@@ -75,36 +66,44 @@ export default function PushPermission() {
     }
   }
 
-  if (state === 'unsupported' || dismissed) return null
-
-  if (state === 'subscribed') {
-    return (
-      <button onClick={disable} disabled={loading}
-        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-50">
-        🔔 Notifications on
-      </button>
-    )
-  }
+  if (state === 'unsupported') return null
 
   if (state === 'denied') {
     return (
-      <span className="text-xs font-semibold text-gray-400">Notifications blocked in browser settings</span>
+      <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+        <div>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
+          <p className="text-xs font-medium text-gray-500 dark:text-slate-400">Blocked — enable in your browser settings</p>
+        </div>
+        <span className="text-xs font-semibold text-gray-400">Blocked</span>
+      </div>
     )
   }
 
+  const isOn = state === 'subscribed'
+
   return (
-    <div className="flex items-center gap-2">
-      <button onClick={enable} disabled={loading}
-        className="flex items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-600 transition-colors hover:bg-cyan-100 disabled:opacity-50">
-        🔔 {loading ? 'Enabling...' : 'Enable notifications'}
-      </button>
+    <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+      <div>
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
+        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+          {isOn ? 'Notifications are on' : 'Get notified even when the tab is closed'}
+        </p>
+      </div>
       <button
-        onClick={() => { localStorage.setItem('push_prompt_dismissed', '1'); setDismissed(true) }}
-        className="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+        type="button"
+        disabled={loading}
+        onClick={isOn ? disable : enable}
+        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+          isOn ? 'bg-cyan-500' : 'bg-gray-200 dark:bg-slate-600'
+        }`}
       >
-        Not now
+        <span
+          className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transform transition-transform ${
+            isOn ? 'translate-x-5' : 'translate-x-0.5'
+          }`}
+        />
       </button>
     </div>
   )
 }
-

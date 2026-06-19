@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, MessageSquare, Settings } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, MessageSquare, Settings } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import ConversationList from '@/components/chat/ConversationList'
 import MessageThread from '@/components/chat/MessageThread'
@@ -11,7 +11,6 @@ import NewDmDialog from '@/components/chat/NewDmDialog'
 import NewGroupDialog from '@/components/chat/NewGroupDialog'
 import GroupSettingsPanel from '@/components/chat/GroupSettingsPanel'
 import StartCallButton from '@/components/video/StartCallButton'
-import PushPermission from '@/components/PushPermission'
 import type { ChatConversation } from '@/lib/chat/types'
 
 function dmPeerId(conv: ChatConversation, userId: string): string | null {
@@ -25,7 +24,7 @@ function canModerate(role: string | undefined): boolean {
 }
 
 export default function ChatClient() {
-  const { userId, orgId, conversations, members, activeConversationId, setActiveConversation, loading } = useChat()
+  const { userId, orgId, conversations, members, activeConversationId, setActiveConversation, loading, mutedConversations, toggleMute } = useChat()
   const [showNewDm, setShowNewDm] = useState(false)
   const [showNewGroup, setShowNewGroup] = useState(false)
   const [showGroupSettings, setShowGroupSettings] = useState(false)
@@ -54,6 +53,7 @@ export default function ChatClient() {
   const peerId = active ? dmPeerId(active, userId) : null
   const peer = peerId ? members[peerId] : null
   const canPost = active ? (isChannel ? canModerate(members[userId]?.role) : true) : false
+  const isMuted = active ? mutedConversations.has(active.id) : false
 
   const title = !active
     ? ''
@@ -72,9 +72,6 @@ export default function ChatClient() {
           onNewDm={() => setShowNewDm(true)}
           onNewGroup={() => setShowNewGroup(true)}
         />
-        <div className="border-t border-gray-100 p-3 dark:border-slate-800">
-          <PushPermission />
-        </div>
       </div>
 
       {/* Thread panel */}
@@ -98,6 +95,19 @@ export default function ChatClient() {
                 </div>
                 {(isChannel || isGroup) && orgId && (
                   <StartCallButton orgId={orgId} />
+                )}
+                {!isChannel && (
+                  <button
+                    onClick={() => toggleMute(active.id)}
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      isMuted
+                        ? 'bg-orange-50 text-orange-400 dark:bg-slate-700 dark:text-orange-300'
+                        : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                    }`}
+                    title={isMuted ? 'Unmute conversation' : 'Mute conversation'}
+                  >
+                    {isMuted ? <BellOff size={16} /> : <Bell size={16} />}
+                  </button>
                 )}
                 {isGroup && (
                   <button

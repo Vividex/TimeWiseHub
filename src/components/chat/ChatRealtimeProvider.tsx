@@ -59,9 +59,11 @@ type ChatContextValue = {
   unreadTotal: number
   activeConversationId: string | null
   lastInsert: LiveInsert | null
+  mutedConversations: Set<string>
   setActiveConversation: (id: string | null) => void
   markRead: (id: string) => Promise<void>
   refreshConversations: () => Promise<void>
+  toggleMute: (id: string) => void
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null)
@@ -84,7 +86,24 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [lastInsert, setLastInsert] = useState<LiveInsert | null>(null)
+  const [mutedConversations, setMutedConversations] = useState<Set<string>>(new Set())
   const activeRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('chat_muted_convs')
+      if (raw) setMutedConversations(new Set(JSON.parse(raw) as string[]))
+    } catch { /* ignore */ }
+  }, [])
+
+  const toggleMute = useCallback((id: string) => {
+    setMutedConversations(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
+      try { localStorage.setItem('chat_muted_convs', JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
 
   const supabase = useMemo(() => createClient(), [])
 
@@ -228,9 +247,11 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
     unreadTotal,
     activeConversationId,
     lastInsert,
+    mutedConversations,
     setActiveConversation,
     markRead,
     refreshConversations: loadConversations,
+    toggleMute,
   }
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>

@@ -111,7 +111,7 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/dashboard" className="mb-8 inline-block text-sm font-bold text-cyan-600 hover:underline">← Dashboard</Link>
+        <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-600 hover:text-cyan-700 mb-8">← Back to Dashboard</Link>
 
         <div className="mb-8">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub</p>

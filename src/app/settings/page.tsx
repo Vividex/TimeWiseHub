@@ -8,6 +8,7 @@ import InviteMember from '@/components/InviteMember'
 import { effectivePlan, getSubscription, isTeamPlan } from '@/lib/subscription'
 import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
+import PushPermission from '@/components/PushPermission'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -112,6 +113,17 @@ export default async function SettingsPage() {
             className="mt-4 inline-flex rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50">
             Download raw data (JSON)
           </a>
+        </div>
+
+        {/* Push notifications */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Push notifications</h2>
+          <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
+            Receive browser notifications even when TimeWiseHub is in the background.
+          </p>
+          <div className="mt-4">
+            <PushPermission />
+          </div>
         </div>
 
         <AccountSettingsForm

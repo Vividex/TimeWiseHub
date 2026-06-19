@@ -1,6 +1,6 @@
 'use client'
 
-import { Megaphone, Plus, Users } from 'lucide-react'
+import { BellOff, Megaphone, Plus, Users } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import type { ChatConversation } from '@/lib/chat/types'
@@ -19,7 +19,7 @@ export default function ConversationList({
   onNewDm: () => void
   onNewGroup: () => void
 }) {
-  const { userId, conversations, members, unreadByConversation, activeConversationId, setActiveConversation } = useChat()
+  const { userId, conversations, members, unreadByConversation, activeConversationId, setActiveConversation, mutedConversations } = useChat()
 
   const channels = conversations.filter(c => c.type === 'channel')
   const groups = conversations.filter(c => c.type === 'group')
@@ -62,11 +62,13 @@ export default function ConversationList({
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{label(conv)}</span>
         </span>
-        {unread > 0 && (
+        {mutedConversations.has(conv.id) ? (
+          <BellOff size={13} className="ml-auto shrink-0 text-gray-300 dark:text-slate-600" />
+        ) : unread > 0 ? (
           <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1.5 text-xs font-bold text-white">
             {unread > 99 ? '99+' : unread}
           </span>
-        )}
+        ) : null}
       </button>
     )
   }
