@@ -22,26 +22,27 @@ export default async function RosterPage() {
   )
 
   const { data: members } = await supabase
-    .from('organisation_members').select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)
+    .from('organisation_members').select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)
 
   type ProfileRow = { full_name: string | null; email: string } | null
+  const ROLE_ORDER: Record<string, number> = { owner: 0, admin: 1, manager: 2, employee: 3 }
 
-  const memberList = (members ?? []).map(m => ({
+  const memberListRaw = (members ?? []).map(m => ({
     user_id: m.user_id,
+    role: m.role as string,
     display_name:
       (m.profiles as unknown as ProfileRow)?.full_name
       || (m.profiles as unknown as ProfileRow)?.email
       || m.user_id,
   }))
 
-  memberList.sort((a, b) => a.display_name.localeCompare(b.display_name))
-
   // Ensure the current user (e.g. org owner) always appears in the roster
-  if (!memberList.some(m => m.user_id === user.id)) {
+  if (!memberListRaw.some(m => m.user_id === user.id)) {
     const { data: ownProfile } = await supabase
       .from('profiles').select('full_name, email').eq('id', user.id).maybeSingle()
-    memberList.unshift({
+    memberListRaw.push({
       user_id: user.id,
+      role: membership?.role ?? 'owner',
       display_name:
         (ownProfile as ProfileRow | null)?.full_name
         ?? (ownProfile as ProfileRow | null)?.email
@@ -49,6 +50,15 @@ export default async function RosterPage() {
         ?? user.id,
     })
   }
+
+  memberListRaw.sort((a, b) => {
+    const ra = ROLE_ORDER[a.role] ?? 99
+    const rb = ROLE_ORDER[b.role] ?? 99
+    if (ra !== rb) return ra - rb
+    return a.display_name.localeCompare(b.display_name)
+  })
+
+  const memberList = memberListRaw.map(({ user_id, display_name }) => ({ user_id, display_name }))
 
   const today = new Date()
   const from = new Date(today); from.setDate(today.getDate() - 14)

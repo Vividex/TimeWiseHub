@@ -15,8 +15,8 @@ const LEAVE_COLOURS: Record<string, string> = {
   annual:           'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
   sick:             'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
   personal:         'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
-  long_service:     'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
-  'long service':   'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  long_service:     'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+  'long service':   'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
   parental:         'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300',
   bereavement:      'bg-stone-100 text-stone-600 dark:bg-stone-800/60 dark:text-stone-300',
   unpaid:           'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
@@ -50,6 +50,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
   const [formState, setFormState] = useState<{ open: boolean; shift?: RosterShift; defaultDate?: string }>({ open: false })
   const [publishing, setPublishing] = useState(false)
   const [settingTemplate, setSettingTemplate] = useState(false)
+  const [templateSaved, setTemplateSaved] = useState(false)
 
   const weekDates = getWeekDates(weekAnchor, weekStartDay)
   const weekStart = toISO(weekDates[0])
@@ -89,10 +90,17 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
       body: JSON.stringify({ orgId, shifts: templateShifts }),
     })
     setSettingTemplate(false)
+    setTemplateSaved(true)
+    setTimeout(() => setTemplateSaved(false), 2500)
   }
 
   const unpublishedCount = shifts.filter(s => s.date >= weekStart && s.date <= weekEnd && !s.published).length
   const todayISO = toISO(new Date())
+  const nowTime = new Date().toTimeString().slice(0, 8) // "HH:MM:SS" — string compare works on ISO times
+
+  function isActiveNow(s: RosterShift) {
+    return s.date === todayISO && s.start_time <= nowTime && s.end_time > nowTime
+  }
 
   return (
     <div>
@@ -112,9 +120,13 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
             </button>
           )}
           {canManageRoster && (
-            <button onClick={setAsRecurring} disabled={settingTemplate}
-              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
-              {settingTemplate ? 'Saving…' : 'Set as recurring'}
+            <button onClick={setAsRecurring} disabled={settingTemplate || templateSaved}
+              className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                templateSaved
+                  ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-700 dark:bg-green-900/20 dark:text-green-400'
+                  : 'border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+              }`}>
+              {settingTemplate ? 'Saving…' : templateSaved ? 'Recurring saved ✓' : 'Set as recurring'}
             </button>
           )}
         </div>
@@ -187,9 +199,11 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                         {dayShifts.map(s => (
                           <button key={s.id} onClick={() => canManageRoster && setFormState({ open: true, shift: s })}
                             className={`mb-1 w-full rounded-lg px-2 py-1.5 text-left text-xs font-semibold shadow-sm ${
-                              s.published
-                                ? 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-900/40 dark:text-cyan-300'
-                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300'
+                              isActiveNow(s)
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300'
+                                : s.published
+                                  ? 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-900/40 dark:text-cyan-300'
+                                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300'
                             }`}>
                             {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}
                           </button>
