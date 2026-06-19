@@ -12,7 +12,7 @@ export default function PrivacyPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">TimeWiseHub by Vividex</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900">Privacy Policy</h1>
-            <p className="mt-2 text-sm text-gray-500">Last updated: 14 June 2026</p>
+            <p className="mt-2 text-sm text-gray-500">Last updated: 19 June 2026</p>
           </div>
 
           <section className="space-y-3">
@@ -34,6 +34,7 @@ export default function PrivacyPage() {
               <li><strong>Usage data:</strong> time logs, expense records, tasks, leave requests, invoices, payroll records, and chat messages and attachments you create within the platform.</li>
               <li><strong>Payment data:</strong> subscription billing is handled by Stripe. We do not store raw card numbers or full payment details. We store only your Stripe customer ID and subscription status.</li>
               <li><strong>Technical data:</strong> IP address, browser type, and device information, collected automatically for security and service operation purposes.</li>
+              <li><strong>AI assistant interactions:</strong> messages you send to the built-in AI assistant and the responses generated. These messages are transmitted to Anthropic (our AI provider) to generate a response. Do not send sensitive personal information through the AI assistant that you would not want processed by a third-party AI service.</li>
             </ul>
           </section>
 
@@ -82,6 +83,16 @@ export default function PrivacyPage() {
                     <td className="py-2 pr-4 font-medium">Resend</td>
                     <td className="py-2 pr-4">Transactional email delivery</td>
                     <td className="py-2">Global</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 font-medium">Daily.co</td>
+                    <td className="py-2 pr-4">Video calling infrastructure</td>
+                    <td className="py-2">United States</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 font-medium">Anthropic</td>
+                    <td className="py-2 pr-4">AI assistant (Claude) — processes messages you send to the assistant</td>
+                    <td className="py-2">United States</td>
                   </tr>
                   <tr>
                     <td className="py-2 pr-4 font-medium">Vercel</td>
