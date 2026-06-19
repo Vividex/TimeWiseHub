@@ -8,6 +8,7 @@ export const READ_TOOLS = new Set([
   'get_calendar_events', 'get_summary',
   'get_sessions', 'get_progress_notes', 'get_invoices',
   'get_project_expenses',
+  'get_roster', 'check_availability',
 ])
 
 export const WRITE_TOOLS = new Set([
@@ -16,6 +17,7 @@ export const WRITE_TOOLS = new Set([
   'stop_timer', 'create_expense', 'create_calendar_event', 'create_leave_request',
   'create_session', 'update_session', 'add_session_todo', 'check_session_todo', 'add_progress_note',
   'create_quote',
+  'create_roster_shift',
 ])
 
 export function isReadTool(name: string): boolean {
@@ -396,6 +398,35 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
     },
   },
 
+  // ── Roster tools ─────────────────────────────────────────────
+  {
+    name: 'get_roster',
+    description: 'Fetch roster shifts for the organisation in a date range. Returns user_id, date, start_time, end_time, published status. Call get_team_members first if you need names.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        date_from: { type: 'string', description: 'ISO date (YYYY-MM-DD). Defaults to Monday of the current week.' },
+        date_to: { type: 'string', description: 'ISO date (YYYY-MM-DD). Defaults to Sunday of the current week.' },
+        user_id: { type: 'string', description: 'Filter to a single member (UUID)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'check_availability',
+    description: 'Check whether a team member is marked available during a proposed shift. Always call this before create_roster_shift. Returns is_available (bool) and any unavailable_hours within the range.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        user_id: { type: 'string', description: 'Member UUID to check' },
+        date: { type: 'string', description: 'ISO date (YYYY-MM-DD)' },
+        start_time: { type: 'string', description: 'HH:MM (24-hour)' },
+        end_time: { type: 'string', description: 'HH:MM (24-hour)' },
+      },
+      required: ['user_id', 'date', 'start_time', 'end_time'],
+    },
+  },
+
   // ── Invoice / Quote tools ────────────────────────────────────
   {
     name: 'get_invoices',
@@ -409,6 +440,21 @@ export const TOOL_SCHEMAS: Anthropic.Tool[] = [
         limit: { type: 'number', description: 'Max results (default 10)' },
       },
       required: [],
+    },
+  },
+  {
+    name: 'create_roster_shift',
+    description: 'Propose adding a roster shift for a team member. Always call check_availability first and surface any unavailability to the user before proposing this. Will show a confirmation card.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        user_id: { type: 'string', description: 'Member UUID to roster' },
+        date: { type: 'string', description: 'ISO date (YYYY-MM-DD)' },
+        start_time: { type: 'string', description: 'HH:MM (24-hour), e.g. "09:00"' },
+        end_time: { type: 'string', description: 'HH:MM (24-hour), e.g. "17:00"' },
+        notes: { type: 'string', description: 'Optional shift notes' },
+      },
+      required: ['user_id', 'date', 'start_time', 'end_time'],
     },
   },
   {
@@ -656,6 +702,83 @@ export async function executeReadTool(
       }
       const { data } = await q
       return data ?? []
+    }
+
+    case 'get_roster': {
+      const { data: membership } = await supabase
+        .from('organisation_members').select('org_id').eq('user_id', userId).maybeSingle()
+      if (!membership?.org_id) return []
+
+      // Default to current week (Mon–Sun) if no dates provided
+      const now = new Date()
+      const dow = now.getDay()
+      const monday = new Date(now)
+      monday.setDate(now.getDate() - ((dow + 6) % 7))
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      const defaultFrom = monday.toISOString().slice(0, 10)
+      const defaultTo = sunday.toISOString().slice(0, 10)
+
+      let q = supabase
+        .from('roster_shifts')
+        .select('id, user_id, date, start_time, end_time, notes, published')
+        .eq('org_id', membership.org_id)
+        .is('deleted_at', null)
+        .gte('date', (input.date_from as string) ?? defaultFrom)
+        .lte('date', (input.date_to as string) ?? defaultTo)
+        .order('date').order('start_time')
+        .limit(100)
+      if (input.user_id) q = q.eq('user_id', input.user_id as string)
+      const { data } = await q
+      return data ?? []
+    }
+
+    case 'check_availability': {
+      const { data: membership } = await supabase
+        .from('organisation_members').select('org_id').eq('user_id', userId).maybeSingle()
+      if (!membership?.org_id) return { error: 'No organisation found' }
+
+      const targetUserId = input.user_id as string
+      const date = input.date as string
+      const startTime = input.start_time as string
+      const endTime = input.end_time as string
+
+      // Convert date to day_of_week where 0=Mon…6=Sun
+      const jsDay = new Date(date + 'T12:00:00Z').getUTCDay() // 0=Sun…6=Sat
+      const dayOfWeek = jsDay === 0 ? 6 : jsDay - 1
+
+      const startHour = parseInt(startTime.split(':')[0])
+      const endHour = parseInt(endTime.split(':')[0])
+      const hours = Array.from({ length: Math.max(endHour - startHour, 0) }, (_, i) => startHour + i)
+
+      const { data: availRows } = await supabase
+        .from('member_availability')
+        .select('hour, available')
+        .eq('user_id', targetUserId)
+        .eq('org_id', membership.org_id)
+        .eq('day_of_week', dayOfWeek)
+        .in('hour', hours.length > 0 ? hours : [-1])
+
+      const availMap = new Map<number, boolean>()
+      for (const row of (availRows ?? []) as { hour: number; available: boolean }[]) {
+        availMap.set(row.hour, row.available)
+      }
+
+      const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      const unavailableHours: string[] = []
+      for (const h of hours) {
+        const isAvail = availMap.has(h) ? availMap.get(h)! : (h >= 9 && h < 17)
+        if (!isAvail) unavailableHours.push(`${String(h).padStart(2, '0')}:00`)
+      }
+
+      return {
+        date,
+        day: DAY_NAMES[dayOfWeek],
+        start_time: startTime,
+        end_time: endTime,
+        is_available: unavailableHours.length === 0,
+        unavailable_hours: unavailableHours,
+      }
     }
 
     default:

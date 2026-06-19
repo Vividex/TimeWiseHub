@@ -6,6 +6,20 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { org_id, user_id, date, start_time, end_time, notes } = await req.json()
+
+  const { count: overlap } = await supabase
+    .from('roster_shifts')
+    .select('id', { count: 'exact', head: true })
+    .eq('org_id', org_id)
+    .eq('user_id', user_id)
+    .eq('date', date)
+    .is('deleted_at', null)
+    .lt('start_time', end_time)
+    .gt('end_time', start_time)
+  if ((overlap ?? 0) > 0) {
+    return NextResponse.json({ error: 'This employee already has a shift that overlaps that time slot.' }, { status: 409 })
+  }
+
   const { data, error } = await supabase
     .from('roster_shifts')
     .insert({ org_id, user_id, date, start_time, end_time, notes: notes ?? null, published: false })

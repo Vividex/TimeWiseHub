@@ -340,6 +340,41 @@ export async function executeWriteTool(
         return { ok: true, result: data }
       }
 
+      case 'create_roster_shift': {
+        const { data: membership } = await supabase
+          .from('organisation_members').select('org_id').eq('user_id', userId).maybeSingle()
+        if (!membership?.org_id) return { ok: false, error: 'No organisation found.' }
+
+        const { count: overlap } = await supabase
+          .from('roster_shifts')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', membership.org_id)
+          .eq('user_id', input.user_id as string)
+          .eq('date', input.date as string)
+          .is('deleted_at', null)
+          .lt('start_time', input.end_time as string)
+          .gt('end_time', input.start_time as string)
+        if ((overlap ?? 0) > 0) {
+          return { ok: false, error: 'This employee already has a shift that overlaps that time slot.' }
+        }
+
+        const { data, error } = await supabase
+          .from('roster_shifts')
+          .insert({
+            org_id: membership.org_id,
+            user_id: input.user_id as string,
+            date: input.date as string,
+            start_time: input.start_time as string,
+            end_time: input.end_time as string,
+            notes: (input.notes as string) ?? null,
+            published: false,
+          })
+          .select('id, date, start_time, end_time')
+          .single()
+        if (error) return { ok: false, error: error.message }
+        return { ok: true, result: data }
+      }
+
       case 'create_quote': {
         const { data: membership } = await supabase
           .from('organisation_members')

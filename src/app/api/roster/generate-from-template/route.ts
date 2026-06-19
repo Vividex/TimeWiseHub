@@ -49,17 +49,16 @@ export async function GET(req: Request) {
       const daysOffset = (tmpl.day_of_week - tomorrowDow + 7) % 7
       const shiftDate = addDays(tomorrowISO, daysOffset)
 
-      const { data: existing } = await service
+      const { count: existingCount } = await service
         .from('roster_shifts')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('org_id', org.id)
         .eq('user_id', tmpl.user_id)
         .eq('date', shiftDate)
         .eq('start_time', tmpl.start_time)
         .is('deleted_at', null)
-        .maybeSingle()
 
-      if (existing) continue
+      if ((existingCount ?? 0) > 0) continue
 
       const { error } = await service.from('roster_shifts').insert({
         org_id: org.id,
