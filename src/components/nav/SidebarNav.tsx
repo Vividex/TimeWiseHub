@@ -93,7 +93,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export default function SidebarNav({ email }: { email: string }) {
   const pathname = usePathname()
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-col lg:flex-1">
       <Link href="/dashboard" className="mb-8 flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-sm">
           <Image src="/logo.png" alt="TimeWiseHub" width={44} height={44} className="object-contain" />
@@ -104,7 +104,7 @@ export default function SidebarNav({ email }: { email: string }) {
         </div>
       </Link>
 
-      <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto overscroll-contain">
+      <nav className="space-y-0.5 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
         {NAV_GROUPS.map(group => (
           <div key={group.title}>
             <p className="mt-6 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">{group.title}</p>
