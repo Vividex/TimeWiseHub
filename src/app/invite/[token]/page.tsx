@@ -21,6 +21,7 @@ export default function AcceptInvitePage() {
   const [invitation, setInvitation] = useState<Invitation | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [expired, setExpired] = useState(false)
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -90,7 +91,7 @@ export default function AcceptInvitePage() {
       const res = await fetch(`/api/invite/${encodeURIComponent(token)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, fullName }),
       })
 
       const data = await res.json() as { email?: string; error?: string }
@@ -159,17 +160,30 @@ export default function AcceptInvitePage() {
           </div>
 
           {!existingUser && (
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-900">Choose a password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-            </div>
+            <>
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-gray-900">Your name</label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Jane Smith"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-gray-900">Choose a password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                />
+              </div>
+            </>
           )}
 
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}

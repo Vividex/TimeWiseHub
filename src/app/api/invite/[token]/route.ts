@@ -20,7 +20,7 @@ type InvitationCore = {
 
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const { password } = await req.json() as { password?: string }
+  const { password, fullName } = await req.json() as { password?: string; fullName?: string }
   if (!password) return NextResponse.json({ error: 'Password is required' }, { status: 400 })
 
   const service = createServiceClient()
@@ -44,6 +44,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   })
 
   if (createError) return NextResponse.json({ error: createError.message }, { status: 400 })
+
+  if (fullName?.trim()) {
+    await service
+      .from('profiles')
+      .update({ full_name: fullName.trim() })
+      .eq('id', created.user.id)
+  }
 
   const { error: memberError } = await service
     .from('organisation_members')
