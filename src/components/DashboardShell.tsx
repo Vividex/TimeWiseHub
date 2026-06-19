@@ -56,7 +56,7 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-y-auto bg-slate-900 px-4 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-hidden bg-slate-900 px-4 py-6 lg:flex">
         <SidebarNav email={email} />
       </aside>
 

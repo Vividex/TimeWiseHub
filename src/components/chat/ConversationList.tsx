@@ -47,7 +47,7 @@ export default function ConversationList({
     const now = new Date().toISOString()
     const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     supabase
-      .from('call_schedule')
+      .from('scheduled_calls')
       .select('id, title, starts_at, daily_room_name')
       .eq('org_id', orgId)
       .gte('starts_at', now)
@@ -131,7 +131,7 @@ export default function ConversationList({
                     <span className="block text-[10px] leading-tight text-gray-400">{fmtMeetingTime(m.starts_at)}</span>
                   </span>
                   <Link
-                    href={`/dashboard/video/${m.daily_room_name}`}
+                    href={`/dashboard/video/${m.id}`}
                     className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-white transition-colors hover:bg-cyan-600"
                   >
                     Join
