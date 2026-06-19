@@ -39,7 +39,12 @@ function MetricCard({ icon: Icon, value, label, iconClass, glowClass, href, onCl
 }
 
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const el = document.getElementById(id)
+  if (!el) return
+  const header = document.querySelector('header')
+  const offset = (header?.offsetHeight ?? 72) + 16
+  const top = el.getBoundingClientRect().top + window.scrollY - offset
+  window.scrollTo({ top, behavior: 'smooth' })
 }
 
 export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients }: Props) {
