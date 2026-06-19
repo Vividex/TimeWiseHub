@@ -53,7 +53,7 @@ export default function SplashScreen({
               height: 460,
               borderRadius: '50%',
               background:
-                'radial-gradient(circle, rgba(56,189,248,0.65) 0%, rgba(37,99,235,0.38) 42%, rgba(2,6,23,0) 72%)',
+                'radial-gradient(circle, rgba(56,189,248,0.85) 0%, rgba(37,99,235,0.55) 42%, rgba(2,6,23,0) 72%)',
               filter: 'blur(18px)',
               zIndex: 0,
               pointerEvents: 'none',
@@ -65,33 +65,35 @@ export default function SplashScreen({
               style={{ position: 'relative', width: 285, height: 285, transformStyle: 'preserve-3d' }}
             >
               <img
-                src="/app-icon.png"
+                src="/logo.png"
                 alt="TimeWiseHub"
                 style={{
                   position: 'absolute',
                   inset: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '22%',
+                  objectFit: 'contain',
+                  borderRadius: '50%',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(0deg)',
+                  filter: 'brightness(1.25) drop-shadow(0 0 18px rgba(56,189,248,0.9))',
                 }}
               />
               <img
-                src="/app-icon.png"
+                src="/logo.png"
                 alt="TimeWiseHub"
                 style={{
                   position: 'absolute',
                   inset: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '22%',
+                  objectFit: 'contain',
+                  borderRadius: '50%',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
+                  filter: 'brightness(1.25) drop-shadow(0 0 18px rgba(56,189,248,0.9))',
                 }}
               />
             </div>
