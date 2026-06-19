@@ -2,12 +2,12 @@ import Link from 'next/link'
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur border-b border-slate-100">
-      <span className="font-bold text-lg text-slate-900">TimeWiseHub</span>
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+      <span className="font-bold text-lg text-white">TimeWiseHub</span>
       <div className="flex items-center gap-3">
         <Link
           href="/login"
-          className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+          className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
         >
           Log in
         </Link>
