@@ -65,30 +65,30 @@ export default function SplashScreen({
               style={{ position: 'relative', width: 285, height: 285, transformStyle: 'preserve-3d' }}
             >
               <img
-                src="/logo.png"
+                src="/app-icon.png"
                 alt="TimeWiseHub"
                 style={{
                   position: 'absolute',
                   inset: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
-                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  borderRadius: '22%',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(0deg)',
                 }}
               />
               <img
-                src="/logo.png"
+                src="/app-icon.png"
                 alt="TimeWiseHub"
                 style={{
                   position: 'absolute',
                   inset: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
-                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  borderRadius: '22%',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
