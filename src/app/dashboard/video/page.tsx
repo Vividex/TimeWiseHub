@@ -61,16 +61,21 @@ export default async function VideoPage() {
 
   const { data: rawMembers } = await supabase
     .from('organisation_members')
-    .select('user_id, profiles(email, full_name)')
+    .select('user_id, profiles!organisation_members_user_id_fkey(email, full_name, nickname)')
     .eq('org_id', orgId)
+
+  type ProfileRow = { email: string; full_name: string | null; nickname: string | null } | null
 
   const members: OrgMember[] = (rawMembers ?? [])
     .filter(m => m.user_id !== user.id)
-    .map(m => ({
-      userId: m.user_id,
-      email: (m.profiles as unknown as { email: string; full_name: string | null } | null)?.email ?? '',
-      fullName: (m.profiles as unknown as { email: string; full_name: string | null } | null)?.full_name ?? null,
-    }))
+    .map(m => {
+      const p = m.profiles as unknown as ProfileRow
+      return {
+        userId: m.user_id,
+        email: p?.email ?? '',
+        fullName: p?.nickname ?? p?.full_name ?? null,
+      }
+    })
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
