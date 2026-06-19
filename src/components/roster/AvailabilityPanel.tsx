@@ -40,18 +40,23 @@ function getWeekDates(anchor: Date): Date[] {
   })
 }
 
-// Map a meeting's time range onto (day, hour) cells for the displayed week
+// Map a meeting's time range onto (day, hour) cells for the displayed week.
+// now is passed in so past meetings (and past hours of ongoing meetings) are excluded.
 function meetingToSlots(
   title: string,
   startsAt: string,
   endsAt: string | null,
   weekDates: Date[],
   map: Map<string, string>,
+  now: Date,
 ) {
   const start = new Date(startsAt)
   const end = endsAt
     ? new Date(endsAt)
     : new Date(start.getTime() + 60 * 60 * 1000)
+
+  // Meeting has fully ended — nothing to block
+  if (now >= end) return
 
   // Find which weekDates index this meeting falls on (local date comparison)
   const startDay = start.toLocaleDateString('en-CA') // YYYY-MM-DD local
@@ -63,7 +68,13 @@ function meetingToSlots(
   const startHour = start.getHours()
   const endHour = end.getHours() + (end.getMinutes() > 0 ? 1 : 0)
   for (let h = startHour; h < Math.min(endHour, 24); h++) {
-    map.set(avKey(dayIdx, h), title)
+    // Each hour slot h covers h:00–(h+1):00 on that day.
+    // Only block the slot if we haven't passed the end of it yet.
+    const slotEnd = new Date(weekDates[dayIdx])
+    slotEnd.setHours(h + 1, 0, 0, 0)
+    if (now < slotEnd) {
+      map.set(avKey(dayIdx, h), title)
+    }
   }
 }
 
@@ -125,13 +136,14 @@ export default function AvailabilityPanel({
       }
       setAvail(aMap)
 
-      // Build meeting-slot overlay
+      // Build meeting-slot overlay — only block hours that haven't ended yet
+      const now = new Date()
       const mMap = new Map<string, string>()
       for (const c of (callsRes.data ?? []) as { title: string; starts_at: string; ends_at: string | null }[]) {
-        meetingToSlots(c.title, c.starts_at, c.ends_at, weekDates, mMap)
+        meetingToSlots(c.title, c.starts_at, c.ends_at, weekDates, mMap, now)
       }
       for (const e of (eventsRes.data ?? []) as { title: string; start_at: string; end_at: string | null; all_day: boolean }[]) {
-        if (!e.all_day) meetingToSlots(e.title, e.start_at, e.end_at, weekDates, mMap)
+        if (!e.all_day) meetingToSlots(e.title, e.start_at, e.end_at, weekDates, mMap, now)
       }
       setMeetingSlots(mMap)
       setLoading(false)
