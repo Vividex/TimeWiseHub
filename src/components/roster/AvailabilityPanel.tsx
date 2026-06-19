@@ -233,7 +233,7 @@ export default function AvailabilityPanel({
                     let dotCls: string
                     let tipText: string
                     if (meetingTitle) {
-                      dotCls = 'bg-rose-600 ring-1 ring-rose-400/60 cursor-default'
+                      dotCls = 'bg-amber-400 ring-1 ring-amber-300/60 cursor-default'
                       tipText = `Meeting: ${meetingTitle}`
                     } else if (status === 'available') {
                       dotCls = `bg-emerald-500 ${canEdit ? 'hover:bg-emerald-400 cursor-pointer' : 'cursor-default'}`
@@ -276,7 +276,7 @@ export default function AvailabilityPanel({
           <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Uncontactable
         </span>
         <span className="flex items-center gap-1.5 text-xs text-slate-400">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-600 ring-1 ring-rose-400/60" /> Meeting (auto)
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400 ring-1 ring-amber-300/60" /> Meeting (auto)
         </span>
       </div>
     </div>
