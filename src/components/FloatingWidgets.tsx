@@ -129,10 +129,10 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
         <button
           type="button"
           onClick={() => toggle('chat')}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-slate-700 text-white shadow-lg transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+          className="relative flex h-[50px] w-[50px] items-center justify-center rounded-full bg-slate-700 text-white shadow-lg transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
           aria-label="Open team chat"
         >
-          <MessageSquare size={22} />
+          <MessageSquare size={20} />
           {unread > 0 && (
             <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1 text-xs font-bold text-white">
               {unread > 99 ? '99+' : unread}
@@ -144,10 +144,10 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
         <button
           type="button"
           onClick={() => toggle('assistant')}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg transition-colors hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2"
+          className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg transition-colors hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2"
           aria-label="Open AI assistant"
         >
-          {open === 'assistant' ? <X size={22} /> : <Sparkles size={22} />}
+          {open === 'assistant' ? <X size={20} /> : <Sparkles size={20} />}
         </button>
       </div>
     </>
