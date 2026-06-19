@@ -57,12 +57,17 @@ export default function ScheduleCallDialog({ orgId, members, onClose }: Props) {
     const startsAt = new Date(`${date}T${startTime}`).toISOString()
     const endsAt = new Date(new Date(startsAt).getTime() + Number(durationMins) * 60 * 1000).toISOString()
 
+    // Include any external guest email that was typed but not yet added via the + button
+    const pendingGuests = guestEmail.trim()
+      ? [...externalGuests, { email: guestEmail.trim(), displayName: guestName.trim() }]
+      : externalGuests
+
     const invitees = [
       ...selectedMemberIds.map(userId => {
         const m = members.find(m => m.userId === userId)
         return { userId, email: m?.email ?? '', displayName: m?.fullName ?? undefined }
       }),
-      ...externalGuests.map(g => ({ userId: null, email: g.email, displayName: g.displayName || undefined })),
+      ...pendingGuests.map(g => ({ userId: null, email: g.email, displayName: g.displayName || undefined })),
     ]
 
     const res = await fetch('/api/video/schedule', {

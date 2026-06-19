@@ -67,7 +67,6 @@ export default async function VideoPage() {
   type ProfileRow = { email: string; full_name: string | null; nickname: string | null } | null
 
   const members: OrgMember[] = (rawMembers ?? [])
-    .filter(m => m.user_id !== user.id)
     .map(m => {
       const p = m.profiles as unknown as ProfileRow
       return {
