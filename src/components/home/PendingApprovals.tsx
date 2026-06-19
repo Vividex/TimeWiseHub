@@ -82,7 +82,7 @@ export default async function PendingApprovals({
           {myPending.length}
         </span>
       </h2>
-      <div className="divide-y divide-gray-50 rounded-2xl border border-amber-100 bg-white shadow-sm">
+      <div className="divide-y divide-slate-800 rounded-2xl border border-amber-500/20 bg-slate-900 shadow-sm dark:border-amber-500/20">
         {myPending.map(doc => (
           <Link key={doc.id} href={`/dashboard/invoices/${doc.id}`}
             className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-amber-50">

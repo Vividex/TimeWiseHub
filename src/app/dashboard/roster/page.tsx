@@ -60,6 +60,23 @@ export default async function RosterPage() {
 
   const memberList = memberListRaw.map(({ user_id, display_name }) => ({ user_id, display_name }))
 
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const memberIds = memberListRaw.map(m => m.user_id)
+  const { data: activeLeave } = memberIds.length > 0
+    ? await supabase
+        .from('leave_requests')
+        .select('user_id, leave_type, status')
+        .in('user_id', memberIds)
+        .in('status', ['approved', 'pending'])
+        .lte('start_date', todayStr)
+        .gte('end_date', todayStr)
+    : { data: [] }
+
+  const leaveMap: Record<string, string> = {}
+  ;(activeLeave ?? []).forEach((l: { user_id: string; leave_type: string; status: string }) => {
+    leaveMap[l.user_id] = l.leave_type
+  })
+
   const today = new Date()
   const from = new Date(today); from.setDate(today.getDate() - 14)
   const to = new Date(today); to.setDate(today.getDate() + 28)
@@ -92,6 +109,7 @@ export default async function RosterPage() {
           leaveBlocks={leaveData ?? []}
           canManageRoster={canManageRoster}
           weekStartDay={orgSettings?.pay_week_start_day ?? 1}
+          leaveToday={leaveMap}
         />
       </div>
     </div>

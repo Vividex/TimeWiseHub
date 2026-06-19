@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import StatCard from '@/components/insights/StatCard'
 import BarChart, { type DayBar } from '@/components/insights/BarChart'
+import RevenueChart from '@/components/insights/RevenueChart'
 import ActivityRatio from '@/components/insights/ActivityRatio'
 import ProjectBreakdown, { type ProjectBar } from '@/components/insights/ProjectBreakdown'
 import ProjectHealthTable, { type ProjectHealth } from '@/components/insights/ProjectHealthTable'
@@ -34,6 +35,9 @@ export async function OverviewPanel() {
   sevenDaysAgo.setDate(now.getDate() - 6)
   sevenDaysAgo.setHours(0, 0, 0, 0)
 
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  const sixMonthsAgoStr = sixMonthsAgo.toISOString().slice(0, 10)
+
   const { data: membership } = await supabase
     .from('organisation_members')
     .select('role, org_id')
@@ -44,7 +48,7 @@ export async function OverviewPanel() {
   const subscription = await getSubscription(user.id)
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
 
-  const [timeResult, tasksResult, expensesResult, projectsResult] = await Promise.all([
+  const [timeResult, tasksResult, expensesResult, projectsResult, incomeResult, expenseResult] = await Promise.all([
     supabase
       .from('time_entries')
       .select('started_at, duration_seconds, task_id, tasks(project_id)')
@@ -68,10 +72,28 @@ export async function OverviewPanel() {
     orgId
       ? supabase.from('projects').select('id, name, colour, due_date').eq('status', 'active').or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
       : supabase.from('projects').select('id, name, colour, due_date').eq('status', 'active').eq('owner_id', user.id),
+
+    orgId
+      ? supabase.from('income_entries').select('date, amount').eq('org_id', orgId).gte('date', sixMonthsAgoStr)
+      : supabase.from('income_entries').select('date, amount').eq('user_id', user.id).gte('date', sixMonthsAgoStr),
+
+    orgId
+      ? supabase.from('expenses').select('expense_date, amount').eq('org_id', orgId).gte('expense_date', sixMonthsAgoStr)
+      : supabase.from('expenses').select('expense_date, amount').eq('user_id', user.id).gte('expense_date', sixMonthsAgoStr),
   ])
 
   const entries = timeResult.data ?? []
   const projects = projectsResult.data ?? []
+
+  const monthLabels = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+    return { key: d.toISOString().slice(0, 7), label: d.toLocaleDateString('en-AU', { month: 'short', year: '2-digit' }) }
+  })
+  const revenueChartData = monthLabels.map(({ key, label }) => ({
+    month: label,
+    revenue: (incomeResult.data ?? []).filter((e: { date: string }) => e.date.startsWith(key)).reduce((s: number, e: { amount: string | number }) => s + Number(e.amount), 0),
+    expenses: (expenseResult.data ?? []).filter((e: { expense_date: string }) => e.expense_date.startsWith(key)).reduce((s: number, e: { amount: string | number }) => s + Number(e.amount), 0),
+  }))
 
   const projectIds = projects.map(p => p.id)
   const { data: projectTasks } = projectIds.length > 0
@@ -189,6 +211,8 @@ export async function OverviewPanel() {
         <StatCard label="Tasks done" value={String(tasksResult.data?.length ?? 0)} sub="this week" colour="green" />
         <StatCard label="Expenses" value={`$${expensesThisMonth.toFixed(2)}`} sub="this month (AUD)" colour="orange" />
       </div>
+
+      <RevenueChart data={revenueChartData} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <BarChart days={dayBars} title="Daily hours — last 7 days" />

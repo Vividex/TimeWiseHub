@@ -38,10 +38,10 @@ export default async function OrgDocuments({ orgId }: { orgId: string }) {
           <Link href="/dashboard/invoices" className="text-xs font-bold text-cyan-600 hover:underline">Invoices →</Link>
         </div>
       </div>
-      <div className="divide-y divide-gray-50 rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900 shadow-sm">
         {docs.map(doc => (
           <Link key={doc.id} href={`/dashboard/invoices/${doc.id}`}
-            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
+            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-slate-800/60">
             <div className="flex min-w-0 items-center gap-3">
               <FileText size={14} className="shrink-0 text-gray-400" />
               <span className="truncate text-sm font-bold text-gray-900">{doc.invoice_number}</span>

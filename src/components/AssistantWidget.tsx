@@ -287,11 +287,19 @@ export default function AssistantWidget({
 
   if (!open) return null
 
+  const CHIPS = [
+    'Summarise this week',
+    'Check outstanding invoices',
+    'What tasks are overdue?',
+    'Log time for today',
+    'Show active projects',
+  ]
+
   return (
-    <div className="flex h-[min(620px,calc(100vh-7rem))] w-[calc(100vw-2.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex h-[min(620px,calc(100vh-7rem))] w-[calc(100vw-2.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
       {/* Header — drag handle */}
       <div
-        className="flex items-center justify-between border-b border-gray-200 bg-slate-900 px-4 py-3 text-white dark:border-slate-700 select-none cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 py-3 text-white backdrop-blur select-none cursor-grab active:cursor-grabbing"
         onPointerDown={onHeaderPointerDown}
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -320,21 +328,21 @@ export default function AssistantWidget({
 
       {view === 'chat' && (
         <>
-          <div className="flex-1 space-y-3 overflow-y-auto bg-gray-50 p-4 dark:bg-slate-950">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-slate-950 p-4">
             {messages.map((msg, i) => {
               if (msg.role === 'notice') {
                 return (
-                  <p key={i} className="text-center text-xs font-medium text-gray-400 dark:text-slate-500">
+                  <p key={i} className="text-center text-xs font-medium text-slate-500">
                     {msg.content}
                   </p>
                 )
               }
               return (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+                  <div className={`max-w-[85%] px-4 py-3 text-sm leading-6 ${
                     msg.role === 'user'
-                      ? 'bg-cyan-500 text-white'
-                      : 'border border-gray-100 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'
+                      ? 'rounded-2xl rounded-br-sm bg-cyan-500 text-white'
+                      : 'rounded-2xl rounded-bl-sm border border-slate-700 bg-slate-800 text-slate-100'
                   }`}>
                     <p className="whitespace-pre-wrap">
                       {msg.content || (loading && i === messages.length - 1 ? 'Thinking…' : '')}
@@ -367,17 +375,35 @@ export default function AssistantWidget({
             })}
           </div>
 
-          <div className="border-t border-gray-100 bg-white px-4 py-2 dark:border-slate-800 dark:bg-slate-900">
+          {messages.length === 1 && (
+            <div className="border-t border-slate-800 bg-slate-900/50 px-4 py-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Suggestions</p>
+              <div className="flex flex-wrap gap-2">
+                {CHIPS.map(chip => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => setInput(chip)}
+                    className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-cyan-300"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-slate-800 bg-slate-900 px-4 py-2">
             <button
               type="button"
               onClick={() => setView('report')}
-              className="text-xs font-semibold text-red-500 transition-colors hover:text-red-600"
+              className="text-xs font-semibold text-red-400 transition-colors hover:text-red-300"
             >
               Report a bug →
             </button>
           </div>
 
-          <form ref={formRef} onSubmit={handleSubmit} data-assistant-form className="border-t border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+          <form ref={formRef} onSubmit={handleSubmit} data-assistant-form className="border-t border-slate-800 bg-slate-900 p-3">
             <div className="flex items-end gap-2">
               <textarea
                 value={input}
@@ -387,7 +413,7 @@ export default function AssistantWidget({
                 }}
                 rows={2}
                 placeholder="Ask the assistant…"
-                className="min-h-11 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="min-h-11 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               <button
                 type="submit"

@@ -40,9 +40,10 @@ function getWeekDates(anchor: Date, weekStartDay: number): Date[] {
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay }: {
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay, leaveToday }: {
   orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
   leaveBlocks: LeaveBlock[]; canManageRoster: boolean; weekStartDay: number
+  leaveToday?: Record<string, string>
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
@@ -177,7 +178,16 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
               <tr key={member.user_id}
                 className={`divide-x divide-gray-100 dark:divide-slate-800 ${memberIdx % 2 === 1 ? 'bg-gray-50/60 dark:bg-slate-800/30' : 'bg-white dark:bg-slate-900/20'}`}>
                 <td className="py-2 pl-4 pr-3 text-xs font-semibold text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                  {member.display_name}
+                  <span className="flex items-center gap-1.5">
+                    <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${
+                      leaveToday?.[member.user_id] === undefined
+                        ? 'bg-emerald-400'
+                        : leaveToday[member.user_id] === 'sick'
+                          ? 'bg-red-400'
+                          : 'bg-amber-400'
+                    }`} />
+                    {member.display_name}
+                  </span>
                 </td>
                 {weekDates.map((d, i) => {
                   const iso = toISO(d)

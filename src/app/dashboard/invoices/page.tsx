@@ -34,30 +34,42 @@ export default async function InvoicesPage() {
     .filter(i => i.status === 'paid' && i.issue_date && i.issue_date >= fyStart && i.issue_date <= fyEnd)
     .reduce((s, i) => s + Number(i.subtotal), 0)
 
+  const draftCount = (invoices ?? []).filter(i => i.status === 'draft').length
+  const overdueCount = (invoices ?? []).filter(i => i.status === 'overdue').length
+
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Outstanding</p>
-            <p className="mt-1 text-3xl font-black text-amber-600">${totalOutstanding.toFixed(2)}</p>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Outstanding</p>
+            <p className="mt-2 text-2xl font-black text-amber-400">${totalOutstanding.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Paid (FY{String(fyStartYear).slice(2)}–{String(fyStartYear + 1).slice(2)})</p>
-            <p className="mt-1 text-3xl font-black text-green-600">${totalPaid.toFixed(2)}</p>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Paid (FY{String(fyStartYear).slice(2)}–{String(fyStartYear + 1).slice(2)})</p>
+            <p className="mt-2 text-2xl font-black text-emerald-400">${totalPaid.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
-          <div className="col-span-2 sm:col-span-1 flex items-center">
-            <Link href="/dashboard/invoices/new"
-              className="w-full rounded-2xl bg-cyan-500 px-6 py-4 text-center text-sm font-bold text-white transition-colors hover:bg-cyan-600">
-              + New invoice
-            </Link>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Drafts</p>
+            <p className="mt-2 text-2xl font-black text-slate-300">{draftCount}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Overdue</p>
+            <p className="mt-2 text-2xl font-black text-red-400">{overdueCount}</p>
           </div>
         </div>
 
+        <div className="flex justify-end">
+          <Link href="/dashboard/invoices/new"
+            className="rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-cyan-600 shadow-lg shadow-cyan-500/20">
+            + New invoice
+          </Link>
+        </div>
+
         {/* Invoice list */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden">
           <InvoiceTable invoices={(invoices ?? []) as unknown as import('@/components/invoices/InvoiceTable').InvoiceRow[]} />
         </div>
 
