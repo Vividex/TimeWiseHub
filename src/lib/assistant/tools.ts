@@ -753,22 +753,25 @@ export async function executeReadTool(
 
       const { data: availRows } = await supabase
         .from('member_availability')
-        .select('hour, available')
+        .select('hour, status')
         .eq('user_id', targetUserId)
         .eq('org_id', membership.org_id)
         .eq('day_of_week', dayOfWeek)
         .in('hour', hours.length > 0 ? hours : [-1])
 
-      const availMap = new Map<number, boolean>()
-      for (const row of (availRows ?? []) as { hour: number; available: boolean }[]) {
-        availMap.set(row.hour, row.available)
+      const availMap = new Map<number, string>()
+      for (const row of (availRows ?? []) as { hour: number; status: string }[]) {
+        availMap.set(row.hour, row.status)
       }
 
       const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
       const unavailableHours: string[] = []
+      const uncontactableHours: string[] = []
       for (const h of hours) {
-        const isAvail = availMap.has(h) ? availMap.get(h)! : (h >= 9 && h < 17)
-        if (!isAvail) unavailableHours.push(`${String(h).padStart(2, '0')}:00`)
+        const status = availMap.get(h) ?? (h >= 9 && h < 17 ? 'available' : 'unavailable')
+        const label = `${String(h).padStart(2, '0')}:00`
+        if (status === 'unavailable') unavailableHours.push(label)
+        if (status === 'uncontactable') uncontactableHours.push(label)
       }
 
       return {
@@ -776,8 +779,9 @@ export async function executeReadTool(
         day: DAY_NAMES[dayOfWeek],
         start_time: startTime,
         end_time: endTime,
-        is_available: unavailableHours.length === 0,
+        is_available: unavailableHours.length === 0 && uncontactableHours.length === 0,
         unavailable_hours: unavailableHours,
+        uncontactable_hours: uncontactableHours,
       }
     }
 
