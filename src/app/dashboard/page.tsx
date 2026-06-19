@@ -113,11 +113,13 @@ export default async function DashboardHome() {
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
   const nextWeek   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
+  const todayDate      = now.toISOString().slice(0, 10)
+  const weekStartDate  = weekStart.toISOString().slice(0, 10)
   const todayStartIso  = todayStart.toISOString()
   const nextWeekIso    = nextWeek.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [timeRes, projectsRes, clientsRes, meetingsRes, calendarRes] = await Promise.all([
+  const [timeRes, projectsRes, clientsRes, rosterRes, meetingsRes, calendarRes] = await Promise.all([
     supabase
       .from('time_entries')
       .select('duration_seconds')
@@ -130,6 +132,14 @@ export default async function DashboardHome() {
     orgId
       ? supabase.from('clients').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('archived', false)
       : supabase.from('clients').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('archived', false),
+    supabase
+      .from('roster_shifts')
+      .select('start_time, end_time')
+      .eq('user_id', user.id)
+      .eq('published', true)
+      .is('deleted_at', null)
+      .gte('date', weekStartDate)
+      .lte('date', todayDate),
     orgId
       ? supabase
           .from('scheduled_calls')
@@ -172,8 +182,14 @@ export default async function DashboardHome() {
   ])
 
   const timeEntrySeconds = (timeRes.data ?? []).reduce((s: number, e: { duration_seconds: number | null }) => s + (e.duration_seconds ?? 0), 0)
+  const rosterSeconds = (rosterRes.data ?? []).reduce((s: number, shift: { start_time: string; end_time: string }) => {
+    const [sh, sm] = shift.start_time.split(':').map(Number)
+    const [eh, em] = shift.end_time.split(':').map(Number)
+    const dur = (eh * 3600 + em * 60) - (sh * 3600 + sm * 60)
+    return s + (dur > 0 ? dur : 0)
+  }, 0)
 
-  const hoursThisWeek   = timeEntrySeconds / 3600
+  const hoursThisWeek   = (timeEntrySeconds + rosterSeconds) / 3600
   const activeProjects  = projectsRes.count ?? 0
   const activeClients   = clientsRes.count ?? 0
   const tasksCompleted  = tasksDoneRes.count ?? 0

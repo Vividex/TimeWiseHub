@@ -56,7 +56,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         label="Hours this week"
         iconClass="bg-cyan-500/15 text-cyan-400"
         glowClass="bg-cyan-500"
-        href="/dashboard/time"
+        href="/dashboard/roster"
       />
       <MetricCard
         icon={FolderOpen}
