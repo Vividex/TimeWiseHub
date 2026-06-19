@@ -44,9 +44,14 @@ export default function DashboardShell({
   const pathname = usePathname()
   const title = getTitle(pathname)
   const isInvoicePrint = pathname.startsWith('/dashboard/invoices/') && pathname.endsWith('/print')
+  const isVideoRoom = /^\/dashboard\/video\/[^/]+/.test(pathname)
 
   if (isInvoicePrint) {
     return <div className="invoice-print-shell min-h-screen bg-white text-slate-900">{children}</div>
+  }
+
+  if (isVideoRoom) {
+    return <div className="bg-slate-950">{children}</div>
   }
 
   return (

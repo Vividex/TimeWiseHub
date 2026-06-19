@@ -54,22 +54,28 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator }: P
   }
 
   return (
-    <div className="relative flex flex-col h-screen bg-slate-950">
-      {/* Video frame fills the screen */}
-      <div ref={containerRef} className="relative flex-1" />
+    <div
+      className="relative flex flex-col bg-slate-950"
+      style={{ height: '100dvh' }}
+    >
+      {/* Daily.co iframe fills all remaining space */}
+      <div ref={containerRef} className="relative flex-1 min-h-0" />
 
-      {/* Leave button overlay */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+      {/* Controls bar — always visible at the bottom, never overlapping the iframe */}
+      <div
+        className="flex shrink-0 items-center justify-center gap-3 bg-slate-900 px-4 py-3"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <button
           onClick={handleLeave}
-          className="px-6 py-3 rounded-xl bg-slate-700 text-white font-semibold hover:bg-slate-600 transition-colors shadow-xl"
+          className="px-6 py-2.5 rounded-xl bg-slate-700 text-white text-sm font-semibold hover:bg-slate-600 transition-colors shadow-lg"
         >
           Leave call
         </button>
         {isCreator && (
           <button
             onClick={handleEndForEveryone}
-            className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-xl"
+            className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors shadow-lg"
           >
             End for everyone
           </button>
