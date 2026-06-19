@@ -104,7 +104,7 @@ export default function SidebarNav({ email }: { email: string }) {
         </div>
       </Link>
 
-      <nav className="space-y-0.5 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
+      <nav className="space-y-0.5">
         {NAV_GROUPS.map(group => (
           <div key={group.title}>
             <p className="mt-6 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">{group.title}</p>
