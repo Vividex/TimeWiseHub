@@ -42,19 +42,19 @@ export default function SplashScreen({
           .tw-coin { animation: none; }
         }
       `}</style>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 48 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
         {/* TW coin with soft glow behind it */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div
             aria-hidden
             style={{
               position: 'absolute',
-              width: 360,
-              height: 360,
+              width: 460,
+              height: 460,
               borderRadius: '50%',
               background:
-                'radial-gradient(circle, rgba(56,189,248,0.40) 0%, rgba(37,99,235,0.22) 42%, rgba(2,6,23,0) 72%)',
-              filter: 'blur(28px)',
+                'radial-gradient(circle, rgba(56,189,248,0.65) 0%, rgba(37,99,235,0.38) 42%, rgba(2,6,23,0) 72%)',
+              filter: 'blur(18px)',
               zIndex: 0,
               pointerEvents: 'none',
             }}
@@ -62,7 +62,7 @@ export default function SplashScreen({
           <div style={{ perspective: '1400px', position: 'relative', zIndex: 1 }}>
             <div
               className="tw-coin"
-              style={{ position: 'relative', width: 224, height: 224, transformStyle: 'preserve-3d' }}
+              style={{ position: 'relative', width: 285, height: 285, transformStyle: 'preserve-3d' }}
             >
               <img
                 src="/logo.png"
@@ -99,7 +99,7 @@ export default function SplashScreen({
         </div>
         {/* powered by vividex */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 22, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b' }}>
+          <span style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#94a3b8' }}>
             powered by
           </span>
           <div style={{ width: 300, height: 44, overflow: 'hidden' }}>
