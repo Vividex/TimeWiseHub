@@ -8,7 +8,7 @@ import NavHistoryProvider from "@/components/NavHistoryProvider";
 import BackButton from "@/components/BackButton";
 
 export const metadata: Metadata = {
-  title: "TimeWiseHub — Track Time. Control Costs. Grow Smarter.",
+  title: "TimeWise Hub | Business Operations Platform for Teams",
   description: "Track time, manage projects, and stay on top of deadlines.",
   appleWebApp: {
     capable: true,
