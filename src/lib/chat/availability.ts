@@ -2,18 +2,20 @@ import type { QuietHours } from '@/lib/chat/types'
 
 export const DEFAULT_QUIET_HOURS: QuietHours = {
   enabled: true,
-  days: [1, 2, 3, 4, 5],
-  start: '08:00',
-  end: '18:00',
+  days: [1, 2, 3, 4, 5], // Mon–Fri
+  start: '09:00',
+  end: '17:00',
 }
 
 /** Merge stored (possibly partial/missing) prefs with defaults. */
 export function resolveQuietHours(raw: unknown): QuietHours {
   if (!raw || typeof raw !== 'object') return DEFAULT_QUIET_HOURS
   const q = raw as Partial<QuietHours>
+  // Guard: empty days array would block ALL notifications — fall back to default
+  const days = Array.isArray(q.days) && q.days.length > 0 ? q.days : DEFAULT_QUIET_HOURS.days
   return {
     enabled: typeof q.enabled === 'boolean' ? q.enabled : DEFAULT_QUIET_HOURS.enabled,
-    days: Array.isArray(q.days) ? q.days : DEFAULT_QUIET_HOURS.days,
+    days,
     start: typeof q.start === 'string' ? q.start : DEFAULT_QUIET_HOURS.start,
     end: typeof q.end === 'string' ? q.end : DEFAULT_QUIET_HOURS.end,
   }

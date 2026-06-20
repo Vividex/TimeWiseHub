@@ -65,6 +65,9 @@ export default function QuietHoursSettings({
 
         {quietHours.enabled && (
           <div className="mt-4 space-y-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Highlighted days are when push notifications <span className="font-semibold text-cyan-500">will</span> be sent. Unhighlighted days are silent.
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {DAYS.map(d => (
                 <button
@@ -81,6 +84,11 @@ export default function QuietHoursSettings({
                 </button>
               ))}
             </div>
+            {quietHours.days.length === 0 && (
+              <p className="text-xs font-semibold text-amber-500">
+                No days selected — push notifications are blocked every day. Select at least one day.
+              </p>
+            )}
             <div className="flex items-center gap-3">
               <label className="text-sm font-semibold text-gray-700 dark:text-slate-300">From</label>
               <input
