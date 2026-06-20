@@ -12,6 +12,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
   const [loading, setLoading] = useState(false)
+  const [deniedHint, setDeniedHint] = useState(false)
 
   useEffect(() => {
     if ('__TAURI_INTERNALS__' in window) { setState('unsupported'); return }
@@ -25,7 +26,12 @@ export default function PushPermission() {
   }, [])
 
   async function enable() {
+    if (Notification.permission === 'denied') {
+      setDeniedHint(true)
+      return
+    }
     setLoading(true)
+    setDeniedHint(false)
     try {
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') { setState('denied'); return }
@@ -49,6 +55,7 @@ export default function PushPermission() {
 
   async function disable() {
     setLoading(true)
+    setDeniedHint(false)
     try {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
@@ -68,42 +75,38 @@ export default function PushPermission() {
 
   if (state === 'unsupported') return null
 
-  if (state === 'denied') {
-    return (
-      <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-        <div>
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
-          <p className="text-xs font-medium text-gray-500 dark:text-slate-400">Blocked — enable in your browser settings</p>
-        </div>
-        <span className="text-xs font-semibold text-gray-400">Blocked</span>
-      </div>
-    )
-  }
-
   const isOn = state === 'subscribed'
 
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-      <div>
-        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
-        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
-          {isOn ? 'Notifications are on' : 'Get notified even when the tab is closed'}
-        </p>
-      </div>
-      <button
-        type="button"
-        disabled={loading}
-        onClick={isOn ? disable : enable}
-        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
-          isOn ? 'bg-cyan-500' : 'bg-gray-200 dark:bg-slate-600'
-        }`}
-      >
-        <span
-          className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transform transition-transform ${
-            isOn ? 'translate-x-5' : 'translate-x-0.5'
+    <div className="space-y-2">
+      <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+        <div>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
+          <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+            {isOn ? 'Notifications are on' : 'Get notified even when the tab is closed'}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={isOn ? disable : enable}
+          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+            isOn ? 'bg-cyan-500' : 'bg-gray-200 dark:bg-slate-600'
           }`}
-        />
-      </button>
+        >
+          <span
+            className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transform transition-transform ${
+              isOn ? 'translate-x-5' : 'translate-x-0.5'
+            }`}
+          />
+        </button>
+      </div>
+
+      {deniedHint && (
+        <p className="px-1 text-xs text-amber-500">
+          Notifications are blocked in your browser. Click the padlock icon in the address bar, set Notifications to &quot;Allow&quot;, then try again.
+        </p>
+      )}
     </div>
   )
 }
