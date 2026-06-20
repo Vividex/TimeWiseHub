@@ -26,41 +26,67 @@ export async function GET(req: Request) {
 
   const service = createServiceClient()
   const now = new Date()
-  const windowStart = new Date(now.getTime() + 25 * 60 * 1000).toISOString()
-  const windowEnd   = new Date(now.getTime() + 35 * 60 * 1000).toISOString()
+
+  // 30-min window: 25–35 min ahead
+  const w30Start = new Date(now.getTime() + 25 * 60 * 1000).toISOString()
+  const w30End   = new Date(now.getTime() + 35 * 60 * 1000).toISOString()
+
+  // 5-min window: 3–7 min ahead (meetings only)
+  const w5Start  = new Date(now.getTime() +  3 * 60 * 1000).toISOString()
+  const w5End    = new Date(now.getTime() +  7 * 60 * 1000).toISOString()
 
   let pushed = 0
   let emailed = 0
 
-  // ── Calendar events ──────────────────────────────────────────────────────
-  const { data: events } = await service
+  // ── Calendar events — 30-min reminder ────────────────────────────────────
+  const { data: events30 } = await service
     .from('calendar_events')
     .select('id, title, start_at, created_by')
     .eq('all_day', false)
     .eq('reminder_sent', false)
-    .gte('start_at', windowStart)
-    .lte('start_at', windowEnd)
+    .gte('start_at', w30Start)
+    .lte('start_at', w30End)
 
-  for (const event of (events ?? []) as { id: string; title: string; start_at: string; created_by: string }[]) {
+  for (const event of (events30 ?? []) as { id: string; title: string; start_at: string; created_by: string }[]) {
     await sendPushToUser(event.created_by, {
       title: '30-minute reminder',
       body: `${event.title} starts at ${formatTime(event.start_at)}`,
       url: '/dashboard/calendar',
-      tag: `event-reminder:${event.id}`,
+      tag: `event-reminder-30:${event.id}`,
     })
     await service.from('calendar_events').update({ reminder_sent: true }).eq('id', event.id)
     pushed++
   }
 
-  // ── Scheduled calls ───────────────────────────────────────────────────────
-  const { data: calls } = await service
+  // ── Calendar events — 5-min reminder ─────────────────────────────────────
+  const { data: events5 } = await service
+    .from('calendar_events')
+    .select('id, title, start_at, created_by')
+    .eq('all_day', false)
+    .eq('reminder_5min_sent', false)
+    .gte('start_at', w5Start)
+    .lte('start_at', w5End)
+
+  for (const event of (events5 ?? []) as { id: string; title: string; start_at: string; created_by: string }[]) {
+    await sendPushToUser(event.created_by, {
+      title: 'Starting in 5 minutes',
+      body: event.title,
+      url: '/dashboard/calendar',
+      tag: `event-reminder-5:${event.id}`,
+    })
+    await service.from('calendar_events').update({ reminder_5min_sent: true }).eq('id', event.id)
+    pushed++
+  }
+
+  // ── Scheduled calls — 30-min reminder ────────────────────────────────────
+  const { data: calls30 } = await service
     .from('scheduled_calls')
     .select('id, title, starts_at, daily_room_name')
     .eq('reminder_sent', false)
-    .gte('starts_at', windowStart)
-    .lte('starts_at', windowEnd)
+    .gte('starts_at', w30Start)
+    .lte('starts_at', w30End)
 
-  for (const call of (calls ?? []) as { id: string; title: string; starts_at: string; daily_room_name: string | null }[]) {
+  for (const call of (calls30 ?? []) as { id: string; title: string; starts_at: string; daily_room_name: string | null }[]) {
     const { data: invitees } = await service
       .from('call_invitees')
       .select('email, display_name, user_id, guest_token')
@@ -72,11 +98,10 @@ export async function GET(req: Request) {
           title: '30-minute reminder',
           body: `${call.title} starts at ${formatTime(call.starts_at)}`,
           url: `/dashboard/video/${call.id}`,
-          tag: `call-reminder:${call.id}`,
+          tag: `call-reminder-30:${call.id}`,
         })
         pushed++
       } else {
-        // External guest — email only
         const joinUrl = `${APP_URL}/join/${inv.guest_token}`
         await sendEmail({
           to: inv.email,
@@ -91,6 +116,46 @@ export async function GET(req: Request) {
     }
 
     await service.from('scheduled_calls').update({ reminder_sent: true }).eq('id', call.id)
+  }
+
+  // ── Scheduled calls — 5-min reminder ─────────────────────────────────────
+  const { data: calls5 } = await service
+    .from('scheduled_calls')
+    .select('id, title, starts_at, daily_room_name')
+    .eq('reminder_5min_sent', false)
+    .gte('starts_at', w5Start)
+    .lte('starts_at', w5End)
+
+  for (const call of (calls5 ?? []) as { id: string; title: string; starts_at: string; daily_room_name: string | null }[]) {
+    const { data: invitees } = await service
+      .from('call_invitees')
+      .select('email, display_name, user_id, guest_token')
+      .eq('call_id', call.id)
+
+    for (const inv of (invitees ?? []) as { email: string; display_name: string | null; user_id: string | null; guest_token: string }[]) {
+      if (inv.user_id) {
+        await sendPushToUser(inv.user_id, {
+          title: 'Starting in 5 minutes',
+          body: call.title,
+          url: `/dashboard/video/${call.id}`,
+          tag: `call-reminder-5:${call.id}`,
+        })
+        pushed++
+      } else {
+        const joinUrl = `${APP_URL}/join/${inv.guest_token}`
+        await sendEmail({
+          to: inv.email,
+          subject: `Starting now: ${call.title}`,
+          text: `${call.title} starts in 5 minutes.\nJoin: ${joinUrl}`,
+          html: `<p>Hi ${inv.display_name ?? inv.email},</p>
+<p>Your call <strong>${call.title}</strong> starts in 5 minutes.</p>
+<p><a href="${joinUrl}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none">Join now</a></p>`,
+        })
+        emailed++
+      }
+    }
+
+    await service.from('scheduled_calls').update({ reminder_5min_sent: true }).eq('id', call.id)
   }
 
   return NextResponse.json({ ok: true, pushed, emailed })
