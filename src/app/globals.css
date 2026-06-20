@@ -38,6 +38,70 @@ html.dark .landing .bg-white {
   background-color: #ffffff;
 }
 
+.landing {
+  background: #020617;
+}
+
+.landing-float {
+  animation: landing-float 7s ease-in-out infinite;
+}
+
+.landing-rise {
+  animation: landing-rise 0.7s ease both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 28%;
+}
+
+.landing-marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.landing-marquee-track {
+  width: max-content;
+  animation: landing-marquee 58s linear infinite;
+}
+
+.landing-marquee:hover .landing-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes landing-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-float,
+  .landing-rise,
+  .landing-marquee-track {
+    animation: none;
+  }
+}
+
 html.dark .bg-gray-50 {
   background-color: #111827;
 }
