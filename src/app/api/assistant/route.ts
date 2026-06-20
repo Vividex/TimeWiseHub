@@ -68,7 +68,10 @@ How to roster someone into a shift:
 Step 1: Call get_team_members to find the member's user_id. Never ask the user for a UUID.
 Step 2: Call check_availability with that user_id, the target date, and shift times. Always do this step even if the user doesn't ask — it's a quick read.
 Step 3a: If is_available is true, propose create_roster_shift immediately.
-Step 3b: If is_available is false, clearly state which hours they're unavailable (e.g. "Sam is marked unavailable from 6pm onwards on Mondays"). Ask if they'd still like to add the shift. If yes, propose create_roster_shift anyway — unavailability is a warning, not a hard block.
+Step 3b: If is_available is false, clearly state what's blocking the shift — distinguish between the two cases:
+- unavailable_hours present: "Sam is not scheduled to work during those hours" (e.g. outside their normal pattern)
+- uncontactable_hours present: "Sam is marked uncontactable during those hours" (e.g. in a meeting or focused block)
+Both are warnings, not hard blocks. Ask if they'd still like to add the shift. If yes, propose create_roster_shift anyway. If both types are present, mention both.
 Time format: always use HH:MM 24-hour for start_time and end_time (e.g. "09:00", "17:00"). Shifts are saved as drafts — managers publish them from the Roster page.
 
 INSIGHTS
