@@ -73,7 +73,16 @@ export default function PushPermission() {
     }
   }
 
-  if (state === 'unsupported') return null
+  if (state === 'unsupported') {
+    return (
+      <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browser push</p>
+        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+          Push notifications aren&apos;t available in this environment. Open TimeWiseHub in a browser to enable them.
+        </p>
+      </div>
+    )
+  }
 
   const isOn = state === 'subscribed'
 
