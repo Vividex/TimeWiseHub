@@ -8,6 +8,7 @@ import TutorialProvider from '@/components/tutorial/TutorialProvider'
 import WelcomeModal from '@/components/tutorial/WelcomeModal'
 import TipsScreen from '@/components/tutorial/TipsScreen'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
+import PushAutoPrompt from '@/components/PushAutoPrompt'
 import type { UserRole } from '@/lib/tutorial-steps'
 
 export default async function DashboardLayout({
@@ -69,6 +70,7 @@ export default async function DashboardLayout({
       <WelcomeModal />
       <TipsScreen />
       <TutorialOverlay />
+      <PushAutoPrompt />
     </TutorialProvider>
   )
 }
