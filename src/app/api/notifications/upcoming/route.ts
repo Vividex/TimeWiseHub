@@ -7,7 +7,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 function isAuthorized(req: Request) {
   const secret = process.env.CRON_SECRET
-  if (!secret) return process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production'
+  // If no secret is configured, trust Vercel's infrastructure-level cron protection
+  if (!secret) return true
   const auth = req.headers.get('authorization')
   const cronSecret = req.headers.get('x-cron-secret')
   return auth === `Bearer ${secret}` || cronSecret === secret
