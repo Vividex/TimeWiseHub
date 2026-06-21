@@ -2,8 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
-import { MessageSquare, X } from 'lucide-react'
+import { MessageSquare, Sparkles, X } from 'lucide-react'
 import AssistantWidget from '@/components/AssistantWidget'
 import TeamChatWidget from '@/components/chat/TeamChatWidget'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
@@ -150,7 +149,7 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
         >
           {open === 'assistant'
             ? <X size={20} />
-            : <Image src="/ai-avatar.png" alt="AI" width={50} height={50} className="rounded-full" />}
+            : <Sparkles size={22} />}
         </button>
       </div>
     </>

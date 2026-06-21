@@ -2,8 +2,7 @@
 'use client'
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
-import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat, X, MessageSquare } from 'lucide-react'
+import { Send, Plus, Mic, MicOff, Volume2, VolumeX, Repeat, X, MessageSquare, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
@@ -538,7 +537,7 @@ export default function AssistantPageClient({
             return (
               <div key={i} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
-                  <Image src="/ai-avatar.png" alt="AI" width={28} height={28} className="mb-1 shrink-0 rounded-full" />
+                  <div className="mb-1 flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-cyan-500"><Sparkles size={14} className="text-white" /></div>
                 )}
                 <div className={`max-w-2xl rounded-2xl px-5 py-4 text-sm leading-6 shadow-sm ${
                   msg.role === 'user'

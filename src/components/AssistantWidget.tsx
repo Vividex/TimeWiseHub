@@ -2,8 +2,7 @@
 'use client'
 
 import { FormEvent, useRef, useState } from 'react'
-import Image from 'next/image'
-import { Send, Mic, MicOff, Volume2, VolumeX, GripVertical } from 'lucide-react'
+import { Send, Mic, MicOff, Volume2, VolumeX, GripVertical, Sparkles } from 'lucide-react'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
 
@@ -341,7 +340,7 @@ export default function AssistantWidget({
               return (
                 <div key={i} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'assistant' && (
-                    <Image src="/ai-avatar.png" alt="AI" width={26} height={26} className="mb-1 shrink-0 rounded-full" />
+                    <div className="mb-1 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-cyan-500"><Sparkles size={13} className="text-white" /></div>
                   )}
                   <div className={`max-w-[80%] px-4 py-3 text-sm leading-6 ${
                     msg.role === 'user'
