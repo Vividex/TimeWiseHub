@@ -116,11 +116,9 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
   }, [supabase])
 
   const loadMembers = useCallback(async () => {
-    if (!orgId) return
     const { data: memberRows } = await supabase
       .from('organisation_members')
       .select('user_id, role')
-      .eq('org_id', orgId)
     if (!memberRows?.length) return
 
     const userIds = memberRows.map(r => r.user_id)
@@ -148,7 +146,7 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
       }
     }
     setMembers(map)
-  }, [supabase, orgId])
+  }, [supabase])
 
   const loadUnread = useCallback(async () => {
     const { data } = await supabase.rpc('get_chat_unread')
