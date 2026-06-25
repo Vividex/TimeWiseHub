@@ -125,16 +125,18 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
     for (const row of (data ?? []) as unknown as {
       user_id: string
       role: ChatMember['role']
-      profiles: { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null } | null
+      profiles: Array<{ full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null }> | { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null } | null
     }[]) {
+      // Supabase returns FK joins as arrays at runtime even for single-row relations
+      const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
       map[row.user_id] = {
         user_id: row.user_id,
         role: row.role,
-        full_name: row.profiles?.full_name ?? null,
-        email: row.profiles?.email ?? '',
-        username: row.profiles?.username ?? null,
-        nickname: row.profiles?.nickname ?? null,
-        avatar_url: row.profiles?.avatar_url ?? null,
+        full_name: p?.full_name ?? null,
+        email: p?.email ?? '',
+        username: p?.username ?? null,
+        nickname: p?.nickname ?? null,
+        avatar_url: p?.avatar_url ?? null,
       }
     }
     setMembers(map)

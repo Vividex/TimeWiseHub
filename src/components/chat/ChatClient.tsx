@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Bell, BellOff, MessageSquare, Settings } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
+import { displayName } from '@/lib/chat/types'
 import ConversationList from '@/components/chat/ConversationList'
 import MessageThread from '@/components/chat/MessageThread'
 import MessageComposer from '@/components/chat/MessageComposer'
@@ -61,7 +62,7 @@ export default function ChatClient() {
       ? (active.title ?? 'Announcements')
       : isGroup
         ? (active.title ?? 'Group chat')
-        : (peer?.full_name || peer?.email || 'Direct message')
+        : (displayName(peer) !== 'Unknown' ? displayName(peer) : (peer?.email || 'Direct message'))
 
   return (
     <div className="flex h-[calc(100vh-8.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:h-[calc(100vh-7rem)]">
