@@ -21,6 +21,7 @@ type ActiveEntry = {
   ended_at: string | null
   description: string | null
   task_id: string | null
+  project_id: string | null
 }
 
 export default function TimeSection({

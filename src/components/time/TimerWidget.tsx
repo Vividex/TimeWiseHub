@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null; task_id: string | null }
-type OpenTask = { id: string; title: string }
+type Entry = { id: string; started_at: string; ended_at: string | null; description: string | null; task_id: string | null; project_id: string | null }
+type OpenProject = { id: string; name: string }
 type TimeSettings = { hourlyRate: number | null; roundingMinutes: number }
 type CompletedEntry = {
   id: string
@@ -14,6 +14,7 @@ type CompletedEntry = {
   ended_at: string | null
   duration_seconds: number | null
   task_id: string | null
+  project_id: string | null
   tasks: { title: string } | null
 }
 
@@ -44,8 +45,8 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
   const [entryId, setEntryId] = useState(activeEntry?.id ?? null)
   const [startedAt, setStartedAt] = useState(activeEntry?.started_at ?? null)
   const [description, setDescription] = useState(activeEntry?.description ?? '')
-  const [taskId, setTaskId] = useState(activeEntry?.task_id ?? '')
-  const [openTasks, setOpenTasks] = useState<OpenTask[]>([])
+  const [projectId, setProjectId] = useState(activeEntry?.project_id ?? '')
+  const [openProjects, setOpenProjects] = useState<OpenProject[]>([])
   const [timeSettings, setTimeSettings] = useState<TimeSettings>({ hourlyRate: null, roundingMinutes: 0 })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,10 +56,10 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      supabase.from('tasks').select('id, title')
-        .eq('assignee_id', user.id).neq('status', 'done')
-        .order('due_date', { ascending: true, nullsFirst: false })
-        .then(({ data }) => setOpenTasks(data ?? []))
+      supabase.from('projects').select('id, name')
+        .eq('status', 'active')
+        .order('name')
+        .then(({ data }) => setOpenProjects(data ?? []))
 
       supabase
         .from('organisation_members')
@@ -96,7 +97,8 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
         user_id: user.id,
         started_at: now,
         description: description || null,
-        task_id: taskId || null,
+        task_id: null,
+        project_id: projectId || null,
         billable: true,
         billable_rate: timeSettings.hourlyRate,
       })
@@ -131,7 +133,7 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
     setEntryId(null)
     setStartedAt(null)
     setDescription('')
-    setTaskId('')
+    setProjectId('')
     setLoading(false)
     if (completed) onEntryCompleted?.(completed as unknown as CompletedEntry)
     router.refresh()
@@ -169,13 +171,13 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 
-          {openTasks.length > 0 && (
+          {openProjects.length > 0 && (
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-500">Link to task (optional)</label>
-              <select value={taskId} onChange={e => setTaskId(e.target.value)}
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Link to project (optional)</label>
+              <select value={projectId} onChange={e => setProjectId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                <option value="">— No task —</option>
-                {openTasks.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                <option value="">— No project —</option>
+                {openProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
           )}
