@@ -117,18 +117,26 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
 
   const loadMembers = useCallback(async () => {
     if (!orgId) return
-    const { data } = await supabase
+    const { data: memberRows } = await supabase
       .from('organisation_members')
-      .select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email, username, nickname, avatar_url)')
+      .select('user_id, role')
       .eq('org_id', orgId)
+    if (!memberRows?.length) return
+
+    const userIds = memberRows.map(r => r.user_id)
+    const { data: profileRows } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, username, nickname, avatar_url')
+      .in('id', userIds)
+
+    const profileMap: Record<string, { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null }> = {}
+    for (const p of (profileRows ?? []) as { id: string; full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null }[]) {
+      profileMap[p.id] = p
+    }
+
     const map: Record<string, ChatMember> = {}
-    for (const row of (data ?? []) as unknown as {
-      user_id: string
-      role: ChatMember['role']
-      profiles: Array<{ full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null }> | { full_name: string | null; email: string; username: string | null; nickname: string | null; avatar_url: string | null } | null
-    }[]) {
-      // Supabase returns FK joins as arrays at runtime even for single-row relations
-      const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
+    for (const row of memberRows as { user_id: string; role: ChatMember['role'] }[]) {
+      const p = profileMap[row.user_id]
       map[row.user_id] = {
         user_id: row.user_id,
         role: row.role,
