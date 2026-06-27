@@ -61,6 +61,7 @@ export default async function CallRoomPage({
       token={token!}
       dailyRoomName={call.daily_room_name}
       isCreator={call.created_by === user.id}
+      callId={roomId}
     />
   )
 }

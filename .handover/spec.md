@@ -92,14 +92,14 @@ notes accessible post-meeting.
 ## C-8 — Pass callId prop to CallRoom
 
 *Codex edits:*
-- [ ] `src/app/dashboard/video/[roomId]/page.tsx` — add `callId={roomId}` to the `<CallRoom ... />` JSX.
+- [x] `src/app/dashboard/video/[roomId]/page.tsx` — add `callId={roomId}` to the `<CallRoom ... />` JSX.
 
 ---
 
 ## C-9 — CallRoom: Notes button + transcript panel + flush loop + recording banner
 
 *Codex edits:*
-- [ ] `src/components/video/CallRoom.tsx` — full update. Read the file first.
+- [x] `src/components/video/CallRoom.tsx` — full update. Read the file first.
   - Add `callId: string` to Props type.
   - State: `noteState: 'idle' | 'active' | 'stopped'`, `panelOpen: boolean`.
   - Refs: `chunkBuffer` (string, accumulates transcript text between flushes), `flushInterval` (NodeJS.Timeout | null), `transcriptLines` (array of `{ speaker: string; text: string; ts: string }`).
