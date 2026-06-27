@@ -14,11 +14,12 @@ type Props = {
   orgId: string
   members: OrgMember[]
   onClose: () => void
+  projects?: { id: string; name: string; colour: string }[]
 }
 
 type ExternalGuest = { email: string; displayName: string }
 
-export default function ScheduleCallDialog({ orgId, members, onClose }: Props) {
+export default function ScheduleCallDialog({ orgId, members, onClose, projects = [] }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
@@ -30,6 +31,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose }: Props) {
   const [guestName, setGuestName] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [projectId, setProjectId] = useState('')
 
   function toggleMember(userId: string) {
     setSelectedMemberIds(prev =>
@@ -73,7 +75,14 @@ export default function ScheduleCallDialog({ orgId, members, onClose }: Props) {
     const res = await fetch('/api/video/schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ org_id: orgId, title, starts_at: startsAt, ends_at: endsAt, invitees }),
+      body: JSON.stringify({
+        org_id: orgId,
+        title,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        invitees,
+        ...(projectId ? { project_id: projectId } : {}),
+      }),
     })
 
     if (!res.ok) {
@@ -143,6 +152,22 @@ export default function ScheduleCallDialog({ orgId, members, onClose }: Props) {
               ))}
             </select>
           </div>
+
+          {projects.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Project (optional)</label>
+              <select
+                value={projectId}
+                onChange={e => setProjectId(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">No project</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Invite team members</label>

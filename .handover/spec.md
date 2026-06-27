@@ -116,21 +116,21 @@ notes accessible post-meeting.
 ## C-10 — ScheduleCallDialog: optional project picker
 
 *Codex edits:*
-- [ ] `src/components/video/ScheduleCallDialog.tsx` — add `projects: { id: string; name: string; colour: string }[]` to Props (default `[]`). Add `projectId` state (string, default `''`). Add a "Project (optional)" `<select>` field above the invitees section: first option is `<option value="">No project</option>`, then one per project. Include `...(projectId ? { project_id: projectId } : {})` in the `POST /api/video/schedule` body.
+- [x] `src/components/video/ScheduleCallDialog.tsx` — add `projects: { id: string; name: string; colour: string }[]` to Props (default `[]`). Add `projectId` state (string, default `''`). Add a "Project (optional)" `<select>` field above the invitees section: first option is `<option value="">No project</option>`, then one per project. Include `...(projectId ? { project_id: projectId } : {})` in the `POST /api/video/schedule` body.
 
 ---
 
 ## C-11 — VideoPage server: fetch all calls + org projects
 
 *Codex edits:*
-- [ ] `src/app/dashboard/video/page.tsx` — (1) Remove the `until` date filter; fetch ALL `scheduled_calls` for the org ordered `starts_at ASC NULLS LAST`. Add `project_id, summary` to the select field list. (2) Add a second query: `supabase.from('projects').select('id, name, colour').eq('org_id', orgId).order('name')`. (3) Pass `projects` to both `<VideoCalendar>` and `<VideoPageClient>` (so ScheduleCallDialog can receive it). Update the `ScheduledCall` type to include `project_id: string | null` and `summary: string | null`.
+- [x] `src/app/dashboard/video/page.tsx` — (1) Remove the `until` date filter; fetch ALL `scheduled_calls` for the org ordered `starts_at ASC NULLS LAST`. Add `project_id, summary` to the select field list. (2) Add a second query: `supabase.from('projects').select('id, name, colour').eq('org_id', orgId).order('name')`. (3) Pass `projects` to both `<VideoCalendar>` and `<VideoPageClient>` (so ScheduleCallDialog can receive it). Update the `ScheduledCall` type to include `project_id: string | null` and `summary: string | null`.
 
 ---
 
 ## C-12 — VideoCalendar: list view (past / today / upcoming sections)
 
 *Codex edits:*
-- [ ] `src/components/video/VideoCalendar.tsx` — read file first.
+- [x] `src/components/video/VideoCalendar.tsx` — read file first.
   - Add `project_id: string | null` and `summary: string | null` to `ScheduledCall` type.
   - Add `projects: { id: string; name: string; colour: string }[]` to Props (default `[]`).
   - Add a `CallList` inner function below the existing `AgendaView` function. It divides all calls into three groups: `upcoming` (starts_at > now, asc), `today` (sameDay with now, asc), and `past` (starts_at < now and not today, desc). Render groups in order: Today → Upcoming → Past (with a visual divider before Past). Each row is a `<button>` calling `openCall(call)`, showing: title (bold), date+time range (or LIVE badge), a coloured `●` dot + project name if `project_id` is set (find project in `projects` prop), and a `Session Notes` violet pill if `summary !== null`.
@@ -141,7 +141,7 @@ notes accessible post-meeting.
 ## C-13 — VideoCalendar: expand CallModal with project picker + Session Notes
 
 *Codex edits:*
-- [ ] `src/components/video/VideoCalendar.tsx` — update the `CallModal` inner function. Read the current modal structure carefully.
+- [x] `src/components/video/VideoCalendar.tsx` — update the `CallModal` inner function. Read the current modal structure carefully.
   - Add state: `selectedProjectId` (string, synced to `selectedCall.project_id ?? ''` on open), `notesTab: 'summary' | 'transcript'`, `notesData: { transcript: string | null; summary: string | null } | null`, `notesLoading: boolean`, `savingProject: boolean`.
   - When `selectedCall` is set: if `selectedCall.summary !== null` or the call is in the past, fetch `GET /api/video/notes/${selectedCall.id}` and store in `notesData`.
   - **Project section**: below the participants section, add a row with a folder icon. A `<select>` populated from `projects` prop, value = `selectedProjectId`. On change: set state, POST `PATCH /api/video/schedule/${selectedCall.id}` with `{ project_id: newValue || null }`, set `savingProject` during the call.

@@ -11,13 +11,20 @@ type OrgMember = {
   fullName: string | null
 }
 
+type Project = {
+  id: string
+  name: string
+  colour: string
+}
+
 type Props = {
   orgId: string
   members: OrgMember[]
   canSchedule: boolean
+  projects?: Project[]
 }
 
-export default function VideoPageClient({ orgId, members, canSchedule }: Props) {
+export default function VideoPageClient({ orgId, members, canSchedule, projects = [] }: Props) {
   const [showSchedule, setShowSchedule] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -62,6 +69,7 @@ export default function VideoPageClient({ orgId, members, canSchedule }: Props) 
         <ScheduleCallDialog
           orgId={orgId}
           members={members}
+          projects={projects}
           onClose={() => setShowSchedule(false)}
         />
       )}

@@ -10,6 +10,8 @@ type ScheduledCall = {
   starts_at: string | null
   ends_at: string | null
   daily_room_name: string | null
+  project_id: string | null
+  summary: string | null
 }
 
 type Invitee = { email: string; display_name: string | null }
@@ -17,6 +19,7 @@ type Invitee = { email: string; display_name: string | null }
 type Props = {
   calls: ScheduledCall[]
   canManage?: boolean
+  projects?: { id: string; name: string; colour: string }[]
 }
 
 function startOfWeek(date: Date): Date {
@@ -65,7 +68,7 @@ function agendaDateLabel(date: Date, now: Date): string {
   return date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-export default function VideoCalendar({ calls: initialCalls, canManage = false }: Props) {
+export default function VideoCalendar({ calls: initialCalls, canManage = false, projects = [] }: Props) {
   const [calls, setCalls] = useState(initialCalls)
   const [view, setView] = useState<'week' | 'month'>('week')
   const [anchor, setAnchor] = useState(() => new Date())
@@ -79,6 +82,11 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
   const [addName, setAddName] = useState('')
   const [addingInvitee, setAddingInvitee] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [savingProject, setSavingProject] = useState(false)
+  const [notesTab, setNotesTab] = useState<'summary' | 'transcript'>('summary')
+  const [notesData, setNotesData] = useState<{ transcript: string | null; summary: string | null } | null>(null)
+  const [notesLoading, setNotesLoading] = useState(false)
   const router = useRouter()
 
   const now = new Date()
@@ -101,15 +109,27 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     setSelectedCall(call)
     setConfirmCancel(false)
     setCancelError(null)
+    setSelectedProjectId(call.project_id ?? '')
+    setNotesData(null)
+    setNotesTab('summary')
     setLoadingDetails(true)
+    setNotesLoading(true)
     try {
-      const res = await fetch(`/api/video/schedule/${call.id}`)
-      if (res.ok) {
-        const data = await res.json() as { invitees: Invitee[] }
+      const [detailsRes, notesRes] = await Promise.all([
+        fetch(`/api/video/schedule/${call.id}`),
+        fetch(`/api/video/notes/${call.id}`),
+      ])
+      if (detailsRes.ok) {
+        const data = await detailsRes.json() as { invitees: Invitee[] }
         setInvitees(data.invitees)
+      }
+      if (notesRes.ok) {
+        const nd = await notesRes.json() as { transcript: string | null; summary: string | null }
+        setNotesData(nd)
       }
     } finally {
       setLoadingDetails(false)
+      setNotesLoading(false)
     }
   }
 
@@ -121,6 +141,8 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     setAddEmail('')
     setAddName('')
     setAddError(null)
+    setNotesData(null)
+    setSelectedProjectId('')
   }
 
   async function handleAddInvitee(e: React.FormEvent) {
@@ -222,6 +244,91 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
                   </ul>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 shrink-0 text-violet-500"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Project</p>
+                <select
+                  value={selectedProjectId}
+                  disabled={savingProject}
+                  onChange={async e => {
+                    const newVal = e.target.value
+                    setSelectedProjectId(newVal)
+                    setSavingProject(true)
+                    await fetch(`/api/video/schedule/${selectedCall!.id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ project_id: newVal || null }),
+                    }).catch(() => {})
+                    setSavingProject(false)
+                  }}
+                  className="w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:opacity-50"
+                >
+                  <option value="">No project</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Session Notes</p>
+              {notesLoading ? (
+                <p className="text-xs text-slate-400">Loading…</p>
+              ) : notesData?.transcript || notesData?.summary ? (
+                <div>
+                  <div className="flex gap-1 mb-2">
+                    <button
+                      onClick={() => setNotesTab('summary')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'summary' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                    >Key Notes</button>
+                    <button
+                      onClick={() => setNotesTab('transcript')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'transcript' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                    >Full Transcript</button>
+                  </div>
+                  {notesTab === 'summary' ? (
+                    <div>
+                      {notesData.summary ? (
+                        <>
+                          <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 max-h-48 overflow-y-auto">{notesData.summary}</pre>
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([notesData.summary ?? ''], { type: 'text/plain' })
+                              const a = document.createElement('a')
+                              a.href = URL.createObjectURL(blob)
+                              a.download = `${selectedCall?.title ?? 'call'}-notes.txt`
+                              a.click()
+                            }}
+                            className="mt-2 text-xs text-violet-600 hover:underline"
+                          >Download</button>
+                        </>
+                      ) : (
+                        <p className="text-xs text-slate-400 italic">Generating summary…</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <pre className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">{notesData.transcript}</pre>
+                      <button
+                        onClick={() => {
+                          const blob = new Blob([notesData?.transcript ?? ''], { type: 'text/plain' })
+                          const a = document.createElement('a')
+                          a.href = URL.createObjectURL(blob)
+                          a.download = `${selectedCall?.title ?? 'call'}-transcript.txt`
+                          a.click()
+                        }}
+                        className="mt-2 text-xs text-violet-600 hover:underline"
+                      >Download</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400">Notes were not recorded for this call.</p>
+              )}
             </div>
 
             {cancelError && (
@@ -378,6 +485,92 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
     )
   }
 
+  function CallList() {
+    const sorted = [...calls].filter(c => c.starts_at)
+    const todayCalls = sorted.filter(c => sameDay(new Date(c.starts_at!), now))
+    const upcomingCalls = sorted.filter(c => new Date(c.starts_at!) > now && !sameDay(new Date(c.starts_at!), now))
+    const pastCalls = sorted.filter(c => new Date(c.starts_at!) < now && !sameDay(new Date(c.starts_at!), now)).reverse()
+
+    function CallRow({ call }: { call: ScheduledCall }) {
+      const live = isLive(call)
+      const project = projects.find(p => p.id === call.project_id)
+      return (
+        <button
+          onClick={() => openCall(call)}
+          className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${
+            live
+              ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
+              : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-violet-200 dark:hover:border-violet-800'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className={`text-sm font-bold truncate ${live ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                  {call.title}
+                </p>
+                {live && <span className="shrink-0 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">LIVE</span>}
+                {call.summary !== null && (
+                  <span className="shrink-0 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 px-2 py-0.5 text-xs font-semibold">
+                    Session Notes
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                {call.starts_at && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {formatDateTime(call.starts_at)}
+                    {call.ends_at && ` – ${formatTime(call.ends_at)}`}
+                  </p>
+                )}
+                {project && (
+                  <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                    <span style={{ color: project.colour }}>●</span>
+                    {project.name}
+                  </span>
+                )}
+              </div>
+            </div>
+            <ChevronRight size={16} className="shrink-0 text-slate-300 dark:text-slate-600" />
+          </div>
+        </button>
+      )
+    }
+
+    if (todayCalls.length === 0 && upcomingCalls.length === 0 && pastCalls.length === 0) {
+      return (
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center">
+          <p className="text-sm text-slate-400">No calls yet</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-6">
+        {todayCalls.length > 0 && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-violet-600 mb-2">Today</p>
+            <div className="space-y-2">{todayCalls.map(c => <CallRow key={c.id} call={c} />)}</div>
+          </div>
+        )}
+        {upcomingCalls.length > 0 && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">Upcoming</p>
+            <div className="space-y-2">{upcomingCalls.map(c => <CallRow key={c.id} call={c} />)}</div>
+          </div>
+        )}
+        {pastCalls.length > 0 && (
+          <div>
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">Past</p>
+              <div className="space-y-2">{pastCalls.map(c => <CallRow key={c.id} call={c} />)}</div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // --- Desktop grid views ---
   if (view === 'week') {
     const weekStart = startOfWeek(anchor)
@@ -424,6 +617,10 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
                 </div>
               )
             })}
+          </div>
+          <div className="mt-8">
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-3">All calls</h3>
+            <CallList />
           </div>
         </div>
       </>
@@ -481,6 +678,10 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false }
               </div>
             )
           })}
+        </div>
+        <div className="mt-8">
+          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-3">All calls</h3>
+          <CallList />
         </div>
       </div>
     </>
