@@ -50,21 +50,21 @@ notes accessible post-meeting.
 ## C-2 — Fix instant-call room creation
 
 *Codex edits:*
-- [ ] `src/app/api/video/rooms/route.ts` — in the `POST` handler: (1) add `enable_transcription: true` to the Daily.co room `properties` object. (2) In the `scheduled_calls` insert, add `starts_at: new Date().toISOString()` and `ends_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()`.
+- [x] `src/app/api/video/rooms/route.ts` — in the `POST` handler: (1) add `enable_transcription: true` to the Daily.co room `properties` object. (2) In the `scheduled_calls` insert, add `starts_at: new Date().toISOString()` and `ends_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()`.
 
 ---
 
 ## C-3 — Add enable_transcription + project_id to scheduled-call creation
 
 *Codex edits:*
-- [ ] `src/app/api/video/schedule/route.ts` — (1) Add `enable_transcription: true` to the Daily.co room `properties`. (2) Add `project_id?: string` to `SchedulePayload` type. (3) Include `project_id: project_id ?? null` in the `scheduled_calls` insert alongside existing fields.
+- [x] `src/app/api/video/schedule/route.ts` — (1) Add `enable_transcription: true` to the Daily.co room `properties`. (2) Add `project_id?: string` to `SchedulePayload` type. (3) Include `project_id: project_id ?? null` in the `scheduled_calls` insert alongside existing fields.
 
 ---
 
 ## C-4 — Extend PATCH schedule/[callId] to accept project_id
 
 *Codex edits:*
-- [ ] `src/app/api/video/schedule/[callId]/route.ts` — update the `PATCH` handler to handle two distinct body shapes: (a) if body contains `project_id` key → any org member can do it (no role check needed), update `scheduled_calls SET project_id = project_id WHERE id = callId` via service client, return `{ ok: true }`; (b) if body contains `email` key → existing invitee-add logic unchanged. Parse the body once and branch on which key is present.
+- [x] `src/app/api/video/schedule/[callId]/route.ts` — update the `PATCH` handler to handle two distinct body shapes: (a) if body contains `project_id` key → any org member can do it (no role check needed), update `scheduled_calls SET project_id = project_id WHERE id = callId` via service client, return `{ ok: true }`; (b) if body contains `email` key → existing invitee-add logic unchanged. Parse the body once and branch on which key is present.
 
 ---
 

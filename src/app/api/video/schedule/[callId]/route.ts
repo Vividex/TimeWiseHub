@@ -66,16 +66,30 @@ export async function PATCH(
   const { user, call, membership } = await resolveUser(callId)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!call) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+  if (!membership) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const c = call as unknown as {
     id: string; title: string; starts_at: string | null; org_id: string; created_by: string
   }
 
+  const body = await req.json() as { project_id?: string | null; email?: string; displayName?: string }
+
+  // Project link update - any org member can do this.
+  if ('project_id' in body) {
+    const service = createServiceClient()
+    await service
+      .from('scheduled_calls')
+      .update({ project_id: body.project_id ?? null })
+      .eq('id', callId)
+    return NextResponse.json({ ok: true })
+  }
+
+  // Invitee add - existing logic, role-gated.
   const canInvite = c.created_by === user.id ||
-    ['owner', 'admin', 'manager'].includes((membership as { role: string } | null)?.role ?? '')
+    ['owner', 'admin', 'manager'].includes((membership as { role: string }).role)
   if (!canInvite) return NextResponse.json({ error: 'Not authorised' }, { status: 403 })
 
-  const { email, displayName } = await req.json() as { email: string; displayName?: string }
+  const { email, displayName } = body
   if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 })
 
   const service = createServiceClient()

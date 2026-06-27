@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   const exp = Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
 
   const room = await dailyFetch('/rooms', 'POST', {
-    properties: { exp },
+    properties: { exp, enable_transcription: true },
   }) as { name: string; url: string }
 
   const { data: call, error } = await supabase
@@ -54,6 +54,8 @@ export async function POST(req: Request) {
       created_by: user.id,
       daily_room_name: room.name,
       room_url: room.url,
+      starts_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
     })
     .select('id')
     .single()

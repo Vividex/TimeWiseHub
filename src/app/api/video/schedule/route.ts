@@ -19,6 +19,7 @@ type SchedulePayload = {
   starts_at?: string
   ends_at?: string
   invitees?: Invitee[]
+  project_id?: string
 }
 
 function formatCallTime(iso: string) {
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
   const sub = await getSubscription(user.id)
   if (!isTeamPlan(sub)) return NextResponse.json({ error: 'Upgrade to Business to use video calls.' }, { status: 403 })
 
-  const { org_id: orgId, title, starts_at: startsAt, ends_at: endsAt, invitees = [] } =
+  const { org_id: orgId, title, starts_at: startsAt, ends_at: endsAt, invitees = [], project_id: projectId } =
     (await req.json()) as SchedulePayload
 
   if (!orgId || !title || !startsAt || !endsAt) {
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
       Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ properties: { exp } }),
+    body: JSON.stringify({ properties: { exp, enable_transcription: true } }),
   })
   if (!roomRes.ok) {
     const text = await roomRes.text()
@@ -95,6 +96,7 @@ export async function POST(req: Request) {
       created_by: user.id,
       daily_room_name: room.name,
       room_url: room.url,
+      project_id: projectId ?? null,
     })
     .select('id')
     .single()
