@@ -58,3 +58,6 @@ next-env.d.ts
 /"vividex logo*.png"
 /employee-nav-after-read.yml
 /docs/superpowers/plans/
+
+# personal planning notes in repo root
+/*.txt
