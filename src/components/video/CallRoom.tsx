@@ -64,13 +64,24 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     frame.on('transcription-message' as any, (evt: any) => {
-      const participants = frame.participants() as Record<string, { user_name?: string }> | null
-      const speaker = participants?.[evt?.participantId]?.user_name ?? 'Unknown'
-      const text = evt?.text ?? ''
+      // user_name comes from the meeting token — falls back to session-ID lookup
+      const participants = frame.participants() as Record<string, { user_name?: string; session_id?: string }> | null
+      const fromToken = evt?.user_name as string | undefined
+      const fromParticipants = Object.values(participants || {}).find(
+        p => p.session_id === evt?.participantId
+      )?.user_name
+      const speaker = fromToken || fromParticipants || 'Participant'
+      const text = (evt?.text ?? '') as string
+      if (!text.trim()) return
       const ts = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
-      const line: TranscriptLine = { speaker, text, ts }
-      setTranscriptLines(prev => [...prev, line])
-      chunkBufferRef.current += `\n[${speaker}]: ${text}`
+      setTranscriptLines(prev => {
+        const last = prev[prev.length - 1]
+        if (last && last.speaker === speaker && last.ts === ts) {
+          return [...prev.slice(0, -1), { ...last, text: last.text + ' ' + text }]
+        }
+        return [...prev, { speaker, text, ts }]
+      })
+      chunkBufferRef.current += ` [${speaker}]: ${text}`
     })
 
     frame.on('left-meeting', async () => {
@@ -92,7 +103,8 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
 
   function startNotes() {
     if (!callId) return
-    frameRef.current?.startTranscription()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(frameRef.current as any)?.startTranscription({ language: 'en', model: 'nova-2', punctuate: true, endpointing: 500 })
     setNoteState('active')
     setPanelOpen(true)
     flushIntervalRef.current = setInterval(flushBuffer, 30000)

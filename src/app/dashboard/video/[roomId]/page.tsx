@@ -4,7 +4,7 @@ import CallRoom from '@/components/video/CallRoom'
 
 const DAILY_API = 'https://api.daily.co/v1'
 
-async function issueOrgMemberToken(roomName: string, isOwner: boolean): Promise<string> {
+async function issueOrgMemberToken(roomName: string, isOwner: boolean, userName: string): Promise<string> {
   const exp = Math.floor(Date.now() / 1000) + 4 * 60 * 60
   const res = await fetch(`${DAILY_API}/meeting-tokens`, {
     method: 'POST',
@@ -13,7 +13,7 @@ async function issueOrgMemberToken(roomName: string, isOwner: boolean): Promise<
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      properties: { room_name: roomName, is_owner: isOwner, exp },
+      properties: { room_name: roomName, is_owner: isOwner, exp, user_name: userName },
     }),
   })
   if (!res.ok) throw new Error(`Token issue failed: ${res.status}`)
@@ -39,18 +39,28 @@ export default async function CallRoomPage({
 
   if (!call?.daily_room_name || !call?.room_url) redirect('/dashboard/video')
 
-  const { data: membership } = await supabase
-    .from('organisation_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('org_id', call.org_id)
-    .maybeSingle()
+  const [{ data: membership }, { data: profile }] = await Promise.all([
+    supabase
+      .from('organisation_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('org_id', call.org_id)
+      .maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ])
 
   if (!membership) redirect('/dashboard/video')
 
+  const p = profile as unknown as { full_name: string | null; email: string | null } | null
+  const userName = p?.full_name || p?.email || 'Participant'
+
   let token: string
   try {
-    token = await issueOrgMemberToken(call.daily_room_name, call.created_by === user.id)
+    token = await issueOrgMemberToken(call.daily_room_name, call.created_by === user.id, userName)
   } catch {
     redirect('/dashboard/video')
   }

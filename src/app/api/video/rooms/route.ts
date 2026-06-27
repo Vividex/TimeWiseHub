@@ -40,6 +40,14 @@ export async function POST(req: Request) {
   const sub = await getSubscription(user.id)
   if (!isTeamPlan(sub)) return NextResponse.json({ error: 'Upgrade to Business to use video calls.' }, { status: 403 })
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', user.id)
+    .maybeSingle()
+  const p = profile as unknown as { full_name: string | null; email: string | null } | null
+  const userName = p?.full_name || p?.email || 'Participant'
+
   const exp = Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
 
   const room = await dailyFetch('/rooms', 'POST', {
@@ -70,6 +78,7 @@ export async function POST(req: Request) {
       room_name: room.name,
       is_owner: true,
       exp,
+      user_name: userName,
     },
   }) as { token: string }
 
