@@ -71,21 +71,21 @@ notes accessible post-meeting.
 ## C-5 — New API: GET /api/video/notes/[callId]
 
 *Codex edits:*
-- [ ] Create `src/app/api/video/notes/[callId]/route.ts` — GET handler. Auth: Supabase session required. Verify caller is an org member of the call's `org_id` (use service client). Return `{ transcript: string | null, summary: string | null }`. 401 if no session, 404 if call not found or not a member.
+- [x] Create `src/app/api/video/notes/[callId]/route.ts` — GET handler. Auth: Supabase session required. Verify caller is an org member of the call's `org_id` (use service client). Return `{ transcript: string | null, summary: string | null }`. 401 if no session, 404 if call not found or not a member.
 
 ---
 
 ## C-6 — New API: POST /api/video/notes/[callId]/transcript
 
 *Codex edits:*
-- [ ] Create `src/app/api/video/notes/[callId]/transcript/route.ts` — POST handler. Body: `{ chunk: string }`. Auth + org-member check. Guard: if chunk is empty, return `{ ok: true }` immediately. Action: `UPDATE scheduled_calls SET transcript = COALESCE(transcript, '') || chunk, transcript_started_by = COALESCE(transcript_started_by, userId) WHERE id = callId` via service client's `.update()`. Return `{ ok: true }`.
+- [x] Create `src/app/api/video/notes/[callId]/transcript/route.ts` — POST handler. Body: `{ chunk: string }`. Auth + org-member check. Guard: if chunk is empty, return `{ ok: true }` immediately. Action: `UPDATE scheduled_calls SET transcript = COALESCE(transcript, '') || chunk, transcript_started_by = COALESCE(transcript_started_by, userId) WHERE id = callId` via service client's `.update()`. Return `{ ok: true }`.
 
 ---
 
 ## C-7 — New API: POST /api/video/notes/[callId]/summarise
 
 *Codex edits:*
-- [ ] Create `src/app/api/video/notes/[callId]/summarise/route.ts` — POST handler. Auth + org-member check. Read `transcript` from DB. Guard: if null or `transcript.length < 100`, write `summary = 'Transcript too brief to summarise.'` and return `{ ok: true }`. Otherwise: call `claude-haiku-4-5-20251001` via `new Anthropic()` (import from `@anthropic-ai/sdk`; key from `process.env.ANTHROPIC_API_KEY`). Use `messages.create` with the prompt from the spec (produce ## Summary / ## Key Decisions / ## Action Items / ## Next Steps). Write `content[0].text` to `summary`. Return `{ ok: true }`.
+- [x] Create `src/app/api/video/notes/[callId]/summarise/route.ts` — POST handler. Auth + org-member check. Read `transcript` from DB. Guard: if null or `transcript.length < 100`, write `summary = 'Transcript too brief to summarise.'` and return `{ ok: true }`. Otherwise: call `claude-haiku-4-5-20251001` via `new Anthropic()` (import from `@anthropic-ai/sdk`; key from `process.env.ANTHROPIC_API_KEY`). Use `messages.create` with the prompt from the spec (produce ## Summary / ## Key Decisions / ## Action Items / ## Next Steps). Write `content[0].text` to `summary`. Return `{ ok: true }`.
 
 ---
 
