@@ -4,20 +4,17 @@
 
 ## Spending
 - spend-budget-usd: 0
-- All work is Rust/Kotlin/CSS/JSON/XML text edits + shell commands on existing toolchain.
-  No paid API calls. No new npm packages.
-- `pnpm tauri android build` uses local toolchain only — no cloud build service.
+- All work is TypeScript/TSX/SQL text edits + shell commands on existing toolchain.
+- @anthropic-ai/sdk is already installed — no new npm packages needed.
+- The Claude API call inside the summarise route is a production feature, not a loop spend.
+- No paid API calls during the implementation loop itself.
 
-## Notes (Phase 24 — Android App)
-- Source of exact code: docs/superpowers/plans/2026-06-18-android-app.md
-  Each checklist item maps to a Task there; implement the code VERBATIM.
-- Codex handles text edits only; conductor runs ALL shell/build/git/adb/keytool commands.
-- pnpm is the package manager. Web verification gate = `pnpm run build`.
-- Android verification gate = `pnpm tauri android build` producing a valid AAB.
-- Steps marked [CONDUCTOR] in spec.md are run by Claude, not Codex — Codex skips them.
+## Notes (Phase 26 — Session Notes)
+- Source spec: docs/superpowers/specs/2026-06-27-session-notes-design.md
+- Codex handles text edits only; conductor runs all shell/build/git commands and applies the DB migration via Supabase MCP.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
 - Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only.
-- Tasks 6 and 7 require user presence (USB device + interactive keytool). Conductor
-  will pause at those tasks and ask the user to proceed interactively.
-- The generated Android project lives at src-tauri/gen/android/ — these files are
-  committed to the repo (created by Task 2) and then modified by Tasks 4 and 8.
-- Keystore must be stored OUTSIDE the repo. Never commit it.
+- The Supabase `as unknown as T` cast pattern is required for FK join types — Codex must follow this convention (see CLAUDE.md).
+- Migration must be applied via Supabase MCP (`apply_migration`) — not via Supabase CLI.
+- Daily.co transcription events: `transcription-message` gives `{ participantId, text, timestamp }`. Speaker name via `frame.participants()[participantId]?.user_name`.
+- ANTHROPIC_API_KEY is already in the Vercel env (used by existing AI assistant feature).
