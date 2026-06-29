@@ -114,10 +114,11 @@ export default async function DashboardHome() {
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
   const nextWeek   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-  const todayDate      = now.toISOString().slice(0, 10)
-  const weekStartDate  = weekStart.toISOString().slice(0, 10)
-  const weekEnd        = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
-  const weekEndDate    = weekEnd.toISOString().slice(0, 10)
+  // Shift date strings by +11h so "today" is correct for AEST/AEDT (UTC+10/+11)
+  // without needing to fetch the user's stored timezone.
+  const localNow       = new Date(now.getTime() + 11 * 60 * 60 * 1000)
+  const todayDate      = localNow.toISOString().slice(0, 10)
+  const weekStartDate  = new Date(weekStart.getTime() + 11 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const todayStartIso  = todayStart.toISOString()
   const nextWeekIso    = nextWeek.toISOString()
 
@@ -142,7 +143,7 @@ export default async function DashboardHome() {
       .eq('published', true)
       .is('deleted_at', null)
       .gte('date', weekStartDate)
-      .lt('date', weekEndDate),
+      .lte('date', todayDate),
     orgId
       ? supabase
           .from('scheduled_calls')

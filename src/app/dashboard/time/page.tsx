@@ -61,7 +61,6 @@ export default async function TimePage() {
   const weekStart = new Date(`${weekStartDayStr}T00:00:00${tz}`).toISOString()
   const weekEnd = new Date(`${weekEndDay.toISOString().slice(0, 10)}T00:00:00${tz}`).toISOString()
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
-  const weekEndStr = weekEndDay.toISOString().slice(0, 10)
 
   function shiftSeconds(startTime: string, endTime: string): number {
     const [sh, sm] = startTime.split(':').map(Number)
@@ -84,7 +83,7 @@ export default async function TimePage() {
     supabase.from('timesheets').select('id, status, total_seconds, review_note').eq('user_id', user.id).eq('week_start', weekStartDayStr).maybeSingle(),
     getSubscription(user.id),
     supabase.from('roster_shifts').select('start_time, end_time').eq('user_id', user.id).eq('date', todayStr).eq('published', true).is('deleted_at', null),
-    supabase.from('roster_shifts').select('start_time, end_time').eq('user_id', user.id).gte('date', weekStartDayStr).lt('date', weekEndStr).eq('published', true).is('deleted_at', null),
+    supabase.from('roster_shifts').select('start_time, end_time').eq('user_id', user.id).gte('date', weekStartDayStr).lte('date', todayStr).eq('published', true).is('deleted_at', null),
   ])
 
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
