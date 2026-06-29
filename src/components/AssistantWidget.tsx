@@ -62,7 +62,7 @@ export default function AssistantWidget({
   const formRef = useRef<HTMLFormElement>(null)
   const voiceTextRef = useRef('')
   const [voiceEnabled, setVoiceEnabled] = useState(false)
-  const { state: voiceState, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
+  const { state: voiceState, voiceError, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
       voiceTextRef.current = text
       setInput(text)
@@ -446,9 +446,18 @@ export default function AssistantWidget({
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
                     voiceState === 'listening'
                       ? 'animate-pulse bg-red-500 text-white'
-                      : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
+                      : voiceState === 'error'
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-950 dark:text-red-400'
+                        : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
                   }`}
-                  title={voiceState === 'listening' ? 'Tap to stop' : 'Tap to speak'}
+                  title={
+                    voiceState === 'listening' ? 'Tap to stop' :
+                    voiceState === 'error'
+                      ? (voiceError === 'permission'
+                          ? 'Microphone blocked — check browser/OS permissions'
+                          : 'Microphone error — tap to retry')
+                      : 'Tap to speak'
+                  }
                 >
                   {voiceState === 'listening' ? <MicOff size={16} /> : <Mic size={16} />}
                 </button>

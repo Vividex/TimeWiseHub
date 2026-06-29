@@ -7,12 +7,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 interface SpeechRecognitionResult { readonly 0: { transcript: string } }
 interface SpeechRecognitionResultList { readonly 0: SpeechRecognitionResult }
 interface SpeechRecognitionEvent extends Event { readonly results: SpeechRecognitionResultList }
+interface SpeechRecognitionErrorEvent extends Event { readonly error: string }
 interface SpeechRecognitionInstance {
   continuous: boolean
   interimResults: boolean
   lang: string
   onresult: ((e: SpeechRecognitionEvent) => void) | null
-  onerror: (() => void) | null
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null
   onend: (() => void) | null
   start(): void
   stop(): void
@@ -22,6 +23,7 @@ interface SpeechRecognitionCtor {
 }
 
 type VoiceState = 'idle' | 'listening' | 'error'
+type VoiceError = 'permission' | 'generic' | null
 
 export function useVoice({
   onTranscript,
@@ -33,6 +35,7 @@ export function useVoice({
   onSpeakEnd?: () => void
 }) {
   const [state, setState] = useState<VoiceState>('idle')
+  const [voiceError, setVoiceError] = useState<VoiceError>(null)
   const [supported, setSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -68,9 +71,14 @@ export function useVoice({
       const transcript = event.results[0]?.[0]?.transcript ?? ''
       if (transcript.trim()) onTranscript(transcript.trim())
       setState('idle')
+      setVoiceError(null)
     }
-    recognition.onerror = () => setState('error')
-    recognition.onend = () => setState('idle')
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      const isPermission = event.error === 'not-allowed' || event.error === 'service-not-allowed'
+      setVoiceError(isPermission ? 'permission' : 'generic')
+      setState('error')
+    }
+    recognition.onend = () => setState(s => s === 'error' ? 'error' : 'idle')
 
     recognitionRef.current = recognition
     try {
@@ -84,6 +92,7 @@ export function useVoice({
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop()
     setState('idle')
+    setVoiceError(null)
   }, [])
 
   async function speak(text: string) {
@@ -136,5 +145,5 @@ export function useVoice({
     }
   }
 
-  return { state, supported, ttsSupported: true, startListening, stopListening, speak, stopSpeaking }
+  return { state, voiceError, supported, ttsSupported: true, startListening, stopListening, speak, stopSpeaking }
 }

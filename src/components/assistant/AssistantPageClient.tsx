@@ -86,7 +86,7 @@ export default function AssistantPageClient({
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null }
   }, [])
 
-  const { state: voiceState, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
+  const { state: voiceState, voiceError, supported: voiceSupported, ttsSupported, startListening, stopListening, speak, stopSpeaking } = useVoice({
     onTranscript: (text) => {
       clearSilenceTimer()
       voiceTextRef.current = text
@@ -616,6 +616,13 @@ export default function AssistantPageClient({
               ))}
             </div>
           )}
+          {voiceState === 'error' && voiceEnabled && (
+            <p className="mb-2 text-xs text-red-600 dark:text-red-400">
+              {voiceError === 'permission'
+                ? 'Microphone blocked — check browser permissions (lock icon in address bar) or Windows Settings → Privacy → Microphone.'
+                : 'Microphone error — tap the mic button to retry.'}
+            </p>
+          )}
           <form ref={formRef} onSubmit={handleSubmit} data-assistant-form>
             <div className="flex items-end gap-3">
               <textarea
@@ -678,9 +685,18 @@ export default function AssistantPageClient({
                   className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
                     voiceState === 'listening'
                       ? 'animate-pulse bg-red-500 text-white'
-                      : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
+                      : voiceState === 'error'
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-950 dark:text-red-400'
+                        : 'bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300'
                   }`}
-                  title={voiceState === 'listening' ? 'Tap to stop' : 'Tap to speak'}
+                  title={
+                    voiceState === 'listening' ? 'Tap to stop' :
+                    voiceState === 'error'
+                      ? (voiceError === 'permission'
+                          ? 'Microphone blocked — check browser/OS permissions then tap to retry'
+                          : 'Microphone error — tap to retry')
+                      : 'Tap to speak'
+                  }
                 >
                   {voiceState === 'listening' ? <MicOff size={18} /> : <Mic size={18} />}
                 </button>
