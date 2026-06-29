@@ -83,6 +83,16 @@ export default function ManagerTimesheetView({ orgId }: { orgId: string }) {
       setTimesheets(prev => prev.filter(timesheet => timesheet.id !== id))
       setSelectedDetail(null)
       router.refresh()
+      if (status === 'approved') {
+        const ts = timesheets.find(t => t.id === id)
+        if (ts) {
+          fetch('/api/timesheets/check-and-run-pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orgId, weekStart: ts.week_start }),
+          }).catch(err => console.error('Pay run check failed:', err))
+        }
+      }
     }
 
     setSavingId(null)
