@@ -41,7 +41,7 @@ detail modal with overtime flagging, and fix the timesheet cron double-counting 
 ## C-2 — New API: GET /api/timesheets/[timesheetId]/detail
 
 *Codex edits:*
-- [ ] Create `src/app/api/timesheets/[timesheetId]/detail/route.ts` — GET handler. Auth: Supabase session + org membership check (manager/admin/owner only via service client). Fetch `roster_shifts` (published, non-deleted, in week) and `time_entries` (completed, in week) for the timesheet's user. Return `{ timesheet, profile, roster_shifts, additional_entries, rostered_seconds, additional_seconds, overtime_seconds }` where `overtime_seconds = max(0, total - 136800)`.
+- [x] Create `src/app/api/timesheets/[timesheetId]/detail/route.ts` — GET handler. Auth: Supabase session + org membership check (manager/admin/owner only via service client). Fetch `roster_shifts` (published, non-deleted, in week) and `time_entries` (completed, in week) for the timesheet's user. Return `{ timesheet, profile, roster_shifts, additional_entries, rostered_seconds, additional_seconds, overtime_seconds }` where `overtime_seconds = max(0, total - 136800)`.
 
 ---
 
@@ -106,7 +106,7 @@ git push
 
 ## Acceptance checklist
 - [x] C-1: generate-weekly cron includes time_entries in total_seconds
-- [ ] C-2: GET /api/timesheets/[id]/detail returns shifts + entries + overtime
+- [x] C-2: GET /api/timesheets/[id]/detail returns shifts + entries + overtime
 - [ ] C-3: AdditionalHoursPanel component created with project-required form
 - [ ] C-4: TimeSection renders AdditionalHoursPanel when rosterManaged=true
 - [ ] C-5: time/page.tsx passes rosterManaged to TimeSection
