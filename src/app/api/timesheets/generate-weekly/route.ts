@@ -63,15 +63,33 @@ export async function GET(req: Request) {
 
     if (!shifts || shifts.length === 0) continue
 
-    const secondsByUser = new Map<string, number>()
+    const rosterSecsByUser = new Map<string, number>()
     for (const s of shifts) {
       const secs = shiftSeconds(s.start_time, s.end_time)
       if (secs > 0) {
-        secondsByUser.set(s.user_id, (secondsByUser.get(s.user_id) ?? 0) + secs)
+        rosterSecsByUser.set(s.user_id, (rosterSecsByUser.get(s.user_id) ?? 0) + secs)
       }
     }
 
-    for (const [userId, totalSeconds] of secondsByUser) {
+    const userIds = Array.from(rosterSecsByUser.keys())
+    const { data: entries } = await service
+      .from('time_entries')
+      .select('user_id, duration_seconds')
+      .in('user_id', userIds)
+      .not('ended_at', 'is', null)
+      .gte('started_at', `${weekStart}T00:00:00`)
+      .lt('started_at', `${todayISO}T00:00:00`)
+
+    const entrySecsByUser = new Map<string, number>()
+    for (const entry of entries ?? []) {
+      entrySecsByUser.set(
+        entry.user_id,
+        (entrySecsByUser.get(entry.user_id) ?? 0) + (entry.duration_seconds ?? 0),
+      )
+    }
+
+    for (const [userId, rosterSeconds] of rosterSecsByUser) {
+      const totalSeconds = rosterSeconds + (entrySecsByUser.get(userId) ?? 0)
       const { data: existing } = await service
         .from('timesheets')
         .select('id, status')
