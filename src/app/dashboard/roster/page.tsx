@@ -3,6 +3,17 @@ import { createClient } from '@/lib/supabase-server'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import RosterGrid from '@/components/roster/RosterGrid'
 
+type ProfileRow = { full_name: string | null; email: string } | null
+export type AdditionalEntry = {
+  id: string
+  user_id: string
+  started_at: string
+  ended_at: string
+  duration_seconds: number | null
+  description: string | null
+  projects: { name: string } | null
+}
+
 export default async function RosterPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,7 +35,6 @@ export default async function RosterPage() {
   const { data: members } = await supabase
     .from('organisation_members').select('user_id, role, profiles!organisation_members_user_id_fkey(full_name, email)').eq('org_id', orgId)
 
-  type ProfileRow = { full_name: string | null; email: string } | null
   const ROLE_ORDER: Record<string, number> = { owner: 0, admin: 1, manager: 2, employee: 3 }
 
   const memberListRaw = (members ?? []).map(m => ({
@@ -66,7 +76,7 @@ export default async function RosterPage() {
   const fromISO = from.toISOString().split('T')[0]
   const toISO = to.toISOString().split('T')[0]
 
-  const [{ data: shifts }, { data: leaveData }, { data: orgSettings }] = await Promise.all([
+  const [{ data: shifts }, { data: leaveData }, { data: orgSettings }, { data: additionalData }] = await Promise.all([
     supabase
       .from('roster_shifts').select('id, org_id, user_id, date, start_time, end_time, notes, published')
       .eq('org_id', orgId).is('deleted_at', null)
@@ -79,6 +89,13 @@ export default async function RosterPage() {
     supabase
       .from('organisations').select('pay_week_start_day')
       .eq('id', orgId).maybeSingle(),
+    supabase
+      .from('time_entries')
+      .select('id, user_id, started_at, ended_at, duration_seconds, description, projects(name)')
+      .in('user_id', memberListRaw.map(m => m.user_id))
+      .gte('started_at', `${fromISO}T00:00:00`)
+      .lte('started_at', `${toISO}T23:59:59`)
+      .not('ended_at', 'is', null),
   ])
 
   return (
@@ -90,6 +107,7 @@ export default async function RosterPage() {
           members={memberList}
           initialShifts={shifts ?? []}
           leaveBlocks={leaveData ?? []}
+          initialAdditionalEntries={(additionalData ?? []) as unknown as AdditionalEntry[]}
           canManageRoster={canManageRoster}
           weekStartDay={orgSettings?.pay_week_start_day ?? 1}
           currentUserId={user.id}

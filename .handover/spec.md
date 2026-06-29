@@ -110,8 +110,8 @@ git push
 - [x] C-3: AdditionalHoursPanel component created with project-required form
 - [x] C-4: TimeSection renders AdditionalHoursPanel when rosterManaged=true
 - [x] C-5: time/page.tsx passes rosterManaged to TimeSection
-- [ ] C-6: roster/page.tsx fetches additional entries and passes to RosterGrid
-- [ ] C-7: RosterGrid renders orange blocks for additional entries, re-fetches on week change
+- [x] C-6: roster/page.tsx fetches additional entries and passes to RosterGrid
+- [x] C-7: RosterGrid renders orange blocks for additional entries, re-fetches on week change
 - [ ] C-8: TimesheetDetailModal shows shifts + entries + summary + overtime flag
 - [ ] C-9: ManagerTimesheetView rows are clickable, open modal, no inline approve/reject
 

@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
+import type { AdditionalEntry } from '@/app/dashboard/roster/page'
+import { createClient } from '@/lib/supabase-browser'
 import ShiftForm, { type RosterShift, type OrgMember } from './ShiftForm'
 import AvailabilityPanel from './AvailabilityPanel'
 
@@ -41,10 +43,10 @@ function getWeekDates(anchor: Date, weekStartDay: number): Date[] {
 }
 function toISO(d: Date) { return d.toISOString().split('T')[0] }
 
-export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay, currentUserId }: {
+export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks, canManageRoster, weekStartDay, currentUserId, initialAdditionalEntries }: {
   orgId: string; members: OrgMember[]; initialShifts: RosterShift[]
   leaveBlocks: LeaveBlock[]; canManageRoster: boolean; weekStartDay: number
-  currentUserId: string
+  currentUserId: string; initialAdditionalEntries?: AdditionalEntry[]
 }) {
   const router = useRouter()
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
@@ -54,10 +56,33 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
   const [settingTemplate, setSettingTemplate] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
   const [selectedAvailMember, setSelectedAvailMember] = useState<OrgMember | null>(null)
+  const [additionalEntries, setAdditionalEntries] = useState<AdditionalEntry[]>(initialAdditionalEntries ?? [])
+
+  function fmtDur(sec: number | null) {
+    if (!sec) return ''
+    const h = Math.floor(sec / 3600)
+    const m = Math.floor((sec % 3600) / 60)
+    if (h === 0) return `${m}m`
+    if (m === 0) return `${h}h`
+    return `${h}h ${m}m`
+  }
 
   const weekDates = getWeekDates(weekAnchor, weekStartDay)
   const weekStart = toISO(weekDates[0])
   const weekEnd = toISO(weekDates[6])
+
+  useEffect(() => {
+    const supabase = createClient()
+    const userIds = members.map(m => m.user_id)
+    supabase
+      .from('time_entries')
+      .select('id, user_id, started_at, ended_at, duration_seconds, description, projects(name)')
+      .in('user_id', userIds)
+      .gte('started_at', `${weekStart}T00:00:00`)
+      .lte('started_at', `${weekEnd}T23:59:59`)
+      .not('ended_at', 'is', null)
+      .then(({ data }) => setAdditionalEntries((data ?? []) as unknown as AdditionalEntry[]))
+  }, [weekStart, weekEnd]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function prevWeek() { const d = new Date(weekAnchor); d.setDate(d.getDate() - 7); setWeekAnchor(d) }
   function nextWeek() { const d = new Date(weekAnchor); d.setDate(d.getDate() + 7); setWeekAnchor(d) }
@@ -197,6 +222,10 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6
                   const dayShifts = shifts.filter(s => s.user_id === member.user_id && s.date === iso)
                   const dayLeave = leaveBlocks.filter(l => l.user_id === member.user_id && l.start_date <= iso && l.end_date >= iso)
+                  const dayAdditional = additionalEntries.filter(e => {
+                    const eDate = e.started_at.slice(0, 10)
+                    return e.user_id === member.user_id && eDate === iso
+                  })
                   return (
                     <td key={i} className={`px-1.5 py-1.5 align-top ${
                       isToday ? 'bg-cyan-50/50 dark:bg-cyan-900/10' : isWeekend ? 'bg-slate-50/80 dark:bg-slate-800/40' : ''
@@ -220,6 +249,14 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                             {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}
                           </button>
                         ))}
+                        {dayAdditional.map(e => {
+                          const proj = (e.projects as unknown as { name: string } | null)?.name
+                          return (
+                            <div key={e.id} className="mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
+                              {proj ? `${proj}` : 'Additional'}{fmtDur(e.duration_seconds) ? ` · ${fmtDur(e.duration_seconds)}` : ''}
+                            </div>
+                          )
+                        })}
                         {canManageRoster && (
                           <button onClick={() => setFormState({ open: true, defaultDate: iso })}
                             className="flex w-full items-center justify-center rounded-lg p-1 text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-500">
