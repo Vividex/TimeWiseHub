@@ -112,8 +112,8 @@ git push
 - [x] C-5: time/page.tsx passes rosterManaged to TimeSection
 - [x] C-6: roster/page.tsx fetches additional entries and passes to RosterGrid
 - [x] C-7: RosterGrid renders orange blocks for additional entries, re-fetches on week change
-- [ ] C-8: TimesheetDetailModal shows shifts + entries + summary + overtime flag
-- [ ] C-9: ManagerTimesheetView rows are clickable, open modal, no inline approve/reject
+- [x] C-8: TimesheetDetailModal shows shifts + entries + summary + overtime flag
+- [x] C-9: ManagerTimesheetView rows are clickable, open modal, no inline approve/reject
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task.
