@@ -101,7 +101,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
                 Edit
               </Link>
             )}
-            <Link href={`/dashboard/invoices/${id}/print`} target="_blank"
+            <Link href={`/dashboard/invoices/${id}/print`}
               className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">
               Print / PDF
             </Link>

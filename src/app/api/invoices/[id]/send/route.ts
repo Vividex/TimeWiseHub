@@ -68,24 +68,33 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     let stripeCheckoutId: string | null = null
 
     if (process.env.STRIPE_SECRET_KEY) {
-      const session = await getStripe().checkout.sessions.create({
-        mode: 'payment',
-        line_items: items.map((item: { description: string; quantity: number; unit_price: number }) => ({
-          price_data: {
-            currency: invoice.currency.toLowerCase(),
-            // quantity * unit_price expressed as a single total in cents; Stripe quantity must be integer
-            unit_amount: Math.round(item.quantity * item.unit_price * 100),
-            product_data: { name: item.description },
-          },
-          quantity: 1,
-        })),
-        success_url: `${baseUrl}/dashboard/invoices/${id}?paid=1`,
-        cancel_url: `${baseUrl}/dashboard/invoices/${id}`,
-        metadata: { invoice_id: id, type: 'invoice' },
-      })
-
-      paymentLink = session.url
-      stripeCheckoutId = session.id
+      try {
+        // Stripe requires unit_amount >= 1 cent; skip items with zero value
+        const billableItems = items.filter((item: { quantity: number; unit_price: number }) =>
+          Math.round(item.quantity * item.unit_price * 100) > 0
+        )
+        if (billableItems.length > 0) {
+          const session = await getStripe().checkout.sessions.create({
+            mode: 'payment',
+            line_items: billableItems.map((item: { description: string; quantity: number; unit_price: number }) => ({
+              price_data: {
+                currency: invoice.currency.toLowerCase(),
+                unit_amount: Math.round(item.quantity * item.unit_price * 100),
+                product_data: { name: item.description },
+              },
+              quantity: 1,
+            })),
+            success_url: `${baseUrl}/dashboard/invoices/${id}?paid=1`,
+            cancel_url: `${baseUrl}/dashboard/invoices/${id}`,
+            metadata: { invoice_id: id, type: 'invoice' },
+          })
+          paymentLink = session.url
+          stripeCheckoutId = session.id
+        }
+      } catch (stripeErr) {
+        console.error('Stripe session creation failed:', stripeErr)
+        // Continue without payment link — invoice is still marked sent
+      }
     }
 
     await service.from('invoices').update({

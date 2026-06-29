@@ -31,19 +31,24 @@ export default function InvoiceActions({ invoiceId, status, paymentLink, canSend
     setLoading('send')
     setError(null)
     setNotice(null)
-    const res = await fetch(`/api/invoices/${invoiceId}/send`, { method: 'POST' })
-    const data = await res.json()
-    if (!res.ok) { setError(data.error); setLoading(null); return }
-    if (data.email_sent && data.to) {
-      setNotice(`Invoice emailed to ${data.to}.`)
-    } else if (data.email_error) {
-      setNotice(`Invoice was prepared, but email was not sent: ${data.email_error}`)
-    } else if (data.email_skipped) {
-      setNotice('Invoice was prepared. Email is not configured.')
-    } else {
-      setNotice(data.email_error ?? 'Invoice was prepared. Add an email address to the client to send it directly.')
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/send`, { method: 'POST' })
+      let data: Record<string, unknown> = {}
+      try { data = await res.json() } catch { /* non-JSON error body */ }
+      if (!res.ok) { setError((data.error as string) ?? 'Something went wrong. Please try again.'); setLoading(null); return }
+      if (data.email_sent && data.to) {
+        setNotice(`Invoice emailed to ${data.to}.`)
+      } else if (data.email_error) {
+        setNotice(`Invoice was prepared, but email was not sent: ${data.email_error}`)
+      } else if (data.email_skipped) {
+        setNotice('Invoice was prepared. Email is not configured.')
+      } else {
+        setNotice('Invoice was prepared. Add an email address to the client to send it directly.')
+      }
+      router.refresh()
+    } catch {
+      setError('Network error. Please check your connection and try again.')
     }
-    router.refresh()
     setLoading(null)
   }
 
