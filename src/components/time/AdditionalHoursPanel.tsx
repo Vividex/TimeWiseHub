@@ -28,7 +28,7 @@ function fmtDuration(sec: number) {
 export default function AdditionalHoursPanel() {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
-  const [todayEntries, setTodayEntries] = useState<Entry[]>([])
+  const [weekEntries, setWeekEntries] = useState<Entry[]>([])
   const [projectId, setProjectId] = useState('')
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
   const [startTime, setStartTime] = useState('')
@@ -41,8 +41,10 @@ export default function AdditionalHoursPanel() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      const todayStart = new Date()
-      todayStart.setHours(0, 0, 0, 0)
+      const weekStart = new Date()
+      const dow = weekStart.getDay()
+      weekStart.setDate(weekStart.getDate() - (dow === 0 ? 6 : dow - 1))
+      weekStart.setHours(0, 0, 0, 0)
 
       supabase
         .from('projects')
@@ -55,17 +57,16 @@ export default function AdditionalHoursPanel() {
         .from('time_entries')
         .select('id, started_at, ended_at, duration_seconds, description, projects(name)')
         .eq('user_id', user.id)
-        .gte('started_at', todayStart.toISOString())
+        .gte('started_at', weekStart.toISOString())
         .not('ended_at', 'is', null)
         .order('started_at', { ascending: false })
-        .then(({ data }) => setTodayEntries((data ?? []) as unknown as Entry[]))
+        .then(({ data }) => setWeekEntries((data ?? []) as unknown as Entry[]))
     })
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!projectId) { setError('Please select a project.'); return }
     if (!startTime || !endTime) { setError('Please enter start and end times.'); return }
 
     const startedAt = new Date(`${date}T${startTime}`)
@@ -83,7 +84,7 @@ export default function AdditionalHoursPanel() {
         user_id: user.id,
         started_at: startedAt.toISOString(),
         ended_at: endedAt.toISOString(),
-        project_id: projectId,
+        project_id: projectId || null,
         billable: true,
         description: description.trim() || null,
       })
@@ -93,7 +94,7 @@ export default function AdditionalHoursPanel() {
     setSaving(false)
     if (insertError) { setError(insertError.message); return }
 
-    setTodayEntries(prev => [newEntry as unknown as Entry, ...prev])
+    setWeekEntries(prev => [newEntry as unknown as Entry, ...prev])
     setStartTime('')
     setEndTime('')
     setDescription('')
@@ -103,7 +104,7 @@ export default function AdditionalHoursPanel() {
   async function deleteEntry(id: string) {
     const supabase = createClient()
     await supabase.from('time_entries').delete().eq('id', id)
-    setTodayEntries(prev => prev.filter(e => e.id !== id))
+    setWeekEntries(prev => prev.filter(e => e.id !== id))
     router.refresh()
   }
 
@@ -113,14 +114,13 @@ export default function AdditionalHoursPanel() {
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Log additional hours</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Project <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+              Project (optional)
             </label>
             <select
               value={projectId}
               onChange={e => setProjectId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              required
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="">— Select project —</option>
               {projects.map(p => (
@@ -136,7 +136,7 @@ export default function AdditionalHoursPanel() {
                 value={date}
                 max={new Date().toISOString().slice(0, 10)}
                 onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
             <div>
@@ -145,7 +145,7 @@ export default function AdditionalHoursPanel() {
                 type="time"
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 required
               />
             </div>
@@ -155,7 +155,7 @@ export default function AdditionalHoursPanel() {
                 type="time"
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 required
               />
             </div>
@@ -167,25 +167,25 @@ export default function AdditionalHoursPanel() {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="What did you work on?"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
           </div>
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button
             type="submit"
-            disabled={saving || !projectId}
-            className="w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+            disabled={saving}
+            className="w-full rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 disabled:opacity-50 transition-colors"
           >
             {saving ? 'Logging…' : 'Log hours'}
           </button>
         </form>
       </div>
 
-      {todayEntries.length > 0 && (
+      {weekEntries.length > 0 && (
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-3">Today&apos;s additional hours</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-3">Additional hours this week</p>
           <div className="space-y-2">
-            {todayEntries.map(e => {
+            {weekEntries.map(e => {
               const proj = (e.projects as unknown as { name: string } | null)?.name
               return (
                 <div key={e.id} className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800 px-3 py-2">
