@@ -83,7 +83,7 @@ export default async function TimePage() {
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <TimeSummary todaySeconds={todaySeconds} weekSeconds={weekSeconds} />
-        <TimeSection activeEntry={activeEntry} initialEntries={todayEntries ?? []} userId={user.id} />
+        <TimeSection activeEntry={activeEntry} initialEntries={todayEntries ?? []} userId={user.id} rosterManaged={isTeamPlan(subscription) && !!orgId} />
         <TimesheetSection
           userId={user.id}
           orgId={orgId}

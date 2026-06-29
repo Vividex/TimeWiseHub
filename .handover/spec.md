@@ -48,21 +48,21 @@ detail modal with overtime flagging, and fix the timesheet cron double-counting 
 ## C-3 — Create AdditionalHoursPanel component
 
 *Codex edits:*
-- [ ] Create `src/components/time/AdditionalHoursPanel.tsx` — client component. Form fields: project (required `<select>`, fetches active projects), date (default today), from/to time (required, must be valid range), description (optional). On submit: INSERT into `time_entries` via browser Supabase client. Below form: list today's completed time_entries for the user (project name + time range + duration). Delete button per entry.
+- [x] Create `src/components/time/AdditionalHoursPanel.tsx` — client component. Form fields: project (required `<select>`, fetches active projects), date (default today), from/to time (required, must be valid range), description (optional). On submit: INSERT into `time_entries` via browser Supabase client. Below form: list today's completed time_entries for the user (project name + time range + duration). Delete button per entry.
 
 ---
 
 ## C-4 — Update TimeSection to gate on rosterManaged
 
 *Codex edits:*
-- [ ] `src/components/time/TimeSection.tsx` — add `rosterManaged?: boolean` prop (default false). When true: render `<AdditionalHoursPanel />` instead of TimerWidget + ManualEntryForm + TimeEntryList.
+- [x] `src/components/time/TimeSection.tsx` — add `rosterManaged?: boolean` prop (default false). When true: render `<AdditionalHoursPanel />` instead of TimerWidget + ManualEntryForm + TimeEntryList.
 
 ---
 
 ## C-5 — Pass rosterManaged to TimeSection in time/page.tsx
 
 *Codex edits:*
-- [ ] `src/app/dashboard/time/page.tsx` — add `rosterManaged={isTeamPlan(subscription) && !!orgId}` to the `<TimeSection ... />` JSX.
+- [x] `src/app/dashboard/time/page.tsx` — add `rosterManaged={isTeamPlan(subscription) && !!orgId}` to the `<TimeSection ... />` JSX.
 
 ---
 
@@ -107,9 +107,9 @@ git push
 ## Acceptance checklist
 - [x] C-1: generate-weekly cron includes time_entries in total_seconds
 - [x] C-2: GET /api/timesheets/[id]/detail returns shifts + entries + overtime
-- [ ] C-3: AdditionalHoursPanel component created with project-required form
-- [ ] C-4: TimeSection renders AdditionalHoursPanel when rosterManaged=true
-- [ ] C-5: time/page.tsx passes rosterManaged to TimeSection
+- [x] C-3: AdditionalHoursPanel component created with project-required form
+- [x] C-4: TimeSection renders AdditionalHoursPanel when rosterManaged=true
+- [x] C-5: time/page.tsx passes rosterManaged to TimeSection
 - [ ] C-6: roster/page.tsx fetches additional entries and passes to RosterGrid
 - [ ] C-7: RosterGrid renders orange blocks for additional entries, re-fetches on week change
 - [ ] C-8: TimesheetDetailModal shows shifts + entries + summary + overtime flag

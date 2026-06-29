@@ -4,6 +4,7 @@ import { useState } from 'react'
 import TimerWidget from './TimerWidget'
 import ManualEntryForm from './ManualEntryForm'
 import TimeEntryList from './TimeEntryList'
+import AdditionalHoursPanel from './AdditionalHoursPanel'
 
 type TimeEntry = {
   id: string
@@ -28,15 +29,21 @@ export default function TimeSection({
   userId,
   initialEntries,
   activeEntry,
+  rosterManaged = false,
 }: {
   userId: string
   initialEntries: TimeEntry[]
   activeEntry: ActiveEntry | null
+  rosterManaged?: boolean
 }) {
   const [entries, setEntries] = useState(initialEntries)
 
   function handleAdd(entry: TimeEntry) {
     setEntries(prev => [entry, ...prev])
+  }
+
+  if (rosterManaged) {
+    return <AdditionalHoursPanel />
   }
 
   return (
