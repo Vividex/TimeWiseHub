@@ -12,6 +12,7 @@ import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
 import type { UpcomingMeeting, UpcomingEvent } from '@/components/dashboard/DashboardUpcoming'
+import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
 type PoolTask = {
   id: string
@@ -115,11 +116,13 @@ export default async function DashboardHome() {
 
   const todayDate      = now.toISOString().slice(0, 10)
   const weekStartDate  = weekStart.toISOString().slice(0, 10)
+  const weekEnd        = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const weekEndDate    = weekEnd.toISOString().slice(0, 10)
   const todayStartIso  = todayStart.toISOString()
   const nextWeekIso    = nextWeek.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [timeRes, projectsRes, clientsRes, rosterRes, meetingsRes, calendarRes] = await Promise.all([
+  const [timeRes, projectsRes, clientsRes, rosterRes, meetingsRes, calendarRes, subscriptionRes] = await Promise.all([
     supabase
       .from('time_entries')
       .select('duration_seconds')
@@ -139,7 +142,7 @@ export default async function DashboardHome() {
       .eq('published', true)
       .is('deleted_at', null)
       .gte('date', weekStartDate)
-      .lte('date', todayDate),
+      .lt('date', weekEndDate),
     orgId
       ? supabase
           .from('scheduled_calls')
@@ -158,6 +161,7 @@ export default async function DashboardHome() {
       .lte('start_at', nextWeekIso)
       .order('start_at')
       .limit(10),
+    getSubscription(user.id),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -197,6 +201,7 @@ export default async function DashboardHome() {
 
   const meetings = (meetingsRes.data ?? []) as UpcomingMeeting[]
   const events   = (calendarRes.data ?? []) as UpcomingEvent[]
+  const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   return (
     <div className="px-4 py-6 sm:px-8">
@@ -225,7 +230,7 @@ export default async function DashboardHome() {
         />
 
         {/* Quick actions */}
-        <QuickActions />
+        <QuickActions rosterManaged={rosterManaged} />
 
         {/* Upcoming meetings + calendar events */}
         <DashboardUpcoming meetings={meetings} events={events} />
