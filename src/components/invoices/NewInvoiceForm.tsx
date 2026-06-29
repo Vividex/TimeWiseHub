@@ -83,19 +83,23 @@ export default function NewInvoiceForm({
     const taskIds = (tasks ?? []).map(t => t.id)
     const taskProjectMap = Object.fromEntries((tasks ?? []).map(t => [t.id, t.project_id]))
 
-    // Get uninvoiced billable entries
-    const query = supabase
+    // Get uninvoiced billable entries — matched via task_id OR directly via project_id
+    const baseQuery = supabase
       .from('time_entries')
-      .select('id, started_at, duration_seconds, billable_rate, description, task_id')
+      .select('id, started_at, duration_seconds, billable_rate, description, task_id, project_id')
       .eq('billable', true)
       .is('invoice_id', null)
       .not('ended_at', 'is', null)
       .gte('started_at', dateFrom + 'T00:00:00')
       .lte('started_at', dateTo + 'T23:59:59')
 
-    const { data: entries } = taskIds.length
-      ? await query.in('task_id', taskIds)
-      : await query.eq('user_id', 'none') // no tasks = no entries
+    const orParts: string[] = []
+    if (taskIds.length)   orParts.push(`task_id.in.(${taskIds.join(',')})`)
+    if (projectIds.length) orParts.push(`project_id.in.(${projectIds.join(',')})`)
+
+    const { data: entries } = orParts.length
+      ? await baseQuery.or(orParts.join(','))
+      : { data: [] }
 
     const client = clients.find(c => c.id === clientId)
     const defaultRate = client?.default_rate ?? 0
@@ -103,8 +107,8 @@ export default function NewInvoiceForm({
     // Group by project
     const byProject: Record<string, { name: string; hours: number; rate: number; ids: string[] }> = {}
     ;(entries ?? []).forEach(e => {
-      const projectId = e.task_id ? taskProjectMap[e.task_id] : null
-      if (!projectId) return
+      const projectId = e.task_id ? taskProjectMap[e.task_id] : (e.project_id ?? null)
+      if (!projectId || !projectMap[projectId]) return
       const key = projectId
       if (!byProject[key]) byProject[key] = { name: projectMap[projectId] ?? 'Unknown project', hours: 0, rate: e.billable_rate ?? defaultRate, ids: [] }
       byProject[key].hours += (e.duration_seconds ?? 0) / 3600
