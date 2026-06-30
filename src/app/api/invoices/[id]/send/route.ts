@@ -152,7 +152,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       currency: invoice.currency as string,
       items: pdfItems,
       subtotal: Number(invoice.subtotal),
-      paymentLink,
       paymentLines,
       hasPaymentDetails: hasInvoicePaymentDetails(paymentDetails),
     }) as unknown as React.ReactElement<DocumentProps>

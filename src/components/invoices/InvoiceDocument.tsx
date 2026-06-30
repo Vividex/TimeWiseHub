@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Link, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 
 type Item = {
   description: string
@@ -15,7 +15,6 @@ type Props = {
   currency: string
   items: Item[]
   subtotal: number
-  paymentLink: string | null
   paymentLines: string[]
   hasPaymentDetails: boolean
 }
@@ -42,9 +41,6 @@ const styles = StyleSheet.create({
   paymentBox: { backgroundColor: '#f8fafc', borderRadius: 4, padding: 12, marginTop: 24 },
   paymentTitle: { fontSize: 9, fontWeight: 'bold', color: '#64748b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   paymentLine: { fontSize: 10, color: '#374151', marginBottom: 2 },
-  linkBox: { backgroundColor: '#ecfeff', borderRadius: 4, padding: 10, marginTop: 16 },
-  linkLabel: { fontSize: 9, color: '#0891b2', marginBottom: 3, fontWeight: 'bold' },
-  linkValue: { fontSize: 9, color: '#0891b2' },
 })
 
 function fmtMoney(amount: number, currency: string) {
@@ -53,7 +49,7 @@ function fmtMoney(amount: number, currency: string) {
 
 export default function InvoiceDocument({
   invoiceNumber, letterhead, clientName, dueDate, currency,
-  items, subtotal, paymentLink, paymentLines, hasPaymentDetails,
+  items, subtotal, paymentLines, hasPaymentDetails,
 }: Props) {
   return (
     <Document>
@@ -113,12 +109,6 @@ export default function InvoiceDocument({
           </View>
         )}
 
-        {paymentLink && (
-          <View style={styles.linkBox}>
-            <Text style={styles.linkLabel}>Pay Online</Text>
-            <Link src={paymentLink} style={styles.linkValue}>Pay Invoice Online →</Link>
-          </View>
-        )}
       </Page>
     </Document>
   )
