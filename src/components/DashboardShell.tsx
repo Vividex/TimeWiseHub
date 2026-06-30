@@ -18,6 +18,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/insights': 'Insights',
   '/dashboard/billing': 'Billing',
   '/dashboard/finance': 'Finance',
+  '/dashboard/programs': 'Programs',
 }
 
 function getTitle(pathname: string) {
@@ -27,6 +28,7 @@ function getTitle(pathname: string) {
   if (pathname.endsWith('/sessions')) return 'Sessions'
   if (pathname.endsWith('/notes')) return 'Progress notes'
   if (pathname.startsWith('/dashboard/clients/')) return 'Client'
+  if (pathname.startsWith('/dashboard/programs/')) return 'Program'
   return PAGE_TITLES[pathname] ?? 'TimeWiseHub'
 }
 
