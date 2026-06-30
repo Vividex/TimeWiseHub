@@ -56,7 +56,9 @@ export default function InvoiceDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         {logoUrl && (
-          <Image src={logoUrl} style={{ width: 140, marginBottom: 16 }} />
+          <View style={{ backgroundColor: 'white', marginBottom: 16, alignSelf: 'flex-start' }}>
+            <Image src={logoUrl} style={{ width: 140 }} />
+          </View>
         )}
         <View style={styles.header}>
           <View>
