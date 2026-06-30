@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
 import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
+import LogoUpload from '@/components/LogoUpload'
 
 type OrgMember = {
   id: string
@@ -22,6 +23,7 @@ export default function OrgBillingSettingsForm({
   initialPayWeekStartDay,
   initialOrgName,
   initialInvoiceLetterhead,
+  initialLogoUrl,
   initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
   initialMembers,
@@ -33,6 +35,7 @@ export default function OrgBillingSettingsForm({
   initialPayWeekStartDay: number
   initialOrgName: string
   initialInvoiceLetterhead: string
+  initialLogoUrl: string | null
   initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
   initialMembers: OrgMember[]
@@ -111,19 +114,27 @@ export default function OrgBillingSettingsForm({
       </div>
 
       {canEditInvoiceLetterhead && (
-        <div>
-          <label htmlFor="invoiceLetterhead" className="block text-sm font-bold text-gray-900">Invoice letterhead</label>
-          <input
-            id="invoiceLetterhead"
-            type="text"
-            value={invoiceLetterhead}
-            onChange={e => setInvoiceLetterhead(e.target.value)}
-            placeholder={initialOrgName || 'Organisation name'}
-            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="invoiceLetterhead" className="block text-sm font-bold text-gray-900">Invoice letterhead</label>
+            <input
+              id="invoiceLetterhead"
+              type="text"
+              value={invoiceLetterhead}
+              onChange={e => setInvoiceLetterhead(e.target.value)}
+              placeholder={initialOrgName || 'Organisation name'}
+              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+            <p className="mt-1 text-xs font-medium text-gray-500">
+              Leave blank to use {initialOrgName || 'your organisation name'} on team invoices.
+            </p>
+          </div>
+          <LogoUpload
+            currentLogoUrl={initialLogoUrl}
+            storagePath={`${orgId}/logo`}
+            targetTable="organisations"
+            targetId={orgId}
           />
-          <p className="mt-1 text-xs font-medium text-gray-500">
-            Leave blank to use {initialOrgName || 'your organisation name'} on team invoices.
-          </p>
         </div>
       )}
 

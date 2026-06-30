@@ -32,3 +32,26 @@ export function invoiceLetterhead({
 
   return 'TimeWiseHub'
 }
+
+type ProfileLogo = {
+  logo_url?: string | null
+}
+
+type OrganisationLogo = {
+  logo_url?: string | null
+} | null
+
+export function invoiceLogo({
+  profile,
+  organisation,
+  subscription,
+}: {
+  profile: ProfileLogo | null
+  organisation: OrganisationLogo
+  subscription: Subscription
+}): string | null {
+  const plan = effectivePlan(subscription)
+  if (plan === 'team' && organisation) return organisation.logo_url ?? null
+  if (plan === 'pro') return profile?.logo_url ?? null
+  return null
+}

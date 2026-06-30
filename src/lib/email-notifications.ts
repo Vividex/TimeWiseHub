@@ -26,6 +26,8 @@ type Email = {
   text: string
   html: string
   attachments?: Attachment[]
+  fromName?: string
+  replyTo?: string
 }
 
 type ReviewKind = 'leave' | 'expense' | 'timesheet'
@@ -80,17 +82,20 @@ function isEnabled(profile: Profile, key: keyof NotificationPreferences) {
   return profile.notification_preferences?.[key] !== false
 }
 
-export async function sendEmail({ to, subject, text, html, attachments }: Email) {
+export async function sendEmail({ to, subject, text, html, attachments, fromName, replyTo }: Email) {
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL
+  const baseFrom = process.env.RESEND_FROM_EMAIL
 
-  if (!apiKey || !from) {
+  if (!apiKey || !baseFrom) {
     console.info(`Email skipped: RESEND_API_KEY or RESEND_FROM_EMAIL is not configured. Subject: ${subject}`)
     return { skipped: true }
   }
 
+  const from = fromName ? `${fromName} <${baseFrom}>` : baseFrom
+
   const body: Record<string, unknown> = { from, to, subject, text, html }
   if (attachments?.length) body.attachments = attachments
+  if (replyTo) body.reply_to = replyTo
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',

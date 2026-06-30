@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer'
 
 type Item = {
   description: string
@@ -17,6 +17,7 @@ type Props = {
   subtotal: number
   paymentLines: string[]
   hasPaymentDetails: boolean
+  logoUrl?: string
 }
 
 const styles = StyleSheet.create({
@@ -49,13 +50,16 @@ function fmtMoney(amount: number, currency: string) {
 
 export default function InvoiceDocument({
   invoiceNumber, letterhead, clientName, dueDate, currency,
-  items, subtotal, paymentLines, hasPaymentDetails,
+  items, subtotal, paymentLines, hasPaymentDetails, logoUrl,
 }: Props) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
+            {logoUrl && (
+              <Image src={logoUrl} style={{ width: 60, marginBottom: 6 }} />
+            )}
             <Text style={styles.orgName}>{letterhead}</Text>
             <Text style={styles.invoiceTitle}>INVOICE</Text>
           </View>

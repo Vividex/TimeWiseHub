@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { getStripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/email-notifications'
-import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { invoiceLetterhead, invoiceLogo } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import InvoiceDocument from '@/components/invoices/InvoiceDocument'
@@ -59,14 +59,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   let paymentLink = invoice.payment_link as string | null
 
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
-    service.from('profiles').select('full_name, email, invoice_letterhead, invoice_payment_details').eq('id', user.id).single(),
+    service.from('profiles').select('full_name, email, invoice_letterhead, logo_url, invoice_payment_details').eq('id', user.id).single(),
     getSubscription(user.id),
     invoice.org_id
-      ? service.from('organisations').select('name, invoice_letterhead, invoice_payment_details').eq('id', invoice.org_id).maybeSingle()
+      ? service.from('organisations').select('name, invoice_letterhead, logo_url, invoice_payment_details').eq('id', invoice.org_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
 
   const letterhead = invoiceLetterhead({ profile, organisation, subscription })
+  const logoUrl = invoiceLogo({ profile, organisation, subscription }) ?? undefined
   const paymentDetails = invoicePaymentDetails({ profile, organisation })
   const paymentLines = invoicePaymentLines(paymentDetails)
 
@@ -154,6 +155,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       subtotal: Number(invoice.subtotal),
       paymentLines,
       hasPaymentDetails: hasInvoicePaymentDetails(paymentDetails),
+      logoUrl,
     }) as unknown as React.ReactElement<DocumentProps>
     const buffer = await renderToBuffer(element)
     pdfAttachment = {
@@ -175,8 +177,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       subject,
       text: lines.join('\n\n'),
       attachments: pdfAttachment ? [pdfAttachment] : undefined,
+      fromName: letterhead,
+      replyTo: profile?.email ?? undefined,
       html: `
         <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5;">
+          ${logoUrl ? `<img src="${logoUrl}" alt="" style="max-height:60px;max-width:200px;object-fit:contain;display:block;margin-bottom:16px;" />` : ''}
           ${lines.filter(line => !line.startsWith('Pay securely here:')).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
           ${paymentLink ? `<p style="margin:20px 0;"><a href="${paymentLink}" style="background:#0891b2;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Pay Invoice</a></p>` : ''}
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">

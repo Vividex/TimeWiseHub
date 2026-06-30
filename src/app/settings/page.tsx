@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, invoice_payment_details, username, nickname, avatar_url')
+      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, logo_url, invoice_payment_details, username, nickname, avatar_url')
       .eq('id', user.id)
       .single(),
     supabase
@@ -35,7 +35,7 @@ export default async function SettingsPage() {
     ? await Promise.all([
       supabase
         .from('organisations')
-        .select('name, time_rounding_minutes, pay_cadence, super_rate, pay_week_start_day, invoice_letterhead, invoice_payment_details')
+        .select('name, time_rounding_minutes, pay_cadence, super_rate, pay_week_start_day, invoice_letterhead, logo_url, invoice_payment_details')
         .eq('id', membership.org_id)
         .single(),
       supabase
@@ -128,10 +128,12 @@ export default async function SettingsPage() {
 
         <AccountSettingsForm
           email={user.email ?? ''}
+          userId={user.id}
           initialFullName={profile?.full_name ?? ''}
           initialTimezone={profile?.timezone ?? 'UTC'}
           initialAuState={profile?.au_state ?? ''}
           initialInvoiceLetterhead={profile?.invoice_letterhead ?? ''}
+          initialLogoUrl={profile?.logo_url ?? null}
           initialInvoicePaymentDetails={profile?.invoice_payment_details ?? {}}
           canEditInvoiceLetterhead={plan === 'pro'}
           initialNotifications={profile?.notification_preferences ?? {
@@ -173,6 +175,7 @@ export default async function SettingsPage() {
             initialPayWeekStartDay={organisation?.pay_week_start_day ?? 1}
             initialOrgName={organisation?.name ?? ''}
             initialInvoiceLetterhead={organisation?.invoice_letterhead ?? ''}
+            initialLogoUrl={organisation?.logo_url ?? null}
             initialInvoicePaymentDetails={organisation?.invoice_payment_details ?? {}}
             canEditInvoiceLetterhead={plan === 'team'}
             initialMembers={(members ?? []) as unknown as Parameters<typeof OrgBillingSettingsForm>[0]['initialMembers']}

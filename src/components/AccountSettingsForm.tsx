@@ -7,6 +7,7 @@ import QuietHoursSettings from '@/components/chat/QuietHoursSettings'
 import { resolveQuietHours } from '@/lib/chat/availability'
 import type { QuietHours } from '@/lib/chat/types'
 import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
+import LogoUpload from '@/components/LogoUpload'
 
 const TIMEZONES = [
   'UTC',
@@ -39,10 +40,12 @@ type NotificationPreferences = {
 
 type Props = {
   email: string
+  userId: string
   initialFullName: string
   initialTimezone: string
   initialAuState: AustralianState | ''
   initialInvoiceLetterhead: string
+  initialLogoUrl: string | null
   initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
   initialNotifications: NotificationPreferences
@@ -50,10 +53,12 @@ type Props = {
 
 export default function AccountSettingsForm({
   email,
+  userId,
   initialFullName,
   initialTimezone,
   initialAuState,
   initialInvoiceLetterhead,
+  initialLogoUrl,
   initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
   initialNotifications,
@@ -184,6 +189,14 @@ export default function AccountSettingsForm({
             placeholder={fullName || email || 'Your business name'}
             className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <LogoUpload
+              currentLogoUrl={initialLogoUrl}
+              storagePath={`${userId}/logo`}
+              targetTable="profiles"
+              targetId={userId}
+            />
+          </div>
         </div>
       )}
 

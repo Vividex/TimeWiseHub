@@ -1,0 +1,119 @@
+'use client'
+
+import { useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase-browser'
+
+type Props = {
+  currentLogoUrl: string | null
+  storagePath: string
+  targetTable: 'profiles' | 'organisations'
+  targetId: string
+}
+
+export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, targetId }: Props) {
+  const [logoUrl, setLogoUrl] = useState<string | null>(currentLogoUrl)
+  const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(file: File) {
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+      setError('Only PNG or JPEG files are supported.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File must be under 2 MB.')
+      return
+    }
+    setError(null)
+    setUploading(true)
+    const supabase = createClient()
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(storagePath, file, { upsert: true, contentType: file.type })
+    if (uploadError) {
+      setError(uploadError.message)
+      setUploading(false)
+      return
+    }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(storagePath)
+    const { error: dbError } = await supabase
+      .from(targetTable)
+      .update({ logo_url: publicUrl })
+      .eq('id', targetId)
+    if (dbError) {
+      setError(dbError.message)
+      setUploading(false)
+      return
+    }
+    setLogoUrl(publicUrl)
+    setUploading(false)
+  }
+
+  async function handleRemove() {
+    setError(null)
+    setUploading(true)
+    const supabase = createClient()
+    await supabase.storage.from('logos').remove([storagePath])
+    const { error: dbError } = await supabase
+      .from(targetTable)
+      .update({ logo_url: null })
+      .eq('id', targetId)
+    if (dbError) {
+      setError(dbError.message)
+      setUploading(false)
+      return
+    }
+    setLogoUrl(null)
+    setUploading(false)
+  }
+
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold text-gray-900">Company logo</p>
+      <p className="mb-3 text-xs font-medium text-gray-500">
+        Shown on invoices, PDF, and email. PNG or JPEG, max 2 MB.
+      </p>
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+          {logoUrl
+            ? <img src={logoUrl} alt="Company logo" className="h-full w-full object-contain" />
+            : <span className="text-xs text-gray-400">No logo</span>
+          }
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            {uploading ? 'Uploading...' : 'Upload logo'}
+          </button>
+          {logoUrl && (
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={handleRemove}
+              className="rounded-xl border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg"
+          className="hidden"
+          onChange={e => {
+            const f = e.target.files?.[0]
+            if (f) handleFile(f)
+            e.target.value = ''
+          }}
+        />
+      </div>
+      {error && <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
+    </div>
+  )
+}

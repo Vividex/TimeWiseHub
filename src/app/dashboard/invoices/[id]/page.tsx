@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { invoiceLetterhead, invoiceLogo } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import InvoiceActions from '@/components/invoices/InvoiceActions'
@@ -56,19 +56,20 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, invoice_letterhead, invoice_payment_details')
+      .select('full_name, email, invoice_letterhead, logo_url, invoice_payment_details')
       .eq('id', user.id)
       .single(),
     getSubscription(user.id),
     invoice.org_id
       ? supabase
         .from('organisations')
-        .select('name, invoice_letterhead, invoice_payment_details')
+        .select('name, invoice_letterhead, logo_url, invoice_payment_details')
         .eq('id', invoice.org_id)
         .maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const letterhead = invoiceLetterhead({ profile, organisation, subscription })
+  const logoUrl = invoiceLogo({ profile, organisation, subscription })
   const paymentDetails = invoicePaymentDetails({ profile, organisation })
   const paymentLines = invoicePaymentLines(paymentDetails)
 
@@ -122,6 +123,13 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           {/* Title row */}
           <div className="flex items-start justify-between gap-6">
             <div>
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt="Company logo"
+                  className="mb-3 max-h-12 max-w-[160px] object-contain"
+                />
+              )}
               <p className="mb-4 text-xl font-black tracking-tight text-slate-900">{letterhead}</p>
               <p className="text-3xl font-black tracking-tight text-slate-900">{invoice.status === 'quote' ? 'QUOTE' : 'INVOICE'}</p>
               <p className="mt-1 text-lg font-bold text-cyan-600">{invoice.invoice_number}</p>
