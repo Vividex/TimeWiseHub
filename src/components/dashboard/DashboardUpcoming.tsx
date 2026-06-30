@@ -33,26 +33,28 @@ export default function DashboardUpcoming({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Upcoming</h2>
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Upcoming</h2>
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {combined.map((item, i) => {
           const isToday = new Date(item.time) <= todayEnd
           return (
             <div
               key={item.id}
-              className={`flex items-center gap-4 px-5 py-4 ${i < combined.length - 1 ? 'border-b border-slate-800' : ''}`}
+              className={`flex items-center gap-4 px-5 py-4 ${i < combined.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
             >
               <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                item.kind === 'meeting' ? 'bg-violet-500/15 text-violet-400' : 'bg-cyan-500/15 text-cyan-400'
+                item.kind === 'meeting'
+                  ? 'bg-violet-500/10 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400'
+                  : 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400'
               }`}>
                 {item.kind === 'meeting' ? <Video size={15} /> : <Calendar size={15} />}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-100">{item.title}</p>
-                <p className="text-xs text-slate-500">{fmtTime(item.time, item.allDay ?? false)}</p>
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{item.title}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-500">{fmtTime(item.time, item.allDay ?? false)}</p>
               </div>
               {isToday && (
-                <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-400">
+                <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
                   Today
                 </span>
               )}

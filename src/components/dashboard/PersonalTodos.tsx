@@ -32,21 +32,21 @@ function TodoRow({
   onDelete: () => void
 }) {
   return (
-    <div className={`group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-slate-800/60 ${hasBorder ? 'border-b border-slate-800/60' : ''}`}>
+    <div className={`group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60 ${hasBorder ? 'border-b border-gray-100 dark:border-slate-800/60' : ''}`}>
       <button onClick={onToggle} className="shrink-0">
         {todo.done
-          ? <CheckCircle2 size={16} className="text-emerald-400" />
-          : <Circle size={16} className="text-slate-600 hover:text-slate-400 transition-colors" />
+          ? <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
+          : <Circle size={16} className="text-gray-400 dark:text-slate-600 transition-colors hover:text-gray-600 dark:hover:text-slate-400" />
         }
       </button>
-      <span className={`flex-1 text-sm font-medium ${todo.done ? 'text-slate-500 line-through' : 'text-slate-100'}`}>
+      <span className={`flex-1 text-sm font-medium ${todo.done ? 'text-gray-400 dark:text-slate-500 line-through' : 'text-gray-900 dark:text-slate-100'}`}>
         {todo.text}
       </span>
       <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         {!todo.done && (
           <button
             onClick={onEdit}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-700 hover:text-slate-300"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 transition-colors hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-slate-300"
             title="Edit"
           >
             <Pencil size={13} />
@@ -54,7 +54,7 @@ function TodoRow({
         )}
         <button
           onClick={onDelete}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-red-500/15 hover:text-red-400"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-500 dark:hover:text-red-400"
           title="Delete"
         >
           <Trash2 size={13} />
@@ -87,14 +87,14 @@ function EditRow({
   }
 
   return (
-    <div className={`flex items-center gap-3 px-5 py-3 ${hasBorder ? 'border-b border-slate-800/60' : ''}`}>
-      <Circle size={16} className="shrink-0 text-slate-600" />
+    <div className={`flex items-center gap-3 px-5 py-3 ${hasBorder ? 'border-b border-gray-100 dark:border-slate-800/60' : ''}`}>
+      <Circle size={16} className="shrink-0 text-gray-400 dark:text-slate-600" />
       <input
         ref={ref}
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onCancel() }}
-        className="flex-1 bg-transparent text-sm font-medium text-slate-100 focus:outline-none"
+        className="flex-1 bg-transparent text-sm font-medium text-gray-900 dark:text-slate-100 focus:outline-none"
       />
       <div className="flex shrink-0 items-center gap-1">
         <button
@@ -105,7 +105,7 @@ function EditRow({
         </button>
         <button
           onClick={onCancel}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-700 hover:text-slate-300"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 transition-colors hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-slate-300"
         >
           <X size={13} />
         </button>
@@ -170,19 +170,19 @@ export default function PersonalTodos() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">My to-dos</h2>
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">My to-dos</h2>
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
 
         {/* Add input */}
-        <div className="flex items-center gap-3 border-b border-slate-800 px-4 py-3">
-          <Plus size={15} className="shrink-0 text-slate-500" />
+        <div className="flex items-center gap-3 border-b border-gray-100 dark:border-slate-800 px-4 py-3">
+          <Plus size={15} className="shrink-0 text-gray-400 dark:text-slate-500" />
           <input
             ref={inputRef}
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && add()}
             placeholder="Add a to-do…"
-            className="flex-1 bg-transparent text-sm font-medium text-slate-100 placeholder:text-slate-600 focus:outline-none"
+            className="flex-1 bg-transparent text-sm font-medium text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-600 focus:outline-none"
           />
           {text.trim() && (
             <button
@@ -195,7 +195,7 @@ export default function PersonalTodos() {
         </div>
 
         {visible.length === 0 && archived.length === 0 && (
-          <p className="px-5 py-4 text-sm text-slate-600">Nothing here yet — add something above.</p>
+          <p className="px-5 py-4 text-sm text-gray-500 dark:text-slate-600">Nothing here yet — add something above.</p>
         )}
 
         {/* Active + done today */}
@@ -226,20 +226,20 @@ export default function PersonalTodos() {
           <div>
             <button
               onClick={() => setShowArchived(v => !v)}
-              className="flex w-full items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:text-slate-400"
+              className="flex w-full items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-600 transition-colors hover:text-gray-700 dark:hover:text-slate-400"
             >
               <ChevronDown size={12} className={`transition-transform ${showArchived ? '' : '-rotate-90'}`} />
               Archived ({archived.length})
             </button>
             {showArchived && archived.map(t => (
-              <div key={t.id} className="group flex items-center gap-3 border-t border-slate-800/60 px-5 py-3 transition-colors hover:bg-slate-800/60">
+              <div key={t.id} className="group flex items-center gap-3 border-t border-gray-100 dark:border-slate-800/60 px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60">
                 <button onClick={() => toggle(t)} className="shrink-0">
-                  <CheckCircle2 size={16} className="text-slate-700 hover:text-slate-500 transition-colors" />
+                  <CheckCircle2 size={16} className="text-gray-400 dark:text-slate-700 transition-colors hover:text-gray-600 dark:hover:text-slate-500" />
                 </button>
-                <span className="flex-1 text-sm text-slate-600 line-through">{t.text}</span>
+                <span className="flex-1 text-sm text-gray-500 dark:text-slate-600 line-through">{t.text}</span>
                 <button
                   onClick={() => remove(t.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-700 opacity-0 transition-all hover:bg-red-500/15 hover:text-red-400 group-hover:opacity-100"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 dark:text-slate-700 opacity-0 transition-all hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-500 dark:hover:text-red-400 group-hover:opacity-100"
                 >
                   <Trash2 size={13} />
                 </button>
