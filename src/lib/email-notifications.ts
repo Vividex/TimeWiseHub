@@ -15,11 +15,17 @@ type Profile = {
   notification_preferences: NotificationPreferences | null
 }
 
+type Attachment = {
+  filename: string
+  content: string // base64-encoded
+}
+
 type Email = {
   to: string
   subject: string
   text: string
   html: string
+  attachments?: Attachment[]
 }
 
 type ReviewKind = 'leave' | 'expense' | 'timesheet'
@@ -74,7 +80,7 @@ function isEnabled(profile: Profile, key: keyof NotificationPreferences) {
   return profile.notification_preferences?.[key] !== false
 }
 
-export async function sendEmail({ to, subject, text, html }: Email) {
+export async function sendEmail({ to, subject, text, html, attachments }: Email) {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL
 
@@ -83,13 +89,16 @@ export async function sendEmail({ to, subject, text, html }: Email) {
     return { skipped: true }
   }
 
+  const body: Record<string, unknown> = { from, to, subject, text, html }
+  if (attachments?.length) body.attachments = attachments
+
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from, to, subject, text, html }),
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {

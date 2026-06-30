@@ -1,4 +1,9 @@
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
+import React from 'react'
+import { renderToBuffer } from '@react-pdf/renderer'
+import type { DocumentProps } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { getStripe } from '@/lib/stripe'
@@ -6,6 +11,7 @@ import { sendEmail } from '@/lib/email-notifications'
 import { invoiceLetterhead } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
+import InvoiceDocument from '@/components/invoices/InvoiceDocument'
 
 function escapeHtml(value: string) {
   return value
@@ -129,6 +135,37 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return `<tr><td style="padding:8px 0;border-bottom:1px solid #e5e7eb;">${escapeHtml(item.description)}</td><td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;">${Number(item.quantity).toFixed(2)}</td><td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;">${escapeHtml(invoice.currency)} ${amount.toFixed(2)}</td></tr>`
   }).join('')
 
+  // Generate invoice PDF
+  let pdfAttachment: { filename: string; content: string } | undefined
+  try {
+    const pdfItems = items.map((item: { description: string; quantity: number; unit_price: number }) => ({
+      description: item.description,
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unit_price),
+      amount: Number(item.quantity) * Number(item.unit_price),
+    }))
+    const element = React.createElement(InvoiceDocument, {
+      invoiceNumber: invoice.invoice_number as string,
+      letterhead,
+      clientName: client.name,
+      dueDate: invoice.due_date as string | null,
+      currency: invoice.currency as string,
+      items: pdfItems,
+      subtotal: Number(invoice.subtotal),
+      paymentLink,
+      paymentLines,
+      hasPaymentDetails: hasInvoicePaymentDetails(paymentDetails),
+    }) as unknown as React.ReactElement<DocumentProps>
+    const buffer = await renderToBuffer(element)
+    pdfAttachment = {
+      filename: `invoice-${invoice.invoice_number}.pdf`,
+      content: buffer.toString('base64'),
+    }
+  } catch (pdfErr) {
+    console.error('Invoice PDF generation failed:', pdfErr)
+    // Continue without attachment — don't block the email send
+  }
+
   let emailSent = false
   let emailSkipped = false
   let emailError: string | null = null
@@ -138,6 +175,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       to: client.email,
       subject,
       text: lines.join('\n\n'),
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
       html: `
         <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5;">
           ${lines.map(line =>
