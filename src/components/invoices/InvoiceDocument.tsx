@@ -23,9 +23,9 @@ type Props = {
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#0f172a' },
   header: { backgroundColor: '#0f172a', padding: 20, marginBottom: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  orgName: { fontSize: 18, fontWeight: 'bold', color: 'white' },
-  invoiceTitle: { fontSize: 11, color: '#94a3b8', marginTop: 4 },
-  invoiceNumber: { fontSize: 13, fontWeight: 'bold', color: 'white', textAlign: 'right' },
+  orgName: { fontSize: 24, fontWeight: 'bold', color: 'white' },
+  invoiceTitle: { fontSize: 14, color: '#94a3b8', marginTop: 6 },
+  invoiceNumber: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'right' },
   metaRow: { flexDirection: 'row', gap: 32, marginBottom: 24 },
   metaBlock: { flex: 1 },
   label: { fontSize: 8, color: '#64748b', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -57,7 +57,7 @@ export default function InvoiceDocument({
       <Page size="A4" style={styles.page}>
         {logoUrl && (
           <View style={{ backgroundColor: 'white', marginBottom: 16, alignSelf: 'flex-start' }}>
-            <Image src={logoUrl} style={{ width: 140 }} />
+            <Image src={logoUrl} style={{ width: 200 }} />
           </View>
         )}
         <View style={styles.header}>
