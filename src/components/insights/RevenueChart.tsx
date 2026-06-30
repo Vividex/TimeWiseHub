@@ -7,8 +7,8 @@ type MonthPoint = { month: string; revenue: number; expenses: number }
 export default function RevenueChart({ data }: { data: MonthPoint[] }) {
   if (data.length === 0) return null
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <p className="mb-4 text-sm font-bold text-slate-300">Revenue vs Expenses — last 6 months</p>
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="mb-4 text-sm font-bold text-gray-700 dark:text-slate-300">Revenue vs Expenses — last 6 months</p>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <defs>
@@ -21,7 +21,7 @@ export default function RevenueChart({ data }: { data: MonthPoint[] }) {
               <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
           <Tooltip

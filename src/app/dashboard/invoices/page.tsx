@@ -43,21 +43,21 @@ export default async function InvoicesPage() {
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Outstanding</p>
-            <p className="mt-2 text-2xl font-black text-amber-400">${totalOutstanding.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Outstanding</p>
+            <p className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">${totalOutstanding.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Paid (FY{String(fyStartYear).slice(2)}–{String(fyStartYear + 1).slice(2)})</p>
-            <p className="mt-2 text-2xl font-black text-emerald-400">${totalPaid.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Paid (FY{String(fyStartYear).slice(2)}–{String(fyStartYear + 1).slice(2)})</p>
+            <p className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">${totalPaid.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Drafts</p>
-            <p className="mt-2 text-2xl font-black text-slate-300">{draftCount}</p>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Drafts</p>
+            <p className="mt-2 text-2xl font-black text-gray-700 dark:text-slate-300">{draftCount}</p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Overdue</p>
-            <p className="mt-2 text-2xl font-black text-red-400">{overdueCount}</p>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Overdue</p>
+            <p className="mt-2 text-2xl font-black text-red-600 dark:text-red-400">{overdueCount}</p>
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export default async function InvoicesPage() {
         </div>
 
         {/* Invoice list */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <InvoiceTable invoices={(invoices ?? []) as unknown as import('@/components/invoices/InvoiceTable').InvoiceRow[]} />
         </div>
 
