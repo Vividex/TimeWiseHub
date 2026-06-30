@@ -210,10 +210,10 @@ export default async function DashboardHome() {
 
         {/* Greeting */}
         <div>
-          <h1 className="text-3xl font-black text-white">
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white">
             {firstName ? `Hi, ${firstName} 👋` : 'Dashboard'}
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             Here&apos;s what&apos;s happening across your business today.
           </p>
         </div>

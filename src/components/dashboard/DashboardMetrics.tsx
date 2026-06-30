@@ -26,12 +26,12 @@ function MetricCard({ icon: Icon, value, label, iconClass, glowClass, href, onCl
       <div className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}>
         <Icon size={18} />
       </div>
-      <p className="text-2xl font-black text-white">{value}</p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="text-2xl font-black text-gray-900 dark:text-white">{value}</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-slate-500">{label}</p>
     </>
   )
 
-  const cls = 'relative block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-5 transition-colors hover:border-slate-700 hover:bg-slate-800/60 text-left w-full'
+  const cls = 'relative block overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-colors hover:border-gray-200 hover:bg-gray-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 text-left w-full'
 
   return href
     ? <Link href={href} className={cls}>{inner}</Link>
@@ -54,7 +54,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         icon={Clock}
         value={`${hoursThisWeek.toFixed(1)}h`}
         label="Hours this week"
-        iconClass="bg-cyan-500/15 text-cyan-400"
+        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
         glowClass="bg-cyan-500"
         href="/dashboard/roster"
       />
@@ -62,7 +62,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         icon={FolderOpen}
         value={String(activeProjects)}
         label="Active projects"
-        iconClass="bg-violet-500/15 text-violet-400"
+        iconClass="bg-violet-500/10 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400"
         glowClass="bg-violet-500"
         href="/dashboard/projects"
       />
@@ -70,7 +70,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         icon={CheckSquare}
         value={`${tasksCompleted}/${tasksTotal}`}
         label="Tasks complete"
-        iconClass="bg-emerald-500/15 text-emerald-400"
+        iconClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
         glowClass="bg-emerald-500"
         onClick={() => scrollTo('my-tasks')}
       />
@@ -78,7 +78,7 @@ export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksC
         icon={Users}
         value={String(activeClients)}
         label="Active clients"
-        iconClass="bg-amber-500/15 text-amber-400"
+        iconClass="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
         glowClass="bg-amber-500"
         href="/dashboard/clients"
       />
