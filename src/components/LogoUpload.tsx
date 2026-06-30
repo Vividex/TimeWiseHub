@@ -37,16 +37,17 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
       return
     }
     const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(storagePath)
+    const urlWithBuster = `${publicUrl}?t=${Date.now()}`
     const { error: dbError } = await supabase
       .from(targetTable)
-      .update({ logo_url: publicUrl })
+      .update({ logo_url: urlWithBuster })
       .eq('id', targetId)
     if (dbError) {
       setError(dbError.message)
       setUploading(false)
       return
     }
-    setLogoUrl(publicUrl)
+    setLogoUrl(urlWithBuster)
     setUploading(false)
   }
 
