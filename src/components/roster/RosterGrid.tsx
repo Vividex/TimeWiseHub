@@ -249,14 +249,11 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                             {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}
                           </button>
                         ))}
-                        {dayAdditional.map(e => {
-                          const proj = (e.projects as unknown as { name: string } | null)?.name
-                          return (
-                            <div key={e.id} className="mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
-                              {proj ? `${proj}` : 'Additional'}{fmtDur(e.duration_seconds) ? ` · ${fmtDur(e.duration_seconds)}` : ''}
-                            </div>
-                          )
-                        })}
+                        {dayAdditional.map(e => (
+                          <div key={e.id} className="mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
+                            {fmtDur(e.duration_seconds) || 'Additional'}
+                          </div>
+                        ))}
                         {canManageRoster && (
                           <button onClick={() => setFormState({ open: true, defaultDate: iso })}
                             className="flex w-full items-center justify-center rounded-lg p-1 text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-500">
