@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import { invoiceLetterhead } from '@/lib/invoice-letterhead'
+import { invoiceLetterhead, invoiceLogo } from '@/lib/invoice-letterhead'
 import { hasInvoicePaymentDetails, invoicePaymentDetails, invoicePaymentLines } from '@/lib/invoice-payment-details'
 import { getSubscription } from '@/lib/subscription'
 import InvoicePrintControls from '@/components/invoices/InvoicePrintControls'
@@ -24,14 +24,15 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
   if (!invoice || invoice.owner_id !== user.id) notFound()
 
   const [{ data: profile }, subscription, { data: organisation }] = await Promise.all([
-    supabase.from('profiles').select('full_name, email, invoice_letterhead, invoice_payment_details').eq('id', user.id).single(),
+    supabase.from('profiles').select('full_name, email, invoice_letterhead, logo_url, invoice_payment_details').eq('id', user.id).single(),
     getSubscription(user.id),
     invoice.org_id
-      ? supabase.from('organisations').select('name, invoice_letterhead, invoice_payment_details').eq('id', invoice.org_id).maybeSingle()
+      ? supabase.from('organisations').select('name, invoice_letterhead, logo_url, invoice_payment_details').eq('id', invoice.org_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const letterhead = invoiceLetterhead({ profile, organisation, subscription })
-  const showDefaultTagline = letterhead === 'TimeWiseHub'
+  const logoUrl = invoiceLogo({ profile, organisation, subscription })
+  const showDefaultTagline = !logoUrl && letterhead === 'TimeWiseHub'
   const paymentDetails = invoicePaymentDetails({ profile, organisation })
   const paymentLines = invoicePaymentLines(paymentDetails)
 
@@ -48,6 +49,7 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
           .invoice-print-page { max-width: 780px; margin: 0 auto; padding: 48px; font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; color: #111827; background: #fff; }
           .invoice-print-page .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
           .invoice-print-page .logo { font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
+          .invoice-print-page .logo-img { max-height: 64px; max-width: 200px; object-fit: contain; display: block; }
           .invoice-print-page .tagline { font-size: 11px; color: #06b6d4; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
           .invoice-print-page .invoice-title { text-align: right; }
           .invoice-print-page .invoice-title h1 { font-size: 28px; font-weight: 900; color: #0f172a; margin: 0; }
@@ -82,12 +84,15 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
         `}</style>
       <div className="invoice-print-page">
 
-        <InvoicePrintControls />
+        <InvoicePrintControls invoiceId={id} />
 
         {/* Header */}
         <div className="header">
           <div>
-            <div className="logo">{letterhead}</div>
+            {logoUrl
+              ? <img className="logo-img" src={logoUrl} alt="Company logo" />
+              : <div className="logo">{letterhead}</div>
+            }
             {showDefaultTagline && <div className="tagline">Track Time. Control Costs. Grow Smarter.</div>}
           </div>
           <div className="invoice-title">
