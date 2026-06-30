@@ -57,10 +57,10 @@ export default function InvoiceDocument({
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            {logoUrl && (
-              <Image src={logoUrl} style={{ width: 60, marginBottom: 6 }} />
-            )}
-            <Text style={styles.orgName}>{letterhead}</Text>
+            {logoUrl
+              ? <Image src={logoUrl} style={{ width: 140, marginBottom: 8 }} />
+              : <Text style={styles.orgName}>{letterhead}</Text>
+            }
             <Text style={styles.invoiceTitle}>INVOICE</Text>
           </View>
           <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>

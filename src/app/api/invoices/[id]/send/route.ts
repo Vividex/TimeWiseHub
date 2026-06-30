@@ -181,7 +181,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       replyTo: profile?.email ?? undefined,
       html: `
         <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5;">
-          ${logoUrl ? `<img src="${logoUrl}" alt="" style="max-height:60px;max-width:200px;object-fit:contain;display:block;margin-bottom:16px;" />` : ''}
+          ${logoUrl ? `<img src="${logoUrl}" alt="" style="max-height:80px;max-width:240px;object-fit:contain;display:block;margin-bottom:20px;" />` : ''}
           ${lines.filter(line => !line.startsWith('Pay securely here:')).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
           ${paymentLink ? `<p style="margin:20px 0;"><a href="${paymentLink}" style="background:#0891b2;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Pay Invoice</a></p>` : ''}
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
