@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, View, Text, Link, StyleSheet } from '@react-pdf/renderer'
 
 type Item = {
   description: string
@@ -116,7 +116,7 @@ export default function InvoiceDocument({
         {paymentLink && (
           <View style={styles.linkBox}>
             <Text style={styles.linkLabel}>Pay Online</Text>
-            <Text style={styles.linkValue}>{paymentLink}</Text>
+            <Link src={paymentLink} style={styles.linkValue}>Pay Invoice Online →</Link>
           </View>
         )}
       </Page>

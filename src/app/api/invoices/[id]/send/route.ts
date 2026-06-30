@@ -178,11 +178,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       attachments: pdfAttachment ? [pdfAttachment] : undefined,
       html: `
         <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5;">
-          ${lines.map(line =>
-            paymentLink && line.startsWith('Pay securely here:')
-              ? `<p>Pay securely here: <a href="${paymentLink}" style="color:#0891b2;">${escapeHtml(paymentLink)}</a></p>`
-              : `<p>${escapeHtml(line)}</p>`
-          ).join('')}
+          ${lines.filter(line => !line.startsWith('Pay securely here:')).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
+          ${paymentLink ? `<p style="margin:20px 0;"><a href="${paymentLink}" style="background:#0891b2;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Pay Invoice</a></p>` : ''}
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
             <thead><tr><th style="padding:8px 0;border-bottom:1px solid #d1d5db;text-align:left;">Description</th><th style="padding:8px 0;border-bottom:1px solid #d1d5db;text-align:right;">Qty</th><th style="padding:8px 0;border-bottom:1px solid #d1d5db;text-align:right;">Amount</th></tr></thead>
             <tbody>${itemRows}</tbody>
