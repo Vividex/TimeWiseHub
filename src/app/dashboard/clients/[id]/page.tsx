@@ -4,6 +4,7 @@ import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknot
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import DeleteClientButton from '@/components/clients/DeleteClientButton'
+import EditClientButton from '@/components/clients/EditClientButton'
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,8 +19,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const isAdmin = ['owner', 'admin'].includes(role)
 
   const { data: client } = await supabase
-    .from('clients').select('id, name, email, phone, address').eq('id', id).maybeSingle()
+    .from('clients').select('id, name, email, phone, address, owner_id, default_rate, currency').eq('id', id).maybeSingle()
   if (!client) notFound()
+
+  const canEdit = isAdmin || client.owner_id === user.id
 
   const [
     { count: projectCount },
@@ -71,7 +74,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
               {client.address && <p className="mt-1 text-xs text-gray-400">{client.address}</p>}
             </div>
-            {isAdmin && <DeleteClientButton clientId={id} clientName={client.name} />}
+            <div className="flex shrink-0 items-center gap-2">
+              {canEdit && (
+                <EditClientButton client={{
+                  id: client.id,
+                  name: client.name,
+                  email: client.email ?? null,
+                  phone: client.phone ?? null,
+                  address: client.address ?? null,
+                  default_rate: client.default_rate ?? null,
+                  currency: client.currency,
+                }} />
+              )}
+              {isAdmin && <DeleteClientButton clientId={id} clientName={client.name} />}
+            </div>
           </div>
         </div>
 
