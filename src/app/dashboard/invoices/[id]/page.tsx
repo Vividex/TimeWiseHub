@@ -124,7 +124,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           <div className="flex items-start justify-between gap-6">
             <div>
               {logoUrl
-                ? <img src={logoUrl} alt="Company logo" className="mb-4 max-h-16 max-w-[200px] object-contain" />
+                ? <div className="mb-4 inline-block bg-white p-1"><img src={logoUrl} alt="Company logo" className="block max-h-16 max-w-[200px] object-contain" /></div>
                 : <p className="mb-4 text-xl font-black tracking-tight text-slate-900">{letterhead}</p>
               }
               <p className="text-3xl font-black tracking-tight text-slate-900">{invoice.status === 'quote' ? 'QUOTE' : 'INVOICE'}</p>

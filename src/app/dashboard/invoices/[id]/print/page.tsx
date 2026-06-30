@@ -49,7 +49,7 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
           .invoice-print-page { max-width: 780px; margin: 0 auto; padding: 48px; font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; color: #111827; background: #fff; }
           .invoice-print-page .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
           .invoice-print-page .logo { font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
-          .invoice-print-page .logo-img { max-height: 64px; max-width: 200px; object-fit: contain; display: block; }
+          .invoice-print-page .logo-img { max-height: 64px; max-width: 200px; object-fit: contain; display: block; background: #fff; }
           .invoice-print-page .tagline { font-size: 11px; color: #06b6d4; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
           .invoice-print-page .invoice-title { text-align: right; }
           .invoice-print-page .invoice-title h1 { font-size: 28px; font-weight: 900; color: #0f172a; margin: 0; }

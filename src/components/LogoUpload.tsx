@@ -75,7 +75,7 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
         Shown on invoices, PDF, and email. PNG or JPEG, max 2 MB.
       </p>
       <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
           {logoUrl
             ? <img src={logoUrl} alt="Company logo" className="h-full w-full object-contain" />
             : <span className="text-xs text-gray-400">No logo</span>
