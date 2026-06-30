@@ -16,6 +16,29 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  function flattenToJpeg(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')!
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0)
+        URL.revokeObjectURL(objectUrl)
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob)
+          else reject(new Error('Canvas export failed'))
+        }, 'image/jpeg', 0.92)
+      }
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Image load failed')) }
+      img.src = objectUrl
+    })
+  }
+
   async function handleFile(file: File) {
     if (!['image/png', 'image/jpeg'].includes(file.type)) {
       setError('Only PNG or JPEG files are supported.')
@@ -27,10 +50,20 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
     }
     setError(null)
     setUploading(true)
+
+    let blob: Blob
+    try {
+      blob = await flattenToJpeg(file)
+    } catch {
+      setError('Could not process image.')
+      setUploading(false)
+      return
+    }
+
     const supabase = createClient()
     const { error: uploadError } = await supabase.storage
       .from('logos')
-      .upload(storagePath, file, { upsert: true, contentType: file.type })
+      .upload(storagePath, blob, { upsert: true, contentType: 'image/jpeg' })
     if (uploadError) {
       setError(uploadError.message)
       setUploading(false)
@@ -73,7 +106,7 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
     <div>
       <p className="mb-2 text-sm font-semibold text-gray-900">Company logo</p>
       <p className="mb-3 text-xs font-medium text-gray-500">
-        Shown on invoices, PDF, and email. PNG or JPEG, max 2 MB.
+        Shown on invoices, PDF, and email. PNG or JPEG, max 2 MB. Transparent backgrounds are flattened to white.
       </p>
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
