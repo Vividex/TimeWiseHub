@@ -52,6 +52,9 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
   const [shifts, setShifts] = useState<RosterShift[]>(initialShifts)
   const [weekAnchor, setWeekAnchor] = useState(() => new Date())
   const [formState, setFormState] = useState<{ open: boolean; shift?: RosterShift; defaultDate?: string }>({ open: false })
+  const [leaveModal, setLeaveModal] = useState<{ open: boolean; leave?: LeaveBlock }>({ open: false })
+  const [removedLeaveIds, setRemovedLeaveIds] = useState<Set<string>>(new Set())
+  const [removingLeave, setRemovingLeave] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [settingTemplate, setSettingTemplate] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
@@ -92,6 +95,21 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
     setFormState({ open: false })
   }
   function handleDeleted(id: string) { setShifts(prev => prev.filter(s => s.id !== id)); setFormState({ open: false }) }
+
+  async function handleRemoveLeave() {
+    if (!leaveModal.leave) return
+    setRemovingLeave(true)
+    const res = await fetch('/api/roster/remove-leave', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leaveId: leaveModal.leave.id }),
+    })
+    setRemovingLeave(false)
+    if (!res.ok) return
+    setRemovedLeaveIds(prev => new Set([...prev, leaveModal.leave!.id]))
+    setLeaveModal({ open: false })
+    router.refresh()
+  }
 
   async function publishWeek() {
     setPublishing(true)
@@ -221,7 +239,7 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                   const isToday = iso === todayISO
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6
                   const dayShifts = shifts.filter(s => s.user_id === member.user_id && s.date === iso)
-                  const dayLeave = leaveBlocks.filter(l => l.user_id === member.user_id && l.start_date <= iso && l.end_date >= iso)
+                  const dayLeave = leaveBlocks.filter(l => l.user_id === member.user_id && l.start_date <= iso && l.end_date >= iso && !removedLeaveIds.has(l.id))
                   const dayAdditional = additionalEntries.filter(e => {
                     const eDate = e.started_at.slice(0, 10)
                     return e.user_id === member.user_id && eDate === iso
@@ -232,10 +250,15 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
                     }`}>
                       <div className="min-h-[52px]">
                         {dayLeave.map(l => (
-                          <div key={l.id}
-                            className={`mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold ${leaveColour(l.leave_type)}`}>
-                            {leaveLabel(l.leave_type, l.half_day)}
-                          </div>
+                          canManageRoster
+                            ? <button key={l.id} onClick={() => setLeaveModal({ open: true, leave: l })}
+                                className={`mb-1 w-full rounded-lg px-2 py-1 text-left text-xs font-semibold ${leaveColour(l.leave_type)}`}>
+                                {leaveLabel(l.leave_type, l.half_day)}
+                              </button>
+                            : <div key={l.id}
+                                className={`mb-1 w-full rounded-lg px-2 py-1 text-xs font-semibold ${leaveColour(l.leave_type)}`}>
+                                {leaveLabel(l.leave_type, l.half_day)}
+                              </div>
                         ))}
                         {dayShifts.map(s => (
                           <button key={s.id} onClick={() => canManageRoster && setFormState({ open: true, shift: s })}
@@ -272,6 +295,37 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
       {formState.open && (
         <ShiftForm orgId={orgId} members={members} shift={formState.shift} defaultDate={formState.defaultDate}
           onSaved={handleSaved} onDeleted={handleDeleted} onClose={() => setFormState({ open: false })} />
+      )}
+
+      {leaveModal.open && leaveModal.leave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl">
+            <h2 className="mb-1 text-base font-semibold text-gray-900 dark:text-white">Leave</h2>
+            <p className="mb-1 text-sm text-gray-500 dark:text-slate-400">
+              {leaveLabel(leaveModal.leave.leave_type, leaveModal.leave.half_day)}
+            </p>
+            <p className="mb-5 text-sm text-gray-400 dark:text-slate-500">
+              {leaveModal.leave.start_date}{leaveModal.leave.end_date !== leaveModal.leave.start_date ? ` → ${leaveModal.leave.end_date}` : ''}
+            </p>
+            <div className="flex justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleRemoveLeave}
+                disabled={removingLeave}
+                className="rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950 disabled:opacity-50"
+              >
+                {removingLeave ? 'Removing…' : 'Remove leave'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeaveModal({ open: false })}
+                className="rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="mt-8">
