@@ -204,7 +204,8 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           {invoice.payment_link && invoice.status !== 'paid' && (
             <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-cyan-600 mb-2">Payment link</p>
-              <p className="text-sm text-cyan-700 break-all">{invoice.payment_link}</p>
+              <a href={invoice.payment_link as string} target="_blank" rel="noopener noreferrer"
+                className="text-sm text-cyan-700 break-all hover:underline">{invoice.payment_link as string}</a>
               <p className="mt-1 text-xs text-cyan-600">Send this link to your client to accept online payment.</p>
             </div>
           )}
