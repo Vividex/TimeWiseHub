@@ -235,7 +235,7 @@ at a time.
 ## C-3 — Create-series API routes
 
 *Codex edits:*
-- [ ] Create `src/app/api/clients/[id]/sessions/series/route.ts`:
+- [x] Create `src/app/api/clients/[id]/sessions/series/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -290,7 +290,7 @@ at a time.
     return NextResponse.json({ seriesId: series.id, firstSessionId: firstSession?.id ?? null })
   }
   ```
-- [ ] Create `src/app/api/sessions/[id]/series/route.ts`:
+- [x] Create `src/app/api/sessions/[id]/series/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -340,8 +340,8 @@ at a time.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/clients/[id]/sessions/series/route.ts" "src/app/api/sessions/[id]/series/route.ts" && git commit -m "feat: recurring sessions — create-series API routes"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/clients/[id]/sessions/series/route.ts" "src/app/api/sessions/[id]/series/route.ts" && git commit -m "feat: recurring sessions — create-series API routes"`
 
 ---
 
@@ -814,7 +814,7 @@ at a time.
 ## Acceptance checklist
 - [x] C-1: `session_series` table + `sessions.series_id` exist, migration committed
 - [x] C-2: shared generation module compiles clean
-- [ ] C-3: both create-series routes work (new session, and converting an existing one)
+- [x] C-3: both create-series routes work (new session, and converting an existing one)
 - [ ] C-4: cancel route + cron + vercel.json entry all in place
 - [ ] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
 - [ ] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
