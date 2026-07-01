@@ -265,7 +265,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## C-5 — AssetCard: tag pills + View AI summary popover
 
 *Codex edits:*
-- [ ] Replace `src/components/programs/AssetCard.tsx` in full:
+- [x] Replace `src/components/programs/AssetCard.tsx` in full:
   ```typescript
   'use client'
 
@@ -462,8 +462,8 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: programs phase 2 — tag pills and View AI summary popover on AssetCard"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: programs phase 2 — tag pills and View AI summary popover on AssetCard"`
 
 ---
 
@@ -490,7 +490,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 - [x] C-2: summarise route sets processing → done/failed correctly
 - [x] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
 - [x] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
-- [ ] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
+- [x] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
 - [ ] C-6: full manual smoke test passes
 
 ## Verification

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   FileText, Image, Music, Link, BookOpen, FileSpreadsheet, File,
-  MoreVertical, Trash2, ExternalLink,
+  MoreVertical, Trash2, ExternalLink, Sparkles, X,
 } from 'lucide-react'
 import type { ProgramAsset, ProgramAssetType } from '@/types/programs'
 
@@ -50,6 +50,7 @@ export default function AssetCard({
   onUpdated: (asset: ProgramAsset) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const Icon = TYPE_ICON[asset.asset_type] ?? File
   const colour = TYPE_COLOUR[asset.asset_type] ?? '#64748b'
@@ -72,6 +73,8 @@ export default function AssetCard({
   // suppress unused warning — onUpdated available for future rename flow
   void onUpdated
 
+  const showKebab = canManage || !!asset.ai_summary
+
   return (
     <div className="group relative rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-colors hover:border-gray-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
       <div
@@ -89,6 +92,19 @@ export default function AssetCard({
         {asset.asset_type}
         {asset.file_size_bytes ? ` · ${fmtBytes(asset.file_size_bytes)}` : ''}
       </p>
+
+      {asset.ai_status === 'done' && asset.ai_tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {asset.ai_tags.slice(0, 3).map(tag => (
+            <span
+              key={tag}
+              className="rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-3 flex items-center gap-2">
         {(asset.signed_url || asset.external_url) && (
@@ -108,7 +124,7 @@ export default function AssetCard({
         )}
       </div>
 
-      {canManage && (
+      {showKebab && (
         <div className="absolute right-3 top-3">
           <button
             type="button"
@@ -120,19 +136,55 @@ export default function AssetCard({
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-8 z-20 min-w-[140px] rounded-xl border border-gray-100 bg-white py-1 shadow-lg dark:border-slate-800 dark:bg-slate-900">
-                <button
-                  type="button"
-                  onClick={() => { handleDelete(); setMenuOpen(false) }}
-                  disabled={deleting}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-                >
-                  <Trash2 size={12} />
-                  Delete
-                </button>
+              <div className="absolute right-0 top-8 z-20 min-w-[160px] rounded-xl border border-gray-100 bg-white py-1 shadow-lg dark:border-slate-800 dark:bg-slate-900">
+                {asset.ai_summary && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowSummary(true); setMenuOpen(false) }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    <Sparkles size={12} />
+                    View AI summary
+                  </button>
+                )}
+                {canManage && (
+                  <button
+                    type="button"
+                    onClick={() => { handleDelete(); setMenuOpen(false) }}
+                    disabled={deleting}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                  >
+                    <Trash2 size={12} />
+                    Delete
+                  </button>
+                )}
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {showSummary && asset.ai_summary && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setShowSummary(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">AI summary</h3>
+              <button
+                type="button"
+                onClick={() => setShowSummary(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-700 dark:text-slate-300">{asset.ai_summary}</p>
+          </div>
         </div>
       )}
     </div>
