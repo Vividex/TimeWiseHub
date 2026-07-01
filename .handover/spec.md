@@ -706,8 +706,8 @@ Program — in either direction (program → template, or template → program).
 ## C-6 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after all tasks.
-- [ ] Manual browser smoke test (no test runner):
+- [x] `pnpm run build` — final clean check after all tasks.
+- [x] Manual browser smoke test (no test runner):
   1. Open `/dashboard/programs`. Confirm a "Programs" / "Templates" tab toggle appears.
   2. Switch to "Templates" — empty initially, button reads "New template".
   3. Open an existing program with a mix of categories, note/link assets, and at least one
@@ -720,7 +720,7 @@ Program — in either direction (program → template, or template → program).
   8. Confirm a new, independent program is created with the same structure, appearing under
      "Programs" (not "Templates").
   9. Edit something in the new program and confirm the original template is unaffected.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
@@ -730,7 +730,7 @@ Program — in either direction (program → template, or template → program).
 - [x] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
 - [x] C-4: Templates tab, New template, Use template all work
 - [x] C-5: Save as template button works from the explorer
-- [ ] C-6: full manual smoke test passes
+- [x] C-6: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
