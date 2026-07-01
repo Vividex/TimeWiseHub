@@ -3,13 +3,13 @@ import { createClient } from '@/lib/supabase-server'
 import { FileText } from 'lucide-react'
 
 const STATUS_STYLE: Record<string, string> = {
-  pending_approval: 'bg-amber-100 text-amber-700',
-  quote:     'bg-violet-100 text-violet-700',
-  draft:     'bg-gray-100 text-gray-600',
-  sent:      'bg-cyan-100 text-cyan-700',
-  paid:      'bg-green-100 text-green-700',
-  overdue:   'bg-red-100 text-red-700',
-  cancelled: 'bg-gray-100 text-gray-400',
+  pending_approval: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+  quote:     'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400',
+  draft:     'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
+  sent:      'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400',
+  paid:      'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+  overdue:   'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+  cancelled: 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-600',
 }
 
 function statusLabel(s: string) {
@@ -32,22 +32,22 @@ export default async function OrgDocuments({ orgId }: { orgId: string }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Org documents</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-500">Org documents</h2>
         <div className="flex gap-4">
-          <Link href="/dashboard/quotes" className="text-xs font-bold text-cyan-600 hover:underline">Quotes →</Link>
-          <Link href="/dashboard/invoices" className="text-xs font-bold text-cyan-600 hover:underline">Invoices →</Link>
+          <Link href="/dashboard/quotes" className="text-xs font-bold text-cyan-600 hover:underline dark:text-cyan-400">Quotes →</Link>
+          <Link href="/dashboard/invoices" className="text-xs font-bold text-cyan-600 hover:underline dark:text-cyan-400">Invoices →</Link>
         </div>
       </div>
-      <div className="divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900 shadow-sm">
+      <div className="divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {docs.map(doc => (
           <Link key={doc.id} href={`/dashboard/invoices/${doc.id}`}
-            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-slate-800/60">
+            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60">
             <div className="flex min-w-0 items-center gap-3">
-              <FileText size={14} className="shrink-0 text-gray-400" />
-              <span className="truncate text-sm font-bold text-gray-900">{doc.invoice_number}</span>
+              <FileText size={14} className="shrink-0 text-gray-400 dark:text-slate-500" />
+              <span className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{doc.invoice_number}</span>
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span className="text-xs font-semibold text-gray-500">
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                 {doc.currency} {Number(doc.subtotal).toFixed(2)}
               </span>
               <span className={`rounded-xl px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[doc.status] ?? 'bg-gray-100 text-gray-600'}`}>

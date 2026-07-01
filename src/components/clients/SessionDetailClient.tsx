@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Play, Square } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import SessionProgramLink from '@/components/clients/SessionProgramLink'
 import SessionRecurrence from '@/components/clients/SessionRecurrence'
@@ -265,9 +266,12 @@ export default function SessionDetailClient({
               {STATUS_NEXT[status] && (
                 <button
                   onClick={advanceStatus}
-                  className="rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-white transition-colors ${
+                    status === 'scheduled' ? 'bg-cyan-500 hover:bg-cyan-600' : 'bg-amber-500 hover:bg-amber-600'
+                  }`}
                 >
-                  Mark as {STATUS_LABEL[STATUS_NEXT[status]!]}
+                  {status === 'scheduled' ? <Play size={12} /> : <Square size={12} />}
+                  {status === 'scheduled' ? 'Start session' : 'End session'}
                 </button>
               )}
               {!confirmDeleteSession ? (
@@ -356,7 +360,7 @@ export default function SessionDetailClient({
                   type="button"
                   onClick={addTodo}
                   disabled={!newTodo.trim()}
-                  className="min-h-10 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                  className="min-h-10 !shadow-none rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                   Add
                 </button>
@@ -371,7 +375,7 @@ export default function SessionDetailClient({
                 type="button"
                 onClick={addSessionNotesToProgressNotes}
                 disabled={savingProgressNote || !notes.trim()}
-                className="rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+                className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
               >
                 {savingProgressNote ? 'Adding...' : progressNoteSaved ? 'Added!' : 'Add to progress notes'}
               </button>
