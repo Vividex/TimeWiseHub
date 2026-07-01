@@ -15,17 +15,25 @@ export default async function ProgramsPage() {
     .eq('user_id', user.id).maybeSingle()
   const orgId = membership?.org_id ?? null
 
-  const { data: programs } = orgId
-    ? await service.from('programs').select('*')
-        .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
-        .eq('is_archived', false).order('created_at', { ascending: false })
-    : await service.from('programs').select('*')
-        .eq('owner_id', user.id).eq('is_archived', false)
-        .order('created_at', { ascending: false })
+  const baseQuery = (isTemplate: boolean) =>
+    orgId
+      ? service.from('programs').select('*')
+          .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
+          .eq('is_archived', false).eq('is_template', isTemplate)
+          .order('created_at', { ascending: false })
+      : service.from('programs').select('*')
+          .eq('owner_id', user.id).eq('is_archived', false).eq('is_template', isTemplate)
+          .order('created_at', { ascending: false })
+
+  const [{ data: programs }, { data: templates }] = await Promise.all([
+    baseQuery(false),
+    baseQuery(true),
+  ])
 
   return (
     <ProgramsDashboardClient
       programs={(programs ?? []) as Program[]}
+      templates={(templates ?? []) as Program[]}
       orgId={orgId}
     />
   )

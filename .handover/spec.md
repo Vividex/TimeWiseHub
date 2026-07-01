@@ -270,7 +270,7 @@ Program — in either direction (program → template, or template → program).
 ## C-4 — Programs dashboard: Templates tab, New template, Use template
 
 *Codex edits:*
-- [ ] Replace `src/app/dashboard/programs/page.tsx` in full:
+- [x] Replace `src/app/dashboard/programs/page.tsx` in full:
   ```typescript
   import { redirect } from 'next/navigation'
   import { createClient } from '@/lib/supabase-server'
@@ -313,7 +313,7 @@ Program — in either direction (program → template, or template → program).
     )
   }
   ```
-- [ ] Replace `src/components/programs/ProgramsDashboardClient.tsx` in full:
+- [x] Replace `src/components/programs/ProgramsDashboardClient.tsx` in full:
   ```typescript
   'use client'
 
@@ -506,8 +506,8 @@ Program — in either direction (program → template, or template → program).
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/dashboard/programs/page.tsx src/components/programs/ProgramsDashboardClient.tsx && git commit -m "feat: programs phase 3 — Templates tab, New template, Use template"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/dashboard/programs/page.tsx src/components/programs/ProgramsDashboardClient.tsx && git commit -m "feat: programs phase 3 — Templates tab, New template, Use template"`
 
 ---
 
@@ -728,7 +728,7 @@ Program — in either direction (program → template, or template → program).
 - [x] C-1: `programs.is_template` column exists, migration file committed
 - [x] C-2: duplicate endpoint clones category tree + note/link assets; GET/POST extended
 - [x] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
-- [ ] C-4: Templates tab, New template, Use template all work
+- [x] C-4: Templates tab, New template, Use template all work
 - [ ] C-5: Save as template button works from the explorer
 - [ ] C-6: full manual smoke test passes
 
