@@ -239,7 +239,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## C-4 — Upload UI fires the summarise trigger
 
 *Codex edits:*
-- [ ] Read `src/components/programs/AssetUploadZone.tsx` first, then:
+- [x] Read `src/components/programs/AssetUploadZone.tsx` first, then:
   - Add this helper function inside the component (e.g. right after the state declarations):
     ```typescript
     function triggerSummarise(asset: ProgramAsset) {
@@ -257,8 +257,8 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
     auto-pay-run trigger pattern.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/programs/AssetUploadZone.tsx && git commit -m "feat: programs phase 2 — fire-and-forget summarise trigger after upload"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/programs/AssetUploadZone.tsx && git commit -m "feat: programs phase 2 — fire-and-forget summarise trigger after upload"`
 
 ---
 
@@ -489,7 +489,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 - [x] C-1: `summariseAsset()` compiles clean, handles note/image/pdf, returns null for others
 - [x] C-2: summarise route sets processing → done/failed correctly
 - [x] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
-- [ ] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
+- [x] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
 - [ ] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
 - [ ] C-6: full manual smoke test passes
 

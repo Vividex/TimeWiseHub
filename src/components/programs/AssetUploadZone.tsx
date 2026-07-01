@@ -33,6 +33,12 @@ export default function AssetUploadZone({
   const [linkUrl, setLinkUrl] = useState('')
   const [linkType, setLinkType] = useState<'link' | 'video'>('link')
 
+  function triggerSummarise(asset: ProgramAsset) {
+    if (asset.asset_type === 'note' || asset.asset_type === 'image' || asset.asset_type === 'pdf') {
+      fetch(`/api/programs/${programId}/assets/${asset.id}/summarise`, { method: 'POST' })
+    }
+  }
+
   const uploadFile = useCallback(async (file: File) => {
     setUploading(true)
     setError(null)
@@ -50,6 +56,7 @@ export default function AssetUploadZone({
     setUploadProgress(null)
     if (!res.ok) { setError(json.error ?? 'Upload failed'); return }
     onAssetAdded(json as ProgramAsset)
+    triggerSummarise(json as ProgramAsset)
     onClose()
   }, [programId, categoryId, onAssetAdded, onClose])
 
@@ -73,6 +80,7 @@ export default function AssetUploadZone({
     setUploading(false)
     if (!res.ok) { setError(json.error ?? 'Failed'); return }
     onAssetAdded(json as ProgramAsset)
+    triggerSummarise(json as ProgramAsset)
     onClose()
   }
 
