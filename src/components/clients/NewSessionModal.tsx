@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
 type Template = { id: string; title: string; position: number }
+type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
 
 export default function NewSessionModal({
   clientId,
@@ -19,6 +20,7 @@ export default function NewSessionModal({
   const [title, setTitle] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [duration, setDuration] = useState(60)
+  const [repeat, setRepeat] = useState<Repeat>('none')
   const [templates, setTemplates] = useState<Template[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -38,6 +40,24 @@ export default function NewSessionModal({
     if (!title.trim() || !scheduledAt) return
     setSaving(true)
     setError('')
+
+    if (repeat !== 'none') {
+      const res = await fetch(`/api/clients/${clientId}/sessions/series`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          scheduledAt,
+          durationMinutes: duration,
+          recurrenceInterval: repeat,
+        }),
+      })
+      const json = await res.json()
+      setSaving(false)
+      if (!res.ok) { setError(json.error ?? 'Failed to create recurring session.'); return }
+      router.push(`/dashboard/clients/${clientId}/sessions/${json.firstSessionId}`)
+      return
+    }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('Not logged in.'); setSaving(false); return }
@@ -123,6 +143,24 @@ export default function NewSessionModal({
               max={480}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Repeat</label>
+            <select
+              value={repeat}
+              onChange={e => setRepeat(e.target.value as Repeat)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="none">Does not repeat</option>
+              <option value="weekly">Weekly</option>
+              <option value="fortnightly">Fortnightly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            {repeat !== 'none' && (
+              <p className="mt-1 text-xs text-gray-400">
+                Creates this session plus 7 upcoming occurrences, kept topped up automatically.
+              </p>
+            )}
           </div>
           {templates.length > 0 && (
             <p className="rounded-xl bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700">

@@ -422,7 +422,7 @@ at a time.
 ## C-5 — NewSessionModal Repeat dropdown
 
 *Codex edits:*
-- [ ] Replace `src/components/clients/NewSessionModal.tsx` in full:
+- [x] Replace `src/components/clients/NewSessionModal.tsx` in full:
   ```typescript
   'use client'
 
@@ -617,9 +617,9 @@ at a time.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. "Does not repeat" (default) exercises the exact same
+- [x] `pnpm run build` — must pass clean. "Does not repeat" (default) exercises the exact same
   code path as before this change.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "feat: recurring sessions — Repeat dropdown in New Session modal"`
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "feat: recurring sessions — Repeat dropdown in New Session modal"`
 
 ---
 
@@ -816,7 +816,7 @@ at a time.
 - [x] C-2: shared generation module compiles clean
 - [x] C-3: both create-series routes work (new session, and converting an existing one)
 - [x] C-4: cancel route + cron + vercel.json entry all in place
-- [ ] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
+- [x] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
 - [ ] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
 - [ ] C-7: full manual smoke test passes
 
