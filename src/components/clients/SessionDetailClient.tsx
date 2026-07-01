@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import SessionProgramLink from '@/components/clients/SessionProgramLink'
+import SessionRecurrence from '@/components/clients/SessionRecurrence'
+import type { SessionSeriesInfo } from '@/lib/sessions/series'
 import type { LinkedProgramBundle } from '@/types/programs'
 
 type Todo = { id: string; title: string; completed: boolean; position: number }
@@ -37,6 +39,7 @@ export default function SessionDetailClient({
   clientName,
   orgId,
   linkedProgram,
+  series,
 }: {
   session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   todos: Todo[]
@@ -44,6 +47,7 @@ export default function SessionDetailClient({
   clientName: string
   orgId: string | null
   linkedProgram: LinkedProgramBundle | null
+  series: SessionSeriesInfo | null
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -254,6 +258,7 @@ export default function SessionDetailClient({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />
+              <SessionRecurrence sessionId={initial.id} series={series} />
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>
                 {STATUS_LABEL[status]}
               </span>

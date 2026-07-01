@@ -626,7 +626,7 @@ at a time.
 ## C-6 — SessionRecurrence component + session detail wiring
 
 *Codex edits:*
-- [ ] Create `src/components/clients/SessionRecurrence.tsx`:
+- [x] Create `src/components/clients/SessionRecurrence.tsx`:
   ```typescript
   'use client'
 
@@ -756,7 +756,7 @@ at a time.
     )
   }
   ```
-- [ ] Edit `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` — read it first, then:
+- [x] Edit `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` — read it first, then:
   1. Add `series_id` to the `sessions` select string (right after `program_id`):
      `.select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, series_id, session_todos(id, title, completed, position)')`
   2. Add the import: `import type { SessionSeriesInfo } from '@/lib/sessions/series'`
@@ -774,7 +774,7 @@ at a time.
      ```
   4. Pass it down: add `series={series}` inside the `<SessionDetailClient ... />` props,
      alongside `linkedProgram={linkedProgram}`.
-- [ ] Edit `src/components/clients/SessionDetailClient.tsx` — read it first, then:
+- [x] Edit `src/components/clients/SessionDetailClient.tsx` — read it first, then:
   1. Add the imports:
      ```typescript
      import SessionRecurrence from '@/components/clients/SessionRecurrence'
@@ -788,8 +788,8 @@ at a time.
      `<SessionProgramLink ... />` line and before the status badge span.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/clients/SessionRecurrence.tsx "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: recurring sessions — SessionRecurrence control on session detail page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/clients/SessionRecurrence.tsx "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: recurring sessions — SessionRecurrence control on session detail page"`
 
 ---
 
@@ -817,7 +817,7 @@ at a time.
 - [x] C-3: both create-series routes work (new session, and converting an existing one)
 - [x] C-4: cancel route + cron + vercel.json entry all in place
 - [x] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
-- [ ] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
+- [x] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
 - [ ] C-7: full manual smoke test passes
 
 ## Verification

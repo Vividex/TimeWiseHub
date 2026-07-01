@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { createProgramAssetSignedUrl } from '@/lib/program-storage'
 import SessionDetailClient from '@/components/clients/SessionDetailClient'
+import type { SessionSeriesInfo } from '@/lib/sessions/series'
 import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
 
 export default async function SessionDetailPage({
@@ -18,7 +19,7 @@ export default async function SessionDetailPage({
   const [{ data: session }, { data: client }] = await Promise.all([
     supabase
       .from('sessions')
-      .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, session_todos(id, title, completed, position)')
+      .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, series_id, session_todos(id, title, completed, position)')
       .eq('id', sessionId)
       .maybeSingle(),
     supabase
@@ -75,6 +76,16 @@ export default async function SessionDetailPage({
     }
   }
 
+  let series: SessionSeriesInfo | null = null
+  if (session.series_id) {
+    const { data: seriesRow } = await supabase
+      .from('session_series')
+      .select('id, recurrence_interval, is_active')
+      .eq('id', session.series_id)
+      .maybeSingle()
+    series = seriesRow as SessionSeriesInfo | null
+  }
+
   return (
     <SessionDetailClient
       session={{
@@ -90,6 +101,7 @@ export default async function SessionDetailPage({
       clientName={client.name}
       orgId={session.org_id}
       linkedProgram={linkedProgram}
+      series={series}
     />
   )
 }
