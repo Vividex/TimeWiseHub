@@ -6,7 +6,23 @@
 - spend-budget-usd: 0
 - No new npm packages this phase. No paid API calls during the implementation loop.
 
-## Notes (Programs Phase 3 — Template Builder)
+## Notes (Recurring Sessions)
+- Source spec: docs/superpowers/specs/2026-07-01-recurring-sessions-design.md
+- Source plan: docs/superpowers/plans/2026-07-01-recurring-sessions.md
+- One new table session_series + sessions.series_id (nullable FK, mirrors program_id pattern).
+- Buffer fixed at 8 upcoming occurrences per active series; intervals weekly/fortnightly/monthly
+  only; series run indefinitely until explicitly cancelled.
+- Cancelling deletes only status='scheduled' rows in the series — completed sessions untouched.
+- A session only ever starts one series in its lifetime (no "Make recurring" after cancellation).
+- Deliberate exception: recurring-series operations go through new server-side API routes (using
+  the service client), unlike plain session creation which stays client-side (NewSessionModal.tsx
+  unchanged for "Does not repeat") — justified because the daily cron needs the exact same
+  generation logic server-side.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via Supabase MCP.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only.
+
+## Notes (Programs Phase 3 — Template Builder) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-01-programs-phase3-templates-design.md
 - Source plan: docs/superpowers/plans/2026-07-01-programs-phase3-templates.md
 - No new npm packages, no new tables — one boolean column `programs.is_template`.

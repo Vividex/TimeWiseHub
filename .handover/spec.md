@@ -1,25 +1,26 @@
-# Programs Phase 3 — Template Builder
+# Recurring Sessions
 
 ## Goal
-Let a user flag a Program as a template, browse templates separately from regular Programs, and
-clone a program's category structure (plus note/link content) into a brand-new, independent
-Program — in either direction (program → template, or template → program).
+Let a session be marked recurring (weekly/fortnightly/monthly) so future occurrences are
+generated automatically and stay visible on the calendar in advance, instead of being created one
+at a time.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-01-programs-phase3-templates-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-01-programs-phase3-templates.md`
-- One boolean column (`programs.is_template`), no new tables. Templates are edited with the
-  exact same `ProgramExplorer` already shipped in Phase 1 — no new authoring UI.
-- One new endpoint `POST /api/programs/[id]/duplicate` powers all three UI entry points
-  (Save as template, Use template, and the New template button indirectly via ProgramForm).
-- Duplicating only requires **view** access to the source (owner or org member) — it creates a
-  new object, doesn't mutate the source.
-- Only `note`/`link` asset types get copied on clone. File-based types (pdf/docx/xlsx/image/audio/
-  video) are never copied — avoids Storage duplication cost and a shared-`storage_path` delete
-  hazard (deleting one copy's row would delete the file out from under the other).
-- `GET /api/programs` gains an optional `?is_template=true` filter; default (no param) stays
-  `false` so every existing caller (dashboard's programs list, Phase 4's session-link picker)
-  is unaffected.
+- Source spec: `docs/superpowers/specs/2026-07-01-recurring-sessions-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-01-recurring-sessions.md`
+- One new table `session_series` (definition) + `sessions.series_id` (nullable FK, mirrors the
+  `program_id` pattern). No new tables beyond that.
+- Buffer size fixed at 8 upcoming occurrences per active series. Intervals: weekly/fortnightly/
+  monthly only. Series run indefinitely until explicitly cancelled.
+- Cancelling sets `is_active = false` and deletes every `sessions` row in that series where
+  `status = 'scheduled'` — completed sessions are never touched.
+- A session only ever starts/belongs to one series in its lifetime — "Make recurring" never
+  shows again once `series_id` is set, even after cancellation.
+- Deliberate architecture exception: plain one-off session creation stays exactly as today
+  (direct browser Supabase insert in NewSessionModal.tsx, unchanged). Recurring-series operations
+  go through new server-side API routes (using the service client) because the daily cron needs
+  the exact same generation logic server-side — duplicating it in a client component and a cron
+  would be a maintenance hazard. This is scoped narrowly to series operations only.
 - Codex handles text edits only; conductor (Claude) runs all shell/build/git and the DB migration
   via Supabase MCP (Windows: Codex's workspace-write sandbox cannot spawn subprocesses).
 - Verification gate: `pnpm run build` (tsc + eslint) after every turn. No test runner.
@@ -33,128 +34,213 @@ Program — in either direction (program → template, or template → program).
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
 - C-1 is conductor-only (no Codex dispatch needed) — DB migration via Supabase MCP.
-- C-6 needs a manual browser smoke test (no test runner) before ticking it done.
+- C-7 needs a manual browser smoke test (no test runner) before ticking it done.
 
 ---
 
 ## C-1 — Database migration
 
 *Conductor only (no Codex dispatch):*
-- [x] Create `supabase/schema-074-program-templates.sql`:
+- [x] Create `supabase/schema-075-recurring-sessions.sql`:
   ```sql
-  alter table public.programs
-    add column is_template boolean not null default false;
+  create type public.session_recurrence_interval as enum ('weekly', 'fortnightly', 'monthly');
+
+  create table public.session_series (
+    id                  uuid primary key default gen_random_uuid(),
+    client_id           uuid not null references public.clients on delete cascade,
+    org_id              uuid references public.organisations on delete cascade,
+    created_by          uuid not null references public.profiles on delete cascade,
+    title               text not null,
+    duration_minutes    integer not null default 60,
+    recurrence_interval public.session_recurrence_interval not null,
+    next_scheduled_at   timestamptz not null,
+    is_active           boolean not null default true,
+    created_at          timestamptz not null default now()
+  );
+
+  alter table public.session_series enable row level security;
+
+  create policy "Org members can view session series"
+    on public.session_series for select
+    using (
+      org_id is not null and
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = session_series.org_id and om.user_id = auth.uid()
+      )
+    );
+
+  create policy "Org admins can manage session series"
+    on public.session_series for all
+    using (
+      org_id is not null and
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = session_series.org_id and om.user_id = auth.uid()
+          and om.role in ('owner', 'admin', 'manager')
+      )
+    );
+
+  create policy "Creator can manage own session series"
+    on public.session_series for all
+    using (created_by = auth.uid());
+
+  create index session_series_client on public.session_series (client_id);
+  create index session_series_active on public.session_series (is_active) where is_active = true;
+
+  alter table public.sessions
+    add column series_id uuid references public.session_series(id) on delete set null;
+
+  create index sessions_series on public.sessions (series_id) where series_id is not null;
   ```
-- [x] Apply via Supabase MCP `apply_migration` (name: `program_templates`)
+- [x] Apply via Supabase MCP `apply_migration` (name: `recurring_sessions`)
 - [x] Verify via MCP `execute_sql`:
   ```sql
-  select column_name, data_type, column_default, is_nullable
+  select table_name from information_schema.tables
+  where table_schema = 'public' and table_name = 'session_series';
+
+  select column_name, data_type, is_nullable
   from information_schema.columns
-  where table_schema = 'public' and table_name = 'programs' and column_name = 'is_template';
+  where table_schema = 'public' and table_name = 'sessions' and column_name = 'series_id';
   ```
-  Expected: 1 row, `data_type = boolean`, `column_default = false`, `is_nullable = NO`.
-- [x] Commit: `git add supabase/schema-074-program-templates.sql && git commit -m "feat: programs phase 3 — is_template column (DB migration)"`
+  Expected: `session_series` table exists; `sessions.series_id` is `uuid`, nullable.
+- [x] Commit: `git add supabase/schema-075-recurring-sessions.sql && git commit -m "feat: recurring sessions — session_series table (DB migration)"`
 
 ---
 
-## C-2 — Types + duplicate endpoint + GET/POST extension
+## C-2 — Shared generation module
 
 *Codex edits:*
-- [x] Edit `src/types/programs.ts` — add `is_template: boolean` to the `Program` type:
+- [ ] Create `src/lib/sessions/series.ts`:
   ```typescript
-  export type Program = {
+  import type { SupabaseClient } from '@supabase/supabase-js'
+
+  export type SessionSeriesInterval = 'weekly' | 'fortnightly' | 'monthly'
+
+  export type SessionSeriesInfo = {
     id: string
+    recurrence_interval: SessionSeriesInterval
+    is_active: boolean
+  }
+
+  type SessionSeriesRow = {
+    id: string
+    client_id: string
     org_id: string | null
-    owner_id: string | null
-    name: string
-    description: string | null
-    cover_colour: string
-    icon: string
-    is_archived: boolean
-    is_template: boolean
-    created_at: string
-    updated_at: string
-  }
-  ```
-- [x] Replace `src/app/api/programs/route.ts` in full:
-  ```typescript
-  import { NextResponse } from 'next/server'
-  import { createClient } from '@/lib/supabase-server'
-  import { createServiceClient } from '@/lib/supabase-service'
-
-  export async function GET(req: Request) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const url = new URL(req.url)
-    const isTemplate = url.searchParams.get('is_template') === 'true'
-
-    const service = createServiceClient()
-    const { data: membership } = await service
-      .from('organisation_members').select('org_id')
-      .eq('user_id', user.id).maybeSingle()
-    const orgId = membership?.org_id ?? null
-
-    const query = orgId
-      ? service.from('programs')
-          .select('*')
-          .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
-          .eq('is_archived', false)
-          .eq('is_template', isTemplate)
-          .order('created_at', { ascending: false })
-      : service.from('programs')
-          .select('*')
-          .eq('owner_id', user.id)
-          .eq('is_archived', false)
-          .eq('is_template', isTemplate)
-          .order('created_at', { ascending: false })
-
-    const { data, error } = await query
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json(data)
+    created_by: string
+    title: string
+    duration_minutes: number
+    recurrence_interval: SessionSeriesInterval
+    next_scheduled_at: string
+    is_active: boolean
   }
 
-  export async function POST(req: Request) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  export function advanceDate(from: string, interval: SessionSeriesInterval): string {
+    const d = new Date(from)
+    switch (interval) {
+      case 'weekly':      d.setDate(d.getDate() + 7); break
+      case 'fortnightly': d.setDate(d.getDate() + 14); break
+      case 'monthly':     d.setMonth(d.getMonth() + 1); break
+    }
+    return d.toISOString()
+  }
 
-    const { name, description, cover_colour, icon, org_id, is_template } = await req.json()
-    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  export async function generateNextOccurrence(
+    service: SupabaseClient,
+    series: SessionSeriesRow,
+  ): Promise<{ id: string } | null> {
+    const { data: session, error } = await service
+      .from('sessions')
+      .insert({
+        client_id: series.client_id,
+        org_id: series.org_id,
+        created_by: series.created_by,
+        title: series.title,
+        scheduled_at: series.next_scheduled_at,
+        duration_minutes: series.duration_minutes,
+        status: 'scheduled',
+        series_id: series.id,
+      })
+      .select('id')
+      .single()
 
-    const service = createServiceClient()
+    if (error || !session) return null
 
-    if (org_id) {
-      const { data: membership } = await service
-        .from('organisation_members').select('role')
-        .eq('user_id', user.id).eq('org_id', org_id).maybeSingle()
-      if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
+    const { data: templates } = await service
+      .from('client_session_templates')
+      .select('title, position')
+      .eq('client_id', series.client_id)
+      .order('position')
+
+    if (templates && templates.length > 0) {
+      await service.from('session_todos').insert(
+        templates.map(t => ({
+          session_id: session.id,
+          title: t.title,
+          completed: false,
+          position: t.position,
+        })),
+      )
     }
 
-    const { data, error } = await service.from('programs').insert({
-      owner_id: user.id,
-      org_id: org_id ?? null,
-      name: name.trim(),
-      description: description?.trim() || null,
-      cover_colour: cover_colour || '#06b6d4',
-      icon: icon || 'library',
-      is_template: !!is_template,
-    }).select().single()
+    const nextDate = advanceDate(series.next_scheduled_at, series.recurrence_interval)
+    await service.from('session_series').update({ next_scheduled_at: nextDate }).eq('id', series.id)
+    series.next_scheduled_at = nextDate
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json(data)
+    return session
+  }
+
+  export async function topUpSeries(
+    service: SupabaseClient,
+    seriesId: string,
+    target = 8,
+  ): Promise<number> {
+    const { data: seriesRow } = await service
+      .from('session_series')
+      .select('*')
+      .eq('id', seriesId)
+      .single()
+
+    if (!seriesRow) return 0
+
+    const series = seriesRow as SessionSeriesRow
+    const nowIso = new Date().toISOString()
+    const { count } = await service
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('series_id', seriesId)
+      .eq('status', 'scheduled')
+      .gte('scheduled_at', nowIso)
+
+    let generated = 0
+    let remaining = target - (count ?? 0)
+
+    while (remaining > 0) {
+      const result = await generateNextOccurrence(service, series)
+      if (!result) break
+      generated++
+      remaining--
+    }
+
+    return generated
   }
   ```
-- [x] Create `src/app/api/programs/[id]/duplicate/route.ts`:
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
+- [ ] Commit: `git add src/lib/sessions/series.ts && git commit -m "feat: recurring sessions — shared generation module"`
+
+---
+
+## C-3 — Create-series API routes
+
+*Codex edits:*
+- [ ] Create `src/app/api/clients/[id]/sessions/series/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
   import { createServiceClient } from '@/lib/supabase-service'
-  import { buildCategoryTree } from '@/lib/programs/build-tree'
-  import type { CategoryNode, ProgramCategory } from '@/types/programs'
+  import { topUpSeries } from '@/lib/sessions/series'
 
   export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
@@ -162,531 +248,505 @@ Program — in either direction (program → template, or template → program).
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { name, is_template } = await req.json()
-    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    const { title, scheduledAt, durationMinutes, recurrenceInterval } = await req.json()
+    if (!title?.trim() || !scheduledAt || !recurrenceInterval) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
 
     const service = createServiceClient()
-    const { data: source } = await service.from('programs').select('*').eq('id', id).maybeSingle()
-    if (!source) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const { data: client } = await service.from('clients').select('id, org_id').eq('id', id).maybeSingle()
+    if (!client) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const { data: membership } = await service
       .from('organisation_members').select('role')
-      .eq('user_id', user.id).eq('org_id', source.org_id ?? '').maybeSingle()
-    const isOwner = source.owner_id === user.id
-    const isMember = !!membership
-    if (!isOwner && !isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      .eq('user_id', user.id).eq('org_id', client.org_id ?? '').maybeSingle()
+    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
-    const { data: newProgram, error: programError } = await service.from('programs').insert({
-      owner_id: user.id,
-      org_id: source.org_id,
-      name: name.trim(),
-      description: source.description,
-      cover_colour: source.cover_colour,
-      icon: source.icon,
-      is_template: !!is_template,
-      is_archived: false,
+    const { data: series, error } = await service.from('session_series').insert({
+      client_id: id,
+      org_id: client.org_id,
+      created_by: user.id,
+      title: title.trim(),
+      duration_minutes: durationMinutes || 60,
+      recurrence_interval: recurrenceInterval,
+      next_scheduled_at: new Date(scheduledAt).toISOString(),
     }).select().single()
 
-    if (programError || !newProgram) {
-      return NextResponse.json({ error: programError?.message ?? 'Failed to create program' }, { status: 500 })
+    if (error || !series) {
+      return NextResponse.json({ error: error?.message ?? 'Failed to create series' }, { status: 500 })
     }
 
-    const [{ data: sourceCategories }, { data: sourceAssets }] = await Promise.all([
-      service.from('program_categories').select('*')
-        .eq('program_id', id).order('sort_order').order('created_at'),
-      service.from('program_assets').select('*')
-        .eq('program_id', id).in('asset_type', ['note', 'link']),
-    ])
+    await topUpSeries(service, series.id, 8)
 
-    const tree = buildCategoryTree((sourceCategories ?? []) as ProgramCategory[])
-    const idMap = new Map<string, string>()
+    const { data: firstSession } = await service
+      .from('sessions').select('id')
+      .eq('series_id', series.id)
+      .order('scheduled_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
 
-    async function insertLevel(nodes: CategoryNode[], newParentId: string | null) {
-      for (const node of nodes) {
-        const { data: inserted } = await service.from('program_categories').insert({
-          program_id: newProgram.id,
-          parent_id: newParentId,
-          name: node.name,
-          description: node.description,
-          colour: node.colour,
-          icon: node.icon,
-          sort_order: node.sort_order,
-        }).select('id').single()
+    return NextResponse.json({ seriesId: series.id, firstSessionId: firstSession?.id ?? null })
+  }
+  ```
+- [ ] Create `src/app/api/sessions/[id]/series/route.ts`:
+  ```typescript
+  import { NextResponse } from 'next/server'
+  import { createClient } from '@/lib/supabase-server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { advanceDate, topUpSeries } from '@/lib/sessions/series'
 
-        if (inserted) {
-          idMap.set(node.id, inserted.id)
-          await insertLevel(node.children, inserted.id)
-        }
-      }
+  export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { recurrenceInterval } = await req.json()
+    if (!recurrenceInterval) return NextResponse.json({ error: 'recurrenceInterval is required' }, { status: 400 })
+
+    const service = createServiceClient()
+    const { data: session } = await service.from('sessions').select('*').eq('id', id).maybeSingle()
+    if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session.series_id) return NextResponse.json({ error: 'Session already belongs to a series' }, { status: 409 })
+
+    const { data: membership } = await service
+      .from('organisation_members').select('role')
+      .eq('user_id', user.id).eq('org_id', session.org_id ?? '').maybeSingle()
+    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await insertLevel(tree, null)
+    const { data: series, error } = await service.from('session_series').insert({
+      client_id: session.client_id,
+      org_id: session.org_id,
+      created_by: user.id,
+      title: session.title,
+      duration_minutes: session.duration_minutes,
+      recurrence_interval: recurrenceInterval,
+      next_scheduled_at: advanceDate(session.scheduled_at, recurrenceInterval),
+    }).select().single()
 
-    const assetsToCopy = (sourceAssets ?? []).map(a => ({
-      program_id: newProgram.id,
-      category_id: a.category_id ? idMap.get(a.category_id) ?? null : null,
-      owner_id: user.id,
-      name: a.name,
-      description: a.description,
-      asset_type: a.asset_type,
-      note_content: a.note_content,
-      external_url: a.external_url,
-      sort_order: a.sort_order,
-      ai_status: 'skipped',
-    }))
-
-    if (assetsToCopy.length > 0) {
-      await service.from('program_assets').insert(assetsToCopy)
+    if (error || !series) {
+      return NextResponse.json({ error: error?.message ?? 'Failed to create series' }, { status: 500 })
     }
 
-    return NextResponse.json(newProgram)
+    await service.from('sessions').update({ series_id: series.id }).eq('id', id)
+    await topUpSeries(service, series.id, 8)
+
+    return NextResponse.json(series)
   }
   ```
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/types/programs.ts src/app/api/programs/route.ts "src/app/api/programs/[id]/duplicate/route.ts" && git commit -m "feat: programs phase 3 — duplicate endpoint and is_template filter"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/api/clients/[id]/sessions/series/route.ts" "src/app/api/sessions/[id]/series/route.ts" && git commit -m "feat: recurring sessions — create-series API routes"`
 
 ---
 
-## C-3 — ProgramForm isTemplate support
+## C-4 — Cancel route, cron, vercel.json
 
 *Codex edits:*
-- [x] Edit `src/components/programs/ProgramForm.tsx`:
-  - Add `isTemplate?: boolean` prop (default `false`) to the component's destructured props and
-    type signature.
-  - In `handleSubmit`, add `is_template: isTemplate` to the POST body sent to `/api/programs`.
-  - Change the modal title `<h2>` text to `{isTemplate ? 'New template' : 'New program'}`.
-  - Change the submit button text to `{saving ? 'Creating…' : isTemplate ? 'Create template' : 'Create program'}`.
-  - Everything else in the file stays unchanged.
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean. `isTemplate` defaults to `false`, so existing call
-  sites (which don't pass it) behave exactly as before.
-- [x] Commit: `git add src/components/programs/ProgramForm.tsx && git commit -m "feat: programs phase 3 — ProgramForm isTemplate support"`
-
----
-
-## C-4 — Programs dashboard: Templates tab, New template, Use template
-
-*Codex edits:*
-- [x] Replace `src/app/dashboard/programs/page.tsx` in full:
+- [ ] Create `src/app/api/sessions/series/[seriesId]/cancel/route.ts`:
   ```typescript
-  import { redirect } from 'next/navigation'
+  import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
   import { createServiceClient } from '@/lib/supabase-service'
-  import ProgramsDashboardClient from '@/components/programs/ProgramsDashboardClient'
-  import type { Program } from '@/types/programs'
 
-  export default async function ProgramsPage() {
+  export async function POST(_req: Request, { params }: { params: Promise<{ seriesId: string }> }) {
+    const { seriesId } = await params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const service = createServiceClient()
+    const { data: series } = await service.from('session_series').select('*').eq('id', seriesId).maybeSingle()
+    if (!series) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
     const { data: membership } = await service
-      .from('organisation_members').select('org_id')
-      .eq('user_id', user.id).maybeSingle()
-    const orgId = membership?.org_id ?? null
+      .from('organisation_members').select('role')
+      .eq('user_id', user.id).eq('org_id', series.org_id ?? '').maybeSingle()
+    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
-    const baseQuery = (isTemplate: boolean) =>
-      orgId
-        ? service.from('programs').select('*')
-            .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
-            .eq('is_archived', false).eq('is_template', isTemplate)
-            .order('created_at', { ascending: false })
-        : service.from('programs').select('*')
-            .eq('owner_id', user.id).eq('is_archived', false).eq('is_template', isTemplate)
-            .order('created_at', { ascending: false })
+    await service.from('session_series').update({ is_active: false }).eq('id', seriesId)
+    await service.from('sessions').delete().eq('series_id', seriesId).eq('status', 'scheduled')
 
-    const [{ data: programs }, { data: templates }] = await Promise.all([
-      baseQuery(false),
-      baseQuery(true),
-    ])
+    return NextResponse.json({ ok: true })
+  }
+  ```
+- [ ] Create `src/app/api/cron/process-recurring-sessions/route.ts`:
+  ```typescript
+  import { NextResponse } from 'next/server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { topUpSeries } from '@/lib/sessions/series'
+
+  function isAuthorized(req: Request) {
+    const secret = process.env.CRON_SECRET
+    if (!secret) return process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production'
+    const auth = req.headers.get('authorization')
+    return auth === `Bearer ${secret}`
+  }
+
+  export async function GET(req: Request) {
+    if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const service = createServiceClient()
+    const { data: activeSeries, error } = await service
+      .from('session_series').select('id').eq('is_active', true)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    let totalGenerated = 0
+    for (const series of activeSeries ?? []) {
+      totalGenerated += await topUpSeries(service, series.id, 8)
+    }
+
+    return NextResponse.json({ ok: true, seriesChecked: (activeSeries ?? []).length, totalGenerated })
+  }
+  ```
+- [ ] Edit `vercel.json` — read it first, then add ONE new entry to the `"crons"` array (currently
+  4 entries, becomes 5), keeping every existing entry unchanged:
+  ```json
+  { "path": "/api/cron/process-recurring-sessions", "schedule": "0 2 * * *" }
+  ```
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/api/sessions/series/[seriesId]/cancel/route.ts" src/app/api/cron/process-recurring-sessions/route.ts vercel.json && git commit -m "feat: recurring sessions — cancel route, daily top-up cron"`
+
+---
+
+## C-5 — NewSessionModal Repeat dropdown
+
+*Codex edits:*
+- [ ] Replace `src/components/clients/NewSessionModal.tsx` in full:
+  ```typescript
+  'use client'
+
+  import { useState, useEffect } from 'react'
+  import { useRouter } from 'next/navigation'
+  import { createClient } from '@/lib/supabase-browser'
+
+  type Template = { id: string; title: string; position: number }
+  type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
+
+  export default function NewSessionModal({
+    clientId,
+    orgId,
+  }: {
+    clientId: string
+    orgId: string | null
+  }) {
+    const router = useRouter()
+    const supabase = createClient()
+    const [open, setOpen] = useState(false)
+    const [title, setTitle] = useState('')
+    const [scheduledAt, setScheduledAt] = useState('')
+    const [duration, setDuration] = useState(60)
+    const [repeat, setRepeat] = useState<Repeat>('none')
+    const [templates, setTemplates] = useState<Template[]>([])
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+      if (!open) return
+      supabase
+        .from('client_session_templates')
+        .select('id, title, position')
+        .eq('client_id', clientId)
+        .order('position')
+        .then(({ data }) => setTemplates(data ?? []))
+    }, [open, clientId])
+
+    async function handleSubmit(e: React.FormEvent) {
+      e.preventDefault()
+      if (!title.trim() || !scheduledAt) return
+      setSaving(true)
+      setError('')
+
+      if (repeat !== 'none') {
+        const res = await fetch(`/api/clients/${clientId}/sessions/series`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title.trim(),
+            scheduledAt,
+            durationMinutes: duration,
+            recurrenceInterval: repeat,
+          }),
+        })
+        const json = await res.json()
+        setSaving(false)
+        if (!res.ok) { setError(json.error ?? 'Failed to create recurring session.'); return }
+        router.push(`/dashboard/clients/${clientId}/sessions/${json.firstSessionId}`)
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('Not logged in.'); setSaving(false); return }
+
+      const { data: session, error: sessErr } = await supabase
+        .from('sessions')
+        .insert({
+          client_id: clientId,
+          org_id: orgId,
+          created_by: user.id,
+          title: title.trim(),
+          scheduled_at: new Date(scheduledAt).toISOString(),
+          duration_minutes: duration,
+          status: 'scheduled',
+        })
+        .select('id')
+        .single()
+
+      if (sessErr || !session) {
+        setError(sessErr?.message ?? 'Failed to create session.')
+        setSaving(false)
+        return
+      }
+
+      if (templates.length > 0) {
+        await supabase.from('session_todos').insert(
+          templates.map(t => ({
+            session_id: session.id,
+            title: t.title,
+            completed: false,
+            position: t.position,
+          }))
+        )
+      }
+
+      router.push(`/dashboard/clients/${clientId}/sessions/${session.id}`)
+    }
+
+    if (!open) {
+      return (
+        <button
+          onClick={() => setOpen(true)}
+          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
+        >
+          + New session
+        </button>
+      )
+    }
 
     return (
-      <ProgramsDashboardClient
-        programs={(programs ?? []) as Program[]}
-        templates={(templates ?? []) as Program[]}
-        orgId={orgId}
-      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-xl">
+          <h2 className="mb-4 text-lg font-black text-gray-900">New session</h2>
+          {error && <p className="mb-3 text-sm font-semibold text-red-600">{error}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Title</label>
+              <input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="e.g. Weekly check-in"
+                required
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Date &amp; time</label>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={e => setScheduledAt(e.target.value)}
+                required
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Duration (minutes)</label>
+              <input
+                type="number"
+                value={duration}
+                onChange={e => setDuration(Number(e.target.value))}
+                min={5}
+                max={480}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Repeat</label>
+              <select
+                value={repeat}
+                onChange={e => setRepeat(e.target.value as Repeat)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              >
+                <option value="none">Does not repeat</option>
+                <option value="weekly">Weekly</option>
+                <option value="fortnightly">Fortnightly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              {repeat !== 'none' && (
+                <p className="mt-1 text-xs text-gray-400">
+                  Creates this session plus 7 upcoming occurrences, kept topped up automatically.
+                </p>
+              )}
+            </div>
+            {templates.length > 0 && (
+              <p className="rounded-xl bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700">
+                Checklist will be pre-filled from this client&apos;s saved template ({templates.length} items).
+              </p>
+            )}
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+              >
+                {saving ? 'Creating…' : 'Create session'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     )
   }
   ```
-- [x] Replace `src/components/programs/ProgramsDashboardClient.tsx` in full:
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean. "Does not repeat" (default) exercises the exact same
+  code path as before this change.
+- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "feat: recurring sessions — Repeat dropdown in New Session modal"`
+
+---
+
+## C-6 — SessionRecurrence component + session detail wiring
+
+*Codex edits:*
+- [ ] Create `src/components/clients/SessionRecurrence.tsx`:
   ```typescript
   'use client'
 
   import { useState } from 'react'
-  import Link from 'next/link'
   import { useRouter } from 'next/navigation'
-  import { Library, Plus, BookOpen, Copy, X } from 'lucide-react'
-  import ProgramForm from '@/components/programs/ProgramForm'
-  import type { Program } from '@/types/programs'
+  import { Repeat as RepeatIcon, X } from 'lucide-react'
+  import type { SessionSeriesInfo, SessionSeriesInterval } from '@/lib/sessions/series'
 
-  export default function ProgramsDashboardClient({
-    programs,
-    templates,
-    orgId,
-  }: {
-    programs: Program[]
-    templates: Program[]
-    orgId: string | null
-  }) {
-    const router = useRouter()
-    const [tab, setTab] = useState<'programs' | 'templates'>('programs')
-    const [showForm, setShowForm] = useState(false)
-    const [useTemplateTarget, setUseTemplateTarget] = useState<Program | null>(null)
-    const [useTemplateName, setUseTemplateName] = useState('')
-    const [creatingFromTemplate, setCreatingFromTemplate] = useState(false)
-
-    const list = tab === 'programs' ? programs : templates
-
-    function openUseTemplate(e: React.MouseEvent, template: Program) {
-      e.preventDefault()
-      e.stopPropagation()
-      setUseTemplateTarget(template)
-      setUseTemplateName(template.name)
-    }
-
-    async function submitUseTemplate() {
-      if (!useTemplateTarget || !useTemplateName.trim()) return
-      setCreatingFromTemplate(true)
-      const res = await fetch(`/api/programs/${useTemplateTarget.id}/duplicate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: useTemplateName.trim(), is_template: false }),
-      })
-      const json = await res.json()
-      setCreatingFromTemplate(false)
-      if (!res.ok) return
-      setUseTemplateTarget(null)
-      router.push(`/dashboard/programs/${json.id}`)
-      router.refresh()
-    }
-
-    return (
-      <div className="px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="font-['Poppins'] text-2xl font-black tracking-tight text-gray-900 dark:text-white">
-                Programs
-              </h1>
-              <p className="mt-1 text-sm font-medium text-gray-500 dark:text-slate-400">
-                Reusable knowledge containers for your work
-              </p>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 rounded-2xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
-            >
-              <Plus size={16} />
-              {tab === 'programs' ? 'New program' : 'New template'}
-            </button>
-          </div>
-
-          <div className="mb-6 flex w-fit gap-1 rounded-xl bg-gray-100 p-1 dark:bg-slate-800">
-            <button
-              type="button"
-              onClick={() => setTab('programs')}
-              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${tab === 'programs' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}
-            >
-              Programs
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('templates')}
-              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${tab === 'templates' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}
-            >
-              Templates
-            </button>
-          </div>
-
-          {list.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center dark:border-slate-700">
-              <Library size={40} className="mx-auto mb-3 text-gray-300 dark:text-slate-600" />
-              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
-                {tab === 'programs' ? 'No programs yet' : 'No templates yet'}
-              </p>
-              <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-                {tab === 'programs'
-                  ? 'Create your first program to start organising your content.'
-                  : 'Save a program as a template, or create one from scratch.'}
-              </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="mt-4 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
-              >
-                {tab === 'programs' ? 'Create program' : 'Create template'}
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map(p => (
-                <Link
-                  key={p.id}
-                  href={`/dashboard/programs/${p.id}`}
-                  className="group relative rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-colors hover:border-cyan-200 hover:bg-cyan-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-cyan-900 dark:hover:bg-cyan-950/30"
-                >
-                  <div
-                    className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${p.cover_colour}1a`, color: p.cover_colour }}
-                  >
-                    <BookOpen size={20} />
-                  </div>
-                  <p className="font-bold text-gray-900 dark:text-slate-100">{p.name}</p>
-                  {p.description && (
-                    <p className="mt-1 text-sm text-gray-500 line-clamp-2 dark:text-slate-400">{p.description}</p>
-                  )}
-                  <p className="mt-3 text-xs font-medium text-gray-400 dark:text-slate-500">
-                    Created {new Date(p.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </p>
-                  {tab === 'templates' && (
-                    <button
-                      type="button"
-                      onClick={e => openUseTemplate(e, p)}
-                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-600 opacity-0 hover:bg-gray-50 group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                    >
-                      <Copy size={11} />
-                      Use template
-                    </button>
-                  )}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {showForm && (
-          <ProgramForm orgId={orgId} onClose={() => setShowForm(false)} isTemplate={tab === 'templates'} />
-        )}
-
-        {useTemplateTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Create program from template</h2>
-                <button
-                  type="button"
-                  onClick={() => setUseTemplateTarget(null)}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Program name</label>
-              <input
-                autoFocus
-                type="text"
-                value={useTemplateName}
-                onChange={e => setUseTemplateName(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
-              <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setUseTemplateTarget(null)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-300">
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={submitUseTemplate}
-                  disabled={creatingFromTemplate || !useTemplateName.trim()}
-                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
-                >
-                  {creatingFromTemplate ? 'Creating…' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )
+  const INTERVAL_LABEL: Record<SessionSeriesInterval, string> = {
+    weekly: 'Weekly',
+    fortnightly: 'Fortnightly',
+    monthly: 'Monthly',
   }
-  ```
 
-*Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/app/dashboard/programs/page.tsx src/components/programs/ProgramsDashboardClient.tsx && git commit -m "feat: programs phase 3 — Templates tab, New template, Use template"`
-
----
-
-## C-5 — ProgramExplorer: Save as template button
-
-*Codex edits:*
-- [x] Replace `src/components/programs/ProgramExplorer.tsx` in full:
-  ```typescript
-  'use client'
-
-  import { useState, useCallback } from 'react'
-  import Link from 'next/link'
-  import { useRouter } from 'next/navigation'
-  import { ArrowLeft, FolderOpen, Copy, X } from 'lucide-react'
-  import CategoryTree from '@/components/programs/CategoryTree'
-  import AssetGrid from '@/components/programs/AssetGrid'
-  import { buildCategoryTree } from '@/lib/programs/build-tree'
-  import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
-
-  export default function ProgramExplorer({
-    program,
-    categories,
-    assets,
-    canManage,
+  export default function SessionRecurrence({
+    sessionId,
+    series,
   }: {
-    program: Program
-    categories: ProgramCategory[]
-    assets: ProgramAsset[]
-    canManage: boolean
+    sessionId: string
+    series: SessionSeriesInfo | null
   }) {
     const router = useRouter()
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
-    const [localCategories, setLocalCategories] = useState<ProgramCategory[]>(categories)
-    const [localAssets, setLocalAssets] = useState<ProgramAsset[]>(assets)
-    const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-    const [templateName, setTemplateName] = useState(`${program.name} template`)
-    const [savingTemplate, setSavingTemplate] = useState(false)
+    const [showPicker, setShowPicker] = useState(false)
+    const [selectedInterval, setSelectedInterval] = useState<SessionSeriesInterval>('weekly')
+    const [saving, setSaving] = useState(false)
+    const [stopping, setStopping] = useState(false)
 
-    const tree = buildCategoryTree(localCategories)
-
-    const visibleAssets =
-      selectedCategoryId === null
-        ? localAssets
-        : localAssets.filter(a => a.category_id === selectedCategoryId)
-
-    const handleCategoryAdded = useCallback((cat: ProgramCategory) => {
-      setLocalCategories(prev => [...prev, cat])
-    }, [])
-
-    const handleCategoryDeleted = useCallback((id: string) => {
-      setLocalCategories(prev => prev.filter(c => c.id !== id))
-      setLocalAssets(prev => prev.map(a => a.category_id === id ? { ...a, category_id: null } : a))
-      setSelectedCategoryId(prev => prev === id ? null : prev)
-    }, [])
-
-    const handleAssetAdded = useCallback((asset: ProgramAsset) => {
-      setLocalAssets(prev => [asset, ...prev])
-    }, [])
-
-    const handleAssetDeleted = useCallback((assetId: string) => {
-      setLocalAssets(prev => prev.filter(a => a.id !== assetId))
-    }, [])
-
-    const handleAssetUpdated = useCallback((asset: ProgramAsset) => {
-      setLocalAssets(prev => prev.map(a => a.id === asset.id ? asset : a))
-    }, [])
-
-    async function submitSaveTemplate() {
-      if (!templateName.trim()) return
-      setSavingTemplate(true)
-      const res = await fetch(`/api/programs/${program.id}/duplicate`, {
+    async function makeRecurring() {
+      setSaving(true)
+      const res = await fetch(`/api/sessions/${sessionId}/series`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: templateName.trim(), is_template: true }),
+        body: JSON.stringify({ recurrenceInterval: selectedInterval }),
       })
-      const json = await res.json()
-      setSavingTemplate(false)
+      setSaving(false)
       if (!res.ok) return
-      setShowSaveTemplate(false)
-      router.push(`/dashboard/programs/${json.id}`)
+      setShowPicker(false)
       router.refresh()
     }
 
+    async function stopRecurring() {
+      if (!series) return
+      setStopping(true)
+      await fetch(`/api/sessions/series/${series.id}/cancel`, { method: 'POST' })
+      setStopping(false)
+      router.refresh()
+    }
+
+    if (series?.is_active) {
+      return (
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700 dark:text-slate-300">
+            <RepeatIcon size={12} />
+            Recurring: {INTERVAL_LABEL[series.recurrence_interval]}
+          </span>
+          <button
+            type="button"
+            onClick={stopRecurring}
+            disabled={stopping}
+            className="text-xs font-semibold text-red-500 hover:underline disabled:opacity-50"
+          >
+            {stopping ? 'Stopping…' : 'Stop recurring'}
+          </button>
+        </div>
+      )
+    }
+
+    if (series && !series.is_active) {
+      return null
+    }
+
     return (
-      <div className="flex h-[calc(100vh-64px)] flex-col">
-        <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/programs"
-              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
-            >
-              <ArrowLeft size={14} />
-              Programs
-            </Link>
-            <span className="text-gray-300 dark:text-slate-700">/</span>
-            <div className="flex items-center gap-2">
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-lg text-white"
-                style={{ backgroundColor: program.cover_colour }}
-              >
-                <FolderOpen size={12} />
-              </span>
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{program.name}</span>
-            </div>
-          </div>
-          {canManage && !program.is_template && (
-            <button
-              type="button"
-              onClick={() => setShowSaveTemplate(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-            >
-              <Copy size={12} />
-              Save as template
-            </button>
-          )}
-        </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+        >
+          <RepeatIcon size={12} />
+          Make recurring
+        </button>
 
-        <div className="flex flex-1 overflow-hidden">
-          <aside className="w-56 shrink-0 overflow-y-auto border-r border-gray-100 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-900">
-            <CategoryTree
-              programId={program.id}
-              tree={tree}
-              selectedId={selectedCategoryId}
-              onSelect={setSelectedCategoryId}
-              canManage={canManage}
-              onCategoryAdded={handleCategoryAdded}
-              onCategoryDeleted={handleCategoryDeleted}
-            />
-          </aside>
-
-          <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50 dark:bg-slate-950">
-            <AssetGrid
-              programId={program.id}
-              assets={visibleAssets}
-              selectedCategoryId={selectedCategoryId}
-              canManage={canManage}
-              onAssetAdded={handleAssetAdded}
-              onAssetDeleted={handleAssetDeleted}
-              onAssetUpdated={handleAssetUpdated}
-            />
-          </main>
-        </div>
-
-        {showSaveTemplate && (
+        {showPicker && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Save as template</h2>
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Make recurring</h2>
                 <button
                   type="button"
-                  onClick={() => setShowSaveTemplate(false)}
+                  onClick={() => setShowPicker(false)}
                   className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
                 >
                   <X size={16} />
                 </button>
               </div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Template name</label>
-              <input
-                autoFocus
-                type="text"
-                value={templateName}
-                onChange={e => setTemplateName(e.target.value)}
+              <label className="mb-1 block text-xs font-medium text-gray-500">Repeat</label>
+              <select
+                value={selectedInterval}
+                onChange={e => setSelectedInterval(e.target.value as SessionSeriesInterval)}
                 className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
+              >
+                <option value="weekly">Weekly</option>
+                <option value="fortnightly">Fortnightly</option>
+                <option value="monthly">Monthly</option>
+              </select>
               <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
-                Copies the category structure and note/link content only — uploaded files aren't included.
+                Generates 7 upcoming occurrences on top of this session, kept topped up automatically.
               </p>
               <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setShowSaveTemplate(false)}
+                <button type="button" onClick={() => setShowPicker(false)}
                   className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-300">
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={submitSaveTemplate}
-                  disabled={savingTemplate || !templateName.trim()}
+                  onClick={makeRecurring}
+                  disabled={saving}
                   className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
                 >
-                  {savingTemplate ? 'Saving…' : 'Save template'}
+                  {saving ? 'Saving…' : 'Make recurring'}
                 </button>
               </div>
             </div>
@@ -696,42 +756,70 @@ Program — in either direction (program → template, or template → program).
     )
   }
   ```
+- [ ] Edit `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` — read it first, then:
+  1. Add `series_id` to the `sessions` select string (right after `program_id`):
+     `.select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, series_id, session_todos(id, title, completed, position)')`
+  2. Add the import: `import type { SessionSeriesInfo } from '@/lib/sessions/series'`
+  3. After the existing `linkedProgram` block (before the final `return`), add:
+     ```typescript
+     let series: SessionSeriesInfo | null = null
+     if (session.series_id) {
+       const { data: seriesRow } = await supabase
+         .from('session_series')
+         .select('id, recurrence_interval, is_active')
+         .eq('id', session.series_id)
+         .maybeSingle()
+       series = seriesRow as SessionSeriesInfo | null
+     }
+     ```
+  4. Pass it down: add `series={series}` inside the `<SessionDetailClient ... />` props,
+     alongside `linkedProgram={linkedProgram}`.
+- [ ] Edit `src/components/clients/SessionDetailClient.tsx` — read it first, then:
+  1. Add the imports:
+     ```typescript
+     import SessionRecurrence from '@/components/clients/SessionRecurrence'
+     import type { SessionSeriesInfo } from '@/lib/sessions/series'
+     ```
+  2. Add `series` to the destructured props and type signature (alongside `linkedProgram`):
+     `linkedProgram: LinkedProgramBundle | null` becomes followed by
+     `series: SessionSeriesInfo | null`, and add `series,` to the destructured parameter list.
+  3. In the header's `<div className="flex flex-wrap items-center gap-2">` block, insert
+     `<SessionRecurrence sessionId={initial.id} series={series} />` directly after the existing
+     `<SessionProgramLink ... />` line and before the status badge span.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/programs/ProgramExplorer.tsx && git commit -m "feat: programs phase 3 — Save as template button in explorer"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/clients/SessionRecurrence.tsx "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: recurring sessions — SessionRecurrence control on session detail page"`
 
 ---
 
-## C-6 — Manual end-to-end verification
+## C-7 — Manual end-to-end verification
 
 *Conductor + user:*
-- [x] `pnpm run build` — final clean check after all tasks.
-- [x] Manual browser smoke test (no test runner):
-  1. Open `/dashboard/programs`. Confirm a "Programs" / "Templates" tab toggle appears.
-  2. Switch to "Templates" — empty initially, button reads "New template".
-  3. Open an existing program with a mix of categories, note/link assets, and at least one
-     file-type asset.
-  4. Click "Save as template" in the explorer header, confirm/edit the name, save.
-  5. Confirm the new template's explorer shows matching categories and note/link assets, with
-     file-type assets absent.
-  6. Go to Templates tab — the new template is listed.
-  7. Hover the template card, click "Use template", name it, create.
-  8. Confirm a new, independent program is created with the same structure, appearing under
-     "Programs" (not "Templates").
-  9. Edit something in the new program and confirm the original template is unaffected.
-- [x] Report pass/fail; fix inline if something's off before finishing.
+- [ ] `pnpm run build` — final clean check after all tasks.
+- [ ] Manual browser smoke test (no test runner):
+  1. New session with Repeat=Weekly → lands on new session's detail page showing
+     "Recurring: Weekly" + "Stop recurring" (not "Make recurring").
+  2. Client's Sessions list shows 8 occurrences, a week apart, starting from the chosen date.
+  3. Open a plain existing session, "Make recurring" → Fortnightly → confirm badge + 7 more
+     future occurrences two weeks apart.
+  4. "Stop recurring" on one series → badge disappears, not-yet-happened occurrences for that
+     series are gone from the Sessions list; the session it was stopped from still exists.
+  5. A completed session is never deleted by a cancel action.
+  6. If a client checklist template exists, new recurring occurrences have it pre-filled.
+- [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `programs.is_template` column exists, migration file committed
-- [x] C-2: duplicate endpoint clones category tree + note/link assets; GET/POST extended
-- [x] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
-- [x] C-4: Templates tab, New template, Use template all work
-- [x] C-5: Save as template button works from the explorer
-- [x] C-6: full manual smoke test passes
+- [x] C-1: `session_series` table + `sessions.series_id` exist, migration committed
+- [ ] C-2: shared generation module compiles clean
+- [ ] C-3: both create-series routes work (new session, and converting an existing one)
+- [ ] C-4: cancel route + cron + vercel.json entry all in place
+- [ ] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
+- [ ] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
+- [ ] C-7: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
-smoke test required for C-6 (no test runner in this project).
+smoke test required for C-7 (no test runner in this project).
