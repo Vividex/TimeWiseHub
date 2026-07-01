@@ -212,7 +212,7 @@ from a read-only slide-over drawer on the session detail page.
 ## C-4 — LinkedProgramDrawer (read-only viewer)
 
 *Codex edits:*
-- [ ] Create `src/components/programs/LinkedProgramDrawer.tsx`:
+- [x] Create `src/components/programs/LinkedProgramDrawer.tsx`:
   ```typescript
   'use client'
 
@@ -299,8 +299,8 @@ from a read-only slide-over drawer on the session detail page.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean (component not yet imported anywhere, checks it compiles standalone).
-- [ ] Commit: `git add src/components/programs/LinkedProgramDrawer.tsx && git commit -m "feat: programs phase 4 — read-only LinkedProgramDrawer"`
+- [x] `pnpm run build` — must pass clean (component not yet imported anywhere, checks it compiles standalone).
+- [x] Commit: `git add src/components/programs/LinkedProgramDrawer.tsx && git commit -m "feat: programs phase 4 — read-only LinkedProgramDrawer"`
 
 ---
 
@@ -485,7 +485,7 @@ from a read-only slide-over drawer on the session detail page.
 - [x] C-1: `sessions.program_id` column exists, migration file committed
 - [x] C-2: `buildCategoryTree` extracted and reused by `ProgramExplorer`, build passes
 - [x] C-3: session detail server page fetches and passes `linkedProgram` bundle
-- [ ] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
+- [x] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
 - [ ] C-5: link/unlink/change control works end-to-end, verified manually in the browser
 
 ## Verification
