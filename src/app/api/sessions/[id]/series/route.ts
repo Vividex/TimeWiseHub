@@ -15,7 +15,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const service = createServiceClient()
   const { data: session } = await service.from('sessions').select('*').eq('id', id).maybeSingle()
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (session.series_id) return NextResponse.json({ error: 'Session already belongs to a series' }, { status: 409 })
+
+  if (session.series_id) {
+    const { data: existingSeries } = await service
+      .from('session_series').select('is_active').eq('id', session.series_id).maybeSingle()
+    if (existingSeries?.is_active) {
+      return NextResponse.json({ error: 'Session already belongs to an active series' }, { status: 409 })
+    }
+  }
 
   const { data: membership } = await service
     .from('organisation_members').select('role')

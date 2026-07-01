@@ -70,10 +70,6 @@ export default function SessionRecurrence({
     )
   }
 
-  if (series && !series.is_active) {
-    return null
-  }
-
   return (
     <div className="flex items-center gap-2">
       <button
