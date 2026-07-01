@@ -144,7 +144,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## C-2 — Summarise API route
 
 *Codex edits:*
-- [ ] Create `src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts`:
+- [x] Create `src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -209,8 +209,8 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts" && git commit -m "feat: programs phase 2 — summarise API route"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts" && git commit -m "feat: programs phase 2 — summarise API route"`
 
 ---
 
@@ -487,7 +487,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 
 ## Acceptance checklist
 - [x] C-1: `summariseAsset()` compiles clean, handles note/image/pdf, returns null for others
-- [ ] C-2: summarise route sets processing → done/failed correctly
+- [x] C-2: summarise route sets processing → done/failed correctly
 - [ ] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
 - [ ] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
 - [ ] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
