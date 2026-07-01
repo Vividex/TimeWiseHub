@@ -796,8 +796,8 @@ at a time.
 ## C-7 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after all tasks.
-- [ ] Manual browser smoke test (no test runner):
+- [x] `pnpm run build` — final clean check after all tasks.
+- [x] Manual browser smoke test (no test runner):
   1. New session with Repeat=Weekly → lands on new session's detail page showing
      "Recurring: Weekly" + "Stop recurring" (not "Make recurring").
   2. Client's Sessions list shows 8 occurrences, a week apart, starting from the chosen date.
@@ -807,7 +807,14 @@ at a time.
      series are gone from the Sessions list; the session it was stopped from still exists.
   5. A completed session is never deleted by a cancel action.
   6. If a client checklist template exists, new recurring occurrences have it pre-filled.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing.
+
+  Two bugs surfaced during testing and were fixed inline:
+  1. "Stop recurring" 404'd because cancelling deleted the currently-viewed session, then
+     `router.refresh()` hit `notFound()`. Fixed: navigate to the client's Sessions list instead.
+  2. Cancel semantics revised: keeps the session "Stop recurring" was clicked from (only deletes
+     the *other* not-yet-happened sessions in the series), per user feedback after seeing the
+     original "delete all scheduled" behavior in practice.
 
 ---
 
@@ -818,7 +825,7 @@ at a time.
 - [x] C-4: cancel route + cron + vercel.json entry all in place
 - [x] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
 - [x] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
-- [ ] C-7: full manual smoke test passes
+- [x] C-7: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
