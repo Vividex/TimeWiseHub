@@ -252,7 +252,7 @@ Program — in either direction (program → template, or template → program).
 ## C-3 — ProgramForm isTemplate support
 
 *Codex edits:*
-- [ ] Edit `src/components/programs/ProgramForm.tsx`:
+- [x] Edit `src/components/programs/ProgramForm.tsx`:
   - Add `isTemplate?: boolean` prop (default `false`) to the component's destructured props and
     type signature.
   - In `handleSubmit`, add `is_template: isTemplate` to the POST body sent to `/api/programs`.
@@ -261,9 +261,9 @@ Program — in either direction (program → template, or template → program).
   - Everything else in the file stays unchanged.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. `isTemplate` defaults to `false`, so existing call
+- [x] `pnpm run build` — must pass clean. `isTemplate` defaults to `false`, so existing call
   sites (which don't pass it) behave exactly as before.
-- [ ] Commit: `git add src/components/programs/ProgramForm.tsx && git commit -m "feat: programs phase 3 — ProgramForm isTemplate support"`
+- [x] Commit: `git add src/components/programs/ProgramForm.tsx && git commit -m "feat: programs phase 3 — ProgramForm isTemplate support"`
 
 ---
 
@@ -727,7 +727,7 @@ Program — in either direction (program → template, or template → program).
 ## Acceptance checklist
 - [x] C-1: `programs.is_template` column exists, migration file committed
 - [x] C-2: duplicate endpoint clones category tree + note/link assets; GET/POST extended
-- [ ] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
+- [x] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
 - [ ] C-4: Templates tab, New template, Use template all work
 - [ ] C-5: Save as template button works from the explorer
 - [ ] C-6: full manual smoke test passes
