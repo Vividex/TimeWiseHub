@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  const isTemplate = url.searchParams.get('is_template') === 'true'
 
   const service = createServiceClient()
   const { data: membership } = await service
@@ -13,18 +16,21 @@ export async function GET() {
     .eq('user_id', user.id).maybeSingle()
   const orgId = membership?.org_id ?? null
 
-  const { data, error } = orgId
-    ? await service.from('programs')
+  const query = orgId
+    ? service.from('programs')
         .select('*')
         .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
         .eq('is_archived', false)
+        .eq('is_template', isTemplate)
         .order('created_at', { ascending: false })
-    : await service.from('programs')
+    : service.from('programs')
         .select('*')
         .eq('owner_id', user.id)
         .eq('is_archived', false)
+        .eq('is_template', isTemplate)
         .order('created_at', { ascending: false })
 
+  const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
@@ -34,7 +40,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, description, cover_colour, icon, org_id } = await req.json()
+  const { name, description, cover_colour, icon, org_id, is_template } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
   const service = createServiceClient()
@@ -55,6 +61,7 @@ export async function POST(req: Request) {
     description: description?.trim() || null,
     cover_colour: cover_colour || '#06b6d4',
     icon: icon || 'library',
+    is_template: !!is_template,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -13,6 +13,7 @@ export type Program = {
   cover_colour: string
   icon: string
   is_archived: boolean
+  is_template: boolean
   created_at: string
   updated_at: string
 }

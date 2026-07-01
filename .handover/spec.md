@@ -1,24 +1,25 @@
-# Programs Phase 4 — Link a Program to a Session
+# Programs Phase 3 — Template Builder
 
 ## Goal
-Let a user attach one Program to a Session, then browse that Program's categories and assets
-from a read-only slide-over drawer on the session detail page.
+Let a user flag a Program as a template, browse templates separately from regular Programs, and
+clone a program's category structure (plus note/link content) into a brand-new, independent
+Program — in either direction (program → template, or template → program).
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-01-programs-phase4-session-link-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-01-programs-phase4-session-link.md`
-- One nullable `program_id` FK on `sessions` (`on delete set null`). No RLS changes — existing
-  `sessions` policies already cover this column.
-- Linking/unlinking uses the direct browser-Supabase-client mutation pattern already used
-  throughout `SessionDetailClient.tsx` (`supabase.from('sessions').update(...)`) — no new API
-  route, and no new client-side role gating (matches the existing file's convention of relying on
-  RLS, same as Delete Session / todo edits today).
-- Programs data (categories/assets/signed URLs) is read server-side via the service client,
-  mirroring `src/app/dashboard/programs/[id]/page.tsx` exactly.
-- Program picker lists only `program.org_id === session.org_id`, filtered client-side from the
-  existing unmodified `GET /api/programs`.
-- The read-only drawer reuses `CategoryTree`/`AssetGrid` unmodified with `canManage={false}` —
-  zero changes to Phase 1 components.
+- Source spec: `docs/superpowers/specs/2026-07-01-programs-phase3-templates-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-01-programs-phase3-templates.md`
+- One boolean column (`programs.is_template`), no new tables. Templates are edited with the
+  exact same `ProgramExplorer` already shipped in Phase 1 — no new authoring UI.
+- One new endpoint `POST /api/programs/[id]/duplicate` powers all three UI entry points
+  (Save as template, Use template, and the New template button indirectly via ProgramForm).
+- Duplicating only requires **view** access to the source (owner or org member) — it creates a
+  new object, doesn't mutate the source.
+- Only `note`/`link` asset types get copied on clone. File-based types (pdf/docx/xlsx/image/audio/
+  video) are never copied — avoids Storage duplication cost and a shared-`storage_path` delete
+  hazard (deleting one copy's row would delete the file out from under the other).
+- `GET /api/programs` gains an optional `?is_template=true` filter; default (no param) stays
+  `false` so every existing caller (dashboard's programs list, Phase 4's session-link picker)
+  is unaffected.
 - Codex handles text edits only; conductor (Claude) runs all shell/build/git and the DB migration
   via Supabase MCP (Windows: Codex's workspace-write sandbox cannot spawn subprocesses).
 - Verification gate: `pnpm run build` (tsc + eslint) after every turn. No test runner.
@@ -32,462 +33,705 @@ from a read-only slide-over drawer on the session detail page.
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
 - C-1 is conductor-only (no Codex dispatch needed) — DB migration via Supabase MCP.
-- C-5 needs a manual browser smoke test (no test runner) before ticking it done.
+- C-6 needs a manual browser smoke test (no test runner) before ticking it done.
 
 ---
 
 ## C-1 — Database migration
 
 *Conductor only (no Codex dispatch):*
-- [x] Create `supabase/schema-073-session-program-link.sql`:
+- [x] Create `supabase/schema-074-program-templates.sql`:
   ```sql
-  alter table public.sessions
-    add column program_id uuid references public.programs(id) on delete set null;
+  alter table public.programs
+    add column is_template boolean not null default false;
   ```
-- [x] Apply via Supabase MCP `apply_migration` (name: `session-program-link`)
+- [x] Apply via Supabase MCP `apply_migration` (name: `program_templates`)
 - [x] Verify via MCP `execute_sql`:
   ```sql
-  select column_name, data_type, is_nullable
+  select column_name, data_type, column_default, is_nullable
   from information_schema.columns
-  where table_schema = 'public' and table_name = 'sessions' and column_name = 'program_id';
+  where table_schema = 'public' and table_name = 'programs' and column_name = 'is_template';
   ```
-  Expected: 1 row, `data_type = uuid`, `is_nullable = YES`.
-- [x] Commit: `git add supabase/schema-073-session-program-link.sql && git commit -m "feat: programs phase 4 — link sessions to a program (DB migration)"`
+  Expected: 1 row, `data_type = boolean`, `column_default = false`, `is_nullable = NO`.
+- [x] Commit: `git add supabase/schema-074-program-templates.sql && git commit -m "feat: programs phase 3 — is_template column (DB migration)"`
 
 ---
 
-## C-2 — Extract shared category-tree builder
+## C-2 — Types + duplicate endpoint + GET/POST extension
 
 *Codex edits:*
-- [x] Create `src/lib/programs/build-tree.ts`:
+- [x] Edit `src/types/programs.ts` — add `is_template: boolean` to the `Program` type:
   ```typescript
-  import type { ProgramCategory, CategoryNode } from '@/types/programs'
-
-  export function buildCategoryTree(categories: ProgramCategory[]): CategoryNode[] {
-    const map = new Map<string, CategoryNode>()
-    categories.forEach(c => map.set(c.id, { ...c, children: [] }))
-    const roots: CategoryNode[] = []
-    categories.forEach(c => {
-      if (c.parent_id) {
-        map.get(c.parent_id)?.children.push(map.get(c.id)!)
-      } else {
-        roots.push(map.get(c.id)!)
-      }
-    })
-    return roots
+  export type Program = {
+    id: string
+    org_id: string | null
+    owner_id: string | null
+    name: string
+    description: string | null
+    cover_colour: string
+    icon: string
+    is_archived: boolean
+    is_template: boolean
+    created_at: string
+    updated_at: string
   }
   ```
-- [x] Edit `src/components/programs/ProgramExplorer.tsx`:
-  - Remove the local `buildTree` function definition.
-  - Add `import { buildCategoryTree } from '@/lib/programs/build-tree'`.
-  - Replace `const tree = buildTree(localCategories)` with `const tree = buildCategoryTree(localCategories)`.
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean (pure refactor, no visual change).
-- [x] Commit: `git add src/lib/programs/build-tree.ts src/components/programs/ProgramExplorer.tsx && git commit -m "refactor: extract buildCategoryTree into shared helper"`
-
----
-
-## C-3 — Fetch linked program data on session detail page
-
-*Codex edits:*
-- [x] Edit `src/types/programs.ts` — append:
+- [x] Replace `src/app/api/programs/route.ts` in full:
   ```typescript
-
-  export type LinkedProgramBundle = {
-    program: Program
-    categories: ProgramCategory[]
-    assets: ProgramAsset[]
-  }
-  ```
-- [x] Replace `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` in full:
-  ```typescript
-  import { redirect, notFound } from 'next/navigation'
+  import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
   import { createServiceClient } from '@/lib/supabase-service'
-  import { createProgramAssetSignedUrl } from '@/lib/program-storage'
-  import SessionDetailClient from '@/components/clients/SessionDetailClient'
-  import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
 
-  export default async function SessionDetailPage({
-    params,
-  }: {
-    params: Promise<{ id: string; sessionId: string }>
-  }) {
-    const { id, sessionId } = await params
+  export async function GET(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const [{ data: session }, { data: client }] = await Promise.all([
-      supabase
-        .from('sessions')
-        .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, session_todos(id, title, completed, position)')
-        .eq('id', sessionId)
-        .maybeSingle(),
-      supabase
-        .from('clients')
-        .select('id, name')
-        .eq('id', id)
-        .maybeSingle(),
+    const url = new URL(req.url)
+    const isTemplate = url.searchParams.get('is_template') === 'true'
+
+    const service = createServiceClient()
+    const { data: membership } = await service
+      .from('organisation_members').select('org_id')
+      .eq('user_id', user.id).maybeSingle()
+    const orgId = membership?.org_id ?? null
+
+    const query = orgId
+      ? service.from('programs')
+          .select('*')
+          .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
+          .eq('is_archived', false)
+          .eq('is_template', isTemplate)
+          .order('created_at', { ascending: false })
+      : service.from('programs')
+          .select('*')
+          .eq('owner_id', user.id)
+          .eq('is_archived', false)
+          .eq('is_template', isTemplate)
+          .order('created_at', { ascending: false })
+
+    const { data, error } = await query
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
+  }
+
+  export async function POST(req: Request) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { name, description, cover_colour, icon, org_id, is_template } = await req.json()
+    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+
+    const service = createServiceClient()
+
+    if (org_id) {
+      const { data: membership } = await service
+        .from('organisation_members').select('role')
+        .eq('user_id', user.id).eq('org_id', org_id).maybeSingle()
+      if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
+    const { data, error } = await service.from('programs').insert({
+      owner_id: user.id,
+      org_id: org_id ?? null,
+      name: name.trim(),
+      description: description?.trim() || null,
+      cover_colour: cover_colour || '#06b6d4',
+      icon: icon || 'library',
+      is_template: !!is_template,
+    }).select().single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
+  }
+  ```
+- [x] Create `src/app/api/programs/[id]/duplicate/route.ts`:
+  ```typescript
+  import { NextResponse } from 'next/server'
+  import { createClient } from '@/lib/supabase-server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { buildCategoryTree } from '@/lib/programs/build-tree'
+  import type { CategoryNode, ProgramCategory } from '@/types/programs'
+
+  export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { name, is_template } = await req.json()
+    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+
+    const service = createServiceClient()
+    const { data: source } = await service.from('programs').select('*').eq('id', id).maybeSingle()
+    if (!source) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    const { data: membership } = await service
+      .from('organisation_members').select('role')
+      .eq('user_id', user.id).eq('org_id', source.org_id ?? '').maybeSingle()
+    const isOwner = source.owner_id === user.id
+    const isMember = !!membership
+    if (!isOwner && !isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { data: newProgram, error: programError } = await service.from('programs').insert({
+      owner_id: user.id,
+      org_id: source.org_id,
+      name: name.trim(),
+      description: source.description,
+      cover_colour: source.cover_colour,
+      icon: source.icon,
+      is_template: !!is_template,
+      is_archived: false,
+    }).select().single()
+
+    if (programError || !newProgram) {
+      return NextResponse.json({ error: programError?.message ?? 'Failed to create program' }, { status: 500 })
+    }
+
+    const [{ data: sourceCategories }, { data: sourceAssets }] = await Promise.all([
+      service.from('program_categories').select('*')
+        .eq('program_id', id).order('sort_order').order('created_at'),
+      service.from('program_assets').select('*')
+        .eq('program_id', id).in('asset_type', ['note', 'link']),
     ])
 
-    if (!session || !client) notFound()
+    const tree = buildCategoryTree((sourceCategories ?? []) as ProgramCategory[])
+    const idMap = new Map<string, string>()
 
-    const todos = (session.session_todos as { id: string; title: string; completed: boolean; position: number }[])
-      .slice()
-      .sort((a, b) => a.position - b.position)
+    async function insertLevel(nodes: CategoryNode[], newParentId: string | null) {
+      for (const node of nodes) {
+        const { data: inserted } = await service.from('program_categories').insert({
+          program_id: newProgram.id,
+          parent_id: newParentId,
+          name: node.name,
+          description: node.description,
+          colour: node.colour,
+          icon: node.icon,
+          sort_order: node.sort_order,
+        }).select('id').single()
 
-    let linkedProgram: LinkedProgramBundle | null = null
-
-    if (session.program_id) {
-      const service = createServiceClient()
-      const { data: program } = await service
-        .from('programs').select('*').eq('id', session.program_id).maybeSingle()
-
-      if (program) {
-        const { data: membership } = await service
-          .from('organisation_members').select('role')
-          .eq('user_id', user.id).eq('org_id', program.org_id ?? '').maybeSingle()
-        const isOwner = program.owner_id === user.id
-        const isMember = !!membership
-
-        if (isOwner || isMember) {
-          const [{ data: categories }, { data: assets }] = await Promise.all([
-            service.from('program_categories').select('*')
-              .eq('program_id', program.id).order('sort_order').order('created_at'),
-            service.from('program_assets').select('*')
-              .eq('program_id', program.id).order('sort_order').order('created_at'),
-          ])
-
-          const assetsWithUrls: ProgramAsset[] = await Promise.all(
-            (assets ?? []).map(async asset => {
-              if (asset.storage_path) {
-                const signed_url = await createProgramAssetSignedUrl(asset.storage_path)
-                return { ...asset, signed_url }
-              }
-              return { ...asset, signed_url: null }
-            }),
-          )
-
-          linkedProgram = {
-            program: program as Program,
-            categories: categories ?? [],
-            assets: assetsWithUrls,
-          }
+        if (inserted) {
+          idMap.set(node.id, inserted.id)
+          await insertLevel(node.children, inserted.id)
         }
       }
     }
 
+    await insertLevel(tree, null)
+
+    const assetsToCopy = (sourceAssets ?? []).map(a => ({
+      program_id: newProgram.id,
+      category_id: a.category_id ? idMap.get(a.category_id) ?? null : null,
+      owner_id: user.id,
+      name: a.name,
+      description: a.description,
+      asset_type: a.asset_type,
+      note_content: a.note_content,
+      external_url: a.external_url,
+      sort_order: a.sort_order,
+      ai_status: 'skipped',
+    }))
+
+    if (assetsToCopy.length > 0) {
+      await service.from('program_assets').insert(assetsToCopy)
+    }
+
+    return NextResponse.json(newProgram)
+  }
+  ```
+
+*Conductor:*
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/programs.ts src/app/api/programs/route.ts "src/app/api/programs/[id]/duplicate/route.ts" && git commit -m "feat: programs phase 3 — duplicate endpoint and is_template filter"`
+
+---
+
+## C-3 — ProgramForm isTemplate support
+
+*Codex edits:*
+- [ ] Edit `src/components/programs/ProgramForm.tsx`:
+  - Add `isTemplate?: boolean` prop (default `false`) to the component's destructured props and
+    type signature.
+  - In `handleSubmit`, add `is_template: isTemplate` to the POST body sent to `/api/programs`.
+  - Change the modal title `<h2>` text to `{isTemplate ? 'New template' : 'New program'}`.
+  - Change the submit button text to `{saving ? 'Creating…' : isTemplate ? 'Create template' : 'Create program'}`.
+  - Everything else in the file stays unchanged.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean. `isTemplate` defaults to `false`, so existing call
+  sites (which don't pass it) behave exactly as before.
+- [ ] Commit: `git add src/components/programs/ProgramForm.tsx && git commit -m "feat: programs phase 3 — ProgramForm isTemplate support"`
+
+---
+
+## C-4 — Programs dashboard: Templates tab, New template, Use template
+
+*Codex edits:*
+- [ ] Replace `src/app/dashboard/programs/page.tsx` in full:
+  ```typescript
+  import { redirect } from 'next/navigation'
+  import { createClient } from '@/lib/supabase-server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import ProgramsDashboardClient from '@/components/programs/ProgramsDashboardClient'
+  import type { Program } from '@/types/programs'
+
+  export default async function ProgramsPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
+
+    const service = createServiceClient()
+    const { data: membership } = await service
+      .from('organisation_members').select('org_id')
+      .eq('user_id', user.id).maybeSingle()
+    const orgId = membership?.org_id ?? null
+
+    const baseQuery = (isTemplate: boolean) =>
+      orgId
+        ? service.from('programs').select('*')
+            .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
+            .eq('is_archived', false).eq('is_template', isTemplate)
+            .order('created_at', { ascending: false })
+        : service.from('programs').select('*')
+            .eq('owner_id', user.id).eq('is_archived', false).eq('is_template', isTemplate)
+            .order('created_at', { ascending: false })
+
+    const [{ data: programs }, { data: templates }] = await Promise.all([
+      baseQuery(false),
+      baseQuery(true),
+    ])
+
     return (
-      <SessionDetailClient
-        session={{
-          id: session.id,
-          title: session.title,
-          scheduledAt: session.scheduled_at,
-          durationMinutes: session.duration_minutes,
-          notes: session.notes ?? '',
-          status: session.status as 'scheduled' | 'in_progress' | 'completed',
-        }}
-        todos={todos}
-        clientId={id}
-        clientName={client.name}
-        orgId={session.org_id}
-        linkedProgram={linkedProgram}
+      <ProgramsDashboardClient
+        programs={(programs ?? []) as Program[]}
+        templates={(templates ?? []) as Program[]}
+        orgId={orgId}
       />
     )
   }
   ```
-- [x] Edit `src/components/clients/SessionDetailClient.tsx` — thread the new prop through (no UI change yet):
-  - Add `import type { LinkedProgramBundle } from '@/types/programs'`.
-  - In the component's destructured props and type signature, add `linkedProgram,` and
-    `linkedProgram: LinkedProgramBundle | null` respectively (alongside the existing `orgId`).
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean. No visible UI change yet (prop is unused until C-5).
-- [x] Commit: `git add src/types/programs.ts src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — fetch linked program data on session detail page"`
-
----
-
-## C-4 — LinkedProgramDrawer (read-only viewer)
-
-*Codex edits:*
-- [x] Create `src/components/programs/LinkedProgramDrawer.tsx`:
+- [ ] Replace `src/components/programs/ProgramsDashboardClient.tsx` in full:
   ```typescript
   'use client'
 
   import { useState } from 'react'
-  import { X, FolderOpen } from 'lucide-react'
-  import CategoryTree from '@/components/programs/CategoryTree'
-  import AssetGrid from '@/components/programs/AssetGrid'
-  import { buildCategoryTree } from '@/lib/programs/build-tree'
-  import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
-
-  const NOOP_CATEGORY = () => {}
-  const NOOP_ASSET = () => {}
-
-  export default function LinkedProgramDrawer({
-    program,
-    categories,
-    assets,
-    onClose,
-  }: {
-    program: Program
-    categories: ProgramCategory[]
-    assets: ProgramAsset[]
-    onClose: () => void
-  }) {
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
-
-    const tree = buildCategoryTree(categories)
-    const visibleAssets =
-      selectedCategoryId === null
-        ? assets
-        : assets.filter(a => a.category_id === selectedCategoryId)
-
-    return (
-      <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
-        <div className="flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <span
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-white"
-                style={{ backgroundColor: program.cover_colour }}
-              >
-                <FolderOpen size={14} />
-              </span>
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{program.name}</span>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="flex flex-1 overflow-hidden">
-            <aside className="w-56 shrink-0 overflow-y-auto border-r border-gray-100 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-900">
-              <CategoryTree
-                programId={program.id}
-                tree={tree}
-                selectedId={selectedCategoryId}
-                onSelect={setSelectedCategoryId}
-                canManage={false}
-                onCategoryAdded={NOOP_CATEGORY}
-                onCategoryDeleted={NOOP_CATEGORY}
-              />
-            </aside>
-
-            <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50 dark:bg-slate-950">
-              <AssetGrid
-                programId={program.id}
-                assets={visibleAssets}
-                selectedCategoryId={selectedCategoryId}
-                canManage={false}
-                onAssetAdded={NOOP_ASSET}
-                onAssetDeleted={NOOP_ASSET}
-                onAssetUpdated={NOOP_ASSET}
-              />
-            </main>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  ```
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean (component not yet imported anywhere, checks it compiles standalone).
-- [x] Commit: `git add src/components/programs/LinkedProgramDrawer.tsx && git commit -m "feat: programs phase 4 — read-only LinkedProgramDrawer"`
-
----
-
-## C-5 — SessionProgramLink (picker, link/unlink, drawer trigger)
-
-*Codex edits:*
-- [x] Create `src/components/clients/SessionProgramLink.tsx`:
-  ```typescript
-  'use client'
-
-  import { useState } from 'react'
+  import Link from 'next/link'
   import { useRouter } from 'next/navigation'
-  import { Library, Eye, X } from 'lucide-react'
-  import { createClient } from '@/lib/supabase-browser'
-  import LinkedProgramDrawer from '@/components/programs/LinkedProgramDrawer'
-  import type { LinkedProgramBundle, Program } from '@/types/programs'
+  import { Library, Plus, BookOpen, Copy, X } from 'lucide-react'
+  import ProgramForm from '@/components/programs/ProgramForm'
+  import type { Program } from '@/types/programs'
 
-  export default function SessionProgramLink({
-    sessionId,
+  export default function ProgramsDashboardClient({
+    programs,
+    templates,
     orgId,
-    linkedProgram,
   }: {
-    sessionId: string
+    programs: Program[]
+    templates: Program[]
     orgId: string | null
-    linkedProgram: LinkedProgramBundle | null
   }) {
     const router = useRouter()
-    const supabase = createClient()
-    const [showPicker, setShowPicker] = useState(false)
-    const [showDrawer, setShowDrawer] = useState(false)
-    const [options, setOptions] = useState<Program[] | null>(null)
-    const [loadingOptions, setLoadingOptions] = useState(false)
-    const [linking, setLinking] = useState(false)
+    const [tab, setTab] = useState<'programs' | 'templates'>('programs')
+    const [showForm, setShowForm] = useState(false)
+    const [useTemplateTarget, setUseTemplateTarget] = useState<Program | null>(null)
+    const [useTemplateName, setUseTemplateName] = useState('')
+    const [creatingFromTemplate, setCreatingFromTemplate] = useState(false)
 
-    async function openPicker() {
-      setShowPicker(true)
-      if (options !== null) return
-      setLoadingOptions(true)
-      const res = await fetch('/api/programs')
-      const all: Program[] = res.ok ? await res.json() : []
-      setOptions(all.filter(p => p.org_id === orgId))
-      setLoadingOptions(false)
+    const list = tab === 'programs' ? programs : templates
+
+    function openUseTemplate(e: React.MouseEvent, template: Program) {
+      e.preventDefault()
+      e.stopPropagation()
+      setUseTemplateTarget(template)
+      setUseTemplateName(template.name)
     }
 
-    async function linkProgram(programId: string) {
-      setLinking(true)
-      await supabase.from('sessions').update({ program_id: programId }).eq('id', sessionId)
-      setLinking(false)
-      setShowPicker(false)
-      router.refresh()
-    }
-
-    async function unlinkProgram() {
-      await supabase.from('sessions').update({ program_id: null }).eq('id', sessionId)
+    async function submitUseTemplate() {
+      if (!useTemplateTarget || !useTemplateName.trim()) return
+      setCreatingFromTemplate(true)
+      const res = await fetch(`/api/programs/${useTemplateTarget.id}/duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: useTemplateName.trim(), is_template: false }),
+      })
+      const json = await res.json()
+      setCreatingFromTemplate(false)
+      if (!res.ok) return
+      setUseTemplateTarget(null)
+      router.push(`/dashboard/programs/${json.id}`)
       router.refresh()
     }
 
     return (
-      <div className="flex items-center gap-2">
-        {linkedProgram ? (
-          <>
-            <span
-              className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700 dark:text-slate-300"
+      <div className="px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="font-['Poppins'] text-2xl font-black tracking-tight text-gray-900 dark:text-white">
+                Programs
+              </h1>
+              <p className="mt-1 text-sm font-medium text-gray-500 dark:text-slate-400">
+                Reusable knowledge containers for your work
+              </p>
+            </div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 rounded-2xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
             >
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: linkedProgram.program.cover_colour }}
-              />
-              {linkedProgram.program.name}
-            </span>
+              <Plus size={16} />
+              {tab === 'programs' ? 'New program' : 'New template'}
+            </button>
+          </div>
+
+          <div className="mb-6 flex w-fit gap-1 rounded-xl bg-gray-100 p-1 dark:bg-slate-800">
             <button
               type="button"
-              onClick={() => setShowDrawer(true)}
-              className="flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+              onClick={() => setTab('programs')}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${tab === 'programs' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}
             >
-              <Eye size={12} />
-              View
+              Programs
             </button>
             <button
               type="button"
-              onClick={openPicker}
-              className="text-xs font-semibold text-cyan-600 hover:underline"
+              onClick={() => setTab('templates')}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${tab === 'templates' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}
             >
-              Change
+              Templates
             </button>
-            <button
-              type="button"
-              onClick={unlinkProgram}
-              className="text-xs font-semibold text-red-500 hover:underline"
-            >
-              Unlink
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={openPicker}
-            className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-          >
-            <Library size={12} />
-            Link program
-          </button>
+          </div>
+
+          {list.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center dark:border-slate-700">
+              <Library size={40} className="mx-auto mb-3 text-gray-300 dark:text-slate-600" />
+              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
+                {tab === 'programs' ? 'No programs yet' : 'No templates yet'}
+              </p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                {tab === 'programs'
+                  ? 'Create your first program to start organising your content.'
+                  : 'Save a program as a template, or create one from scratch.'}
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-4 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
+              >
+                {tab === 'programs' ? 'Create program' : 'Create template'}
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map(p => (
+                <Link
+                  key={p.id}
+                  href={`/dashboard/programs/${p.id}`}
+                  className="group relative rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-colors hover:border-cyan-200 hover:bg-cyan-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-cyan-900 dark:hover:bg-cyan-950/30"
+                >
+                  <div
+                    className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: `${p.cover_colour}1a`, color: p.cover_colour }}
+                  >
+                    <BookOpen size={20} />
+                  </div>
+                  <p className="font-bold text-gray-900 dark:text-slate-100">{p.name}</p>
+                  {p.description && (
+                    <p className="mt-1 text-sm text-gray-500 line-clamp-2 dark:text-slate-400">{p.description}</p>
+                  )}
+                  <p className="mt-3 text-xs font-medium text-gray-400 dark:text-slate-500">
+                    Created {new Date(p.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  {tab === 'templates' && (
+                    <button
+                      type="button"
+                      onClick={e => openUseTemplate(e, p)}
+                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-600 opacity-0 hover:bg-gray-50 group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    >
+                      <Copy size={11} />
+                      Use template
+                    </button>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {showForm && (
+          <ProgramForm orgId={orgId} onClose={() => setShowForm(false)} isTemplate={tab === 'templates'} />
         )}
 
-        {showPicker && (
+        {useTemplateTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Link a program</h2>
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Create program from template</h2>
                 <button
                   type="button"
-                  onClick={() => setShowPicker(false)}
+                  onClick={() => setUseTemplateTarget(null)}
                   className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
                 >
                   <X size={16} />
                 </button>
               </div>
-
-              {loadingOptions && (
-                <p className="py-6 text-center text-sm text-gray-400 dark:text-slate-500">Loading…</p>
-              )}
-
-              {!loadingOptions && options !== null && options.length === 0 && (
-                <p className="py-6 text-center text-sm text-gray-400 dark:text-slate-500">
-                  No programs available for this organisation yet.
-                </p>
-              )}
-
-              {!loadingOptions && options !== null && options.length > 0 && (
-                <div className="max-h-80 space-y-1 overflow-y-auto">
-                  {options.map(p => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      disabled={linking}
-                      onClick={() => linkProgram(p.id)}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: p.cover_colour }} />
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <label className="mb-1 block text-xs font-medium text-gray-500">Program name</label>
+              <input
+                autoFocus
+                type="text"
+                value={useTemplateName}
+                onChange={e => setUseTemplateName(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              <div className="mt-4 flex justify-end gap-2">
+                <button type="button" onClick={() => setUseTemplateTarget(null)}
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitUseTemplate}
+                  disabled={creatingFromTemplate || !useTemplateName.trim()}
+                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
+                >
+                  {creatingFromTemplate ? 'Creating…' : 'Create'}
+                </button>
+              </div>
             </div>
           </div>
-        )}
-
-        {showDrawer && linkedProgram && (
-          <LinkedProgramDrawer
-            program={linkedProgram.program}
-            categories={linkedProgram.categories}
-            assets={linkedProgram.assets}
-            onClose={() => setShowDrawer(false)}
-          />
         )}
       </div>
     )
   }
   ```
-- [x] Edit `src/components/clients/SessionDetailClient.tsx`:
-  - Add `import SessionProgramLink from '@/components/clients/SessionProgramLink'`.
-  - Inside the header's `<div className="flex flex-wrap items-center gap-2">` (the one wrapping the
-    status badge, "Mark as..." button, and delete controls), insert
-    `<SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />`
-    as the FIRST child, directly before the `<span className={...STATUS_STYLE...}>` status badge.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Manual browser smoke test (no test runner):
-  1. Open a session detail page for an org with at least one program.
-  2. "Link program" → picker opens, org-scoped programs only.
-  3. Pick one → badge + View/Change/Unlink controls appear.
-  4. "View" → drawer slides in, shows categories/assets, zero edit/upload/delete controls.
-  5. Click a category → asset grid filters.
-  6. "Unlink" → badge disappears, "Link program" returns.
-- [x] Commit: `git add src/components/clients/SessionProgramLink.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — link/unlink program control and reference drawer on session page"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/dashboard/programs/page.tsx src/components/programs/ProgramsDashboardClient.tsx && git commit -m "feat: programs phase 3 — Templates tab, New template, Use template"`
+
+---
+
+## C-5 — ProgramExplorer: Save as template button
+
+*Codex edits:*
+- [ ] Replace `src/components/programs/ProgramExplorer.tsx` in full:
+  ```typescript
+  'use client'
+
+  import { useState, useCallback } from 'react'
+  import Link from 'next/link'
+  import { useRouter } from 'next/navigation'
+  import { ArrowLeft, FolderOpen, Copy, X } from 'lucide-react'
+  import CategoryTree from '@/components/programs/CategoryTree'
+  import AssetGrid from '@/components/programs/AssetGrid'
+  import { buildCategoryTree } from '@/lib/programs/build-tree'
+  import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
+
+  export default function ProgramExplorer({
+    program,
+    categories,
+    assets,
+    canManage,
+  }: {
+    program: Program
+    categories: ProgramCategory[]
+    assets: ProgramAsset[]
+    canManage: boolean
+  }) {
+    const router = useRouter()
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+    const [localCategories, setLocalCategories] = useState<ProgramCategory[]>(categories)
+    const [localAssets, setLocalAssets] = useState<ProgramAsset[]>(assets)
+    const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+    const [templateName, setTemplateName] = useState(`${program.name} template`)
+    const [savingTemplate, setSavingTemplate] = useState(false)
+
+    const tree = buildCategoryTree(localCategories)
+
+    const visibleAssets =
+      selectedCategoryId === null
+        ? localAssets
+        : localAssets.filter(a => a.category_id === selectedCategoryId)
+
+    const handleCategoryAdded = useCallback((cat: ProgramCategory) => {
+      setLocalCategories(prev => [...prev, cat])
+    }, [])
+
+    const handleCategoryDeleted = useCallback((id: string) => {
+      setLocalCategories(prev => prev.filter(c => c.id !== id))
+      setLocalAssets(prev => prev.map(a => a.category_id === id ? { ...a, category_id: null } : a))
+      setSelectedCategoryId(prev => prev === id ? null : prev)
+    }, [])
+
+    const handleAssetAdded = useCallback((asset: ProgramAsset) => {
+      setLocalAssets(prev => [asset, ...prev])
+    }, [])
+
+    const handleAssetDeleted = useCallback((assetId: string) => {
+      setLocalAssets(prev => prev.filter(a => a.id !== assetId))
+    }, [])
+
+    const handleAssetUpdated = useCallback((asset: ProgramAsset) => {
+      setLocalAssets(prev => prev.map(a => a.id === asset.id ? asset : a))
+    }, [])
+
+    async function submitSaveTemplate() {
+      if (!templateName.trim()) return
+      setSavingTemplate(true)
+      const res = await fetch(`/api/programs/${program.id}/duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: templateName.trim(), is_template: true }),
+      })
+      const json = await res.json()
+      setSavingTemplate(false)
+      if (!res.ok) return
+      setShowSaveTemplate(false)
+      router.push(`/dashboard/programs/${json.id}`)
+      router.refresh()
+    }
+
+    return (
+      <div className="flex h-[calc(100vh-64px)] flex-col">
+        <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/programs"
+              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
+            >
+              <ArrowLeft size={14} />
+              Programs
+            </Link>
+            <span className="text-gray-300 dark:text-slate-700">/</span>
+            <div className="flex items-center gap-2">
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-lg text-white"
+                style={{ backgroundColor: program.cover_colour }}
+              >
+                <FolderOpen size={12} />
+              </span>
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{program.name}</span>
+            </div>
+          </div>
+          {canManage && !program.is_template && (
+            <button
+              type="button"
+              onClick={() => setShowSaveTemplate(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              <Copy size={12} />
+              Save as template
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          <aside className="w-56 shrink-0 overflow-y-auto border-r border-gray-100 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-900">
+            <CategoryTree
+              programId={program.id}
+              tree={tree}
+              selectedId={selectedCategoryId}
+              onSelect={setSelectedCategoryId}
+              canManage={canManage}
+              onCategoryAdded={handleCategoryAdded}
+              onCategoryDeleted={handleCategoryDeleted}
+            />
+          </aside>
+
+          <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50 dark:bg-slate-950">
+            <AssetGrid
+              programId={program.id}
+              assets={visibleAssets}
+              selectedCategoryId={selectedCategoryId}
+              canManage={canManage}
+              onAssetAdded={handleAssetAdded}
+              onAssetDeleted={handleAssetDeleted}
+              onAssetUpdated={handleAssetUpdated}
+            />
+          </main>
+        </div>
+
+        {showSaveTemplate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Save as template</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveTemplate(false)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Template name</label>
+              <input
+                autoFocus
+                type="text"
+                value={templateName}
+                onChange={e => setTemplateName(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
+                Copies the category structure and note/link content only — uploaded files aren't included.
+              </p>
+              <div className="mt-4 flex justify-end gap-2">
+                <button type="button" onClick={() => setShowSaveTemplate(false)}
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitSaveTemplate}
+                  disabled={savingTemplate || !templateName.trim()}
+                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
+                >
+                  {savingTemplate ? 'Saving…' : 'Save template'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+  ```
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/programs/ProgramExplorer.tsx && git commit -m "feat: programs phase 3 — Save as template button in explorer"`
+
+---
+
+## C-6 — Manual end-to-end verification
+
+*Conductor + user:*
+- [ ] `pnpm run build` — final clean check after all tasks.
+- [ ] Manual browser smoke test (no test runner):
+  1. Open `/dashboard/programs`. Confirm a "Programs" / "Templates" tab toggle appears.
+  2. Switch to "Templates" — empty initially, button reads "New template".
+  3. Open an existing program with a mix of categories, note/link assets, and at least one
+     file-type asset.
+  4. Click "Save as template" in the explorer header, confirm/edit the name, save.
+  5. Confirm the new template's explorer shows matching categories and note/link assets, with
+     file-type assets absent.
+  6. Go to Templates tab — the new template is listed.
+  7. Hover the template card, click "Use template", name it, create.
+  8. Confirm a new, independent program is created with the same structure, appearing under
+     "Programs" (not "Templates").
+  9. Edit something in the new program and confirm the original template is unaffected.
+- [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `sessions.program_id` column exists, migration file committed
-- [x] C-2: `buildCategoryTree` extracted and reused by `ProgramExplorer`, build passes
-- [x] C-3: session detail server page fetches and passes `linkedProgram` bundle
-- [x] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
-- [x] C-5: link/unlink/change control works end-to-end, verified manually in the browser
+- [x] C-1: `programs.is_template` column exists, migration file committed
+- [x] C-2: duplicate endpoint clones category tree + note/link assets; GET/POST extended
+- [ ] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
+- [ ] C-4: Templates tab, New template, Use template all work
+- [ ] C-5: Save as template button works from the explorer
+- [ ] C-6: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
-smoke test required for C-5 (no test runner in this project).
+smoke test required for C-6 (no test runner in this project).
