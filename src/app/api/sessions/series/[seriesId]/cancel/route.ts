@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 
-export async function POST(_req: Request, { params }: { params: Promise<{ seriesId: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ seriesId: string }> }) {
   const { seriesId } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -19,8 +19,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ series
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const { keepSessionId } = await req.json()
+
   await service.from('session_series').update({ is_active: false }).eq('id', seriesId)
-  await service.from('sessions').delete().eq('series_id', seriesId).eq('status', 'scheduled')
+  let deleteQuery = service.from('sessions').delete().eq('series_id', seriesId).eq('status', 'scheduled')
+  if (keepSessionId) {
+    deleteQuery = deleteQuery.neq('id', keepSessionId)
+  }
+  await deleteQuery
 
   return NextResponse.json({ ok: true })
 }

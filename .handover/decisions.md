@@ -12,7 +12,10 @@
 - One new table session_series + sessions.series_id (nullable FK, mirrors program_id pattern).
 - Buffer fixed at 8 upcoming occurrences per active series; intervals weekly/fortnightly/monthly
   only; series run indefinitely until explicitly cancelled.
-- Cancelling deletes only status='scheduled' rows in the series — completed sessions untouched.
+- Cancelling deletes status='scheduled' rows in the series EXCEPT the session the user clicked
+  "Stop recurring" from (passed as keepSessionId) — completed sessions and the originating
+  session are both untouched. Revised from the original "delete all scheduled" design after
+  manual testing showed cancelling from a session deleted that very session, 404-ing the page.
 - A session only ever starts one series in its lifetime (no "Make recurring" after cancellation).
 - Deliberate exception: recurring-series operations go through new server-side API routes (using
   the service client), unlike plain session creation which stays client-side (NewSessionModal.tsx

@@ -42,7 +42,11 @@ export default function SessionRecurrence({
   async function stopRecurring() {
     if (!series) return
     setStopping(true)
-    await fetch(`/api/sessions/series/${series.id}/cancel`, { method: 'POST' })
+    await fetch(`/api/sessions/series/${series.id}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keepSessionId: sessionId }),
+    })
     setStopping(false)
     router.push(`/dashboard/clients/${clientId}/sessions`)
   }
