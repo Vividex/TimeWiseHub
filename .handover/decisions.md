@@ -4,17 +4,17 @@
 
 ## Spending
 - spend-budget-usd: 0
-- All work is TypeScript/TSX/SQL text edits + shell commands on existing toolchain.
-- @anthropic-ai/sdk is already installed — no new npm packages needed.
-- The Claude API call inside the summarise route is a production feature, not a loop spend.
-- No paid API calls during the implementation loop itself.
+- No new npm packages this phase. No paid API calls during the implementation loop.
 
-## Notes (Phase 26 — Session Notes)
-- Source spec: docs/superpowers/specs/2026-06-27-session-notes-design.md
-- Codex handles text edits only; conductor runs all shell/build/git commands and applies the DB migration via Supabase MCP.
+## Notes (Programs Phase 4 — Link a Program to a Session)
+- Source spec: docs/superpowers/specs/2026-07-01-programs-phase4-session-link-design.md
+- Source plan: docs/superpowers/plans/2026-07-01-programs-phase4-session-link.md
+- No new npm packages, no DB RLS changes — one nullable `program_id` column on `sessions`.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via Supabase MCP.
 - pnpm is the package manager. Verification gate = `pnpm run build`.
 - Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only.
-- The Supabase `as unknown as T` cast pattern is required for FK join types — Codex must follow this convention (see CLAUDE.md).
-- Migration must be applied via Supabase MCP (`apply_migration`) — not via Supabase CLI.
-- Daily.co transcription events: `transcription-message` gives `{ participantId, text, timestamp }`. Speaker name via `frame.participants()[participantId]?.user_name`.
-- ANTHROPIC_API_KEY is already in the Vercel env (used by existing AI assistant feature).
+- Session mutations go through the direct browser Supabase client, matching the existing
+  SessionDetailClient.tsx pattern — no new API route, no new client-side role gating (RLS-only,
+  consistent with how Delete Session/todo edits already work in that file).
+- CategoryTree/AssetGrid are reused unmodified with canManage={false} for the read-only drawer.
+- Program picker filters GET /api/programs results client-side to org_id === session.org_id.

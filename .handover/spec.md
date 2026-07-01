@@ -1,366 +1,493 @@
-# Phase 28 — Automated Payroll + Recurring Expenses
+# Programs Phase 4 — Link a Program to a Session
 
 ## Goal
-1. Daily cron materialises due recurring expense rows (advances `next_billing_date`).
-2. Weekly cron auto-runs pay on day (weekStartDay+2) from approved timesheets.
-3. PDF payslip generated per employee after each auto pay run, stored in `payslips` bucket.
+Let a user attach one Program to a Session, then browse that Program's categories and assets
+from a read-only slide-over drawer on the session detail page.
 
 ## Key decisions
-- Pay cron fires daily; self-gates on `todayUTCDay === (org.pay_week_start_day + 2) % 7`.
-- Recurring expense cron: for each template row where `is_recurring=true` AND `next_billing_date <= today`:
-  INSERT concrete child row (`expense_date=next_billing_date`, `is_recurring=false`, `next_billing_date=null`);
-  UPDATE template: advance `next_billing_date` by `recurrence_interval`.
-- PDF: `@react-pdf/renderer` — server-only, free, MIT. Already installed by conductor (C-1).
-- Payslip storage bucket: `payslips` (not `receipts`) — confirmed from PayslipUpload component.
-- Payslip file path: `{user_id}/{pay_run_id}.pdf`
-- `payslips.uploaded_by`: set to org owner's user_id (fetch from organisation_members role='owner'), fallback to employee user_id.
-- No new DB migration needed — all tables/columns already exist.
-- Auth for crons: existing `CRON_SECRET` Bearer pattern (same as timesheet-autosubmit).
-- Both new crons share the `0 1 * * *` Vercel schedule (daily 1am UTC = 11am AEST); they self-gate internally.
+- Source spec: `docs/superpowers/specs/2026-07-01-programs-phase4-session-link-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-01-programs-phase4-session-link.md`
+- One nullable `program_id` FK on `sessions` (`on delete set null`). No RLS changes — existing
+  `sessions` policies already cover this column.
+- Linking/unlinking uses the direct browser-Supabase-client mutation pattern already used
+  throughout `SessionDetailClient.tsx` (`supabase.from('sessions').update(...)`) — no new API
+  route, and no new client-side role gating (matches the existing file's convention of relying on
+  RLS, same as Delete Session / todo edits today).
+- Programs data (categories/assets/signed URLs) is read server-side via the service client,
+  mirroring `src/app/dashboard/programs/[id]/page.tsx` exactly.
+- Program picker lists only `program.org_id === session.org_id`, filtered client-side from the
+  existing unmodified `GET /api/programs`.
+- The read-only drawer reuses `CategoryTree`/`AssetGrid` unmodified with `canManage={false}` —
+  zero changes to Phase 1 components.
+- Codex handles text edits only; conductor (Claude) runs all shell/build/git and the DB migration
+  via Supabase MCP (Windows: Codex's workspace-write sandbox cannot spawn subprocesses).
+- Verification gate: `pnpm run build` (tsc + eslint) after every turn. No test runner.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node).
 - Read a file before editing it if its structure is unknown.
 - After each task, list the files changed.
-- Use `as unknown as T` cast for all Supabase FK join types (CLAUDE.md requirement).
-- Use `createServiceClient()` (not `createClient()`) for all cron and server routes.
-- Do NOT add `'use client'` to PayslipDocument — it is server-side rendered.
-- Do NOT add `'use client'` to any cron or API route.
+- All Tailwind classes must include `dark:` variants.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
-- C-1 is conductor-only (no Codex dispatch needed).
-- No DB migration needed for this phase.
-- The `payslips` storage bucket already exists.
+- C-1 is conductor-only (no Codex dispatch needed) — DB migration via Supabase MCP.
+- C-5 needs a manual browser smoke test (no test runner) before ticking it done.
 
 ---
 
-## C-1 — Install @react-pdf/renderer
+## C-1 — Database migration
 
 *Conductor only (no Codex dispatch):*
-- [ ] Run `pnpm add @react-pdf/renderer`
-- [ ] Verify `pnpm run build` passes clean
-
----
-
-## C-2 — Recurring expense materialisation cron
-
-*Codex edits:*
-- [ ] Create `src/app/api/cron/process-recurring-expenses/route.ts`
-
-```
-GET handler. Use isAuthorized() — copy exact implementation from
-src/app/api/cron/timesheet-autosubmit/route.ts (CRON_SECRET Bearer pattern).
-
-Use createServiceClient() throughout.
-
-const now = new Date()
-const todayStr = now.toISOString().slice(0, 10)
-
-1. Query expenses: is_recurring=true AND next_billing_date <= todayStr
-   SELECT: id, org_id, user_id, amount, currency, category_id, description,
-           recurrence_interval, next_billing_date
-
-2. For each row:
-   a. INSERT into expenses:
-      { org_id, user_id, amount, currency, category_id, description,
-        expense_date: row.next_billing_date,
-        receipt_path: null, status: 'draft',
-        is_recurring: false, recurrence_interval: null, next_billing_date: null }
-   b. Compute nextDate = calcNextBillingDate(row.next_billing_date, row.recurrence_interval)
-   c. UPDATE expenses SET next_billing_date = nextDate WHERE id = row.id
-
-calcNextBillingDate(from: string, interval: string): string {
-  const d = new Date(from)
-  switch (interval) {
-    case 'weekly':      d.setDate(d.getDate() + 7); break
-    case 'fortnightly': d.setDate(d.getDate() + 14); break
-    case 'monthly':     d.setMonth(d.getMonth() + 1); break
-    case 'annually':    d.setFullYear(d.getFullYear() + 1); break
-  }
-  return d.toISOString().slice(0, 10)
-}
-
-Return NextResponse.json({ ok: true, processed: N, date: todayStr })
-```
-
----
-
-## C-3 — PayslipDocument component + generatePayslip utility
-
-*Codex edits:*
-- [ ] Create `src/components/finance/PayslipDocument.tsx`
-
-```
-NO 'use client'. Server-side React PDF component.
-
-Imports from '@react-pdf/renderer': Document, Page, View, Text, StyleSheet
-
-Props type:
-{
-  employeeName: string
-  orgName: string
-  periodStart: string   // YYYY-MM-DD
-  periodEnd: string     // YYYY-MM-DD
-  approvedSeconds: number
-  hourlyRate: number
-  gross: number
-  superRate: number
-  superAmount: number
-}
-
-net = gross - superAmount
-hours = (approvedSeconds / 3600).toFixed(2)
-fmtAud = (n: number) => `$${n.toFixed(2)}`
-
-Layout (StyleSheet):
-- page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10 }
-- header: { backgroundColor: '#0f172a', color: 'white', padding: 20, marginBottom: 24 }
-- orgName: { fontSize: 18, fontWeight: 'bold', color: 'white' }
-- title: { fontSize: 11, color: '#94a3b8', marginTop: 4 }
-- section: { marginBottom: 16 }
-- label: { fontSize: 9, color: '#64748b', marginBottom: 2 }
-- value: { fontSize: 11, color: '#0f172a' }
-- row: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 0.5,
-         borderBottomColor: '#e2e8f0', paddingVertical: 6 }
-- rowLabel: { color: '#374151' }
-- rowValue: { fontWeight: 'bold', color: '#0f172a' }
-- totalRow: { flexDirection: 'row', justifyContent: 'space-between',
-              backgroundColor: '#f8fafc', padding: 8, marginTop: 8 }
-
-Structure:
-<Document>
-  <Page size="A4" style={styles.page}>
-    <View style={styles.header}>
-      <Text style={styles.orgName}>{orgName}</Text>
-      <Text style={styles.title}>PAYSLIP</Text>
-    </View>
-
-    <View style={styles.section}>
-      <Text style={styles.label}>EMPLOYEE</Text>
-      <Text style={styles.value}>{employeeName}</Text>
-    </View>
-
-    <View style={styles.section}>
-      <Text style={styles.label}>PAY PERIOD</Text>
-      <Text style={styles.value}>{periodStart} – {periodEnd}</Text>
-    </View>
-
-    <View>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>Regular Hours</Text>
-        <Text style={styles.rowValue}>{hours} hrs</Text>
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>Hourly Rate</Text>
-        <Text style={styles.rowValue}>{fmtAud(hourlyRate)}</Text>
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>Gross Pay</Text>
-        <Text style={styles.rowValue}>{fmtAud(gross)}</Text>
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>Superannuation ({(superRate * 100).toFixed(1)}%)</Text>
-        <Text style={styles.rowValue}>{fmtAud(superAmount)}</Text>
-      </View>
-      <View style={styles.totalRow}>
-        <Text style={{ fontWeight: 'bold' }}>Net Pay</Text>
-        <Text style={{ fontWeight: 'bold', fontSize: 13 }}>{fmtAud(net)}</Text>
-      </View>
-    </View>
-  </Page>
-</Document>
-```
-
-- [ ] Create `src/lib/payroll/generatePayslip.ts`
-
-```
-import { renderToBuffer } from '@react-pdf/renderer'
-import React from 'react'
-import PayslipDocument from '@/components/finance/PayslipDocument'
-import type { SupabaseClient } from '@supabase/supabase-js'
-
-type GeneratePayslipArgs = {
-  supabase: SupabaseClient
-  payRunId: string
-  userId: string
-  orgId: string
-  orgName: string
-  employeeName: string
-  periodStart: string
-  periodEnd: string
-  approvedSeconds: number
-  hourlyRate: number
-  gross: number
-  superRate: number
-  superAmount: number
-  uploadedBy: string
-}
-
-export async function generateAndStorePayslip(args: GeneratePayslipArgs): Promise<string | null> {
-  const {
-    supabase, payRunId, userId, orgId, orgName, employeeName,
-    periodStart, periodEnd, approvedSeconds, hourlyRate, gross,
-    superRate, superAmount, uploadedBy,
-  } = args
-
-  const buffer = await renderToBuffer(
-    React.createElement(PayslipDocument, {
-      employeeName, orgName, periodStart, periodEnd,
-      approvedSeconds, hourlyRate, gross, superRate, superAmount,
-    })
-  )
-
-  const filePath = `${userId}/${payRunId}.pdf`
-
-  const { error: uploadErr } = await supabase.storage
-    .from('payslips')
-    .upload(filePath, buffer, { contentType: 'application/pdf', upsert: true })
-
-  if (uploadErr) {
-    console.error('Payslip upload error:', uploadErr)
-    return null
-  }
-
-  const label = `Week ending ${periodEnd}`
-  await supabase.from('payslips').upsert({
-    org_id: orgId,
-    user_id: userId,
-    label,
-    pay_date: periodEnd,
-    file_path: filePath,
-    uploaded_by: uploadedBy,
-  }, { onConflict: 'org_id,user_id,pay_date' }).throwOnError()
-
-  return filePath
-}
-```
-
-NOTE: The `onConflict: 'org_id,user_id,pay_date'` upsert prevents duplicate payslip rows if the cron re-runs. If the payslips table lacks this unique constraint the upsert will just INSERT — that is acceptable.
-
----
-
-## C-4 — On-demand PDF route
-
-*Codex edits:*
-- [ ] Create `src/app/api/pay-statements/[id]/payslip/route.ts`
-
-```
-export const runtime = 'nodejs'
-
-GET handler. Auth: Supabase session (createClient()) — must be org owner/admin.
-
-1. Fetch pay_statement by params.id:
-   SELECT id, pay_run_id, org_id, user_id, period_start, period_end,
-          approved_seconds, hourly_rate, gross, super_rate, super_amount
-   Also fetch profile: profiles!pay_statements_user_id_fkey(full_name, email)
-   Also fetch org: organisations!pay_statements_org_id_fkey(name)
-   Use service client for the data fetch.
-
-2. Auth check: verify calling user is org member with role in ['owner','admin','manager'].
-
-3. Find org owner user_id for uploaded_by:
-   SELECT user_id FROM organisation_members WHERE org_id=? AND role='owner' LIMIT 1
-   Fallback to statement.user_id if none found.
-
-4. Call generateAndStorePayslip(args) from @/lib/payroll/generatePayslip
-
-5. Get signed URL (600s expiry):
-   supabase.storage.from('payslips').createSignedUrl(filePath, 600)
-
-6. Return NextResponse.redirect(signedUrl)
-```
-
----
-
-## C-5 — Auto pay run triggered on last timesheet approval
-
-*Codex edits:*
-- [ ] Create `src/app/api/timesheets/check-and-run-pay/route.ts`
-
-```
-POST handler. Auth: Supabase session (createClient()) — must be org member.
-Use createServiceClient() for all DB writes.
-Import { computeGross, computeSuper } from '@/lib/payroll/compute'
-Import { generateAndStorePayslip } from '@/lib/payroll/generatePayslip'
-
-Body: { orgId: string, weekStart: string }
-
-Steps:
-1. Verify caller session via createClient().auth.getUser()
-2. Verify caller is org member (role in owner/admin/manager) via service client
-3. Check remaining submitted timesheets for this org + weekStart:
-   SELECT COUNT(*) FROM timesheets WHERE org_id=? AND week_start=? AND status='submitted'
-   If count > 0: return { triggered: false, remaining: count }
-
-4. Fetch all approved timesheets for org + weekStart:
-   SELECT user_id, total_seconds FROM timesheets WHERE org_id=? AND week_start=? AND status='approved'
-   If none: return { triggered: false, remaining: 0 }
-
-5. Fetch org: SELECT id, super_rate, name, pay_week_start_day FROM organisations WHERE id=?
-6. Find org owner for uploaded_by:
-   SELECT user_id FROM organisation_members WHERE org_id=? AND role='owner' LIMIT 1
-
-7. Compute period: periodStart = weekStart, periodEnd = date 6 days after weekStart (inclusive Sunday)
-   const end = new Date(weekStart + 'T00:00:00Z')
-   end.setUTCDate(end.getUTCDate() + 6)
-   const periodEnd = end.toISOString().slice(0,10)
-
-8. Create pay_run row via service client:
-   INSERT pay_runs { org_id, period_start: weekStart, period_end: periodEnd, created_by: uploadedBy }
-   If duplicate (error code '23505'): return { triggered: false, reason: 'already_ran' }
-
-9. Fetch org members with hourly_rate + profiles:
-   organisation_members WHERE org_id=? IN user_ids
-
-10. For each approved timesheet user:
-    - Skip if no hourly_rate
-    - Compute gross = computeGross(seconds, rate), super = computeSuper(gross, superRate)
-    - INSERT pay_statements row
-    - Call generateAndStorePayslip(...)
-
-11. Return { triggered: true, statementsCreated: N, skipped: M }
-```
-
-- [ ] Edit `src/components/time/ManagerTimesheetView.tsx` — after the successful timesheet approval update (after the `.eq('id', id)` call and before `setSavingId(null)`):
-```
-// After successful approval only (not rejection):
-if (status === 'approved') {
-  // Find the approved timesheet's week_start from local state
-  const ts = timesheets.find(t => t.id === id)
-  if (ts) {
-    fetch('/api/timesheets/check-and-run-pay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orgId, weekStart: ts.week_start }),
-    })
-      .then(r => r.json())
-      .then(d => { if (d.triggered) console.log('Pay run triggered:', d) })
-      .catch(err => console.error('Pay run check failed:', err))
-  }
-}
-```
-Do NOT await this call — fire and forget so the UI isn't blocked.
-
----
-
-## C-6 — Update vercel.json
-
-*Codex edits:*
-- [ ] Edit `vercel.json` — add ONE new entry to the `"crons"` array (auto-pay is now event-driven, not a cron):
-  ```json
-  { "path": "/api/cron/process-recurring-expenses", "schedule": "0 1 * * *" }
+- [x] Create `supabase/schema-073-session-program-link.sql`:
+  ```sql
+  alter table public.sessions
+    add column program_id uuid references public.programs(id) on delete set null;
   ```
+- [x] Apply via Supabase MCP `apply_migration` (name: `session-program-link`)
+- [x] Verify via MCP `execute_sql`:
+  ```sql
+  select column_name, data_type, is_nullable
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'sessions' and column_name = 'program_id';
+  ```
+  Expected: 1 row, `data_type = uuid`, `is_nullable = YES`.
+- [x] Commit: `git add supabase/schema-073-session-program-link.sql && git commit -m "feat: programs phase 4 — link sessions to a program (DB migration)"`
+
+---
+
+## C-2 — Extract shared category-tree builder
+
+*Codex edits:*
+- [x] Create `src/lib/programs/build-tree.ts`:
+  ```typescript
+  import type { ProgramCategory, CategoryNode } from '@/types/programs'
+
+  export function buildCategoryTree(categories: ProgramCategory[]): CategoryNode[] {
+    const map = new Map<string, CategoryNode>()
+    categories.forEach(c => map.set(c.id, { ...c, children: [] }))
+    const roots: CategoryNode[] = []
+    categories.forEach(c => {
+      if (c.parent_id) {
+        map.get(c.parent_id)?.children.push(map.get(c.id)!)
+      } else {
+        roots.push(map.get(c.id)!)
+      }
+    })
+    return roots
+  }
+  ```
+- [x] Edit `src/components/programs/ProgramExplorer.tsx`:
+  - Remove the local `buildTree` function definition.
+  - Add `import { buildCategoryTree } from '@/lib/programs/build-tree'`.
+  - Replace `const tree = buildTree(localCategories)` with `const tree = buildCategoryTree(localCategories)`.
+
+*Conductor:*
+- [x] `pnpm run build` — must pass clean (pure refactor, no visual change).
+- [x] Commit: `git add src/lib/programs/build-tree.ts src/components/programs/ProgramExplorer.tsx && git commit -m "refactor: extract buildCategoryTree into shared helper"`
+
+---
+
+## C-3 — Fetch linked program data on session detail page
+
+*Codex edits:*
+- [ ] Edit `src/types/programs.ts` — append:
+  ```typescript
+
+  export type LinkedProgramBundle = {
+    program: Program
+    categories: ProgramCategory[]
+    assets: ProgramAsset[]
+  }
+  ```
+- [ ] Replace `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` in full:
+  ```typescript
+  import { redirect, notFound } from 'next/navigation'
+  import { createClient } from '@/lib/supabase-server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+  import SessionDetailClient from '@/components/clients/SessionDetailClient'
+  import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
+
+  export default async function SessionDetailPage({
+    params,
+  }: {
+    params: Promise<{ id: string; sessionId: string }>
+  }) {
+    const { id, sessionId } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
+
+    const [{ data: session }, { data: client }] = await Promise.all([
+      supabase
+        .from('sessions')
+        .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, session_todos(id, title, completed, position)')
+        .eq('id', sessionId)
+        .maybeSingle(),
+      supabase
+        .from('clients')
+        .select('id, name')
+        .eq('id', id)
+        .maybeSingle(),
+    ])
+
+    if (!session || !client) notFound()
+
+    const todos = (session.session_todos as { id: string; title: string; completed: boolean; position: number }[])
+      .slice()
+      .sort((a, b) => a.position - b.position)
+
+    let linkedProgram: LinkedProgramBundle | null = null
+
+    if (session.program_id) {
+      const service = createServiceClient()
+      const { data: program } = await service
+        .from('programs').select('*').eq('id', session.program_id).maybeSingle()
+
+      if (program) {
+        const { data: membership } = await service
+          .from('organisation_members').select('role')
+          .eq('user_id', user.id).eq('org_id', program.org_id ?? '').maybeSingle()
+        const isOwner = program.owner_id === user.id
+        const isMember = !!membership
+
+        if (isOwner || isMember) {
+          const [{ data: categories }, { data: assets }] = await Promise.all([
+            service.from('program_categories').select('*')
+              .eq('program_id', program.id).order('sort_order').order('created_at'),
+            service.from('program_assets').select('*')
+              .eq('program_id', program.id).order('sort_order').order('created_at'),
+          ])
+
+          const assetsWithUrls: ProgramAsset[] = await Promise.all(
+            (assets ?? []).map(async asset => {
+              if (asset.storage_path) {
+                const signed_url = await createProgramAssetSignedUrl(asset.storage_path)
+                return { ...asset, signed_url }
+              }
+              return { ...asset, signed_url: null }
+            }),
+          )
+
+          linkedProgram = {
+            program: program as Program,
+            categories: categories ?? [],
+            assets: assetsWithUrls,
+          }
+        }
+      }
+    }
+
+    return (
+      <SessionDetailClient
+        session={{
+          id: session.id,
+          title: session.title,
+          scheduledAt: session.scheduled_at,
+          durationMinutes: session.duration_minutes,
+          notes: session.notes ?? '',
+          status: session.status as 'scheduled' | 'in_progress' | 'completed',
+        }}
+        todos={todos}
+        clientId={id}
+        clientName={client.name}
+        orgId={session.org_id}
+        linkedProgram={linkedProgram}
+      />
+    )
+  }
+  ```
+- [ ] Edit `src/components/clients/SessionDetailClient.tsx` — thread the new prop through (no UI change yet):
+  - Add `import type { LinkedProgramBundle } from '@/types/programs'`.
+  - In the component's destructured props and type signature, add `linkedProgram,` and
+    `linkedProgram: LinkedProgramBundle | null` respectively (alongside the existing `orgId`).
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean. No visible UI change yet (prop is unused until C-5).
+- [ ] Commit: `git add src/types/programs.ts src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — fetch linked program data on session detail page"`
+
+---
+
+## C-4 — LinkedProgramDrawer (read-only viewer)
+
+*Codex edits:*
+- [ ] Create `src/components/programs/LinkedProgramDrawer.tsx`:
+  ```typescript
+  'use client'
+
+  import { useState } from 'react'
+  import { X, FolderOpen } from 'lucide-react'
+  import CategoryTree from '@/components/programs/CategoryTree'
+  import AssetGrid from '@/components/programs/AssetGrid'
+  import { buildCategoryTree } from '@/lib/programs/build-tree'
+  import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
+
+  const NOOP_CATEGORY = () => {}
+  const NOOP_ASSET = () => {}
+
+  export default function LinkedProgramDrawer({
+    program,
+    categories,
+    assets,
+    onClose,
+  }: {
+    program: Program
+    categories: ProgramCategory[]
+    assets: ProgramAsset[]
+    onClose: () => void
+  }) {
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+
+    const tree = buildCategoryTree(categories)
+    const visibleAssets =
+      selectedCategoryId === null
+        ? assets
+        : assets.filter(a => a.category_id === selectedCategoryId)
+
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
+        <div className="flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-white"
+                style={{ backgroundColor: program.cover_colour }}
+              >
+                <FolderOpen size={14} />
+              </span>
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{program.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="flex flex-1 overflow-hidden">
+            <aside className="w-56 shrink-0 overflow-y-auto border-r border-gray-100 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-900">
+              <CategoryTree
+                programId={program.id}
+                tree={tree}
+                selectedId={selectedCategoryId}
+                onSelect={setSelectedCategoryId}
+                canManage={false}
+                onCategoryAdded={NOOP_CATEGORY}
+                onCategoryDeleted={NOOP_CATEGORY}
+              />
+            </aside>
+
+            <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50 dark:bg-slate-950">
+              <AssetGrid
+                programId={program.id}
+                assets={visibleAssets}
+                selectedCategoryId={selectedCategoryId}
+                canManage={false}
+                onAssetAdded={NOOP_ASSET}
+                onAssetDeleted={NOOP_ASSET}
+                onAssetUpdated={NOOP_ASSET}
+              />
+            </main>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  ```
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean (component not yet imported anywhere, checks it compiles standalone).
+- [ ] Commit: `git add src/components/programs/LinkedProgramDrawer.tsx && git commit -m "feat: programs phase 4 — read-only LinkedProgramDrawer"`
+
+---
+
+## C-5 — SessionProgramLink (picker, link/unlink, drawer trigger)
+
+*Codex edits:*
+- [ ] Create `src/components/clients/SessionProgramLink.tsx`:
+  ```typescript
+  'use client'
+
+  import { useState } from 'react'
+  import { useRouter } from 'next/navigation'
+  import { Library, Eye, X } from 'lucide-react'
+  import { createClient } from '@/lib/supabase-browser'
+  import LinkedProgramDrawer from '@/components/programs/LinkedProgramDrawer'
+  import type { LinkedProgramBundle, Program } from '@/types/programs'
+
+  export default function SessionProgramLink({
+    sessionId,
+    orgId,
+    linkedProgram,
+  }: {
+    sessionId: string
+    orgId: string | null
+    linkedProgram: LinkedProgramBundle | null
+  }) {
+    const router = useRouter()
+    const supabase = createClient()
+    const [showPicker, setShowPicker] = useState(false)
+    const [showDrawer, setShowDrawer] = useState(false)
+    const [options, setOptions] = useState<Program[] | null>(null)
+    const [loadingOptions, setLoadingOptions] = useState(false)
+    const [linking, setLinking] = useState(false)
+
+    async function openPicker() {
+      setShowPicker(true)
+      if (options !== null) return
+      setLoadingOptions(true)
+      const res = await fetch('/api/programs')
+      const all: Program[] = res.ok ? await res.json() : []
+      setOptions(all.filter(p => p.org_id === orgId))
+      setLoadingOptions(false)
+    }
+
+    async function linkProgram(programId: string) {
+      setLinking(true)
+      await supabase.from('sessions').update({ program_id: programId }).eq('id', sessionId)
+      setLinking(false)
+      setShowPicker(false)
+      router.refresh()
+    }
+
+    async function unlinkProgram() {
+      await supabase.from('sessions').update({ program_id: null }).eq('id', sessionId)
+      router.refresh()
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        {linkedProgram ? (
+          <>
+            <span
+              className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700 dark:text-slate-300"
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: linkedProgram.program.cover_colour }}
+              />
+              {linkedProgram.program.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowDrawer(true)}
+              className="flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              <Eye size={12} />
+              View
+            </button>
+            <button
+              type="button"
+              onClick={openPicker}
+              className="text-xs font-semibold text-cyan-600 hover:underline"
+            >
+              Change
+            </button>
+            <button
+              type="button"
+              onClick={unlinkProgram}
+              className="text-xs font-semibold text-red-500 hover:underline"
+            >
+              Unlink
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={openPicker}
+            className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            <Library size={12} />
+            Link program
+          </button>
+        )}
+
+        {showPicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Link a program</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(false)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {loadingOptions && (
+                <p className="py-6 text-center text-sm text-gray-400 dark:text-slate-500">Loading…</p>
+              )}
+
+              {!loadingOptions && options !== null && options.length === 0 && (
+                <p className="py-6 text-center text-sm text-gray-400 dark:text-slate-500">
+                  No programs available for this organisation yet.
+                </p>
+              )}
+
+              {!loadingOptions && options !== null && options.length > 0 && (
+                <div className="max-h-80 space-y-1 overflow-y-auto">
+                  {options.map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      disabled={linking}
+                      onClick={() => linkProgram(p.id)}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: p.cover_colour }} />
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showDrawer && linkedProgram && (
+          <LinkedProgramDrawer
+            program={linkedProgram.program}
+            categories={linkedProgram.categories}
+            assets={linkedProgram.assets}
+            onClose={() => setShowDrawer(false)}
+          />
+        )}
+      </div>
+    )
+  }
+  ```
+- [ ] Edit `src/components/clients/SessionDetailClient.tsx`:
+  - Add `import SessionProgramLink from '@/components/clients/SessionProgramLink'`.
+  - Inside the header's `<div className="flex flex-wrap items-center gap-2">` (the one wrapping the
+    status badge, "Mark as..." button, and delete controls), insert
+    `<SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />`
+    as the FIRST child, directly before the `<span className={...STATUS_STYLE...}>` status badge.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual browser smoke test (no test runner):
+  1. Open a session detail page for an org with at least one program.
+  2. "Link program" → picker opens, org-scoped programs only.
+  3. Pick one → badge + View/Change/Unlink controls appear.
+  4. "View" → drawer slides in, shows categories/assets, zero edit/upload/delete controls.
+  5. Click a category → asset grid filters.
+  6. "Unlink" → badge disappears, "Link program" returns.
+- [ ] Commit: `git add src/components/clients/SessionProgramLink.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — link/unlink program control and reference drawer on session page"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: @react-pdf/renderer installed, build passes
-- [ ] C-2: Recurring expense cron creates child rows and advances next_billing_date
-- [ ] C-3: PayslipDocument + generatePayslip utility exist and build clean
-- [ ] C-4: GET /api/pay-statements/[id]/payslip generates PDF, uploads to storage, redirects
-- [ ] C-5: check-and-run-pay route fires after last approval; ManagerTimesheetView hooks it
-- [ ] C-6: vercel.json includes recurring-expenses cron
+- [x] C-1: `sessions.program_id` column exists, migration file committed
+- [x] C-2: `buildCategoryTree` extracted and reused by `ProgramExplorer`, build passes
+- [ ] C-3: session detail server page fetches and passes `linkedProgram` bundle
+- [ ] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
+- [ ] C-5: link/unlink/change control works end-to-end, verified manually in the browser
 
 ## Verification
-`pnpm run build` (next build = tsc + eslint) must pass clean after every task.
+`pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
+smoke test required for C-5 (no test runner in this project).

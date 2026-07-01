@@ -5,21 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, FolderOpen } from 'lucide-react'
 import CategoryTree from '@/components/programs/CategoryTree'
 import AssetGrid from '@/components/programs/AssetGrid'
-import type { Program, ProgramCategory, ProgramAsset, CategoryNode } from '@/types/programs'
-
-function buildTree(categories: ProgramCategory[]): CategoryNode[] {
-  const map = new Map<string, CategoryNode>()
-  categories.forEach(c => map.set(c.id, { ...c, children: [] }))
-  const roots: CategoryNode[] = []
-  categories.forEach(c => {
-    if (c.parent_id) {
-      map.get(c.parent_id)?.children.push(map.get(c.id)!)
-    } else {
-      roots.push(map.get(c.id)!)
-    }
-  })
-  return roots
-}
+import { buildCategoryTree } from '@/lib/programs/build-tree'
+import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
 
 export default function ProgramExplorer({
   program,
@@ -36,7 +23,7 @@ export default function ProgramExplorer({
   const [localCategories, setLocalCategories] = useState<ProgramCategory[]>(categories)
   const [localAssets, setLocalAssets] = useState<ProgramAsset[]>(assets)
 
-  const tree = buildTree(localCategories)
+  const tree = buildCategoryTree(localCategories)
 
   const visibleAssets =
     selectedCategoryId === null
