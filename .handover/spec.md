@@ -217,7 +217,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## C-3 — Asset creation defaults `ai_status` to `pending`
 
 *Codex edits:*
-- [ ] Read `src/app/api/programs/[id]/assets/route.ts` first, then:
+- [x] Read `src/app/api/programs/[id]/assets/route.ts` first, then:
   - In the `note` insert of the JSON body branch, change `ai_status: 'skipped'` to
     `ai_status: 'pending'`. Leave the `link`/`video` branch immediately below untouched
     (`ai_status: 'skipped'`, unchanged).
@@ -231,8 +231,8 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
     ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" && git commit -m "feat: programs phase 2 — ai_status defaults to pending for note/image/pdf"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" && git commit -m "feat: programs phase 2 — ai_status defaults to pending for note/image/pdf"`
 
 ---
 
@@ -488,7 +488,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## Acceptance checklist
 - [x] C-1: `summariseAsset()` compiles clean, handles note/image/pdf, returns null for others
 - [x] C-2: summarise route sets processing → done/failed correctly
-- [ ] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
+- [x] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
 - [ ] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
 - [ ] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
 - [ ] C-6: full manual smoke test passes

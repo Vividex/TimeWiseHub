@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         asset_type: 'note',
         name: name.trim(),
         note_content: note_content ?? '',
-        ai_status: 'skipped',
+        ai_status: 'pending',
       }).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json(data)
@@ -175,7 +175,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     storage_path: storagePath,
     file_size_bytes: file.size,
     mime_type: file.type,
-    ai_status: 'skipped',
+    ai_status: assetType === 'image' || assetType === 'pdf' ? 'pending' : 'skipped',
   }).select().single()
 
   if (error) {
