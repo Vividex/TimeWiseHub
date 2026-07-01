@@ -258,7 +258,7 @@ export default function SessionDetailClient({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />
-              <SessionRecurrence sessionId={initial.id} series={series} />
+              <SessionRecurrence sessionId={initial.id} series={series} clientId={clientId} />
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>
                 {STATUS_LABEL[status]}
               </span>

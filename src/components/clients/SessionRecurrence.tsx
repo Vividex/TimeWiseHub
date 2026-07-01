@@ -13,9 +13,11 @@ const INTERVAL_LABEL: Record<SessionSeriesInterval, string> = {
 
 export default function SessionRecurrence({
   sessionId,
+  clientId,
   series,
 }: {
   sessionId: string
+  clientId: string
   series: SessionSeriesInfo | null
 }) {
   const router = useRouter()
@@ -42,7 +44,7 @@ export default function SessionRecurrence({
     setStopping(true)
     await fetch(`/api/sessions/series/${series.id}/cancel`, { method: 'POST' })
     setStopping(false)
-    router.refresh()
+    router.push(`/dashboard/clients/${clientId}/sessions`)
   }
 
   if (series?.is_active) {
