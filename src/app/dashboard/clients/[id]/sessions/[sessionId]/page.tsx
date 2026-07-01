@@ -1,6 +1,9 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase-service'
+import { createProgramAssetSignedUrl } from '@/lib/program-storage'
 import SessionDetailClient from '@/components/clients/SessionDetailClient'
+import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
 
 export default async function SessionDetailPage({
   params,
@@ -15,7 +18,7 @@ export default async function SessionDetailPage({
   const [{ data: session }, { data: client }] = await Promise.all([
     supabase
       .from('sessions')
-      .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, session_todos(id, title, completed, position)')
+      .select('id, title, scheduled_at, duration_minutes, notes, status, org_id, program_id, session_todos(id, title, completed, position)')
       .eq('id', sessionId)
       .maybeSingle(),
     supabase
@@ -31,6 +34,47 @@ export default async function SessionDetailPage({
     .slice()
     .sort((a, b) => a.position - b.position)
 
+  let linkedProgram: LinkedProgramBundle | null = null
+
+  if (session.program_id) {
+    const service = createServiceClient()
+    const { data: program } = await service
+      .from('programs').select('*').eq('id', session.program_id).maybeSingle()
+
+    if (program) {
+      const { data: membership } = await service
+        .from('organisation_members').select('role')
+        .eq('user_id', user.id).eq('org_id', program.org_id ?? '').maybeSingle()
+      const isOwner = program.owner_id === user.id
+      const isMember = !!membership
+
+      if (isOwner || isMember) {
+        const [{ data: categories }, { data: assets }] = await Promise.all([
+          service.from('program_categories').select('*')
+            .eq('program_id', program.id).order('sort_order').order('created_at'),
+          service.from('program_assets').select('*')
+            .eq('program_id', program.id).order('sort_order').order('created_at'),
+        ])
+
+        const assetsWithUrls: ProgramAsset[] = await Promise.all(
+          (assets ?? []).map(async asset => {
+            if (asset.storage_path) {
+              const signed_url = await createProgramAssetSignedUrl(asset.storage_path)
+              return { ...asset, signed_url }
+            }
+            return { ...asset, signed_url: null }
+          }),
+        )
+
+        linkedProgram = {
+          program: program as Program,
+          categories: categories ?? [],
+          assets: assetsWithUrls,
+        }
+      }
+    }
+  }
+
   return (
     <SessionDetailClient
       session={{
@@ -45,6 +89,7 @@ export default async function SessionDetailPage({
       clientId={id}
       clientName={client.name}
       orgId={session.org_id}
+      linkedProgram={linkedProgram}
     />
   )
 }

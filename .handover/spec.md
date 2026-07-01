@@ -91,7 +91,7 @@ from a read-only slide-over drawer on the session detail page.
 ## C-3 — Fetch linked program data on session detail page
 
 *Codex edits:*
-- [ ] Edit `src/types/programs.ts` — append:
+- [x] Edit `src/types/programs.ts` — append:
   ```typescript
 
   export type LinkedProgramBundle = {
@@ -100,7 +100,7 @@ from a read-only slide-over drawer on the session detail page.
     assets: ProgramAsset[]
   }
   ```
-- [ ] Replace `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` in full:
+- [x] Replace `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` in full:
   ```typescript
   import { redirect, notFound } from 'next/navigation'
   import { createClient } from '@/lib/supabase-server'
@@ -198,14 +198,14 @@ from a read-only slide-over drawer on the session detail page.
     )
   }
   ```
-- [ ] Edit `src/components/clients/SessionDetailClient.tsx` — thread the new prop through (no UI change yet):
+- [x] Edit `src/components/clients/SessionDetailClient.tsx` — thread the new prop through (no UI change yet):
   - Add `import type { LinkedProgramBundle } from '@/types/programs'`.
   - In the component's destructured props and type signature, add `linkedProgram,` and
     `linkedProgram: LinkedProgramBundle | null` respectively (alongside the existing `orgId`).
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. No visible UI change yet (prop is unused until C-5).
-- [ ] Commit: `git add src/types/programs.ts src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — fetch linked program data on session detail page"`
+- [x] `pnpm run build` — must pass clean. No visible UI change yet (prop is unused until C-5).
+- [x] Commit: `git add src/types/programs.ts src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — fetch linked program data on session detail page"`
 
 ---
 
@@ -484,7 +484,7 @@ from a read-only slide-over drawer on the session detail page.
 ## Acceptance checklist
 - [x] C-1: `sessions.program_id` column exists, migration file committed
 - [x] C-2: `buildCategoryTree` extracted and reused by `ProgramExplorer`, build passes
-- [ ] C-3: session detail server page fetches and passes `linkedProgram` bundle
+- [x] C-3: session detail server page fetches and passes `linkedProgram` bundle
 - [ ] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
 - [ ] C-5: link/unlink/change control works end-to-end, verified manually in the browser
 

@@ -53,3 +53,9 @@ export type ProgramAsset = {
 }
 
 export type CategoryNode = ProgramCategory & { children: CategoryNode[] }
+
+export type LinkedProgramBundle = {
+  program: Program
+  categories: ProgramCategory[]
+  assets: ProgramAsset[]
+}

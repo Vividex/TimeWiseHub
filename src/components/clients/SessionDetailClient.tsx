@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import type { LinkedProgramBundle } from '@/types/programs'
 
 type Todo = { id: string; title: string; completed: boolean; position: number }
 type Status = 'scheduled' | 'in_progress' | 'completed'
@@ -34,12 +35,14 @@ export default function SessionDetailClient({
   clientId,
   clientName,
   orgId,
+  linkedProgram,
 }: {
   session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   todos: Todo[]
   clientId: string
   clientName: string
   orgId: string | null
+  linkedProgram: LinkedProgramBundle | null
 }) {
   const router = useRouter()
   const supabase = createClient()
