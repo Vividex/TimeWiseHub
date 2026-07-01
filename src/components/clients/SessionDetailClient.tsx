@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import SessionProgramLink from '@/components/clients/SessionProgramLink'
 import type { LinkedProgramBundle } from '@/types/programs'
 
 type Todo = { id: string; title: string; completed: boolean; position: number }
@@ -252,6 +253,7 @@ export default function SessionDetailClient({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>
                 {STATUS_LABEL[status]}
               </span>

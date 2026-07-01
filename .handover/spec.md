@@ -307,7 +307,7 @@ from a read-only slide-over drawer on the session detail page.
 ## C-5 — SessionProgramLink (picker, link/unlink, drawer trigger)
 
 *Codex edits:*
-- [ ] Create `src/components/clients/SessionProgramLink.tsx`:
+- [x] Create `src/components/clients/SessionProgramLink.tsx`:
   ```typescript
   'use client'
 
@@ -461,7 +461,7 @@ from a read-only slide-over drawer on the session detail page.
     )
   }
   ```
-- [ ] Edit `src/components/clients/SessionDetailClient.tsx`:
+- [x] Edit `src/components/clients/SessionDetailClient.tsx`:
   - Add `import SessionProgramLink from '@/components/clients/SessionProgramLink'`.
   - Inside the header's `<div className="flex flex-wrap items-center gap-2">` (the one wrapping the
     status badge, "Mark as..." button, and delete controls), insert
@@ -469,15 +469,15 @@ from a read-only slide-over drawer on the session detail page.
     as the FIRST child, directly before the `<span className={...STATUS_STYLE...}>` status badge.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual browser smoke test (no test runner):
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual browser smoke test (no test runner):
   1. Open a session detail page for an org with at least one program.
   2. "Link program" → picker opens, org-scoped programs only.
   3. Pick one → badge + View/Change/Unlink controls appear.
   4. "View" → drawer slides in, shows categories/assets, zero edit/upload/delete controls.
   5. Click a category → asset grid filters.
   6. "Unlink" → badge disappears, "Link program" returns.
-- [ ] Commit: `git add src/components/clients/SessionProgramLink.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — link/unlink program control and reference drawer on session page"`
+- [x] Commit: `git add src/components/clients/SessionProgramLink.tsx src/components/clients/SessionDetailClient.tsx && git commit -m "feat: programs phase 4 — link/unlink program control and reference drawer on session page"`
 
 ---
 
@@ -486,7 +486,7 @@ from a read-only slide-over drawer on the session detail page.
 - [x] C-2: `buildCategoryTree` extracted and reused by `ProgramExplorer`, build passes
 - [x] C-3: session detail server page fetches and passes `linkedProgram` bundle
 - [x] C-4: `LinkedProgramDrawer` renders `CategoryTree`/`AssetGrid` read-only, build passes
-- [ ] C-5: link/unlink/change control works end-to-end, verified manually in the browser
+- [x] C-5: link/unlink/change control works end-to-end, verified manually in the browser
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser

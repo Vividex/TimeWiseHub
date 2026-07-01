@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, FolderOpen } from 'lucide-react'
 import CategoryTree from '@/components/programs/CategoryTree'
 import AssetGrid from '@/components/programs/AssetGrid'
@@ -22,6 +22,12 @@ export default function LinkedProgramDrawer({
   onClose: () => void
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const tree = buildCategoryTree(categories)
   const visibleAssets =
@@ -30,8 +36,8 @@ export default function LinkedProgramDrawer({
       : assets.filter(a => a.category_id === selectedCategoryId)
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
-      <div className="flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl dark:bg-slate-900">
+    <div className={`fixed inset-0 z-50 flex justify-end bg-black/50 transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl transition-transform duration-300 ease-out dark:bg-slate-900 ${visible ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span
