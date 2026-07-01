@@ -3,10 +3,24 @@
 # anything not authorized below causes a clean pause (not a frozen prompt).
 
 ## Spending
-- spend-budget-usd: 0
-- No new npm packages this phase. No paid API calls during the implementation loop.
+- spend-budget-usd: 2
+- No new npm packages this phase. Real Claude Haiku API calls happen during C-6's manual smoke
+  test only (implementation tasks C-1..C-5 are pure code, zero API calls) — user approved
+  2026-07-01, same accepted cost pattern as session-notes/AI assistant. Budget of $2 covers a
+  handful of test-asset summarisations with generous headroom.
 
-## Notes (Recurring Sessions)
+## Notes (Programs Phase 2 — AI Summarisation)
+- Source spec: docs/superpowers/specs/2026-07-01-programs-phase2-ai-summarisation-design.md
+- Source plan: docs/superpowers/plans/2026-07-01-programs-phase2-ai-summarisation.md
+- Only note/image/pdf get summarised; everything else stays ai_status='skipped' unchanged.
+- Reuses existing Anthropic client/model exactly (claude-haiku-4-5-20251001, ANTHROPIC_API_KEY
+  already in env) — no new npm dependency, image/document content blocks natively supported by
+  installed SDK ^0.100.1.
+- Fire-and-forget trigger from AssetUploadZone.tsx after eligible uploads — genuine separate HTTP
+  request, not an in-process fire-and-forget inside another serverless function.
+- Codex handles text edits only; conductor runs all shell/build/git.
+
+## Notes (Recurring Sessions) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-01-recurring-sessions-design.md
 - Source plan: docs/superpowers/plans/2026-07-01-recurring-sessions.md
 - One new table session_series + sessions.series_id (nullable FK, mirrors program_id pattern).
