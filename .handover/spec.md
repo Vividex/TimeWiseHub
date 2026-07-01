@@ -348,7 +348,7 @@ at a time.
 ## C-4 — Cancel route, cron, vercel.json
 
 *Codex edits:*
-- [ ] Create `src/app/api/sessions/series/[seriesId]/cancel/route.ts`:
+- [x] Create `src/app/api/sessions/series/[seriesId]/cancel/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -377,7 +377,7 @@ at a time.
     return NextResponse.json({ ok: true })
   }
   ```
-- [ ] Create `src/app/api/cron/process-recurring-sessions/route.ts`:
+- [x] Create `src/app/api/cron/process-recurring-sessions/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createServiceClient } from '@/lib/supabase-service'
@@ -407,15 +407,15 @@ at a time.
     return NextResponse.json({ ok: true, seriesChecked: (activeSeries ?? []).length, totalGenerated })
   }
   ```
-- [ ] Edit `vercel.json` — read it first, then add ONE new entry to the `"crons"` array (currently
+- [x] Edit `vercel.json` — read it first, then add ONE new entry to the `"crons"` array (currently
   4 entries, becomes 5), keeping every existing entry unchanged:
   ```json
   { "path": "/api/cron/process-recurring-sessions", "schedule": "0 2 * * *" }
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/sessions/series/[seriesId]/cancel/route.ts" src/app/api/cron/process-recurring-sessions/route.ts vercel.json && git commit -m "feat: recurring sessions — cancel route, daily top-up cron"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/sessions/series/[seriesId]/cancel/route.ts" src/app/api/cron/process-recurring-sessions/route.ts vercel.json && git commit -m "feat: recurring sessions — cancel route, daily top-up cron"`
 
 ---
 
@@ -815,7 +815,7 @@ at a time.
 - [x] C-1: `session_series` table + `sessions.series_id` exist, migration committed
 - [x] C-2: shared generation module compiles clean
 - [x] C-3: both create-series routes work (new session, and converting an existing one)
-- [ ] C-4: cancel route + cron + vercel.json entry all in place
+- [x] C-4: cancel route + cron + vercel.json entry all in place
 - [ ] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
 - [ ] C-6: SessionRecurrence renders correctly in all three states (none/active/cancelled)
 - [ ] C-7: full manual smoke test passes
