@@ -514,7 +514,7 @@ Program — in either direction (program → template, or template → program).
 ## C-5 — ProgramExplorer: Save as template button
 
 *Codex edits:*
-- [ ] Replace `src/components/programs/ProgramExplorer.tsx` in full:
+- [x] Replace `src/components/programs/ProgramExplorer.tsx` in full:
   ```typescript
   'use client'
 
@@ -698,8 +698,8 @@ Program — in either direction (program → template, or template → program).
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/programs/ProgramExplorer.tsx && git commit -m "feat: programs phase 3 — Save as template button in explorer"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/programs/ProgramExplorer.tsx && git commit -m "feat: programs phase 3 — Save as template button in explorer"`
 
 ---
 
@@ -729,7 +729,7 @@ Program — in either direction (program → template, or template → program).
 - [x] C-2: duplicate endpoint clones category tree + note/link assets; GET/POST extended
 - [x] C-3: `ProgramForm` supports `isTemplate`, existing call sites unaffected
 - [x] C-4: Templates tab, New template, Use template all work
-- [ ] C-5: Save as template button works from the explorer
+- [x] C-5: Save as template button works from the explorer
 - [ ] C-6: full manual smoke test passes
 
 ## Verification
