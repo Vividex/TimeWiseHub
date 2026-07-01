@@ -111,7 +111,7 @@ at a time.
 ## C-2 — Shared generation module
 
 *Codex edits:*
-- [ ] Create `src/lib/sessions/series.ts`:
+- [x] Create `src/lib/sessions/series.ts`:
   ```typescript
   import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -227,8 +227,8 @@ at a time.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
-- [ ] Commit: `git add src/lib/sessions/series.ts && git commit -m "feat: recurring sessions — shared generation module"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
+- [x] Commit: `git add src/lib/sessions/series.ts && git commit -m "feat: recurring sessions — shared generation module"`
 
 ---
 
@@ -813,7 +813,7 @@ at a time.
 
 ## Acceptance checklist
 - [x] C-1: `session_series` table + `sessions.series_id` exist, migration committed
-- [ ] C-2: shared generation module compiles clean
+- [x] C-2: shared generation module compiles clean
 - [ ] C-3: both create-series routes work (new session, and converting an existing one)
 - [ ] C-4: cancel route + cron + vercel.json entry all in place
 - [ ] C-5: Repeat dropdown in New Session modal, "Does not repeat" path unchanged
