@@ -470,8 +470,8 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 ## C-6 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after all tasks.
-- [ ] Manual browser smoke test (no test runner) — **this is where real Claude API calls happen**:
+- [x] `pnpm run build` — final clean check after all tasks.
+- [x] Manual browser smoke test (no test runner) — **this is where real Claude API calls happen**:
   1. Add a note asset with a few real sentences of content. Wait a few seconds, refresh — confirm
      tag pills appear and the kebab menu has "View AI summary" showing a sensible summary.
   2. Upload an image (and a small PDF if available) — same check after a refresh.
@@ -481,7 +481,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
      no "View AI summary", still `ai_status: 'skipped'`).
   5. If you have a second (non-manager) test account, confirm they can see "View AI summary" but
      not "Delete" on an asset with a summary.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
@@ -491,7 +491,7 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 - [x] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
 - [x] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
 - [x] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
-- [ ] C-6: full manual smoke test passes
+- [x] C-6: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
