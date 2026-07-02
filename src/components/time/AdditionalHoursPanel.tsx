@@ -17,6 +17,9 @@ type Entry = {
 function fmt(iso: string) {
   return new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
 }
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 function fmtDuration(sec: number) {
   const h = Math.floor(sec / 3600)
   const m = Math.floor((sec % 3600) / 60)
@@ -192,7 +195,7 @@ export default function AdditionalHoursPanel() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{proj ?? '—'}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {fmt(e.started_at)}–{fmt(e.ended_at)}
+                      {fmtDate(e.started_at)} · {fmt(e.started_at)}–{fmt(e.ended_at)}
                       {e.duration_seconds ? ` · ${fmtDuration(e.duration_seconds)}` : ''}
                       {e.description ? ` · ${e.description}` : ''}
                     </p>
