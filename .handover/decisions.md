@@ -4,8 +4,12 @@
 
 ## Spending
 - spend-budget-usd: 2
-- Sessions this week (current phase): zero cost — pure code, internal Supabase reads only, no
-  external API calls anywhere in this feature.
+- Time page additional hours fixes (current phase): zero cost — pure code, internal Supabase data
+  only.
+- Locale hydration fix (prior phase, complete): zero cost — pure text substitution, no external
+  calls.
+- Sessions this week (prior phase, complete): zero cost — pure code, internal Supabase reads only,
+  no external API calls anywhere in this feature.
 - Video chat in sessions (prior phase, complete): real cost during C-6 manual testing only — one
   Daily.co room + one Resend email. User approved 2026-07-02, same accepted pattern as the
   existing video feature. Implementation tasks C-1..C-5 were pure code, zero cost.
@@ -13,7 +17,30 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Sessions This Week)
+## Notes (Time Page — Additional Hours Fixes)
+- No source spec/plan — two small, already root-caused bug fixes, implemented directly.
+- C-1: `dashboard/time/page.tsx`'s top cards treated roster hours and time_entries hours as
+  mutually exclusive for roster-managed orgs, silently dropping additional-hours entries. Fix:
+  add them together (mirrors the pre-existing `timeEntrySeconds + rosterSeconds` pattern that used
+  to live in the old dashboard "Hours this week" calc).
+- C-2: `AdditionalHoursPanel.tsx`'s entry list never showed which day an entry was for, only the
+  time range. Fix: new `fmtDate()` helper, `'en-AU'` locale (same convention just standardized
+  across the codebase in the prior phase).
+
+## Notes (Locale Hydration Fix) [complete, kept for reference]
+- No source spec/plan — small, well-understood bug fix, root-caused directly rather than run
+  through brainstorming/writing-plans (11 files, one mechanical change each).
+- Root cause: `toLocaleDateString([]/toLocaleTimeString([]` (and one bare `toLocaleDateString()`)
+  let the runtime pick the default locale, which differs between Vercel's server and a user's
+  browser, causing React hydration mismatches. Fix: explicit `'en-AU'`, matching the convention
+  already used elsewhere in this codebase.
+- User explicitly chose to sweep all 11 occurrences in one pass rather than fix only the one that
+  was actively erroring (`TimesheetSection.tsx`'s `formatWeek`).
+- Explicitly NOT touching: the separate `next-themes` script-tag console warning (upstream/
+  unmaintained library issue, confirmed via web search as a known false-positive — user chose to
+  leave it alone) and the Time page "additional hours" bugs (queued as the next phase after this).
+
+## Notes (Sessions This Week) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-02-sessions-this-week-design.md
 - Source plan: docs/superpowers/plans/2026-07-02-sessions-this-week.md
 - No schema changes. Shared `getWeekBounds()` helper in src/lib/week.ts replaces the inline
