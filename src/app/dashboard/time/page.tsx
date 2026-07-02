@@ -94,8 +94,8 @@ export default async function TimePage() {
   const rosterTodaySeconds = (todayRosterShifts ?? []).reduce((sum, s) => sum + shiftSeconds(s.start_time, s.end_time), 0)
   const rosterWeekSeconds = (weekRosterShifts ?? []).reduce((sum, s) => sum + shiftSeconds(s.start_time, s.end_time), 0)
 
-  const todaySeconds = rosterManaged ? rosterTodaySeconds : entryTodaySeconds
-  const weekSeconds = rosterManaged ? rosterWeekSeconds : entryWeekSeconds
+  const todaySeconds = rosterManaged ? rosterTodaySeconds + entryTodaySeconds : entryTodaySeconds
+  const weekSeconds = rosterManaged ? rosterWeekSeconds + entryWeekSeconds : entryWeekSeconds
 
   return (
     <div className="px-4 py-8 sm:px-8">
