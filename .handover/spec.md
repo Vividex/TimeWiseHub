@@ -65,7 +65,7 @@ ends its AI summary shows on the session page.
 ## C-2 — Video call creation API route
 
 *Codex edits:*
-- [ ] Create `src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts`:
+- [x] Create `src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -200,8 +200,8 @@ ends its AI summary shows on the session page.
   invitee: the client.)
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts" && git commit -m "feat: video chat in sessions — video call creation API route"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts" && git commit -m "feat: video chat in sessions — video call creation API route"`
 
 ---
 
@@ -477,7 +477,7 @@ ends its AI summary shows on the session page.
 
 ## Acceptance checklist
 - [x] C-1: `scheduled_calls.session_id` + `reminder_1hour_sent` exist, migration committed
-- [ ] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
+- [x] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
 - [ ] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
 - [ ] C-4: `SessionVideoCall` compiles clean, all three states implemented
 - [ ] C-5: wired into the session detail page correctly
