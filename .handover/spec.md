@@ -320,7 +320,7 @@ read-only, client never receives this data.
 ## C-3 — Wire the panel into `CallRoom`
 
 *Codex edits:*
-- [ ] Read `src/components/video/CallRoom.tsx` first to confirm current structure, then replace
+- [x] Read `src/components/video/CallRoom.tsx` first to confirm current structure, then replace
   its full contents:
   ```typescript
   'use client'
@@ -573,8 +573,8 @@ read-only, client never receives this data.
   other.)
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now (the C-2 mismatch is resolved).
-- [ ] Commit: `git add src/components/video/CallRoom.tsx && git commit -m "feat: in-call program reference panel — wire panel + toggle button into CallRoom"`
+- [x] `pnpm run build` — must pass clean now (the C-2 mismatch is resolved).
+- [x] Commit: `git add src/components/video/CallRoom.tsx && git commit -m "feat: in-call program reference panel — wire panel + toggle button into CallRoom"`
 
 ---
 
@@ -603,7 +603,7 @@ read-only, client never receives this data.
 ## Acceptance checklist
 - [x] C-1: `ProgramReferencePanel` compiles clean, matches the approved design
 - [x] C-2: call page fetches `linkedProgram` via the session's `program_id`
-- [ ] C-3: `CallRoom` shows the button only when linked, panels are mutually exclusive, guests
+- [x] C-3: `CallRoom` shows the button only when linked, panels are mutually exclusive, guests
   never receive the prop
 - [ ] C-4: full manual smoke test passes, including the guest-isolation check
 
