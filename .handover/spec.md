@@ -581,8 +581,8 @@ read-only, client never receives this data.
 ## C-4 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after all tasks.
-- [ ] Manual browser smoke test (no test runner):
+- [x] `pnpm run build` — final clean check after all tasks.
+- [x] Manual browser smoke test (no test runner):
   1. Open a session that has a linked program, schedule/join its video call as staff. Confirm a
      "Program" button appears in the control bar.
   2. Click it — confirm the panel slides in from the right showing the linked program's assets.
@@ -596,7 +596,8 @@ read-only, client never receives this data.
      — confirm the "Program" button does not appear.
   8. Join the same call as a guest via its `/join/[guestToken]` link — confirm there is no
      "Program" button and no program panel at all in the guest's call window.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing. User confirmed 2026-07-03:
+  "all working."
 
 ---
 
@@ -605,7 +606,7 @@ read-only, client never receives this data.
 - [x] C-2: call page fetches `linkedProgram` via the session's `program_id`
 - [x] C-3: `CallRoom` shows the button only when linked, panels are mutually exclusive, guests
   never receive the prop
-- [ ] C-4: full manual smoke test passes, including the guest-isolation check
+- [x] C-4: full manual smoke test passes, including the guest-isolation check
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
