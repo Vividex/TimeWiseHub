@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DailyIframe from '@daily-co/daily-js'
-import { NotebookPen, X } from 'lucide-react'
+import { NotebookPen, X, BookOpen } from 'lucide-react'
+import ProgramReferencePanel from './ProgramReferencePanel'
+import type { LinkedProgramBundle } from '@/types/programs'
 
 type TranscriptLine = { speaker: string; text: string; ts: string }
 
@@ -13,9 +15,10 @@ type Props = {
   dailyRoomName: string
   isCreator: boolean
   callId?: string
+  linkedProgram?: LinkedProgramBundle | null
 }
 
-export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, callId }: Props) {
+export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, callId, linkedProgram }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null)
   const chunkBufferRef = useRef<string>('')
@@ -26,6 +29,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
   const [noteState, setNoteState] = useState<'idle' | 'active' | 'stopped'>('idle')
   const [panelOpen, setPanelOpen] = useState(false)
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([])
+  const [programPanelOpen, setProgramPanelOpen] = useState(false)
 
   async function flushBuffer() {
     const chunk = chunkBufferRef.current
@@ -107,7 +111,24 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
     ;(frameRef.current as any)?.startTranscription({ language: 'en', model: 'nova-2', punctuate: true, endpointing: 500 })
     setNoteState('active')
     setPanelOpen(true)
+    setProgramPanelOpen(false)
     flushIntervalRef.current = setInterval(flushBuffer, 30000)
+  }
+
+  function toggleTranscriptPanel() {
+    setPanelOpen(p => {
+      const next = !p
+      if (next) setProgramPanelOpen(false)
+      return next
+    })
+  }
+
+  function toggleProgramPanel() {
+    setProgramPanelOpen(p => {
+      const next = !p
+      if (next) setPanelOpen(false)
+      return next
+    })
   }
 
   async function handleLeave() {
@@ -161,6 +182,13 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
         </div>
       </div>
 
+      {/* Program reference panel */}
+      <ProgramReferencePanel
+        linkedProgram={linkedProgram ?? null}
+        open={programPanelOpen}
+        onClose={() => setProgramPanelOpen(false)}
+      />
+
       {/* Controls bar */}
       <div
         className="flex shrink-0 items-center justify-center gap-3 bg-slate-900 px-4 py-3"
@@ -168,7 +196,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
       >
         {/* Notes button */}
         <button
-          onClick={noteState === 'idle' ? startNotes : () => setPanelOpen(p => !p)}
+          onClick={noteState === 'idle' ? startNotes : toggleTranscriptPanel}
           className={`relative px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 ${
             noteState === 'active'
               ? 'bg-violet-600 text-white hover:bg-violet-700'
@@ -182,6 +210,18 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </button>
+
+        {/* Program panel button — only when a program is linked */}
+        {linkedProgram && (
+          <button
+            onClick={toggleProgramPanel}
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
+            title="Toggle program reference panel"
+          >
+            <BookOpen size={15} />
+            Program
+          </button>
+        )}
 
         <button
           onClick={handleLeave}
