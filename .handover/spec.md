@@ -208,7 +208,7 @@ ends its AI summary shows on the session page.
 ## C-3 — 1-hour reminder in the notifications cron
 
 *Codex edits:*
-- [ ] Read `src/app/api/notifications/upcoming/route.ts` first, then:
+- [x] Read `src/app/api/notifications/upcoming/route.ts` first, then:
   - Add this window computation right after the existing `w5Start`/`w5End` lines:
     ```typescript
     // 1-hour window: 55–65 min ahead (scheduled_calls only)
@@ -262,8 +262,8 @@ ends its AI summary shows on the session page.
   - Do not change the existing calendar-events blocks or the existing calls-30/calls-5 blocks.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/notifications/upcoming/route.ts && git commit -m "feat: video chat in sessions — 1-hour call reminder"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/api/notifications/upcoming/route.ts && git commit -m "feat: video chat in sessions — 1-hour call reminder"`
 
 ---
 
@@ -478,7 +478,7 @@ ends its AI summary shows on the session page.
 ## Acceptance checklist
 - [x] C-1: `scheduled_calls.session_id` + `reminder_1hour_sent` exist, migration committed
 - [x] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
-- [ ] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
+- [x] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
 - [ ] C-4: `SessionVideoCall` compiles clean, all three states implemented
 - [ ] C-5: wired into the session detail page correctly
 - [ ] C-6: full manual smoke test passes (real email + real Daily.co room)

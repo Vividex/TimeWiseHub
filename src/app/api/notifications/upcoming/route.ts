@@ -35,6 +35,10 @@ export async function GET(req: Request) {
   const w5Start  = new Date(now.getTime() +  3 * 60 * 1000).toISOString()
   const w5End    = new Date(now.getTime() +  7 * 60 * 1000).toISOString()
 
+  // 1-hour window: 55–65 min ahead (scheduled_calls only)
+  const w60Start = new Date(now.getTime() + 55 * 60 * 1000).toISOString()
+  const w60End   = new Date(now.getTime() + 65 * 60 * 1000).toISOString()
+
   let pushed = 0
   let emailed = 0
 
@@ -76,6 +80,46 @@ export async function GET(req: Request) {
     })
     await service.from('calendar_events').update({ reminder_5min_sent: true }).eq('id', event.id)
     pushed++
+  }
+
+  // ── Scheduled calls — 1-hour reminder ────────────────────────────────────
+  const { data: calls60 } = await service
+    .from('scheduled_calls')
+    .select('id, title, starts_at, daily_room_name')
+    .eq('reminder_1hour_sent', false)
+    .gte('starts_at', w60Start)
+    .lte('starts_at', w60End)
+
+  for (const call of (calls60 ?? []) as { id: string; title: string; starts_at: string; daily_room_name: string | null }[]) {
+    const { data: invitees } = await service
+      .from('call_invitees')
+      .select('email, display_name, user_id, guest_token')
+      .eq('call_id', call.id)
+
+    for (const inv of (invitees ?? []) as { email: string; display_name: string | null; user_id: string | null; guest_token: string }[]) {
+      if (inv.user_id) {
+        await sendPushToUser(inv.user_id, {
+          title: '1-hour reminder',
+          body: `${call.title} starts at ${formatTime(call.starts_at)}`,
+          url: `/dashboard/video/${call.id}`,
+          tag: `call-reminder-60:${call.id}`,
+        })
+        pushed++
+      } else {
+        const joinUrl = `${APP_URL}/join/${inv.guest_token}`
+        await sendEmail({
+          to: inv.email,
+          subject: `Starting soon: ${call.title}`,
+          text: `${call.title} starts in about 1 hour.\nJoin: ${joinUrl}`,
+          html: `<p>Hi ${inv.display_name ?? inv.email},</p>
+<p>Your call <strong>${call.title}</strong> starts in about 1 hour at ${formatTime(call.starts_at)}.</p>
+<p><a href="${joinUrl}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none">Join now</a></p>`,
+        })
+        emailed++
+      }
+    }
+
+    await service.from('scheduled_calls').update({ reminder_1hour_sent: true }).eq('id', call.id)
   }
 
   // ── Scheduled calls — 30-min reminder ────────────────────────────────────
