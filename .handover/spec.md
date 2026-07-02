@@ -58,7 +58,7 @@ sessions, each flagged Recurring when applicable.
 ## C-2 — Dashboard page: sessions-this-week query replaces hours-this-week
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/page.tsx` first to confirm current structure, then replace its full
+- [x] Read `src/app/dashboard/page.tsx` first to confirm current structure, then replace its full
   contents with:
   ```typescript
   import { redirect } from 'next/navigation'
@@ -322,16 +322,16 @@ sessions, each flagged Recurring when applicable.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — expect a type error on `DashboardMetrics` (still expects `hoursThisWeek`) —
+- [x] `pnpm run build` — expect a type error on `DashboardMetrics` (still expects `hoursThisWeek`) —
   that's expected here, fixed by C-3.
-- [ ] Commit: `git add src/app/dashboard/page.tsx && git commit -m "feat: sessions this week — replace hours-this-week query with sessions count"`
+- [x] Commit: `git add src/app/dashboard/page.tsx && git commit -m "feat: sessions this week — replace hours-this-week query with sessions count"`
 
 ---
 
 ## C-3 — DashboardMetrics: swap the first tile
 
 *Codex edits:*
-- [ ] Replace the full contents of `src/components/dashboard/DashboardMetrics.tsx`:
+- [x] Replace the full contents of `src/components/dashboard/DashboardMetrics.tsx`:
   ```typescript
   'use client'
 
@@ -423,8 +423,8 @@ sessions, each flagged Recurring when applicable.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now (the C-2 mismatch is resolved).
-- [ ] Commit: `git add src/components/dashboard/DashboardMetrics.tsx && git commit -m "feat: sessions this week — swap dashboard tile from Hours to Sessions"`
+- [x] `pnpm run build` — must pass clean now (the C-2 mismatch is resolved).
+- [x] Commit: `git add src/components/dashboard/DashboardMetrics.tsx && git commit -m "feat: sessions this week — swap dashboard tile from Hours to Sessions"`
 
 ---
 
@@ -590,8 +590,8 @@ sessions, each flagged Recurring when applicable.
 
 ## Acceptance checklist
 - [x] C-1: `getWeekBounds()` compiles clean, matches the exact prior inline logic
-- [ ] C-2: dashboard page computes `sessionsThisWeek`, dead hours/roster code removed
-- [ ] C-3: `DashboardMetrics` shows "Sessions this week" linking to `/dashboard/sessions`
+- [x] C-2: dashboard page computes `sessionsThisWeek`, dead hours/roster code removed
+- [x] C-3: `DashboardMetrics` shows "Sessions this week" linking to `/dashboard/sessions`
 - [ ] C-4: `/dashboard/sessions` renders both sections correctly with Recurring badges
 - [ ] C-5: full manual smoke test passes
 
