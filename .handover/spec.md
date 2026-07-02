@@ -431,7 +431,7 @@ sessions, each flagged Recurring when applicable.
 ## C-4 — Sessions overview page
 
 *Codex edits:*
-- [ ] Create `src/app/dashboard/sessions/page.tsx`:
+- [x] Create `src/app/dashboard/sessions/page.tsx`:
   ```typescript
   import { redirect } from 'next/navigation'
   import { createClient } from '@/lib/supabase-server'
@@ -562,9 +562,9 @@ sessions, each flagged Recurring when applicable.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Confirm `/dashboard/sessions` appears in the build's
+- [x] `pnpm run build` — must pass clean. Confirm `/dashboard/sessions` appears in the build's
   route list output.
-- [ ] Commit: `git add src/app/dashboard/sessions/page.tsx && git commit -m "feat: sessions this week — sessions overview page"`
+- [x] Commit: `git add src/app/dashboard/sessions/page.tsx && git commit -m "feat: sessions this week — sessions overview page"`
 
 ---
 
@@ -592,7 +592,7 @@ sessions, each flagged Recurring when applicable.
 - [x] C-1: `getWeekBounds()` compiles clean, matches the exact prior inline logic
 - [x] C-2: dashboard page computes `sessionsThisWeek`, dead hours/roster code removed
 - [x] C-3: `DashboardMetrics` shows "Sessions this week" linking to `/dashboard/sessions`
-- [ ] C-4: `/dashboard/sessions` renders both sections correctly with Recurring badges
+- [x] C-4: `/dashboard/sessions` renders both sections correctly with Recurring badges
 - [ ] C-5: full manual smoke test passes
 
 ## Verification
