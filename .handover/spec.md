@@ -270,7 +270,7 @@ ends its AI summary shows on the session page.
 ## C-4 — SessionVideoCall component
 
 *Codex edits:*
-- [ ] Create `src/components/clients/SessionVideoCall.tsx`:
+- [x] Create `src/components/clients/SessionVideoCall.tsx`:
   ```typescript
   'use client'
 
@@ -416,8 +416,8 @@ ends its AI summary shows on the session page.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
-- [ ] Commit: `git add src/components/clients/SessionVideoCall.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall component"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
+- [x] Commit: `git add src/components/clients/SessionVideoCall.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall component"`
 
 ---
 
@@ -479,7 +479,7 @@ ends its AI summary shows on the session page.
 - [x] C-1: `scheduled_calls.session_id` + `reminder_1hour_sent` exist, migration committed
 - [x] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
 - [x] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
-- [ ] C-4: `SessionVideoCall` compiles clean, all three states implemented
+- [x] C-4: `SessionVideoCall` compiles clean, all three states implemented
 - [ ] C-5: wired into the session detail page correctly
 - [ ] C-6: full manual smoke test passes (real email + real Daily.co room)
 
