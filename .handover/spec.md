@@ -98,21 +98,22 @@ Fix two bugs on the Time page (`/dashboard/time`) for roster-managed (Business p
 ## C-3 — Manual verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check.
-- [ ] Manual browser check (roster-managed/Business-plan org, no test runner):
+- [x] `pnpm run build` — final clean check.
+- [x] Manual browser check (roster-managed/Business-plan org, no test runner):
   1. Log an additional-hours entry via `AdditionalHoursPanel` on `/dashboard/time`.
   2. Confirm the top "Today"/"This week" summary cards increase to include it (on top of any
      rostered-shift hours already counted).
   3. Confirm the "Additional hours this week" list shows the date (e.g. "Mon 29 Jun") alongside
      the existing time range for each entry.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing. User confirmed 2026-07-02:
+  "all working."
 
 ---
 
 ## Acceptance checklist
 - [x] C-1: top summary cards additively include roster + additional hours for roster-managed orgs
 - [x] C-2: additional-hours list shows the date worked
-- [ ] C-3: manual verification passes
+- [x] C-3: manual verification passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
