@@ -21,7 +21,6 @@ export default function SessionVideoCall({
 }) {
   const router = useRouter()
   const [showConfirm, setShowConfirm] = useState(false)
-  const [showSummary, setShowSummary] = useState(false)
   const [scheduling, setScheduling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,47 +38,21 @@ export default function SessionVideoCall({
   if (call) {
     return (
       <div className="flex items-center gap-2">
-        <a
-          href={`/dashboard/video/${call.id}`}
-          className="flex items-center gap-1.5 rounded-xl bg-violet-500 px-3 py-1 text-xs font-bold text-white hover:bg-violet-600"
-        >
-          <Video size={12} />
-          Join call
-        </a>
+        {call.summary ? (
+          <span className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-500 dark:border-slate-700 dark:text-slate-500">
+            <Video size={12} />
+            This call has ended
+          </span>
+        ) : (
+          <a
+            href={`/dashboard/video/${call.id}`}
+            className="flex items-center gap-1.5 rounded-xl bg-violet-500 px-3 py-1 text-xs font-bold text-white hover:bg-violet-600"
+          >
+            <Video size={12} />
+            Join call
+          </a>
+        )}
         <span className="text-xs text-gray-400 dark:text-slate-500">{fmtDateTime(call.startsAt)}</span>
-        {call.summary && (
-          <button
-            type="button"
-            onClick={() => setShowSummary(true)}
-            className="text-xs font-semibold text-cyan-600 hover:underline dark:text-cyan-400"
-          >
-            View summary
-          </button>
-        )}
-
-        {showSummary && call.summary && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            onClick={() => setShowSummary(false)}
-          >
-            <div
-              className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Call summary</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowSummary(false)}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <p className="whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">{call.summary}</p>
-            </div>
-          </div>
-        )}
       </div>
     )
   }

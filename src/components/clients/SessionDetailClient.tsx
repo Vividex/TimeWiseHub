@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Play, Square } from 'lucide-react'
+import { Play, Square, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import SessionProgramLink from '@/components/clients/SessionProgramLink'
 import SessionRecurrence from '@/components/clients/SessionRecurrence'
@@ -70,6 +70,10 @@ export default function SessionDetailClient({
   const [savingProgressNote, setSavingProgressNote] = useState(false)
   const [progressNoteSaved, setProgressNoteSaved] = useState(false)
   const [progressNoteError, setProgressNoteError] = useState('')
+  const [showCallSummary, setShowCallSummary] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
+  const [savingCallSummaryNote, setSavingCallSummaryNote] = useState(false)
+  const [callSummaryNoteSaved, setCallSummaryNoteSaved] = useState(false)
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false)
   const [deletingSession, setDeletingSession] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -203,6 +207,36 @@ export default function SessionDetailClient({
 
     setProgressNoteSaved(true)
     setTimeout(() => setProgressNoteSaved(false), 2500)
+  }
+
+  async function addCallSummaryToProgressNotes() {
+    if (!call?.summary) return
+    setSavingCallSummaryNote(true)
+    setCallSummaryNoteSaved(false)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setSavingCallSummaryNote(false)
+      return
+    }
+
+    const body = [
+      `Call summary: ${title.trim() || initial.title}`,
+      `Scheduled: ${fmtDateTime(call.startsAt)}`,
+      '',
+      call.summary,
+    ].join('\n')
+
+    await supabase.from('progress_notes').insert({
+      client_id: clientId,
+      org_id: orgId,
+      created_by: user.id,
+      body,
+    })
+
+    setSavingCallSummaryNote(false)
+    setCallSummaryNoteSaved(true)
+    setTimeout(() => setCallSummaryNoteSaved(false), 2500)
   }
 
   async function deleteSession() {
@@ -375,26 +409,67 @@ export default function SessionDetailClient({
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Notes</h2>
-              <button
-                type="button"
-                onClick={addSessionNotesToProgressNotes}
-                disabled={savingProgressNote || !notes.trim()}
-                className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-              >
-                {savingProgressNote ? 'Adding...' : progressNoteSaved ? 'Added!' : 'Add to progress notes'}
-              </button>
+            {call?.summary && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCallSummary(v => !v)}
+                    className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                  >
+                    <ChevronDown size={14} className={`transition-transform ${showCallSummary ? '' : '-rotate-90'}`} />
+                    Call Summary
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addCallSummaryToProgressNotes}
+                    disabled={savingCallSummaryNote}
+                    className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                  >
+                    {savingCallSummaryNote ? 'Adding...' : callSummaryNoteSaved ? 'Added!' : 'Add to progress notes'}
+                  </button>
+                </div>
+                {showCallSummary && (
+                  <div className="whitespace-pre-line rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                    {call.summary}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowNotes(v => !v)}
+                  className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                >
+                  <ChevronDown size={14} className={`transition-transform ${showNotes ? '' : '-rotate-90'}`} />
+                  Notes
+                </button>
+                <button
+                  type="button"
+                  onClick={addSessionNotesToProgressNotes}
+                  disabled={savingProgressNote || !notes.trim()}
+                  className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                >
+                  {savingProgressNote ? 'Adding...' : progressNoteSaved ? 'Added!' : 'Add to progress notes'}
+                </button>
+              </div>
+              {showNotes && (
+                <>
+                  <textarea
+                    value={notes}
+                    onChange={e => handleNotesChange(e.target.value)}
+                    placeholder="Session notes..."
+                    rows={14}
+                    className="w-full rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm focus:border-cyan-400 focus:outline-none resize-none"
+                  />
+                  {progressNoteError && <p className="text-xs font-semibold text-red-600">{progressNoteError}</p>}
+                  <p className="text-xs text-gray-400">Auto-saved as you type.</p>
+                </>
+              )}
             </div>
-            <textarea
-              value={notes}
-              onChange={e => handleNotesChange(e.target.value)}
-              placeholder="Session notes..."
-              rows={14}
-              className="w-full rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm focus:border-cyan-400 focus:outline-none resize-none"
-            />
-            {progressNoteError && <p className="text-xs font-semibold text-red-600">{progressNoteError}</p>}
-            <p className="text-xs text-gray-400">Auto-saved as you type.</p>
           </div>
         </div>
       </div>
