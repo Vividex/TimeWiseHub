@@ -1,28 +1,27 @@
-# Programs Phase 2 — AI Summarisation
+# Video Chat in Sessions
 
 ## Goal
-Automatically generate a short summary and tags for `note`, `image`, and `pdf` program assets
-using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
+Let a client Session have a video call attached to it — auto-scheduled from the session's own
+time, the client gets an email invite immediately and a reminder 1 hour before, and once the call
+ends its AI summary shows on the session page.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-01-programs-phase2-ai-summarisation-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-01-programs-phase2-ai-summarisation.md`
-- Only `note`/`image`/`pdf` get summarised. Every other type keeps `ai_status: 'skipped'`
-  unchanged. No new DB migration — Phase 1's `ai_status`/`ai_summary`/`ai_tags` columns already
-  exist, unused until now.
-- Reuses the existing Claude client pattern exactly: `new Anthropic({ apiKey:
-  process.env.ANTHROPIC_API_KEY })`, model `'claude-haiku-4-5-20251001'`, `max_tokens: 1024` —
-  matching `src/app/api/video/notes/[callId]/summarise/route.ts` and
-  `src/app/api/assistant/route.ts`. No new npm dependency (image/document content blocks are
-  natively supported by the installed `@anthropic-ai/sdk` `^0.100.1`).
-- Trigger: fire-and-forget request from the upload UI right after an eligible asset is created —
-  same pattern as the existing auto-pay-run trigger (a genuine separate HTTP request the browser
-  doesn't await, not an in-process fire-and-forget inside another serverless function).
-- Failure handling: any error sets `ai_status: 'failed'` and stops. No retries.
-- Spend: this phase makes real (small) Claude API calls per summarised asset — user confirmed
-  proceeding 2026-07-01, same accepted cost pattern as session-notes/AI assistant.
-- Codex handles text edits only; conductor (Claude) runs all shell/build/git (Windows: Codex's
-  workspace-write sandbox cannot spawn subprocesses).
+- Source spec: `docs/superpowers/specs/2026-07-02-video-chat-in-sessions-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-02-video-chat-in-sessions.md`
+- One new nullable FK `scheduled_calls.session_id` (on delete set null) + `reminder_1hour_sent`
+  boolean. No RLS changes.
+- New creation route mirrors `POST /api/video/schedule` almost exactly (same Daily.co room
+  creation, same invite-email template/sender) but auto-fills from the session and always has
+  exactly one invitee: the client. Same `isTeamPlan(sub)` Business-plan gate as the existing route.
+- If the client has no email on file, scheduling is blocked with a clear message — no call created.
+- 1-hour reminder is a third block bolted onto the existing `/api/notifications/upcoming` cron
+  (55–65 min window, same push/email branching as the existing 30-min/5-min blocks). No new cron.
+- Out of scope: cancel/reschedule from the session page (use the Video page), multiple calls per
+  session, keeping the call's time in sync if the session's time changes later.
+- Spend: real (small) cost during C-6 manual testing only — one Daily.co room + one Resend email.
+  User approved 2026-07-02, same accepted pattern as the existing video feature.
+- Codex handles text edits only; conductor (Claude) runs all shell/build/git and the DB migration
+  via Supabase MCP (Windows: Codex's workspace-write sandbox cannot spawn subprocesses).
 - Verification gate: `pnpm run build` (tsc + eslint) after every turn. No test runner.
 
 ## Rules for Codex
@@ -33,426 +32,381 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
-- No DB migration needed this phase.
-- C-6 needs a manual browser smoke test (no test runner) before ticking it done — this is the
-  step where real Claude API calls actually happen.
+- C-1 is conductor-only (no Codex dispatch needed) — DB migration via Supabase MCP.
+- C-6 needs a manual browser smoke test (no test runner) before ticking it done — real email +
+  real Daily.co room created here.
 
 ---
 
-## C-1 — Shared Claude summarisation module
+## C-1 — Database migration
 
-*Codex edits:*
-- [x] Create `src/lib/programs/summarise-asset.ts`:
-  ```typescript
-  import Anthropic from '@anthropic-ai/sdk'
-  import { createServiceClient } from '@/lib/supabase-service'
-  import type { ProgramAsset } from '@/types/programs'
+*Conductor only (no Codex dispatch):*
+- [x] Create `supabase/schema-076-video-chat-sessions.sql`:
+  ```sql
+  alter table public.scheduled_calls
+    add column session_id uuid references public.sessions(id) on delete set null,
+    add column reminder_1hour_sent boolean not null default false;
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-  const FORMAT_INSTRUCTIONS = `Respond in exactly this format — no preamble, no extra sections:
-
-  ## Summary
-  <2-3 sentence summary>
-
-  ## Tags
-  tag1, tag2, tag3`
-
-  function parseSummaryResponse(text: string): { summary: string; tags: string[] } {
-    const summaryMatch = text.match(/## Summary\s*([\s\S]*?)(?=## Tags|$)/i)
-    const tagsMatch = text.match(/## Tags\s*([\s\S]*)$/i)
-    const summary = summaryMatch ? summaryMatch[1].trim() : text.trim()
-    const tags = tagsMatch
-      ? tagsMatch[1].split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
-      : []
-    return { summary, tags }
-  }
-
-  export async function summariseAsset(
-    asset: ProgramAsset,
-  ): Promise<{ summary: string; tags: string[] } | null> {
-    if (asset.asset_type === 'note') {
-      const content = asset.note_content?.trim() ?? ''
-      if (content.length < 20) return null
-
-      const message = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: `Summarise this note and suggest a few tags for it.\n\n${FORMAT_INSTRUCTIONS}\n\nNote:\n${content}`,
-        }],
-      })
-      const text = message.content[0].type === 'text' ? message.content[0].text : ''
-      if (!text) return null
-      return parseSummaryResponse(text)
-    }
-
-    if (asset.asset_type === 'image' || asset.asset_type === 'pdf') {
-      if (!asset.storage_path || !asset.mime_type) return null
-
-      const service = createServiceClient()
-      const { data: file, error } = await service.storage
-        .from('program-assets')
-        .download(asset.storage_path)
-      if (error || !file) return null
-
-      const buffer = Buffer.from(await file.arrayBuffer())
-      const base64 = buffer.toString('base64')
-
-      const contentBlock: Anthropic.ImageBlockParam | Anthropic.DocumentBlockParam =
-        asset.asset_type === 'image'
-          ? {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: asset.mime_type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-                data: base64,
-              },
-            }
-          : {
-              type: 'document',
-              source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-            }
-
-      const message = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: [
-            contentBlock,
-            { type: 'text', text: `Summarise this file and suggest a few tags for it.\n\n${FORMAT_INSTRUCTIONS}` },
-          ],
-        }],
-      })
-      const text = message.content[0].type === 'text' ? message.content[0].text : ''
-      if (!text) return null
-      return parseSummaryResponse(text)
-    }
-
-    return null
-  }
+  create index scheduled_calls_session on public.scheduled_calls (session_id) where session_id is not null;
   ```
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
-- [x] Commit: `git add src/lib/programs/summarise-asset.ts && git commit -m "feat: programs phase 2 — shared Claude asset summarisation module"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `video_chat_sessions`)
+- [x] Verify via MCP `execute_sql`:
+  ```sql
+  select column_name, data_type, is_nullable, column_default
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'scheduled_calls'
+    and column_name in ('session_id', 'reminder_1hour_sent');
+  ```
+  Expected: 2 rows — `session_id` (uuid, nullable), `reminder_1hour_sent` (boolean, default false).
+- [x] Commit: `git add supabase/schema-076-video-chat-sessions.sql && git commit -m "feat: video chat in sessions — session_id link + reminder flag (DB migration)"`
 
 ---
 
-## C-2 — Summarise API route
+## C-2 — Video call creation API route
 
 *Codex edits:*
-- [x] Create `src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts`:
+- [ ] Create `src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
   import { createServiceClient } from '@/lib/supabase-service'
-  import { summariseAsset } from '@/lib/programs/summarise-asset'
-  import type { ProgramAsset } from '@/types/programs'
+  import { sendEmail } from '@/lib/email-notifications'
+  import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
-  async function assertAdminAccess(programId: string, userId: string) {
-    const service = createServiceClient()
-    const { data: program } = await service
-      .from('programs').select('id, org_id, owner_id').eq('id', programId).maybeSingle()
-    if (!program) return false
-    if (program.owner_id === userId) return true
-    const { data: m } = await service
-      .from('organisation_members').select('role')
-      .eq('user_id', userId).eq('org_id', program.org_id ?? '').maybeSingle()
-    return !!m && ['owner', 'admin', 'manager'].includes(m.role as string)
+  const DAILY_API = 'https://api.daily.co/v1'
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+  function formatCallTime(iso: string) {
+    return new Date(iso).toLocaleString('en-AU', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Australia/Sydney',
+    })
   }
 
   export async function POST(
     _req: Request,
-    { params }: { params: Promise<{ id: string; assetId: string }> },
+    { params }: { params: Promise<{ id: string; sessionId: string }> },
   ) {
-    const { id, assetId } = await params
+    const { id, sessionId } = await params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    if (!(await assertAdminAccess(id, user.id))) {
+
+    const sub = await getSubscription(user.id)
+    if (!isTeamPlan(sub)) return NextResponse.json({ error: 'Upgrade to Business to use video calls.' }, { status: 403 })
+
+    const service = createServiceClient()
+
+    const [{ data: session }, { data: client }] = await Promise.all([
+      service.from('sessions').select('id, title, scheduled_at, duration_minutes, org_id, client_id')
+        .eq('id', sessionId).eq('client_id', id).maybeSingle(),
+      service.from('clients').select('id, name, email').eq('id', id).maybeSingle(),
+    ])
+
+    if (!session || !client) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    const { data: membership } = await service
+      .from('organisation_members').select('role')
+      .eq('user_id', user.id).eq('org_id', session.org_id ?? '').maybeSingle()
+    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role as string)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const service = createServiceClient()
-    const { data: asset } = await service
-      .from('program_assets').select('*').eq('id', assetId).eq('program_id', id).maybeSingle()
-    if (!asset) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-    const typed = asset as ProgramAsset
-    if (!['note', 'image', 'pdf'].includes(typed.asset_type)) {
-      return NextResponse.json({ ok: true, skipped: true })
+    if (!client.email) {
+      return NextResponse.json(
+        { error: 'Add an email address to this client before scheduling a video call.' },
+        { status: 400 },
+      )
     }
 
-    await service.from('program_assets').update({ ai_status: 'processing' }).eq('id', assetId)
+    const { data: profile } = await service
+      .from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+    const organiserName = (profile as unknown as { full_name: string | null } | null)?.full_name ?? 'A team member'
 
-    try {
-      const result = await summariseAsset(typed)
-      if (!result) {
-        await service.from('program_assets').update({ ai_status: 'skipped' }).eq('id', assetId)
-        return NextResponse.json({ ok: true, skipped: true })
-      }
-      await service.from('program_assets').update({
-        ai_status: 'done',
-        ai_summary: result.summary,
-        ai_tags: result.tags,
-      }).eq('id', assetId)
-      return NextResponse.json({ ok: true })
-    } catch (err) {
-      console.error('Asset summarisation failed:', err)
-      await service.from('program_assets').update({ ai_status: 'failed' }).eq('id', assetId)
-      return NextResponse.json({ error: 'Summarisation failed' }, { status: 500 })
+    const startsAt = session.scheduled_at
+    const endsAt = new Date(new Date(startsAt).getTime() + session.duration_minutes * 60 * 1000).toISOString()
+    const endsAtMs = new Date(endsAt).getTime()
+    const exp = Math.floor(endsAtMs / 1000) + 60 * 60 // 1h after ends_at
+
+    const roomRes = await fetch(`${DAILY_API}/rooms`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ properties: { exp, enable_transcription: true } }),
+    })
+    if (!roomRes.ok) {
+      const text = await roomRes.text()
+      return NextResponse.json({ error: `Daily.co room creation failed: ${text}` }, { status: 502 })
     }
+    const room = (await roomRes.json()) as { name: string; url: string }
+
+    const { data: call, error: callError } = await service
+      .from('scheduled_calls')
+      .insert({
+        org_id: session.org_id,
+        title: session.title,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        created_by: user.id,
+        daily_room_name: room.name,
+        room_url: room.url,
+        session_id: sessionId,
+      })
+      .select('id')
+      .single()
+
+    if (callError || !call) {
+      await fetch(`${DAILY_API}/rooms/${room.name}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${process.env.DAILY_API_KEY}` },
+      })
+      return NextResponse.json({ error: 'Failed to save call' }, { status: 500 })
+    }
+
+    const { data: inviteeRow } = await service
+      .from('call_invitees')
+      .insert({ call_id: call.id, user_id: null, email: client.email, display_name: client.name })
+      .select('guest_token')
+      .single()
+
+    const guestToken = (inviteeRow as unknown as { guest_token: string } | null)?.guest_token
+    const joinUrl = `${APP_URL}/join/${guestToken}`
+    const timeLabel = formatCallTime(startsAt)
+
+    const subject = `${organiserName} invited you to a call: ${session.title}`
+    const html = `
+      <p>Hi ${client.name},</p>
+      <p><strong>${organiserName}</strong> has scheduled a video call: <strong>${session.title}</strong></p>
+      <p>When: ${timeLabel}</p>
+      <p><a href="${joinUrl}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none">Join call</a></p>
+      <p style="color:#888;font-size:12px">Or paste this link: ${joinUrl}</p>
+    `
+    const text = `${organiserName} invited you to a call: ${session.title}\nWhen: ${timeLabel}\nJoin: ${joinUrl}`
+
+    await sendEmail({ to: client.email, subject, text, html })
+
+    return NextResponse.json({ callId: call.id, roomUrl: room.url })
   }
   ```
+  (Mirrors `src/app/api/video/schedule/route.ts` almost exactly — same Daily.co call, same
+  invite-email template/sender — but times/title come from the session and there's exactly one
+  invitee: the client.)
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add "src/app/api/programs/[id]/assets/[assetId]/summarise/route.ts" && git commit -m "feat: programs phase 2 — summarise API route"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/api/clients/[id]/sessions/[sessionId]/video-call/route.ts" && git commit -m "feat: video chat in sessions — video call creation API route"`
 
 ---
 
-## C-3 — Asset creation defaults `ai_status` to `pending`
+## C-3 — 1-hour reminder in the notifications cron
 
 *Codex edits:*
-- [x] Read `src/app/api/programs/[id]/assets/route.ts` first, then:
-  - In the `note` insert of the JSON body branch, change `ai_status: 'skipped'` to
-    `ai_status: 'pending'`. Leave the `link`/`video` branch immediately below untouched
-    (`ai_status: 'skipped'`, unchanged).
-  - In the file-upload branch's insert, change:
+- [ ] Read `src/app/api/notifications/upcoming/route.ts` first, then:
+  - Add this window computation right after the existing `w5Start`/`w5End` lines:
     ```typescript
-    ai_status: 'skipped',
+    // 1-hour window: 55–65 min ahead (scheduled_calls only)
+    const w60Start = new Date(now.getTime() + 55 * 60 * 1000).toISOString()
+    const w60End   = new Date(now.getTime() + 65 * 60 * 1000).toISOString()
     ```
-    to:
+  - Insert this entire new block immediately before the existing
+    `// ── Scheduled calls — 30-min reminder ────` comment:
     ```typescript
-    ai_status: assetType === 'image' || assetType === 'pdf' ? 'pending' : 'skipped',
-    ```
+    // ── Scheduled calls — 1-hour reminder ────────────────────────────────────
+    const { data: calls60 } = await service
+      .from('scheduled_calls')
+      .select('id, title, starts_at, daily_room_name')
+      .eq('reminder_1hour_sent', false)
+      .gte('starts_at', w60Start)
+      .lte('starts_at', w60End)
 
-*Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" && git commit -m "feat: programs phase 2 — ai_status defaults to pending for note/image/pdf"`
+    for (const call of (calls60 ?? []) as { id: string; title: string; starts_at: string; daily_room_name: string | null }[]) {
+      const { data: invitees } = await service
+        .from('call_invitees')
+        .select('email, display_name, user_id, guest_token')
+        .eq('call_id', call.id)
 
----
-
-## C-4 — Upload UI fires the summarise trigger
-
-*Codex edits:*
-- [x] Read `src/components/programs/AssetUploadZone.tsx` first, then:
-  - Add this helper function inside the component (e.g. right after the state declarations):
-    ```typescript
-    function triggerSummarise(asset: ProgramAsset) {
-      if (asset.asset_type === 'note' || asset.asset_type === 'image' || asset.asset_type === 'pdf') {
-        fetch(`/api/programs/${programId}/assets/${asset.id}/summarise`, { method: 'POST' })
+      for (const inv of (invitees ?? []) as { email: string; display_name: string | null; user_id: string | null; guest_token: string }[]) {
+        if (inv.user_id) {
+          await sendPushToUser(inv.user_id, {
+            title: '1-hour reminder',
+            body: `${call.title} starts at ${formatTime(call.starts_at)}`,
+            url: `/dashboard/video/${call.id}`,
+            tag: `call-reminder-60:${call.id}`,
+          })
+          pushed++
+        } else {
+          const joinUrl = `${APP_URL}/join/${inv.guest_token}`
+          await sendEmail({
+            to: inv.email,
+            subject: `Starting soon: ${call.title}`,
+            text: `${call.title} starts in about 1 hour.\nJoin: ${joinUrl}`,
+            html: `<p>Hi ${inv.display_name ?? inv.email},</p>
+    <p>Your call <strong>${call.title}</strong> starts in about 1 hour at ${formatTime(call.starts_at)}.</p>
+    <p><a href="${joinUrl}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none">Join now</a></p>`,
+          })
+          emailed++
+        }
       }
+
+      await service.from('scheduled_calls').update({ reminder_1hour_sent: true }).eq('id', call.id)
     }
+
     ```
-  - In `uploadFile`, add `triggerSummarise(json as ProgramAsset)` right after
-    `onAssetAdded(json as ProgramAsset)` and before `onClose()`.
-  - In `handleSaveNote`, add the same `triggerSummarise(json as ProgramAsset)` right after its
-    `onAssetAdded(json as ProgramAsset)` and before `onClose()`.
-  - Do NOT add this to `handleSaveLink` (link/video assets are never eligible).
-  - The `fetch(...)` call is deliberately not awaited — fire-and-forget, matching the existing
-    auto-pay-run trigger pattern.
+  - Do not change the existing calendar-events blocks or the existing calls-30/calls-5 blocks.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/programs/AssetUploadZone.tsx && git commit -m "feat: programs phase 2 — fire-and-forget summarise trigger after upload"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/api/notifications/upcoming/route.ts && git commit -m "feat: video chat in sessions — 1-hour call reminder"`
 
 ---
 
-## C-5 — AssetCard: tag pills + View AI summary popover
+## C-4 — SessionVideoCall component
 
 *Codex edits:*
-- [x] Replace `src/components/programs/AssetCard.tsx` in full:
+- [ ] Create `src/components/clients/SessionVideoCall.tsx`:
   ```typescript
   'use client'
 
   import { useState } from 'react'
-  import {
-    FileText, Image, Music, Link, BookOpen, FileSpreadsheet, File,
-    MoreVertical, Trash2, ExternalLink, Sparkles, X,
-  } from 'lucide-react'
-  import type { ProgramAsset, ProgramAssetType } from '@/types/programs'
+  import { useRouter } from 'next/navigation'
+  import { Video, X } from 'lucide-react'
 
-  const TYPE_ICON: Record<ProgramAssetType, React.ComponentType<{ size?: number; className?: string }>> = {
-    pdf:   FileText,
-    docx:  FileText,
-    xlsx:  FileSpreadsheet,
-    image: Image,
-    audio: Music,
-    video: Link,
-    note:  BookOpen,
-    link:  Link,
+  function fmtDateTime(iso: string) {
+    return new Date(iso).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })
   }
 
-  const TYPE_COLOUR: Record<ProgramAssetType, string> = {
-    pdf:   '#ef4444',
-    docx:  '#3b82f6',
-    xlsx:  '#10b981',
-    image: '#8b5cf6',
-    audio: '#f59e0b',
-    video: '#ec4899',
-    note:  '#06b6d4',
-    link:  '#64748b',
-  }
-
-  function fmtBytes(n: number | null) {
-    if (!n) return ''
-    if (n < 1024) return `${n}B`
-    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)}KB`
-    return `${(n / 1024 / 1024).toFixed(1)}MB`
-  }
-
-  export default function AssetCard({
-    asset,
-    programId,
-    canManage,
-    onDeleted,
-    onUpdated,
+  export default function SessionVideoCall({
+    clientId,
+    sessionId,
+    clientEmail,
+    call,
   }: {
-    asset: ProgramAsset
-    programId: string
-    canManage: boolean
-    onDeleted: (id: string) => void
-    onUpdated: (asset: ProgramAsset) => void
+    clientId: string
+    sessionId: string
+    clientEmail: string | null
+    call: { id: string; startsAt: string; summary: string | null } | null
   }) {
-    const [menuOpen, setMenuOpen] = useState(false)
+    const router = useRouter()
+    const [showConfirm, setShowConfirm] = useState(false)
     const [showSummary, setShowSummary] = useState(false)
-    const [deleting, setDeleting] = useState(false)
-    const Icon = TYPE_ICON[asset.asset_type] ?? File
-    const colour = TYPE_COLOUR[asset.asset_type] ?? '#64748b'
+    const [scheduling, setScheduling] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
-    async function handleDelete() {
-      if (!confirm(`Delete "${asset.name}"?`)) return
-      setDeleting(true)
-      await fetch(`/api/programs/${programId}/assets/${asset.id}`, { method: 'DELETE' })
-      onDeleted(asset.id)
+    async function scheduleCall() {
+      setScheduling(true)
+      setError(null)
+      const res = await fetch(`/api/clients/${clientId}/sessions/${sessionId}/video-call`, { method: 'POST' })
+      const json = await res.json()
+      setScheduling(false)
+      if (!res.ok) { setError(json.error ?? 'Failed to schedule call'); return }
+      setShowConfirm(false)
+      router.refresh()
     }
 
-    function handleOpen() {
-      if (asset.signed_url) {
-        window.open(asset.signed_url, '_blank')
-      } else if (asset.external_url) {
-        window.open(asset.external_url, '_blank')
-      }
+    if (call) {
+      return (
+        <div className="flex items-center gap-2">
+          <a
+            href={`/dashboard/video/${call.id}`}
+            className="flex items-center gap-1.5 rounded-xl bg-violet-500 px-3 py-1 text-xs font-bold text-white hover:bg-violet-600"
+          >
+            <Video size={12} />
+            Join call
+          </a>
+          <span className="text-xs text-gray-400 dark:text-slate-500">{fmtDateTime(call.startsAt)}</span>
+          {call.summary && (
+            <button
+              type="button"
+              onClick={() => setShowSummary(true)}
+              className="text-xs font-semibold text-cyan-600 hover:underline dark:text-cyan-400"
+            >
+              View summary
+            </button>
+          )}
+
+          {showSummary && call.summary && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+              onClick={() => setShowSummary(false)}
+            >
+              <div
+                className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Call summary</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowSummary(false)}
+                    className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <p className="whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">{call.summary}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )
     }
-
-    // suppress unused warning — onUpdated available for future rename flow
-    void onUpdated
-
-    const showKebab = canManage || !!asset.ai_summary
 
     return (
-      <div className="group relative rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-colors hover:border-gray-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
-        <div
-          className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${colour}1a`, color: colour }}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setShowConfirm(true)}
+          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
         >
-          <Icon size={20} />
-        </div>
+          <Video size={12} />
+          Schedule video call
+        </button>
 
-        <p className="mb-1 text-sm font-bold leading-snug text-gray-900 line-clamp-2 dark:text-slate-100">
-          {asset.name}
-        </p>
-
-        <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">
-          {asset.asset_type}
-          {asset.file_size_bytes ? ` · ${fmtBytes(asset.file_size_bytes)}` : ''}
-        </p>
-
-        {asset.ai_status === 'done' && asset.ai_tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {asset.ai_tags.slice(0, 3).map(tag => (
-              <span
-                key={tag}
-                className="rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-3 flex items-center gap-2">
-          {(asset.signed_url || asset.external_url) && (
-            <button
-              type="button"
-              onClick={handleOpen}
-              className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-            >
-              <ExternalLink size={11} />
-              Open
-            </button>
-          )}
-          {asset.asset_type === 'note' && asset.note_content && (
-            <span className="flex-1 text-xs text-gray-400 line-clamp-1 dark:text-slate-500">
-              {asset.note_content.slice(0, 60)}
-            </span>
-          )}
-        </div>
-
-        {showKebab && (
-          <div className="absolute right-3 top-3">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(m => !m)}
-              className="hidden h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 group-hover:flex dark:text-slate-600 dark:hover:bg-slate-800"
-            >
-              <MoreVertical size={14} />
-            </button>
-            {menuOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-8 z-20 min-w-[160px] rounded-xl border border-gray-100 bg-white py-1 shadow-lg dark:border-slate-800 dark:bg-slate-900">
-                  {asset.ai_summary && (
-                    <button
-                      type="button"
-                      onClick={() => { setShowSummary(true); setMenuOpen(false) }}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      <Sparkles size={12} />
-                      View AI summary
-                    </button>
-                  )}
-                  {canManage && (
-                    <button
-                      type="button"
-                      onClick={() => { handleDelete(); setMenuOpen(false) }}
-                      disabled={deleting}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-                    >
-                      <Trash2 size={12} />
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {showSummary && asset.ai_summary && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            onClick={() => setShowSummary(false)}
-          >
-            <div
-              className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">AI summary</h3>
+        {showConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Schedule video call</h2>
                 <button
                   type="button"
-                  onClick={() => setShowSummary(false)}
+                  onClick={() => setShowConfirm(false)}
                   className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
                 >
                   <X size={16} />
                 </button>
               </div>
-              <p className="text-sm text-gray-700 dark:text-slate-300">{asset.ai_summary}</p>
+              {clientEmail ? (
+                <p className="text-sm text-gray-600 dark:text-slate-400">
+                  This will email <span className="font-semibold text-gray-900 dark:text-slate-100">{clientEmail}</span> a
+                  join link for this session&apos;s scheduled time.
+                </p>
+              ) : (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  This client has no email on file. Add one to their client record before scheduling a video call.
+                </p>
+              )}
+              {error && <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
+              <div className="mt-4 flex justify-end gap-2">
+                <button type="button" onClick={() => setShowConfirm(false)}
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={scheduleCall}
+                  disabled={scheduling || !clientEmail}
+                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
+                >
+                  {scheduling ? 'Sending…' : 'Send invite'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -462,38 +416,74 @@ using Claude, surfaced as tag pills on the card and a "View AI summary" popover.
   ```
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: programs phase 2 — tag pills and View AI summary popover on AssetCard"`
+- [ ] `pnpm run build` — must pass clean. Nothing imports this yet — checks it compiles standalone.
+- [ ] Commit: `git add src/components/clients/SessionVideoCall.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall component"`
+
+---
+
+## C-5 — Wire into the session detail page
+
+*Codex edits:*
+- [ ] Read `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` first, then:
+  - Change the `clients` select to `.select('id, name, email')`.
+  - After the existing `series` block (before the final `return`), add:
+    ```typescript
+    let call: { id: string; startsAt: string; summary: string | null } | null = null
+    const { data: callRow } = await supabase
+      .from('scheduled_calls')
+      .select('id, starts_at, summary')
+      .eq('session_id', sessionId)
+      .maybeSingle()
+    if (callRow) {
+      call = { id: callRow.id, startsAt: callRow.starts_at, summary: callRow.summary }
+    }
+    ```
+  - Pass `clientEmail={client.email}` and `call={call}` into `<SessionDetailClient ... />`,
+    alongside the existing `series={series}`.
+- [ ] Read `src/components/clients/SessionDetailClient.tsx` first, then:
+  - Add `import SessionVideoCall from '@/components/clients/SessionVideoCall'`.
+  - Add `clientEmail` and `call` to the destructured props and type signature (alongside the
+    existing `series`): `clientEmail: string | null` and
+    `call: { id: string; startsAt: string; summary: string | null } | null`.
+  - In the header's `<div className="flex flex-wrap items-center gap-2">` block, insert
+    `<SessionVideoCall clientId={clientId} sessionId={initial.id} clientEmail={clientEmail} call={call} />`
+    directly after the existing `<SessionRecurrence ... />` line and before the status badge span.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall wired into session detail page"`
 
 ---
 
 ## C-6 — Manual end-to-end verification
 
 *Conductor + user:*
-- [x] `pnpm run build` — final clean check after all tasks.
-- [x] Manual browser smoke test (no test runner) — **this is where real Claude API calls happen**:
-  1. Add a note asset with a few real sentences of content. Wait a few seconds, refresh — confirm
-     tag pills appear and the kebab menu has "View AI summary" showing a sensible summary.
-  2. Upload an image (and a small PDF if available) — same check after a refresh.
-  3. Add a note with only a couple of words (under ~20 characters) — confirm it stays with no
-     tags/summary (correctly skipped, no wasted API call).
-  4. Upload a `docx` or `xlsx` file — confirm it behaves exactly as before this phase (no tags,
-     no "View AI summary", still `ai_status: 'skipped'`).
-  5. If you have a second (non-manager) test account, confirm they can see "View AI summary" but
-     not "Delete" on an asset with a summary.
-- [x] Report pass/fail; fix inline if something's off before finishing.
+- [ ] `pnpm run build` — final clean check after all tasks.
+- [ ] Manual browser smoke test (no test runner) — **real email + real Daily.co room created
+  here**:
+  1. Session for a client with an email on file → "Schedule video call" → confirm modal shows
+     the real email → "Send invite" → confirm the page updates to "Join call" + date/time and the
+     invite email actually arrives with a working join link.
+  2. Session for a client with no email on file → confirm the modal shows the "no email" message
+     and "Send invite" is disabled.
+  3. "Join call" opens the Daily.co room exactly like joining from the Video page does today.
+  4. If practical, join/leave the call to let the transcript/summary pipeline run, then refresh
+     and confirm "View summary" shows the AI summary text.
+  5. Confirm the call still shows normally on `/dashboard/video` — the session link doesn't hide
+     it from the existing Video page.
+- [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `summariseAsset()` compiles clean, handles note/image/pdf, returns null for others
-- [x] C-2: summarise route sets processing → done/failed correctly
-- [x] C-3: new note/image/pdf assets start at `ai_status: 'pending'`; other types unaffected
-- [x] C-4: upload UI fires the trigger without awaiting it, non-eligible types don't trigger
-- [x] C-5: tag pills + View AI summary popover render correctly, Delete still manager-only
-- [x] C-6: full manual smoke test passes
+- [x] C-1: `scheduled_calls.session_id` + `reminder_1hour_sent` exist, migration committed
+- [ ] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
+- [ ] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
+- [ ] C-4: `SessionVideoCall` compiles clean, all three states implemented
+- [ ] C-5: wired into the session detail page correctly
+- [ ] C-6: full manual smoke test passes (real email + real Daily.co room)
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
-smoke test required for C-6 (no test runner in this project). This phase spends real (small)
-money per summarised asset via the Claude API — already accepted 2026-07-01.
+smoke test required for C-6 (no test runner in this project) — this is the step with real
+external side effects (email send, Daily.co room creation).

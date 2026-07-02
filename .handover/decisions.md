@@ -4,12 +4,26 @@
 
 ## Spending
 - spend-budget-usd: 2
-- No new npm packages this phase. Real Claude Haiku API calls happen during C-6's manual smoke
-  test only (implementation tasks C-1..C-5 are pure code, zero API calls) — user approved
-  2026-07-01, same accepted cost pattern as session-notes/AI assistant. Budget of $2 covers a
-  handful of test-asset summarisations with generous headroom.
+- Video chat in sessions (current phase): real cost during C-6 manual testing only — one Daily.co
+  room + one Resend email. User approved 2026-07-02, same accepted pattern as the existing video
+  feature. Implementation tasks C-1..C-5 are pure code, zero cost.
+- Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
+  manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
+  AI assistant.
 
-## Notes (Programs Phase 2 — AI Summarisation)
+## Notes (Video Chat in Sessions)
+- Source spec: docs/superpowers/specs/2026-07-02-video-chat-in-sessions-design.md
+- Source plan: docs/superpowers/plans/2026-07-02-video-chat-in-sessions.md
+- scheduled_calls.session_id (nullable FK, on delete set null) + reminder_1hour_sent boolean.
+- New route mirrors POST /api/video/schedule almost exactly (same Daily.co call, same invite
+  email template/sender), auto-filled from the session, always exactly one invitee (the client).
+- Same isTeamPlan(sub) Business-plan gate as the existing schedule route.
+- No client email on file -> scheduling blocked with a clear message, no call created.
+- 1-hour reminder is a third block on the existing /api/notifications/upcoming cron (55-65 min
+  window) — no new cron, reuses existing push/email branching exactly.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration.
+
+## Notes (Programs Phase 2 — AI Summarisation) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-01-programs-phase2-ai-summarisation-design.md
 - Source plan: docs/superpowers/plans/2026-07-01-programs-phase2-ai-summarisation.md
 - Only note/image/pdf get summarised; everything else stays ai_status='skipped' unchanged.
