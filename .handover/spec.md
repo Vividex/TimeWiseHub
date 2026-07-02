@@ -571,8 +571,8 @@ sessions, each flagged Recurring when applicable.
 ## C-5 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after all tasks.
-- [ ] Manual browser smoke test (no test runner):
+- [x] `pnpm run build` — final clean check after all tasks.
+- [x] Manual browser smoke test (no test runner):
   1. Open `/dashboard` — confirm the first metric tile now reads "Sessions this week" with a
      sensible count, and clicking it navigates to `/dashboard/sessions`.
   2. On `/dashboard/sessions`, confirm the "This week" section shows sessions scheduled Mon–Sun
@@ -584,7 +584,8 @@ sessions, each flagged Recurring when applicable.
   5. Click a tile and confirm it navigates to that session's existing detail page.
   6. Confirm the rest of the dashboard home page (meetings, personal to-dos, my tasks, etc.)
      still renders correctly — nothing else should have changed.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Report pass/fail; fix inline if something's off before finishing. User confirmed 2026-07-02:
+  "all that is good."
 
 ---
 
@@ -593,7 +594,7 @@ sessions, each flagged Recurring when applicable.
 - [x] C-2: dashboard page computes `sessionsThisWeek`, dead hours/roster code removed
 - [x] C-3: `DashboardMetrics` shows "Sessions this week" linking to `/dashboard/sessions`
 - [x] C-4: `/dashboard/sessions` renders both sections correctly with Recurring badges
-- [ ] C-5: full manual smoke test passes
+- [x] C-5: full manual smoke test passes
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
