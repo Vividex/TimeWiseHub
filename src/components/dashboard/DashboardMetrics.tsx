@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Clock, FolderOpen, CheckSquare, Users } from 'lucide-react'
+import { CalendarClock, FolderOpen, CheckSquare, Users } from 'lucide-react'
 
 type Props = {
-  hoursThisWeek: number
+  sessionsThisWeek: number
   activeProjects: number
   tasksCompleted: number
   tasksTotal: number
@@ -47,16 +47,16 @@ function scrollTo(id: string) {
   window.scrollTo({ top, behavior: 'smooth' })
 }
 
-export default function DashboardMetrics({ hoursThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients }: Props) {
+export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients }: Props) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <MetricCard
-        icon={Clock}
-        value={`${hoursThisWeek.toFixed(1)}h`}
-        label="Hours this week"
+        icon={CalendarClock}
+        value={String(sessionsThisWeek)}
+        label="Sessions this week"
         iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
         glowClass="bg-cyan-500"
-        href="/dashboard/roster"
+        href="/dashboard/sessions"
       />
       <MetricCard
         icon={FolderOpen}
