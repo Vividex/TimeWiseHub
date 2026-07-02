@@ -29,10 +29,10 @@ function fmtDate(iso: string) {
 }
 function fmtTime(t: string) { return t.slice(0, 5) }
 function fmtTs(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
 }
 function fmtWeek(date: string) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(`${date}T00:00:00`).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export default function TimesheetDetailModal({

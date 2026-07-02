@@ -202,7 +202,7 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
                 {mine ? 'You' : senderName(members, m.sender_id)}
               </span>
               <span className="text-[10px] font-medium text-gray-400">
-                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(m.created_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}
               </span>
               {removable && (
                 <button

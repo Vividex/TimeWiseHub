@@ -32,9 +32,9 @@ export default function ExportButton({ userId }: { userId: string }) {
     const rows = [
       ['Date', 'Start', 'End', 'Duration', 'Description'],
       ...data.map(e => [
-        new Date(e.started_at).toLocaleDateString(),
-        new Date(e.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        new Date(e.ended_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        new Date(e.started_at).toLocaleDateString('en-AU'),
+        new Date(e.started_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }),
+        new Date(e.ended_at!).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }),
         e.duration_seconds ? formatDuration(e.duration_seconds) : '',
         e.description ?? '',
       ]),

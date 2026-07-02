@@ -25,7 +25,7 @@ function formatDuration(seconds: number) {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
 }
 
 export default function TimeEntryList({ initialEntries, userId }: { initialEntries: Entry[]; userId: string }) {
@@ -114,4 +114,3 @@ export default function TimeEntryList({ initialEntries, userId }: { initialEntri
     </div>
   )
 }
-

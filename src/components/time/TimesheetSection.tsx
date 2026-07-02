@@ -36,7 +36,7 @@ function formatDuration(seconds: number) {
 }
 
 function formatWeek(date: string) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(`${date}T00:00:00`).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export default function TimesheetSection({

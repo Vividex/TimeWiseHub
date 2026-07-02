@@ -65,7 +65,7 @@ function fmtTime(iso: string) {
   const d = new Date(iso)
   const today = new Date()
   const isToday = d.toDateString() === today.toDateString()
-  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
   if (isToday) return `Today ${time}`
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) + ` ${time}`
 }
