@@ -1,103 +1,120 @@
-# Locale Hydration Mismatch — Explicit Locale Sweep
+# Time Page — Additional Hours Fixes
 
 ## Goal
-Fix a real SSR/client hydration mismatch caused by `toLocaleDateString([]/toLocaleTimeString([]`
-(and one bare `toLocaleDateString()`) calls that rely on the runtime's default locale, which
-differs between Vercel's server and a user's browser. Root-caused via `TimesheetSection.tsx`'s
-`formatWeek`, which threw the exact hydration error the user reported. The same anti-pattern
-exists in 10 other places — fixing all of them in one pass per the user's explicit choice
-("sweep all files") rather than waiting for each to surface as its own bug report.
+Fix two bugs on the Time page (`/dashboard/time`) for roster-managed (Business plan) orgs:
+1. The top summary cards (`TimeSummary`) only show rostered-shift hours and silently drop any
+   "additional hours" logged via `AdditionalHoursPanel`.
+2. The "Additional hours this week" list shows only a time range, never the date the hours were
+   worked, making entries from different days indistinguishable.
 
 ## Key decisions
-- Fix: replace `[]` (or a missing locale arg) with the explicit `'en-AU'` locale, matching the
-  convention already used everywhere else in this codebase (e.g. `ActivityFeed.tsx`'s own
-  `toLocaleDateString('en-AU', ...)` two lines below the broken call, `ExportButton.tsx`'s own
-  `fmtDate`, `session`/video-call formatters, etc.).
-- Only the locale argument changes — the format options object (`{ hour: '2-digit', ... }` etc.)
-  is untouched in every case.
-- Out of scope: the separate `next-themes` script-tag console warning (user explicitly chose to
-  leave that alone) and the Time page "additional hours" bugs (separate follow-up phase after this
-  one).
-- No spend: pure text find-and-replace, zero external calls.
+- Root cause 1: `src/app/dashboard/time/page.tsx:97-98` treats roster hours and `time_entries`
+  hours as mutually exclusive alternatives (`rosterManaged ? rosterSeconds : entrySeconds`) instead
+  of additive. For roster-managed orgs, `TimeSection.tsx` hides the timer/manual-entry UI entirely
+  and renders only `AdditionalHoursPanel` — so every `time_entries` row for those users already
+  represents hours worked *on top of* their roster, not an alternative to it. This exactly mirrors
+  the old dashboard "Hours this week" calc (`timeEntrySeconds + rosterSeconds`, removed in the
+  Sessions This Week phase since that tile no longer needs it) — same addition, different call
+  site.
+- Fix 1: change both lines to add roster and entry seconds together when `rosterManaged`.
+- Root cause 2: `AdditionalHoursPanel.tsx`'s `fmt()` helper only calls `toLocaleTimeString` — no
+  date is ever rendered in the list, regardless of which day an entry falls on.
+- Fix 2: add a `fmtDate()` helper (matching the `'en-AU'` locale convention used throughout this
+  codebase, including the just-fixed `fmt()` in this same file) and prepend the date to each list
+  row, before the existing time range.
+- No source spec/plan — both are small, well-understood, already root-caused bug fixes; going
+  straight to implementation rather than running brainstorming/writing-plans for a two-line and a
+  four-line change.
+- No spend: pure code, internal Supabase data only.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node) — the conductor handles those.
-- Change ONLY the locale argument on each listed line. Do not touch anything else in these files.
-- After the task, list every file changed.
+- Change ONLY what's specified per task. Do not touch unrelated code.
+- After each task, list the files changed.
 
 ## Rules for conductor (Claude)
-- `pnpm run build` after the turn — must pass before committing.
-- No manual browser step required — this is a mechanical, low-risk text change; the build gate is
-  sufficient verification (TypeScript will catch any syntax slip).
+- `pnpm run build` after each turn — must pass before committing.
+- C-3 needs a manual browser check (roster-managed org, log some additional hours, confirm the
+  top cards include them and the list shows dates) before ticking it done.
 
 ---
 
-## C-1 — Explicit `'en-AU'` locale on all default-locale date/time formatters
+## C-1 — Top summary cards include additional hours for roster-managed orgs
 
 *Codex edits:*
-- [x] `src/components/activity/ActivityFeed.tsx:68` — in `fmtTime`, change
-  `d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/calendar/DayPanel.tsx:9` — in `fmtTime`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/chat/MessageThread.tsx:205` — change
-  `{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` to
-  `{new Date(m.created_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`
-- [ ] `src/components/reports/ReportsClient.tsx:28` — in `fmtTime`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/time/TimesheetSection.tsx:39` — in `formatWeek`, change
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })`
-  to
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' })`
-- [ ] `src/components/time/TimesheetDetailModal.tsx:32` — in `fmtTs`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/time/TimesheetDetailModal.tsx:35` — in `fmtWeek`, change
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })`
-  to
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' })`
-- [ ] `src/components/time/TimerWidget.tsx:22` — in `fmtTime`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/time/TimeEntryList.tsx:28` — in `formatTime`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
-- [ ] `src/components/time/ManagerTimesheetView.tsx:32` — in `formatWeek`, change
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })`
-  to
-  `new Date(\`${date}T00:00:00\`).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' })`
-- [ ] `src/components/time/ExportButton.tsx:35-37` — change:
+- [x] Read `src/app/dashboard/time/page.tsx` first, then change:
   ```typescript
-  new Date(e.started_at).toLocaleDateString(),
-  new Date(e.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  new Date(e.ended_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  const todaySeconds = rosterManaged ? rosterTodaySeconds : entryTodaySeconds
+  const weekSeconds = rosterManaged ? rosterWeekSeconds : entryWeekSeconds
   ```
   to:
   ```typescript
-  new Date(e.started_at).toLocaleDateString('en-AU'),
-  new Date(e.started_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }),
-  new Date(e.ended_at!).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }),
+  const todaySeconds = rosterManaged ? rosterTodaySeconds + entryTodaySeconds : entryTodaySeconds
+  const weekSeconds = rosterManaged ? rosterWeekSeconds + entryWeekSeconds : entryWeekSeconds
   ```
-- [ ] `src/components/time/AdditionalHoursPanel.tsx:18` — in `fmt`, change
-  `new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` to
-  `new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })`
+  Nothing else in this file changes — `rosterTodaySeconds`, `entryTodaySeconds`,
+  `rosterWeekSeconds`, and `entryWeekSeconds` are all already computed a few lines above this.
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [x] Spot-check the diff: confirm only locale arguments changed, nothing else. (Two files needed
-  a fixup turn — `apply_patch` reindented `MessageThread.tsx` and `ExportButton.tsx` on retry after
-  an initial exact-match failure; fixed in a follow-up turn, verified clean.)
-- [x] Commit: `git add src/components/activity/ActivityFeed.tsx src/components/calendar/DayPanel.tsx src/components/chat/MessageThread.tsx src/components/reports/ReportsClient.tsx src/components/time/TimesheetSection.tsx src/components/time/TimesheetDetailModal.tsx src/components/time/TimerWidget.tsx src/components/time/TimeEntryList.tsx src/components/time/ManagerTimesheetView.tsx src/components/time/ExportButton.tsx src/components/time/AdditionalHoursPanel.tsx && git commit -m "fix: hydration mismatch — explicit en-AU locale on default-locale date/time formatters"`
+- [x] Commit: `git add src/app/dashboard/time/page.tsx && git commit -m "fix: time page — top summary cards now include additional hours for roster-managed orgs"`
+
+---
+
+## C-2 — Additional hours list shows the date worked
+
+*Codex edits:*
+- [ ] Read `src/components/time/AdditionalHoursPanel.tsx` first, then:
+  - Add a new helper directly after the existing `fmt` function (around line 17-19):
+    ```typescript
+    function fmtDate(iso: string) {
+      return new Date(iso).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+    }
+    ```
+  - In the entry list render (around line 194-198), change:
+    ```typescript
+    <p className="text-xs text-slate-500 dark:text-slate-400">
+      {fmt(e.started_at)}–{fmt(e.ended_at)}
+      {e.duration_seconds ? ` · ${fmtDuration(e.duration_seconds)}` : ''}
+      {e.description ? ` · ${e.description}` : ''}
+    </p>
+    ```
+    to:
+    ```typescript
+    <p className="text-xs text-slate-500 dark:text-slate-400">
+      {fmtDate(e.started_at)} · {fmt(e.started_at)}–{fmt(e.ended_at)}
+      {e.duration_seconds ? ` · ${fmtDuration(e.duration_seconds)}` : ''}
+      {e.description ? ` · ${e.description}` : ''}
+    </p>
+    ```
+  Nothing else in this file changes.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/time/AdditionalHoursPanel.tsx && git commit -m "fix: time page — additional hours list shows the date worked"`
+
+---
+
+## C-3 — Manual verification
+
+*Conductor + user:*
+- [ ] `pnpm run build` — final clean check.
+- [ ] Manual browser check (roster-managed/Business-plan org, no test runner):
+  1. Log an additional-hours entry via `AdditionalHoursPanel` on `/dashboard/time`.
+  2. Confirm the top "Today"/"This week" summary cards increase to include it (on top of any
+     rostered-shift hours already counted).
+  3. Confirm the "Additional hours this week" list shows the date (e.g. "Mon 29 Jun") alongside
+     the existing time range for each entry.
+- [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: all 11 files use explicit `'en-AU'` locale, build passes clean, diff is locale-only
+- [x] C-1: top summary cards additively include roster + additional hours for roster-managed orgs
+- [ ] C-2: additional-hours list shows the date worked
+- [ ] C-3: manual verification passes
 
 ## Verification
-`pnpm run build` (next build = tsc + eslint) must pass clean. No manual browser step required —
-this is a mechanical text substitution; TypeScript/ESLint catch any syntax mistake, and the
-original bug (visible hydration flash on the Time page) can be spot-checked next time that page
-loads.
+`pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
+check required for C-3 (no test runner in this project) — needs a roster-managed org to see the
+affected code path.
