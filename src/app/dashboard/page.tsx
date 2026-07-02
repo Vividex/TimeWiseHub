@@ -13,6 +13,7 @@ import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
 import type { UpcomingMeeting, UpcomingEvent } from '@/components/dashboard/DashboardUpcoming'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getWeekBounds } from '@/lib/week'
 
 type PoolTask = {
   id: string
@@ -106,44 +107,30 @@ export default async function DashboardHome() {
 
   // Date helpers
   const now = new Date()
-  const dow = now.getDay()
-  const weekStart = new Date(now)
-  weekStart.setDate(now.getDate() - ((dow + 6) % 7))
-  weekStart.setHours(0, 0, 0, 0)
+  const { weekStart, weekEnd } = getWeekBounds(now)
 
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
   const nextWeek   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-  // Shift date strings by +11h so "today" is correct for AEST/AEDT (UTC+10/+11)
-  // without needing to fetch the user's stored timezone.
-  const localNow       = new Date(now.getTime() + 11 * 60 * 60 * 1000)
-  const todayDate      = localNow.toISOString().slice(0, 10)
-  const weekStartDate  = new Date(weekStart.getTime() + 11 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const todayStartIso  = todayStart.toISOString()
   const nextWeekIso    = nextWeek.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [timeRes, projectsRes, clientsRes, rosterRes, meetingsRes, calendarRes, subscriptionRes] = await Promise.all([
-    supabase
-      .from('time_entries')
-      .select('duration_seconds')
-      .eq('user_id', user.id)
-      .not('ended_at', 'is', null)
-      .gte('started_at', weekStart.toISOString()),
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, subscriptionRes] = await Promise.all([
+    orgId
+      ? supabase
+          .from('sessions')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', orgId)
+          .gte('scheduled_at', weekStart.toISOString())
+          .lt('scheduled_at', weekEnd.toISOString())
+      : Promise.resolve({ count: 0, data: null, error: null }),
     orgId
       ? supabase.from('projects').select('id', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active')
       : supabase.from('projects').select('id', { count: 'exact' }).eq('owner_id', user.id).eq('status', 'active'),
     orgId
       ? supabase.from('clients').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('archived', false)
       : supabase.from('clients').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('archived', false),
-    supabase
-      .from('roster_shifts')
-      .select('start_time, end_time')
-      .eq('user_id', user.id)
-      .eq('published', true)
-      .is('deleted_at', null)
-      .gte('date', weekStartDate)
-      .lte('date', todayDate),
     orgId
       ? supabase
           .from('scheduled_calls')
@@ -186,15 +173,7 @@ export default async function DashboardHome() {
       : Promise.resolve({ count: 0, data: null, error: null }),
   ])
 
-  const timeEntrySeconds = (timeRes.data ?? []).reduce((s: number, e: { duration_seconds: number | null }) => s + (e.duration_seconds ?? 0), 0)
-  const rosterSeconds = (rosterRes.data ?? []).reduce((s: number, shift: { start_time: string; end_time: string }) => {
-    const [sh, sm] = shift.start_time.split(':').map(Number)
-    const [eh, em] = shift.end_time.split(':').map(Number)
-    const dur = (eh * 3600 + em * 60) - (sh * 3600 + sm * 60)
-    return s + (dur > 0 ? dur : 0)
-  }, 0)
-
-  const hoursThisWeek   = (timeEntrySeconds + rosterSeconds) / 3600
+  const sessionsThisWeek = sessionsRes.count ?? 0
   const activeProjects  = projectsRes.count ?? 0
   const activeClients   = clientsRes.count ?? 0
   const tasksCompleted  = tasksDoneRes.count ?? 0
@@ -223,7 +202,7 @@ export default async function DashboardHome() {
 
         {/* Metric cards — all clickable */}
         <DashboardMetrics
-          hoursThisWeek={hoursThisWeek}
+          sessionsThisWeek={sessionsThisWeek}
           activeProjects={activeProjects}
           tasksCompleted={tasksCompleted}
           tasksTotal={tasksTotal}
