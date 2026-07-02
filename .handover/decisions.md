@@ -4,8 +4,10 @@
 
 ## Spending
 - spend-budget-usd: 2
-- Time page additional hours fixes (current phase): zero cost — pure code, internal Supabase data
-  only.
+- In-call program reference panel (current phase): zero cost — pure code, internal Supabase reads
+  only, no external API calls.
+- Time page additional hours fixes (prior phase, complete): zero cost — pure code, internal
+  Supabase data only.
 - Locale hydration fix (prior phase, complete): zero cost — pure text substitution, no external
   calls.
 - Sessions this week (prior phase, complete): zero cost — pure code, internal Supabase reads only,
@@ -17,7 +19,22 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Time Page — Additional Hours Fixes)
+## Notes (In-Call Program Reference Panel)
+- Source spec: docs/superpowers/specs/2026-07-03-in-call-program-reference-panel-design.md
+- Source plan: docs/superpowers/plans/2026-07-03-in-call-program-reference-panel.md
+- Staff-only, screen-shared to "show" the client — no client-facing code this phase. Delivering
+  files/links directly to a client is a separate, larger future phase, explicitly deferred (see
+  memory: project-programs-in-sessions-integration).
+- Guest isolation is structural: only the internal `/dashboard/video/[roomId]/page.tsx` route
+  fetches `linkedProgram`; the `/join/[guestToken]` route never does, so there's no server data to
+  leak even if client code were inspected.
+- New `ProgramReferencePanel.tsx` does NOT reuse `CategoryTree`/`AssetGrid` (too wide for a narrow
+  slide-in panel) — flat list + optional category dropdown instead.
+- Program panel and the existing transcript panel share the same screen position — mutually
+  exclusive via state (opening one closes the other).
+- No schema changes, no new npm dependencies, no spend.
+
+## Notes (Time Page — Additional Hours Fixes) [complete, kept for reference]
 - No source spec/plan — two small, already root-caused bug fixes, implemented directly.
 - C-1: `dashboard/time/page.tsx`'s top cards treated roster hours and time_entries hours as
   mutually exclusive for roster-managed orgs, silently dropping additional-hours entries. Fix:
