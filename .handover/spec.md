@@ -181,7 +181,7 @@ read-only, client never receives this data.
 ## C-2 — Fetch the linked program bundle on the call page
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/video/[roomId]/page.tsx` first to confirm current structure, then
+- [x] Read `src/app/dashboard/video/[roomId]/page.tsx` first to confirm current structure, then
   replace its full contents:
   ```typescript
   import { redirect } from 'next/navigation'
@@ -311,9 +311,9 @@ read-only, client never receives this data.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — expect a type error on `<CallRoom ... linkedProgram={linkedProgram} />`
+- [x] `pnpm run build` — expect a type error on `<CallRoom ... linkedProgram={linkedProgram} />`
   (CallRoom doesn't accept that prop yet) — expected here, fixed by C-3.
-- [ ] Commit: `git add "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: in-call program reference panel — fetch linked program on the call page"`
+- [x] Commit: `git add "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: in-call program reference panel — fetch linked program on the call page"`
 
 ---
 
@@ -602,7 +602,7 @@ read-only, client never receives this data.
 
 ## Acceptance checklist
 - [x] C-1: `ProgramReferencePanel` compiles clean, matches the approved design
-- [ ] C-2: call page fetches `linkedProgram` via the session's `program_id`
+- [x] C-2: call page fetches `linkedProgram` via the session's `program_id`
 - [ ] C-3: `CallRoom` shows the button only when linked, panels are mutually exclusive, guests
   never receive the prop
 - [ ] C-4: full manual smoke test passes, including the guest-isolation check
