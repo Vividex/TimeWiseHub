@@ -4,14 +4,29 @@
 
 ## Spending
 - spend-budget-usd: 2
-- Video chat in sessions (current phase): real cost during C-6 manual testing only — one Daily.co
-  room + one Resend email. User approved 2026-07-02, same accepted pattern as the existing video
-  feature. Implementation tasks C-1..C-5 are pure code, zero cost.
+- Sessions this week (current phase): zero cost — pure code, internal Supabase reads only, no
+  external API calls anywhere in this feature.
+- Video chat in sessions (prior phase, complete): real cost during C-6 manual testing only — one
+  Daily.co room + one Resend email. User approved 2026-07-02, same accepted pattern as the
+  existing video feature. Implementation tasks C-1..C-5 were pure code, zero cost.
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Video Chat in Sessions)
+## Notes (Sessions This Week)
+- Source spec: docs/superpowers/specs/2026-07-02-sessions-this-week-design.md
+- Source plan: docs/superpowers/plans/2026-07-02-sessions-this-week.md
+- No schema changes. Shared `getWeekBounds()` helper in src/lib/week.ts replaces the inline
+  Monday-start-of-week math that used to live only in dashboard/page.tsx.
+- "This week" (tile + page section) = any session status, [weekStart, weekEnd). "Scheduled"
+  section on the new page = status='scheduled' AND scheduled_at >= weekEnd, uncapped.
+- hoursThisWeek and its supporting time_entries/roster_shifts queries are removed entirely (dead
+  code once the tile changes) — not left stranded.
+- No inline session-creation form on the new /dashboard/sessions page — sessions are always
+  created from a specific client's context, unchanged.
+- Codex handles text edits only; conductor runs all shell/build/git (no DB migration this phase).
+
+## Notes (Video Chat in Sessions) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-02-video-chat-in-sessions-design.md
 - Source plan: docs/superpowers/plans/2026-07-02-video-chat-in-sessions.md
 - scheduled_calls.session_id (nullable FK, on delete set null) + reminder_1hour_sent boolean.
