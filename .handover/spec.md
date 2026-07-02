@@ -64,7 +64,7 @@ Fix two bugs on the Time page (`/dashboard/time`) for roster-managed (Business p
 ## C-2 — Additional hours list shows the date worked
 
 *Codex edits:*
-- [ ] Read `src/components/time/AdditionalHoursPanel.tsx` first, then:
+- [x] Read `src/components/time/AdditionalHoursPanel.tsx` first, then:
   - Add a new helper directly after the existing `fmt` function (around line 17-19):
     ```typescript
     function fmtDate(iso: string) {
@@ -90,8 +90,8 @@ Fix two bugs on the Time page (`/dashboard/time`) for roster-managed (Business p
   Nothing else in this file changes.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/time/AdditionalHoursPanel.tsx && git commit -m "fix: time page — additional hours list shows the date worked"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/time/AdditionalHoursPanel.tsx && git commit -m "fix: time page — additional hours list shows the date worked"`
 
 ---
 
@@ -111,7 +111,7 @@ Fix two bugs on the Time page (`/dashboard/time`) for roster-managed (Business p
 
 ## Acceptance checklist
 - [x] C-1: top summary cards additively include roster + additional hours for roster-managed orgs
-- [ ] C-2: additional-hours list shows the date worked
+- [x] C-2: additional-hours list shows the date worked
 - [ ] C-3: manual verification passes
 
 ## Verification
