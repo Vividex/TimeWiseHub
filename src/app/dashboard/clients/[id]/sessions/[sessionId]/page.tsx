@@ -24,7 +24,7 @@ export default async function SessionDetailPage({
       .maybeSingle(),
     supabase
       .from('clients')
-      .select('id, name')
+      .select('id, name, email')
       .eq('id', id)
       .maybeSingle(),
   ])
@@ -86,6 +86,16 @@ export default async function SessionDetailPage({
     series = seriesRow as SessionSeriesInfo | null
   }
 
+  let call: { id: string; startsAt: string; summary: string | null } | null = null
+  const { data: callRow } = await supabase
+    .from('scheduled_calls')
+    .select('id, starts_at, summary')
+    .eq('session_id', sessionId)
+    .maybeSingle()
+  if (callRow) {
+    call = { id: callRow.id, startsAt: callRow.starts_at, summary: callRow.summary }
+  }
+
   return (
     <SessionDetailClient
       session={{
@@ -99,9 +109,11 @@ export default async function SessionDetailPage({
       todos={todos}
       clientId={id}
       clientName={client.name}
+      clientEmail={client.email}
       orgId={session.org_id}
       linkedProgram={linkedProgram}
       series={series}
+      call={call}
     />
   )
 }

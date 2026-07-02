@@ -424,7 +424,7 @@ ends its AI summary shows on the session page.
 ## C-5 — Wire into the session detail page
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` first, then:
+- [x] Read `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` first, then:
   - Change the `clients` select to `.select('id, name, email')`.
   - After the existing `series` block (before the final `return`), add:
     ```typescript
@@ -450,8 +450,8 @@ ends its AI summary shows on the session page.
     directly after the existing `<SessionRecurrence ... />` line and before the status badge span.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall wired into session detail page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: video chat in sessions — SessionVideoCall wired into session detail page"`
 
 ---
 
@@ -480,7 +480,7 @@ ends its AI summary shows on the session page.
 - [x] C-2: video call creation route works, mirrors the existing schedule route's Daily.co/email logic
 - [x] C-3: 1-hour reminder fires via the existing cron, reuses its exact patterns
 - [x] C-4: `SessionVideoCall` compiles clean, all three states implemented
-- [ ] C-5: wired into the session detail page correctly
+- [x] C-5: wired into the session detail page correctly
 - [ ] C-6: full manual smoke test passes (real email + real Daily.co room)
 
 ## Verification

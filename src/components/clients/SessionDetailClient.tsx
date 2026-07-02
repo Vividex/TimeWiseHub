@@ -7,6 +7,7 @@ import { Play, Square } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import SessionProgramLink from '@/components/clients/SessionProgramLink'
 import SessionRecurrence from '@/components/clients/SessionRecurrence'
+import SessionVideoCall from '@/components/clients/SessionVideoCall'
 import type { SessionSeriesInfo } from '@/lib/sessions/series'
 import type { LinkedProgramBundle } from '@/types/programs'
 
@@ -38,17 +39,21 @@ export default function SessionDetailClient({
   todos: initialTodos,
   clientId,
   clientName,
+  clientEmail,
   orgId,
   linkedProgram,
   series,
+  call,
 }: {
   session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   todos: Todo[]
   clientId: string
   clientName: string
+  clientEmail: string | null
   orgId: string | null
   linkedProgram: LinkedProgramBundle | null
   series: SessionSeriesInfo | null
+  call: { id: string; startsAt: string; summary: string | null } | null
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -260,6 +265,7 @@ export default function SessionDetailClient({
             <div className="flex flex-wrap items-center gap-2">
               <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />
               <SessionRecurrence sessionId={initial.id} series={series} clientId={clientId} />
+              <SessionVideoCall clientId={clientId} sessionId={initial.id} clientEmail={clientEmail} call={call} />
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>
                 {STATUS_LABEL[status]}
               </span>
