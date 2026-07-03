@@ -1048,7 +1048,7 @@ from the linked program — not just show them via screen share.
 ## C-10 — "Call Chat" review section on the session detail page
 
 *Codex edits:*
-- [ ] Create `src/components/clients/SessionCallChat.tsx`:
+- [x] Create `src/components/clients/SessionCallChat.tsx`:
   ```typescript
   'use client'
 
@@ -1126,7 +1126,7 @@ from the linked program — not just show them via screen share.
     )
   }
   ```
-- [ ] Read `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` first. After the
+- [x] Read `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` first. After the
   existing `let call: ...` block, add:
   ```typescript
   let sessionChatConversationId: string | null = null
@@ -1140,7 +1140,7 @@ from the linked program — not just show them via screen share.
   ```
   Add `sessionChatConversationId={sessionChatConversationId}` to the `<SessionDetailClient
   ... />` render, alongside the existing `call={call}` prop.
-- [ ] Read `src/components/clients/SessionDetailClient.tsx` first. Add the import:
+- [x] Read `src/components/clients/SessionDetailClient.tsx` first. Add the import:
   ```typescript
   import SessionCallChat from '@/components/clients/SessionCallChat'
   ```
@@ -1172,8 +1172,8 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/clients/SessionCallChat.tsx "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: room chat + client delivery — Call Chat section on session detail page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/clients/SessionCallChat.tsx "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: room chat + client delivery — Call Chat section on session detail page"`
 
 ---
 
@@ -1223,7 +1223,7 @@ from the linked program — not just show them via screen share.
 - [x] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
 - [x] C-9: session-type conversations excluded from Team Chat inbox, notification links to the
   session page
-- [ ] C-10: "Call Chat" section appears on the session page when a conversation exists
+- [x] C-10: "Call Chat" section appears on the session page when a conversation exists
 - [ ] C-11: full manual smoke test passes, including the guest-isolation and repeat-visit checks
 
 ## Verification
