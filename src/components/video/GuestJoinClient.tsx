@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import CallRoom from './CallRoom'
+import { createClient } from '@/lib/supabase-browser'
 
 type Props = {
   callTitle: string
@@ -14,6 +15,7 @@ type Props = {
 export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, guestToken, defaultName }: Props) {
   const [name, setName] = useState(defaultName)
   const [token, setToken] = useState<string | null>(null)
+  const [sessionChat, setSessionChat] = useState<{ conversationId: string; userId: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,7 +35,23 @@ export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, gue
       return
     }
 
-    const { token: t } = await res.json() as { token: string }
+    const { token: t, chat } = await res.json() as {
+      token: string
+      chat: { conversationId: string; email: string; tokenHash: string } | null
+    }
+
+    if (chat) {
+      const supabase = createClient()
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: chat.email,
+        token_hash: chat.tokenHash,
+        type: 'email',
+      })
+      if (!verifyError && data.user) {
+        setSessionChat({ conversationId: chat.conversationId, userId: data.user.id })
+      }
+    }
+
     setToken(t)
   }
 
@@ -44,6 +62,7 @@ export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, gue
         token={token}
         dailyRoomName={dailyRoomName}
         isCreator={false}
+        sessionChat={sessionChat}
       />
     )
   }
