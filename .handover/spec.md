@@ -526,7 +526,7 @@ from the linked program — not just show them via screen share.
 ## C-6 — Refactor `CallRoom` — unified tabbed panel
 
 *Codex edits:*
-- [ ] Read `src/components/video/CallRoom.tsx` first, then replace its full contents:
+- [x] Read `src/components/video/CallRoom.tsx` first, then replace its full contents:
   ```typescript
   'use client'
 
@@ -789,8 +789,8 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now (the C-4 mismatch is resolved).
-- [ ] Commit: `git add src/components/video/CallRoom.tsx && git commit -m "feat: room chat + client delivery — CallRoom unified tabbed panel"`
+- [x] `pnpm run build` — must pass clean now (the C-4 mismatch is resolved).
+- [x] Commit: `git add src/components/video/CallRoom.tsx && git commit -m "feat: room chat + client delivery — CallRoom unified tabbed panel"`
 
 ---
 
@@ -1217,7 +1217,7 @@ from the linked program — not just show them via screen share.
 - [x] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
 - [x] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
 - [x] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
-- [ ] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
+- [x] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
   receive `linkedProgram`
 - [ ] C-7: staff chat participancy ensured on the call page
 - [ ] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
