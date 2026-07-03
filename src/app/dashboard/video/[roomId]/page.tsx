@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+import { ensureSessionChatParticipant } from '@/lib/session-chat'
 import CallRoom from '@/components/video/CallRoom'
 import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
 
@@ -103,6 +104,9 @@ export default async function CallRoomPage({
   const userName = p?.full_name || p?.email || 'Participant'
 
   const linkedProgram = call.session_id ? await fetchLinkedProgram(call.session_id, user.id) : null
+  const sessionChat = call.session_id
+    ? { conversationId: await ensureSessionChatParticipant(call.session_id, user.id), userId: user.id }
+    : null
 
   let token: string
   try {
@@ -119,6 +123,7 @@ export default async function CallRoomPage({
       isCreator={call.created_by === user.id}
       callId={roomId}
       linkedProgram={linkedProgram}
+      sessionChat={sessionChat}
     />
   )
 }
