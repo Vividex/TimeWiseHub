@@ -820,7 +820,7 @@ from the linked program — not just show them via screen share.
 ## C-8 — Wire guest chat identity and sign-in
 
 *Codex edits:*
-- [ ] Read `src/app/api/video/token/route.ts` first, add the import:
+- [x] Read `src/app/api/video/token/route.ts` first, add the import:
   ```typescript
   import { ensureGuestChatUser, ensureSessionChatParticipant, mintGuestChatToken } from '@/lib/session-chat'
   ```
@@ -882,9 +882,9 @@ from the linked program — not just show them via screen share.
     return NextResponse.json({ token, chat })
   }
   ```
-- [ ] `src/app/join/[guestToken]/page.tsx` needs NO changes — it already passes `guestToken`
-  through to `GuestJoinClient` unchanged; confirm this by reading it.
-- [ ] Read `src/components/video/GuestJoinClient.tsx` first, then replace its full contents:
+- [x] `src/app/join/[guestToken]/page.tsx` needs NO changes — it already passes `guestToken`
+  through to `GuestJoinClient` unchanged; confirmed by reading it.
+- [x] Read `src/components/video/GuestJoinClient.tsx` first, then replace its full contents:
   ```typescript
   'use client'
 
@@ -990,8 +990,8 @@ from the linked program — not just show them via screen share.
   normally, just without the Chat tab.)
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/video/token/route.ts" src/components/video/GuestJoinClient.tsx && git commit -m "feat: room chat + client delivery — guest chat identity and sign-in"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/video/token/route.ts" src/components/video/GuestJoinClient.tsx && git commit -m "feat: room chat + client delivery — guest chat identity and sign-in"`
 
 ---
 
@@ -1220,7 +1220,7 @@ from the linked program — not just show them via screen share.
 - [x] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
   receive `linkedProgram`
 - [x] C-7: staff chat participancy ensured on the call page
-- [ ] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
+- [x] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
 - [ ] C-9: session-type conversations excluded from Team Chat inbox, notification links to the
   session page
 - [ ] C-10: "Call Chat" section appears on the session page when a conversation exists
