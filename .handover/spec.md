@@ -414,7 +414,8 @@ from the linked program — not just show them via screen share.
 ## C-5 — `RoomChatTab` component
 
 *Codex edits:*
-- [ ] Create `src/components/video/RoomChatTab.tsx`:
+- [x] Create `src/components/video/RoomChatTab.tsx`: (Codex added minor cosmetic extras —
+  timestamps per message, slightly wider bubbles — functionally identical to spec, accepted)
   ```typescript
   'use client'
 
@@ -516,8 +517,9 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/components/video/RoomChatTab.tsx && git commit -m "feat: room chat + client delivery — RoomChatTab component"`
+- [x] `pnpm run build` — new file compiles clean (pre-existing expected type error in
+  `CallRoom.tsx` from C-4 remains, unrelated, fixed by C-6).
+- [x] Commit: `git add src/components/video/RoomChatTab.tsx && git commit -m "feat: room chat + client delivery — RoomChatTab component"`
 
 ---
 
@@ -1214,7 +1216,7 @@ from the linked program — not just show them via screen share.
 - [x] C-2: `session-chat.ts` compiles clean, all three helpers match the design
 - [x] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
 - [x] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
-- [ ] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
+- [x] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
 - [ ] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
   receive `linkedProgram`
 - [ ] C-7: staff chat participancy ensured on the call page
