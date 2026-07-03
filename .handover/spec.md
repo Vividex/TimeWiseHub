@@ -106,7 +106,7 @@ from the linked program — not just show them via screen share.
 ## C-2 — `session-chat.ts` helpers
 
 *Codex edits:*
-- [ ] Create `src/lib/session-chat.ts`:
+- [x] Create `src/lib/session-chat.ts`:
   ```typescript
   import { createServiceClient } from '@/lib/supabase-service'
 
@@ -188,8 +188,9 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/lib/session-chat.ts && git commit -m "feat: room chat + client delivery — session-chat.ts helpers"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet. (One type-narrowing fixup
+  needed on `ensureSessionChatParticipant`'s `conversationId` declaration — fixed, verified clean.)
+- [x] Commit: `git add src/lib/session-chat.ts && git commit -m "feat: room chat + client delivery — session-chat.ts helpers"`
 
 ---
 
@@ -1208,7 +1209,7 @@ from the linked program — not just show them via screen share.
 
 ## Acceptance checklist
 - [x] C-1: migrations applied, verified via `execute_sql`, committed
-- [ ] C-2: `session-chat.ts` compiles clean, all three helpers match the design
+- [x] C-2: `session-chat.ts` compiles clean, all three helpers match the design
 - [ ] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
 - [ ] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
 - [ ] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
