@@ -96,6 +96,15 @@ export default async function SessionDetailPage({
     call = { id: callRow.id, startsAt: callRow.starts_at, summary: callRow.summary }
   }
 
+  let sessionChatConversationId: string | null = null
+  const { data: chatConv } = await supabase
+    .from('chat_conversations')
+    .select('id')
+    .eq('session_id', sessionId)
+    .eq('type', 'session')
+    .maybeSingle()
+  if (chatConv) sessionChatConversationId = chatConv.id
+
   return (
     <SessionDetailClient
       session={{
@@ -114,6 +123,7 @@ export default async function SessionDetailPage({
       linkedProgram={linkedProgram}
       series={series}
       call={call}
+      sessionChatConversationId={sessionChatConversationId}
     />
   )
 }

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-browser'
 import SessionProgramLink from '@/components/clients/SessionProgramLink'
 import SessionRecurrence from '@/components/clients/SessionRecurrence'
 import SessionVideoCall from '@/components/clients/SessionVideoCall'
+import SessionCallChat from '@/components/clients/SessionCallChat'
 import type { SessionSeriesInfo } from '@/lib/sessions/series'
 import type { LinkedProgramBundle } from '@/types/programs'
 
@@ -44,6 +45,7 @@ export default function SessionDetailClient({
   linkedProgram,
   series,
   call,
+  sessionChatConversationId,
 }: {
   session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   todos: Todo[]
@@ -54,6 +56,7 @@ export default function SessionDetailClient({
   linkedProgram: LinkedProgramBundle | null
   series: SessionSeriesInfo | null
   call: { id: string; startsAt: string; summary: string | null } | null
+  sessionChatConversationId: string | null
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -470,6 +473,10 @@ export default function SessionDetailClient({
                 </>
               )}
             </div>
+
+            {sessionChatConversationId && (
+              <SessionCallChat conversationId={sessionChatConversationId} />
+            )}
           </div>
         </div>
       </div>
