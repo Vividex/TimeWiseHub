@@ -998,7 +998,7 @@ from the linked program — not just show them via screen share.
 ## C-9 — Exclude session-type conversations from Team Chat + fix notification URL
 
 *Codex edits:*
-- [ ] Read `src/components/chat/ChatRealtimeProvider.tsx` first, change `loadConversations`:
+- [x] Read `src/components/chat/ChatRealtimeProvider.tsx` first, change `loadConversations`:
   ```typescript
   const loadConversations = useCallback(async () => {
     const { data } = await supabase
@@ -1009,7 +1009,7 @@ from the linked program — not just show them via screen share.
     setConversations((data ?? []) as ChatConversation[])
   }, [supabase])
   ```
-- [ ] Read `src/lib/chat/notify.ts` first, change:
+- [x] Read `src/lib/chat/notify.ts` first, change:
   ```typescript
   const { data: conv } = await service
     .from('chat_conversations')
@@ -1040,8 +1040,8 @@ from the linked program — not just show them via screen share.
   Then change the `sendPushToUser` call's `url:` field from `` url: `/dashboard/chat?c=${conversationId}`, `` to `url,`.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/chat/ChatRealtimeProvider.tsx src/lib/chat/notify.ts && git commit -m "feat: room chat + client delivery — exclude session chats from Team Chat inbox, fix notification link"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/chat/ChatRealtimeProvider.tsx src/lib/chat/notify.ts && git commit -m "feat: room chat + client delivery — exclude session chats from Team Chat inbox, fix notification link"`
 
 ---
 
@@ -1221,7 +1221,7 @@ from the linked program — not just show them via screen share.
   receive `linkedProgram`
 - [x] C-7: staff chat participancy ensured on the call page
 - [x] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
-- [ ] C-9: session-type conversations excluded from Team Chat inbox, notification links to the
+- [x] C-9: session-type conversations excluded from Team Chat inbox, notification links to the
   session page
 - [ ] C-10: "Call Chat" section appears on the session page when a conversation exists
 - [ ] C-11: full manual smoke test passes, including the guest-isolation and repeat-visit checks
