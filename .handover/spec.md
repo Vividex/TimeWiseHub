@@ -197,7 +197,7 @@ from the linked program — not just show them via screen share.
 ## C-3 — `CallPanel` shared tabbed shell
 
 *Codex edits:*
-- [ ] Create `src/components/video/CallPanel.tsx`:
+- [x] Create `src/components/video/CallPanel.tsx`:
   ```typescript
   'use client'
 
@@ -257,8 +257,8 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/components/video/CallPanel.tsx && git commit -m "feat: room chat + client delivery — CallPanel shared tabbed shell"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [x] Commit: `git add src/components/video/CallPanel.tsx && git commit -m "feat: room chat + client delivery — CallPanel shared tabbed shell"`
 
 ---
 
@@ -1210,7 +1210,7 @@ from the linked program — not just show them via screen share.
 ## Acceptance checklist
 - [x] C-1: migrations applied, verified via `execute_sql`, committed
 - [x] C-2: `session-chat.ts` compiles clean, all three helpers match the design
-- [ ] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
+- [x] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
 - [ ] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
 - [ ] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
 - [ ] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
