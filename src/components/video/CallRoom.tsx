@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DailyIframe from '@daily-co/daily-js'
-import { NotebookPen, X, BookOpen } from 'lucide-react'
-import ProgramReferencePanel from './ProgramReferencePanel'
+import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
+import CallPanel, { type CallPanelTabId } from './CallPanel'
+import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
+import RoomChatTab from './RoomChatTab'
 import type { LinkedProgramBundle } from '@/types/programs'
 
 type TranscriptLine = { speaker: string; text: string; ts: string }
@@ -16,9 +18,10 @@ type Props = {
   isCreator: boolean
   callId?: string
   linkedProgram?: LinkedProgramBundle | null
+  sessionChat?: { conversationId: string; userId: string } | null
 }
 
-export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, callId, linkedProgram }: Props) {
+export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, callId, linkedProgram, sessionChat }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null)
   const chunkBufferRef = useRef<string>('')
@@ -28,8 +31,23 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
 
   const [noteState, setNoteState] = useState<'idle' | 'active' | 'stopped'>('idle')
   const [panelOpen, setPanelOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<CallPanelTabId>('transcript')
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([])
-  const [programPanelOpen, setProgramPanelOpen] = useState(false)
+
+  const availableTabs: CallPanelTabId[] = [
+    'transcript',
+    ...(linkedProgram ? (['program'] as const) : []),
+    ...(sessionChat ? (['chat'] as const) : []),
+  ]
+
+  function openTab(tab: CallPanelTabId) {
+    if (panelOpen && activeTab === tab) {
+      setPanelOpen(false)
+    } else {
+      setActiveTab(tab)
+      setPanelOpen(true)
+    }
+  }
 
   async function flushBuffer() {
     const chunk = chunkBufferRef.current
@@ -105,30 +123,16 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [transcriptLines])
 
-  function startNotes() {
-    if (!callId) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(frameRef.current as any)?.startTranscription({ language: 'en', model: 'nova-2', punctuate: true, endpointing: 500 })
-    setNoteState('active')
-    setPanelOpen(true)
-    setProgramPanelOpen(false)
-    flushIntervalRef.current = setInterval(flushBuffer, 30000)
-  }
-
-  function toggleTranscriptPanel() {
-    setPanelOpen(p => {
-      const next = !p
-      if (next) setProgramPanelOpen(false)
-      return next
-    })
-  }
-
-  function toggleProgramPanel() {
-    setProgramPanelOpen(p => {
-      const next = !p
-      if (next) setPanelOpen(false)
-      return next
-    })
+  function handleNotesClick() {
+    if (noteState === 'idle') {
+      if (callId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(frameRef.current as any)?.startTranscription({ language: 'en', model: 'nova-2', punctuate: true, endpointing: 500 })
+        setNoteState('active')
+        flushIntervalRef.current = setInterval(flushBuffer, 30000)
+      }
+    }
+    openTab('transcript')
   }
 
   async function handleLeave() {
@@ -156,38 +160,37 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
       {/* Daily.co iframe */}
       <div ref={containerRef} className="relative flex-1 min-h-0" />
 
-      {/* Transcript panel */}
-      <div
-        className={`absolute inset-y-0 right-0 w-72 bg-slate-900/95 border-l border-slate-700 flex flex-col z-20 overflow-hidden transition-transform duration-200 ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      {/* Unified tabbed panel */}
+      <CallPanel
+        open={panelOpen}
+        activeTab={activeTab}
+        availableTabs={availableTabs}
+        onSelectTab={setActiveTab}
+        onClose={() => setPanelOpen(false)}
       >
-        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700 shrink-0">
-          <span className="text-xs font-bold text-slate-300 uppercase tracking-wide">Live Transcript</span>
-          <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-200">
-            <X size={14} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {transcriptLines.length === 0 ? (
-            <p className="text-xs text-slate-500">Transcript will appear here as people speak…</p>
-          ) : (
-            transcriptLines.map((line, i) => (
-              <div key={i}>
-                <span className="text-xs font-semibold text-violet-400">{line.speaker}</span>
-                <span className="text-slate-500 text-xs ml-1">{line.ts}</span>
-                <p className="text-slate-200 text-xs mt-0.5">{line.text}</p>
-              </div>
-            ))
-          )}
-          <div ref={transcriptEndRef} />
-        </div>
-      </div>
-
-      {/* Program reference panel */}
-      <ProgramReferencePanel
-        linkedProgram={linkedProgram ?? null}
-        open={programPanelOpen}
-        onClose={() => setProgramPanelOpen(false)}
-      />
+        {activeTab === 'transcript' && (
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {transcriptLines.length === 0 ? (
+              <p className="text-xs text-slate-500">Transcript will appear here as people speak…</p>
+            ) : (
+              transcriptLines.map((line, i) => (
+                <div key={i}>
+                  <span className="text-xs font-semibold text-violet-400">{line.speaker}</span>
+                  <span className="text-slate-500 text-xs ml-1">{line.ts}</span>
+                  <p className="text-slate-200 text-xs mt-0.5">{line.text}</p>
+                </div>
+              ))
+            )}
+            <div ref={transcriptEndRef} />
+          </div>
+        )}
+        {activeTab === 'program' && linkedProgram && (
+          <ProgramReferencePanel linkedProgram={linkedProgram} sessionChat={sessionChat ?? null} />
+        )}
+        {activeTab === 'chat' && sessionChat && (
+          <RoomChatTab conversationId={sessionChat.conversationId} userId={sessionChat.userId} />
+        )}
+      </CallPanel>
 
       {/* Controls bar */}
       <div
@@ -196,7 +199,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
       >
         {/* Notes button */}
         <button
-          onClick={noteState === 'idle' ? startNotes : toggleTranscriptPanel}
+          onClick={handleNotesClick}
           className={`relative px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 ${
             noteState === 'active'
               ? 'bg-violet-600 text-white hover:bg-violet-700'
@@ -214,12 +217,24 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
         {/* Program panel button — only when a program is linked */}
         {linkedProgram && (
           <button
-            onClick={toggleProgramPanel}
+            onClick={() => openTab('program')}
             className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
             title="Toggle program reference panel"
           >
             <BookOpen size={15} />
             Program
+          </button>
+        )}
+
+        {/* Chat button — only when session chat is available */}
+        {sessionChat && (
+          <button
+            onClick={() => openTab('chat')}
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
+            title="Toggle chat"
+          >
+            <MessageCircle size={15} />
+            Chat
           </button>
         )}
 
