@@ -797,7 +797,7 @@ from the linked program — not just show them via screen share.
 ## C-7 — Wire staff chat participancy on the call page
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/video/[roomId]/page.tsx` first, then add the import:
+- [x] Read `src/app/dashboard/video/[roomId]/page.tsx` first, then add the import:
   ```typescript
   import { ensureSessionChatParticipant } from '@/lib/session-chat'
   ```
@@ -812,8 +812,8 @@ from the linked program — not just show them via screen share.
   existing `linkedProgram={linkedProgram}` prop. Nothing else in this file changes.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: room chat + client delivery — staff chat participancy on the call page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: room chat + client delivery — staff chat participancy on the call page"`
 
 ---
 
@@ -1219,7 +1219,7 @@ from the linked program — not just show them via screen share.
 - [x] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
 - [x] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
   receive `linkedProgram`
-- [ ] C-7: staff chat participancy ensured on the call page
+- [x] C-7: staff chat participancy ensured on the call page
 - [ ] C-8: guest identity/sign-in flow works end to end, never blocks video join on failure
 - [ ] C-9: session-type conversations excluded from Team Chat inbox, notification links to the
   session page
