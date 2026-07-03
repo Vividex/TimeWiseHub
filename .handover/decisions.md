@@ -4,8 +4,10 @@
 
 ## Spending
 - spend-budget-usd: 2
-- In-call program reference panel (current phase): zero cost — pure code, internal Supabase reads
-  only, no external API calls.
+- Room chat + client delivery (current phase): zero cost — pure code + Supabase admin API calls
+  (create user, generate link), no external paid API. No Daily.co/Resend usage in this phase.
+- In-call program reference panel (prior phase, complete): zero cost — pure code, internal
+  Supabase reads only, no external API calls.
 - Time page additional hours fixes (prior phase, complete): zero cost — pure code, internal
   Supabase data only.
 - Locale hydration fix (prior phase, complete): zero cost — pure text substitution, no external
@@ -19,7 +21,36 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (In-Call Program Reference Panel)
+## Notes (Room Chat + Client Delivery)
+- Source spec: docs/superpowers/specs/2026-07-03-room-chat-client-delivery-design.md
+- Source plan: docs/superpowers/plans/2026-07-03-room-chat-client-delivery.md
+- Phase 2 of Programs-in-Sessions integration (Phase 1 = In-Call Program Reference Panel, below).
+- Guest identity: ONE real admin-created profiles row per client (clients.guest_chat_user_id),
+  reused forever — NOT Supabase anonymous auth (profiles.email is NOT NULL, blocks it), NOT a
+  fresh account per call (chat_messages.sender_id -> profiles has no cascade delete, so a
+  disposable account can never actually be deleted once it's sent a message).
+  Sign-in: admin.generateLink({type:'magiclink'}) -> hashed_token handed to the guest's browser ->
+  client-side verifyOtp({type:'email'}) — no email ever sent.
+  Isolation: this profile has zero organisation_members rows, so the pervasive org-membership-gated
+  RLS convention already blocks it from seeing anything else in the app.
+- chat_conversations gets a new type='session' value + session_id column. Reuses
+  send_chat_message RPC / /api/chat/send / chat-attachments storage / MessageComposer /
+  AttachmentChip / ChatMessage type completely unmodified — only can_post_chat() needed a new
+  branch (session behaves like dm: any participant may post).
+- Two panels from Phase 1 (transcript, program) refactored into one shared tabbed shell
+  (CallPanel) so Chat has somewhere to live without a third competing slide-in panel.
+  ProgramReferencePanel is now content-only (no own header/close), gained a sessionChat prop for
+  the share-to-chat action.
+- Session-type conversations excluded from the normal Team Chat inbox query
+  (ChatRealtimeProvider.loadConversations) — reachable only via the session page (SessionCallChat,
+  read-only) and the live call.
+- Share-to-chat posts a message with a link (or note text) — never copies the file into chat's own
+  storage bucket.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. The enum-value migration (schema-077) MUST be applied and committed before the
+  structural migration (schema-078) that references it — separate apply_migration calls.
+
+## Notes (In-Call Program Reference Panel) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-03-in-call-program-reference-panel-design.md
 - Source plan: docs/superpowers/plans/2026-07-03-in-call-program-reference-panel.md
 - Staff-only, screen-shared to "show" the client — no client-facing code this phase. Delivering

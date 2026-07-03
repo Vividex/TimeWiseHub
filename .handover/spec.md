@@ -265,7 +265,9 @@ from the linked program — not just show them via screen share.
 ## C-4 — Refactor `ProgramReferencePanel` — content-only + share-to-chat
 
 *Codex edits:*
-- [ ] Read `src/components/programs/ProgramReferencePanel.tsx` first, then replace its full
+- [x] Read `src/components/programs/ProgramReferencePanel.tsx` first (stale path — actual file is
+  `src/components/video/ProgramReferencePanel.tsx`, caught and corrected by Codex), then replace
+  its full
   contents:
   ```typescript
   'use client'
@@ -403,9 +405,9 @@ from the linked program — not just show them via screen share.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — expect a type error in `CallRoom.tsx` (still renders the old props
+- [x] `pnpm run build` — expect a type error in `CallRoom.tsx` (still renders the old props
   shape). Expected here, fixed by C-6.
-- [ ] Commit: `git add src/components/programs/ProgramReferencePanel.tsx && git commit -m "feat: room chat + client delivery — ProgramReferencePanel content-only + share-to-chat"`
+- [x] Commit: `git add src/components/video/ProgramReferencePanel.tsx && git commit -m "feat: room chat + client delivery — ProgramReferencePanel content-only + share-to-chat"`
 
 ---
 
@@ -531,7 +533,7 @@ from the linked program — not just show them via screen share.
   import DailyIframe from '@daily-co/daily-js'
   import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
   import CallPanel, { type CallPanelTabId } from './CallPanel'
-  import ProgramReferencePanel from '@/components/programs/ProgramReferencePanel'
+  import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
   import RoomChatTab from './RoomChatTab'
   import type { LinkedProgramBundle } from '@/types/programs'
 
@@ -1211,7 +1213,7 @@ from the linked program — not just show them via screen share.
 - [x] C-1: migrations applied, verified via `execute_sql`, committed
 - [x] C-2: `session-chat.ts` compiles clean, all three helpers match the design
 - [x] C-3: `CallPanel` compiles clean, matches the approved tabbed-shell design
-- [ ] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
+- [x] C-4: `ProgramReferencePanel` is content-only (no own header/wrapper), share-to-chat works
 - [ ] C-5: `RoomChatTab` compiles clean, reuses `MessageComposer`/`AttachmentChip` as designed
 - [ ] C-6: `CallRoom` renders the unified panel, all three tabs wire up correctly, guests never
   receive `linkedProgram`
