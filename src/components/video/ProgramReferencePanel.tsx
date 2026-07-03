@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, FileText, Image, Music, Link as LinkIcon, BookOpen, FileSpreadsheet, File, FolderOpen } from 'lucide-react'
+import { FileText, Image, Music, Link as LinkIcon, BookOpen, FileSpreadsheet, File, Send } from 'lucide-react'
 import type { LinkedProgramBundle, ProgramAsset, ProgramAssetType } from '@/types/programs'
 
 const TYPE_ICON: Record<ProgramAssetType, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -28,19 +28,16 @@ const TYPE_COLOUR: Record<ProgramAssetType, string> = {
 
 export default function ProgramReferencePanel({
   linkedProgram,
-  open,
-  onClose,
+  sessionChat,
 }: {
-  linkedProgram: LinkedProgramBundle | null
-  open: boolean
-  onClose: () => void
+  linkedProgram: LinkedProgramBundle
+  sessionChat: { conversationId: string } | null
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null)
+  const [sharingId, setSharingId] = useState<string | null>(null)
 
-  if (!linkedProgram) return null
-
-  const { program, categories, assets } = linkedProgram
+  const { categories, assets } = linkedProgram
   const visibleAssets =
     selectedCategoryId === 'all'
       ? assets
@@ -55,25 +52,22 @@ export default function ProgramReferencePanel({
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  return (
-    <div
-      className={`absolute inset-y-0 right-0 w-72 bg-slate-900/95 border-l border-slate-700 flex flex-col z-20 overflow-hidden transition-transform duration-200 ${open ? 'translate-x-0' : 'translate-x-full'}`}
-    >
-      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700 shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-white"
-            style={{ backgroundColor: program.cover_colour }}
-          >
-            <FolderOpen size={11} />
-          </span>
-          <span className="text-xs font-bold text-slate-200 truncate">{program.name}</span>
-        </div>
-        <button onClick={onClose} className="text-slate-400 hover:text-slate-200 shrink-0">
-          <X size={14} />
-        </button>
-      </div>
+  async function shareToChat(asset: ProgramAsset) {
+    if (!sessionChat) return
+    setSharingId(asset.id)
+    const body = asset.asset_type === 'note'
+      ? `Shared: ${asset.name}\n\n${asset.note_content ?? ''}`
+      : `Shared: ${asset.name}\n${asset.signed_url ?? asset.external_url ?? ''}`
+    await fetch('/api/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_id: sessionChat.conversationId, body }),
+    }).catch(() => {})
+    setSharingId(null)
+  }
 
+  return (
+    <>
       {categories.length > 0 && (
         <div className="px-3 py-2 border-b border-slate-700 shrink-0">
           <select
@@ -99,18 +93,30 @@ export default function ProgramReferencePanel({
             const isExpandedNote = asset.asset_type === 'note' && expandedNoteId === asset.id
             return (
               <div key={asset.id}>
-                <button
-                  onClick={() => handleAssetClick(asset)}
-                  className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-800 transition-colors"
-                >
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded"
-                    style={{ backgroundColor: `${colour}33`, color: colour }}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleAssetClick(asset)}
+                    className="flex flex-1 min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-800 transition-colors"
                   >
-                    <Icon size={13} />
-                  </span>
-                  <span className="text-xs text-slate-200 truncate">{asset.name}</span>
-                </button>
+                    <span
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded"
+                      style={{ backgroundColor: `${colour}33`, color: colour }}
+                    >
+                      <Icon size={13} />
+                    </span>
+                    <span className="text-xs text-slate-200 truncate">{asset.name}</span>
+                  </button>
+                  {sessionChat && (
+                    <button
+                      onClick={() => shareToChat(asset)}
+                      disabled={sharingId === asset.id}
+                      className="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-cyan-400 disabled:opacity-50"
+                      title="Share to chat"
+                    >
+                      <Send size={12} />
+                    </button>
+                  )}
+                </div>
                 {isExpandedNote && (
                   <p className="mx-2 mb-1 rounded-lg bg-slate-800 px-2 py-1.5 text-xs text-slate-300 whitespace-pre-line">
                     {asset.note_content}
@@ -121,6 +127,6 @@ export default function ProgramReferencePanel({
           })
         )}
       </div>
-    </div>
+    </>
   )
 }
