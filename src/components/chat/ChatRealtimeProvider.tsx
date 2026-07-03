@@ -111,6 +111,7 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
     const { data } = await supabase
       .from('chat_conversations')
       .select('id, org_id, type, title, dm_key, created_by, created_at')
+      .in('type', ['channel', 'dm'])
       .order('created_at', { ascending: true })
     setConversations((data ?? []) as ChatConversation[])
   }, [supabase])

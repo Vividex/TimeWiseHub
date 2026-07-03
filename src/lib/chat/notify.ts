@@ -19,7 +19,7 @@ export async function notifyNewChatMessage(conversationId: string, senderId: str
 
   const { data: conv } = await service
     .from('chat_conversations')
-    .select('type, title')
+    .select('type, title, session_id')
     .eq('id', conversationId)
     .maybeSingle()
   if (!conv) return
@@ -34,6 +34,13 @@ export async function notifyNewChatMessage(conversationId: string, senderId: str
   const title = conv.type === 'channel'
     ? `📣 ${conv.title ?? 'Announcements'}`
     : senderName
+
+  let url = `/dashboard/chat?c=${conversationId}`
+  if (conv.type === 'session' && conv.session_id) {
+    const { data: session } = await service
+      .from('sessions').select('client_id').eq('id', conv.session_id).maybeSingle()
+    if (session?.client_id) url = `/dashboard/clients/${session.client_id}/sessions/${conv.session_id}`
+  }
 
   const { data: participants } = await service
     .from('chat_participants')
@@ -58,7 +65,7 @@ export async function notifyNewChatMessage(conversationId: string, senderId: str
     await sendPushToUser(userId, {
       title,
       body: conv.type === 'channel' ? preview(body) : `${senderName}: ${preview(body)}`,
-      url: `/dashboard/chat?c=${conversationId}`,
+      url,
       tag: `chat:${conversationId}`,
     })
   }))
