@@ -5,16 +5,19 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Client email messaging (current phase): the "zero cost" assumption made during brainstorming
-  turned out to be wrong. Resend's inbound receiving domain, as designed
-  (`inbound.timewisehub.com.au`, a *second* domain), needs a Resend Pro upgrade (~$20/month) since
-  the user's existing account is on the Free plan (1 domain, already used by the sending domain).
-  User initially declined at the handover STEP 0 gate on 2026-07-04, then approved the $20/month
-  after a cost/scaling discussion (2026-07-04): it's a flat platform-wide cost shared across every
-  org on TimeWiseHub, not per-org/per-client, and the only further scaling risk is aggregate email
-  volume exceeding Pro's 50,000/month allowance ($0.90/1,000 overage) — far from current usage.
-  Approved, proceeding with C-1. No SMS in this phase either way (explicitly deferred, its own
-  future phase/cost approval).
+- Client email messaging (prior phase, code complete, C-8 not fully confirmed — see Notes): the
+  "zero cost" assumption made during brainstorming turned out to be wrong. Resend's inbound
+  receiving domain, as designed (`inbound.timewisehub.com.au`, a *second* domain), needs a Resend
+  Pro upgrade (~$20/month) since the user's existing account is on the Free plan (1 domain, already
+  used by the sending domain). User initially declined at the handover STEP 0 gate on 2026-07-04,
+  then approved the $20/month after a cost/scaling discussion (2026-07-04): it's a flat
+  platform-wide cost shared across every org on TimeWiseHub, not per-org/per-client, and the only
+  further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
+  ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
+  deferred, its own future phase/cost approval).
+- Unread client messages (current phase): zero cost — pure code, reuses the existing
+  `client_messages` table and Resend setup from the prior phase, one new column, one new
+  security-definer RPC. No external API calls.
 - Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
   calls (create user, generate link), no external paid API. No Daily.co/Resend usage in this
   phase.
@@ -36,7 +39,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Client Email Messaging)
+## Notes (Client Email Messaging) [code complete, C-8 not fully confirmed — see below]
 - Source spec: docs/superpowers/specs/2026-07-04-client-email-messaging-design.md
 - Source plan: docs/superpowers/plans/2026-07-04-client-email-messaging.md
 - Raised as direct customer feedback: funnel all client communication through the app without the
@@ -62,6 +65,37 @@
   webhooks need a public HTTPS URL.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP.
+- **Post-ship debugging (2026-07-04):** first live test showed the outbound email arriving from
+  `noreply@timewisehub.com.au` despite inviting a reply — fixed by adding an optional `fromEmail`
+  override to `sendEmail()` and a new `RESEND_MESSAGING_FROM_EMAIL=reply@timewisehub.com.au`
+  (same already-verified sending domain, not the inbound receiving domain — that would need its
+  own SPF/DKIM setup, unlike the MX-only records receiving needs). Then the reply itself never
+  arrived — root-caused via Vercel logs + diagnostic instrumentation to `RESEND_WEBHOOK_SECRET`
+  never actually being set in Vercel (only `.env.local` had it) — user added it, redeployed, fixed.
+  **C-8 was never re-confirmed after this last fix** — zero inbound rows exist in `client_messages`
+  as of the start of the "Unread Client Messages" phase below. The conductor asked the user to
+  retest before starting the new phase; no response within the wait window, proceeding with the
+  new phase's code (which doesn't require inbound rows to exist for Tasks 1-4) while flagging that
+  both phases' final manual verification should happen together once a real inbound message exists.
+
+## Notes (Unread Client Messages) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-04-unread-client-messages-design.md
+- Source plan: docs/superpowers/plans/2026-07-04-unread-client-messages.md
+- Raised directly by the user after confirming the notification-only visibility gap in the prior
+  phase ("you shouldn't have to go looking for messages").
+- Shared org-wide read state (not per-user) — confirmed during brainstorming, simpler and matches
+  how `client_messages` itself already treats any org member as having equal access.
+- New `get_unread_client_messages()` RPC takes no parameters, derives everything from `auth.uid()`
+  — mirrors `get_chat_unread()`'s security pattern exactly, so it can never be called with a
+  spoofed org/owner id to see another business's unread messages.
+- Marking read uses the service-role client (not the caller's own session) because `clients`'
+  UPDATE policy only covers owner/admin roles, while any org member can legitimately view a
+  client's Messages page and should be able to mark it read — this is documented explicitly as a
+  Global Constraint in the plan, not an oversight.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
+- Task 5 (manual verification) depends on the still-unconfirmed C-8 from the prior phase — see the
+  note above. Flag this to the user before ticking Task 5 done.
 
 ## Notes (Dashboard "Today" Section) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-dashboard-today-section-design.md
