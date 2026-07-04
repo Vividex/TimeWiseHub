@@ -49,11 +49,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   }
 
-  const resendApiKey = process.env.RESEND_API_KEY
-  if (!resendApiKey) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+  // The main RESEND_API_KEY is a "sending_access"-only restricted key (used everywhere else in
+  // this app) — reading a received email is a different permission scope and needs its own
+  // full_access key, kept separate rather than widening the send key's permissions app-wide.
+  const resendReceivingApiKey = process.env.RESEND_RECEIVING_API_KEY
+  if (!resendReceivingApiKey) return NextResponse.json({ error: 'RESEND_RECEIVING_API_KEY not configured' }, { status: 500 })
 
   const emailRes = await fetch(`https://api.resend.com/emails/receiving/${payload.data.email_id}`, {
-    headers: { Authorization: `Bearer ${resendApiKey}` },
+    headers: { Authorization: `Bearer ${resendReceivingApiKey}` },
   })
   if (!emailRes.ok) {
     console.error('[resend-inbound] failed to fetch received email body', { status: emailRes.status, emailId: payload.data.email_id })
