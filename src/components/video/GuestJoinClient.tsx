@@ -61,6 +61,7 @@ export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, gue
         token={token}
         dailyRoomName={dailyRoomName}
         isCreator={false}
+        isGuest
         sessionChat={sessionChat}
       />
     )

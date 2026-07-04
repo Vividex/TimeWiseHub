@@ -7,6 +7,7 @@ import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
 import CallPanel, { type CallPanelTabId } from './CallPanel'
 import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
 import RoomChatTab from './RoomChatTab'
+import { createClient } from '@/lib/supabase-browser'
 import type { LinkedProgramBundle } from '@/types/programs'
 
 type TranscriptLine = { speaker: string; text: string; ts: string }
@@ -16,12 +17,13 @@ type Props = {
   token: string
   dailyRoomName: string
   isCreator: boolean
+  isGuest?: boolean
   callId?: string
   linkedProgram?: LinkedProgramBundle | null
   sessionChat?: { conversationId: string; userId: string } | null
 }
 
-export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, callId, linkedProgram, sessionChat }: Props) {
+export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isGuest = false, callId, linkedProgram, sessionChat }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null)
   const chunkBufferRef = useRef<string>('')
@@ -109,7 +111,12 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
     frame.on('left-meeting', async () => {
       if (flushIntervalRef.current) clearInterval(flushIntervalRef.current)
       await finaliseNotes()
-      router.push('/dashboard/video')
+      if (isGuest) {
+        await createClient().auth.signOut()
+        router.push('/call-ended')
+      } else {
+        router.push('/dashboard/video')
+      }
     })
 
     return () => {

@@ -11,7 +11,9 @@ export async function ensureGuestChatUser(clientId: string): Promise<{ userId: s
   const { data: created, error } = await service.auth.admin.createUser({
     email: client.email,
     email_confirm: true,
-    user_metadata: { is_client_guest: true, client_id: client.id },
+    // app_metadata (not user_metadata) — the signed-in user cannot edit this themselves via
+    // the client SDK. dashboard/layout.tsx trusts this flag to keep guests out of the app.
+    app_metadata: { is_client_guest: true, client_id: client.id },
   })
 
   if (error || !created.user) {

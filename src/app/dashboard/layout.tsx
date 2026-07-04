@@ -20,6 +20,10 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Guest chat accounts (created for clients joining a video call) authenticate the same
+  // way staff do, but must never reach the internal dashboard — only the call itself.
+  if (user.app_metadata?.is_client_guest) redirect('/call-ended')
+
   // Fetch membership once — needed for org resolution, tutorial role, and created_at
   const { data: membership } = await supabase
     .from('organisation_members')
