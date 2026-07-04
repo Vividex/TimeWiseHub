@@ -11,8 +11,9 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask } from '@/components/dashboard/DashboardUpcoming'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getTodayBoundsSydney } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
 
 type PoolTask = {
@@ -108,15 +109,13 @@ export default async function DashboardHome() {
   // Date helpers
   const now = new Date()
   const { weekStart, weekEnd } = getWeekBounds(now)
+  const { todayStart, todayEnd } = getTodayBoundsSydney(now)
 
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
-  const nextWeek   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-
-  const todayStartIso  = todayStart.toISOString()
-  const nextWeekIso    = nextWeek.toISOString()
+  const todayStartIso = todayStart.toISOString()
+  const todayEndIso   = todayEnd.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, subscriptionRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -136,8 +135,8 @@ export default async function DashboardHome() {
           .from('scheduled_calls')
           .select('id, title, starts_at')
           .eq('org_id', orgId)
-          .gte('starts_at', now.toISOString())
-          .lte('starts_at', nextWeekIso)
+          .gte('starts_at', todayStartIso)
+          .lt('starts_at', todayEndIso)
           .order('starts_at')
           .limit(5)
       : Promise.resolve({ data: [] as { id: string; title: string; starts_at: string }[], error: null }),
@@ -146,9 +145,19 @@ export default async function DashboardHome() {
       .select('id, title, start_at, end_at, all_day')
       .eq('created_by', user.id)
       .gte('start_at', todayStartIso)
-      .lte('start_at', nextWeekIso)
+      .lt('start_at', todayEndIso)
       .order('start_at')
       .limit(10),
+    orgId
+      ? supabase
+          .from('sessions')
+          .select('id, title, scheduled_at, client_id, clients(name)')
+          .eq('org_id', orgId)
+          .gte('scheduled_at', todayStartIso)
+          .lt('scheduled_at', todayEndIso)
+          .order('scheduled_at')
+          .limit(10)
+      : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null }[], error: null }),
     getSubscription(user.id),
   ])
 
@@ -181,6 +190,25 @@ export default async function DashboardHome() {
 
   const meetings = (meetingsRes.data ?? []) as UpcomingMeeting[]
   const events   = (calendarRes.data ?? []) as UpcomingEvent[]
+  const todaySessions: UpcomingSession[] = (
+    (sessionsListRes.data ?? []) as unknown as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null }[]
+  ).map(s => ({
+    id: s.id,
+    title: s.title,
+    scheduled_at: s.scheduled_at,
+    client_id: s.client_id,
+    client_name: s.clients?.name ?? 'Client',
+  }))
+
+  const todayEndDate = new Date(todayEndIso)
+  const todayTasks: UpcomingTask[] = myTasks
+    .filter(t => t.due_date && new Date(t.due_date) < todayEndDate)
+    .map(t => ({
+      id: t.id,
+      title: t.title,
+      due_date: t.due_date as string,
+      project_name: t.projectName,
+    }))
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   return (
@@ -212,8 +240,8 @@ export default async function DashboardHome() {
         {/* Quick actions */}
         <QuickActions rosterManaged={rosterManaged} />
 
-        {/* Upcoming meetings + calendar events */}
-        <DashboardUpcoming meetings={meetings} events={events} />
+        {/* Today's agenda: meetings, sessions, calendar events, task deadlines */}
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} />
 
         {/* Personal to-dos */}
         <PersonalTodos />

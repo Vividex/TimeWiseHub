@@ -91,7 +91,7 @@ or overdue) into one chronological, actionable list.
 ## C-2 — `dashboard/page.tsx` data layer
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/page.tsx` first, then:
+- [x] Read `src/app/dashboard/page.tsx` first, then:
   1. Replace the date-boundary block:
      ```typescript
      // Date helpers
@@ -161,20 +161,24 @@ or overdue) into one chronological, actionable list.
      ```typescript
      <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} />
      ```
-- [ ] Report back "Done this turn" listing the file changed. Build WILL fail after this turn
+- [x] Report back "Done this turn" listing the file changed. Build WILL fail after this turn
   (C-3 hasn't landed yet) — that's expected, do not treat it as a blocker.
 
 *Conductor:*
-- [ ] `pnpm run build` — expect a type error (`UpcomingSession`/`UpcomingTask` not exported yet
+- [x] `pnpm run build` — expect a type error (`UpcomingSession`/`UpcomingTask` not exported yet
   from `DashboardUpcoming.tsx`). Expected here, resolved by C-3. Do not commit yet — C-2 and C-3
   commit together once both land (see C-3's commit step).
+  Result: confirmed the expected type error (`Module has no exported member 'UpcomingSession'`).
+  Also fixed a stale JSX comment above `<DashboardUpcoming>` myself (still said "Upcoming
+  meetings + calendar events") — a gap in this spec's own transcription from the plan, not a
+  Codex error; too trivial to round-trip through a Codex turn.
 
 ---
 
 ## C-3 — `DashboardUpcoming.tsx` — session and task item kinds
 
 *Codex edits:*
-- [ ] Read `src/components/dashboard/DashboardUpcoming.tsx` first, then replace its full contents:
+- [x] Read `src/components/dashboard/DashboardUpcoming.tsx` first, then replace its full contents:
   ```typescript
   'use client'
 
@@ -312,12 +316,12 @@ or overdue) into one chronological, actionable list.
     )
   }
   ```
-- [ ] Report back "Done this turn" listing the file changed.
+- [x] Report back "Done this turn" listing the file changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now (C-2's props now match this component's accepted
+- [x] `pnpm run build` — must pass clean now (C-2's props now match this component's accepted
   props).
-- [ ] Commit both files together (they only compile together):
+- [x] Commit both files together (they only compile together):
   `git add src/app/dashboard/page.tsx src/components/dashboard/DashboardUpcoming.tsx && git commit -m "feat: dashboard Today section — merge sessions and task deadlines into the agenda"`
 
 ---
