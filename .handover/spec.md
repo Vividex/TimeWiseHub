@@ -326,6 +326,18 @@ or overdue) into one chronological, actionable list.
 
 ---
 
+## Addendum (found during C-4 manual testing) — session/meeting dedup
+
+User reported sessions with a linked video call showing up twice (once as a session item, once
+as a separate meeting item) — root cause: `scheduled_calls.session_id` (from the prior "video chat
+in sessions" phase) wasn't considered when building either list. Fixed directly by the conductor
+(small, well-understood fix, not worth a full Codex round-trip): `sessionsListRes` now embeds
+`scheduled_calls(id)`; `meetings` filters out any call ID already represented by a session; the
+session row shows both Join (if a call is linked) and View. Build clean, committed
+(`357ad2d`).
+
+---
+
 ## C-4 — Manual end-to-end verification
 
 *Conductor + user:*
