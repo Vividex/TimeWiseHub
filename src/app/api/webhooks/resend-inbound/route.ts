@@ -59,7 +59,8 @@ export async function POST(req: Request) {
     headers: { Authorization: `Bearer ${resendReceivingApiKey}` },
   })
   if (!emailRes.ok) {
-    console.error('[resend-inbound] failed to fetch received email body', { status: emailRes.status, emailId: payload.data.email_id })
+    const errorBody = await emailRes.text().catch(() => '(could not read body)')
+    console.error('[resend-inbound] failed to fetch received email body', { status: emailRes.status, emailId: payload.data.email_id, errorBody })
     return NextResponse.json({ error: 'Failed to fetch received email' }, { status: 502 })
   }
   const email = await emailRes.json() as { text: string | null; html: string | null }
