@@ -126,7 +126,7 @@ the `clients` and `sessions` tables, not a single org-only policy.
 ## C-2 — Reply-to address helpers
 
 *Codex edits:*
-- [ ] Create `src/lib/client-messages.ts`:
+- [x] Create `src/lib/client-messages.ts`:
   ```typescript
   const CLIENT_MESSAGE_ADDRESS_RE = /client-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})@/i
 
@@ -158,8 +158,8 @@ the `clients` and `sessions` tables, not a single org-only policy.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/lib/client-messages.ts && git commit -m "feat: client email messaging — reply-to address helpers"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [x] Commit: `git add src/lib/client-messages.ts && git commit -m "feat: client email messaging — reply-to address helpers"`
 
 ---
 
