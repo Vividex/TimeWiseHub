@@ -3,13 +3,18 @@
 # anything not authorized below causes a clean pause (not a frozen prompt).
 
 ## Spending
-- spend-budget-usd: 2
-- Client email messaging (current phase): zero cost — reuses the existing Resend account for both
-  outbound (already used) and inbound (new receiving domain, no separate paid add-on as of the
-  research done during brainstorming). No SMS in this phase (explicitly deferred, would need a new
-  paid Twilio account — its own future phase with its own cost approval). Manual testing (Task 8)
-  sends a handful of real emails through the existing Resend account — same zero-marginal-cost
-  pattern as every other email already sent by this app.
+- spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
+  subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
+- Client email messaging (current phase): the "zero cost" assumption made during brainstorming
+  turned out to be wrong. Resend's inbound receiving domain, as designed
+  (`inbound.timewisehub.com.au`, a *second* domain), needs a Resend Pro upgrade (~$20/month) since
+  the user's existing account is on the Free plan (1 domain, already used by the sending domain).
+  User initially declined at the handover STEP 0 gate on 2026-07-04, then approved the $20/month
+  after a cost/scaling discussion (2026-07-04): it's a flat platform-wide cost shared across every
+  org on TimeWiseHub, not per-org/per-client, and the only further scaling risk is aggregate email
+  volume exceeding Pro's 50,000/month allowance ($0.90/1,000 overage) — far from current usage.
+  Approved, proceeding with C-1. No SMS in this phase either way (explicitly deferred, its own
+  future phase/cost approval).
 - Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
   calls (create user, generate link), no external paid API. No Daily.co/Resend usage in this
   phase.
