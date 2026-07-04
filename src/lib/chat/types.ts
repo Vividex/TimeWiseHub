@@ -17,6 +17,7 @@ export type ChatAttachment = {
   file_name: string
   mime_type: string
   size_bytes: number
+  bucket: string
 }
 
 export type ChatMessage = {

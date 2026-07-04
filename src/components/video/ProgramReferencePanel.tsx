@@ -55,13 +55,10 @@ export default function ProgramReferencePanel({
   async function shareToChat(asset: ProgramAsset) {
     if (!sessionChat) return
     setSharingId(asset.id)
-    const body = asset.asset_type === 'note'
-      ? `Shared: ${asset.name}\n\n${asset.note_content ?? ''}`
-      : `Shared: ${asset.name}\n${asset.signed_url ?? asset.external_url ?? ''}`
-    await fetch('/api/chat/send', {
+    await fetch(`/api/programs/${linkedProgram.program.id}/assets/${asset.id}/share`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversation_id: sessionChat.conversationId, body }),
+      body: JSON.stringify({ conversation_id: sessionChat.conversationId }),
     }).catch(() => {})
     setSharingId(null)
   }

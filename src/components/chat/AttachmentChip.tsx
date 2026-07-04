@@ -18,14 +18,23 @@ export default function AttachmentChip({ attachment }: { attachment: ChatAttachm
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const supabase = createClient()
-      const { data } = await supabase.storage
-        .from('chat-attachments')
-        .createSignedUrl(attachment.storage_path, 3600)
-      if (!cancelled) setUrl(data?.signedUrl ?? null)
+      // The chat-attachments bucket has client-facing storage policies and can be signed
+      // directly. Other buckets (e.g. program-assets, for shared program files) don't grant
+      // browser access, so those go through a server route that re-signs on every view.
+      if (attachment.bucket === 'chat-attachments') {
+        const supabase = createClient()
+        const { data } = await supabase.storage
+          .from('chat-attachments')
+          .createSignedUrl(attachment.storage_path, 3600)
+        if (!cancelled) setUrl(data?.signedUrl ?? null)
+        return
+      }
+      const res = await fetch(`/api/chat/attachments/${attachment.id}/signed-url`)
+      const data = res.ok ? await res.json() as { url: string } : null
+      if (!cancelled) setUrl(data?.url ?? null)
     })()
     return () => { cancelled = true }
-  }, [attachment.storage_path])
+  }, [attachment.id, attachment.bucket, attachment.storage_path])
 
   if (isImage && url) {
     return (
