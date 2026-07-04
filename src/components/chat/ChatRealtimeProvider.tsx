@@ -217,24 +217,35 @@ export default function ChatRealtimeProvider({ userId, orgId, children }: { user
           const row = payload.new as {
             id: string; conversation_id: string; sender_id: string; body: string; created_at: string
           }
-          setLastInsert({
-            conversationId: row.conversation_id,
-            messageId: row.id,
-            senderId: row.sender_id,
-            at: row.created_at,
-          })
-          if (row.sender_id !== userId && row.conversation_id !== activeRef.current) {
-            setUnread(prev => ({
-              ...prev,
-              [row.conversation_id]: (prev[row.conversation_id] ?? 0) + 1,
-            }))
-            pingSound()
-            showInAppNotification(row.sender_id, row.body, row.conversation_id, membersRef.current)
-          }
-          // Surface brand-new DM conversations the moment their first message lands.
-          if (!conversationsRef.current.some(c => c.id === row.conversation_id)) {
-            loadConversations()
-          }
+          ;(async () => {
+            const known = conversationsRef.current.some(c => c.id === row.conversation_id)
+            let isTeamChat = known
+            if (!known) {
+              // Not yet loaded — could be a brand-new DM/channel, or a session (video call)
+              // chat, which is deliberately excluded from Team Chat. Check its real type.
+              const { data } = await supabase
+                .from('chat_conversations').select('type').eq('id', row.conversation_id).maybeSingle()
+              isTeamChat = data?.type === 'channel' || data?.type === 'dm'
+            }
+            if (!isTeamChat) return
+
+            setLastInsert({
+              conversationId: row.conversation_id,
+              messageId: row.id,
+              senderId: row.sender_id,
+              at: row.created_at,
+            })
+            if (row.sender_id !== userId && row.conversation_id !== activeRef.current) {
+              setUnread(prev => ({
+                ...prev,
+                [row.conversation_id]: (prev[row.conversation_id] ?? 0) + 1,
+              }))
+              pingSound()
+              showInAppNotification(row.sender_id, row.body, row.conversation_id, membersRef.current)
+            }
+            // Surface brand-new DM conversations the moment their first message lands.
+            if (!known) loadConversations()
+          })()
         }
       )
       .subscribe()
