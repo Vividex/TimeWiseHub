@@ -69,6 +69,7 @@ export async function POST(
       text,
       html,
       fromName: senderName,
+      fromEmail: process.env.RESEND_MESSAGING_FROM_EMAIL,
       replyTo: buildReplyToAddress(client.id, senderName),
     })
   } catch (err) {

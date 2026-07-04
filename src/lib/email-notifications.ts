@@ -27,6 +27,7 @@ type Email = {
   html: string
   attachments?: Attachment[]
   fromName?: string
+  fromEmail?: string
   replyTo?: string
 }
 
@@ -82,9 +83,9 @@ function isEnabled(profile: Profile, key: keyof NotificationPreferences) {
   return profile.notification_preferences?.[key] !== false
 }
 
-export async function sendEmail({ to, subject, text, html, attachments, fromName, replyTo }: Email) {
+export async function sendEmail({ to, subject, text, html, attachments, fromName, fromEmail, replyTo }: Email) {
   const apiKey = process.env.RESEND_API_KEY
-  const baseFrom = process.env.RESEND_FROM_EMAIL
+  const baseFrom = fromEmail ?? process.env.RESEND_FROM_EMAIL
 
   if (!apiKey || !baseFrom) {
     console.info(`Email skipped: RESEND_API_KEY or RESEND_FROM_EMAIL is not configured. Subject: ${subject}`)
