@@ -166,7 +166,7 @@ the `clients` and `sessions` tables, not a single org-only policy.
 ## C-3 — Webhook signature verification
 
 *Codex edits:*
-- [ ] Create `src/lib/resend-webhook.ts`:
+- [x] Create `src/lib/resend-webhook.ts`:
   ```typescript
   import { createHmac, timingSafeEqual } from 'crypto'
 
@@ -197,8 +197,8 @@ the `clients` and `sessions` tables, not a single org-only policy.
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/lib/resend-webhook.ts && git commit -m "feat: client email messaging — Resend webhook signature verification"`
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [x] Commit: `git add src/lib/resend-webhook.ts && git commit -m "feat: client email messaging — Resend webhook signature verification"`
 
 ---
 
