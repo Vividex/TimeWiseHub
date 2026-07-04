@@ -43,7 +43,6 @@ export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, gue
     if (chat) {
       const supabase = createClient()
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email: chat.email,
         token_hash: chat.tokenHash,
         type: 'email',
       })
