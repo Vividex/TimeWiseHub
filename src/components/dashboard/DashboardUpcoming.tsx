@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase-browser'
 
 export type UpcomingMeeting = { id: string; title: string; starts_at: string }
 export type UpcomingEvent   = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean }
-export type UpcomingSession = { id: string; title: string; scheduled_at: string; client_id: string; client_name: string }
+export type UpcomingSession = { id: string; title: string; scheduled_at: string; client_id: string; client_name: string; meeting_id: string | null }
 export type UpcomingTask    = { id: string; title: string; due_date: string; project_name: string | null }
 
 function fmtTime(iso: string, allDay: boolean) {
@@ -25,7 +25,7 @@ function fmtDueDate(iso: string) {
 type TimedItem =
   | { id: string; title: string; time: string; kind: 'meeting' }
   | { id: string; title: string; time: string; kind: 'event'; allDay: boolean }
-  | { id: string; title: string; time: string; kind: 'session'; clientId: string }
+  | { id: string; title: string; time: string; kind: 'session'; clientId: string; meetingId: string | null }
 
 export default function DashboardUpcoming({
   meetings,
@@ -43,7 +43,7 @@ export default function DashboardUpcoming({
   const timedItems: TimedItem[] = [
     ...meetings.map(m => ({ id: m.id, title: m.title, time: m.starts_at, kind: 'meeting' as const })),
     ...events.map(e => ({ id: e.id, title: e.title, time: e.start_at, kind: 'event' as const, allDay: e.all_day })),
-    ...sessions.map(s => ({ id: s.id, title: `${s.title} — ${s.client_name}`, time: s.scheduled_at, clientId: s.client_id, kind: 'session' as const })),
+    ...sessions.map(s => ({ id: s.id, title: `${s.title} — ${s.client_name}`, time: s.scheduled_at, clientId: s.client_id, meetingId: s.meeting_id, kind: 'session' as const })),
   ].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
 
   const visibleTasks = tasks.filter(t => !doneIds.has(t.id))
@@ -120,12 +120,22 @@ export default function DashboardUpcoming({
               </Link>
             )}
             {item.kind === 'session' && (
-              <Link
-                href={`/dashboard/clients/${item.clientId}/sessions/${item.id}`}
-                className="shrink-0 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-600"
-              >
-                View
-              </Link>
+              <div className="flex shrink-0 items-center gap-2">
+                {item.meetingId && (
+                  <Link
+                    href={`/dashboard/video/${item.meetingId}`}
+                    className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600"
+                  >
+                    Join
+                  </Link>
+                )}
+                <Link
+                  href={`/dashboard/clients/${item.clientId}/sessions/${item.id}`}
+                  className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-600"
+                >
+                  View
+                </Link>
+              </div>
             )}
           </div>
         ))}
