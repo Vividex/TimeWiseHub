@@ -6,12 +6,12 @@ import TeamTasks from '@/components/tasks/TeamTasks'
 import WelcomeBanner from '@/components/WelcomeBanner'
 import NudgeBanner from '@/components/NudgeBanner'
 import OrgDocuments from '@/components/home/OrgDocuments'
-import PendingApprovals from '@/components/home/PendingApprovals'
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval } from '@/components/dashboard/DashboardUpcoming'
+import { getPendingApprovals } from '@/lib/pending-approvals'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
@@ -77,9 +77,10 @@ export default async function DashboardHome() {
     ? (orgMembersRaw as any[]).map((m: any) => ({ userId: m.user_id as string, displayName: (m.profiles?.full_name || m.profiles?.email || m.user_id) as string }))
     : undefined
 
-  // Manager unassigned pool + assigned team tasks
+  // Manager unassigned pool + assigned team tasks + pending approvals
   let poolTasks: PoolTask[] = []
   let assignedTasks: AssignedTask[] = []
+  let approvals: UpcomingApproval[] = []
   if (isManager && orgId) {
     const { data: orgProjects } = await supabase
       .from('projects').select('id').eq('org_id', orgId).eq('status', 'active')
@@ -104,6 +105,14 @@ export default async function DashboardHome() {
       poolTasks = (pool ?? []) as unknown as PoolTask[]
       assignedTasks = (assigned ?? []) as unknown as AssignedTask[]
     }
+
+    const pending = await getPendingApprovals(orgId, user.id, role)
+    approvals = pending.map(p => ({
+      id: p.id,
+      title: p.invoice_number,
+      submitter_name: p.submitter_name,
+      amount: `${p.currency} ${Number(p.subtotal).toFixed(2)}`,
+    }))
   }
 
   // Date helpers
@@ -245,8 +254,8 @@ export default async function DashboardHome() {
         {/* Quick actions */}
         <QuickActions rosterManaged={rosterManaged} />
 
-        {/* Today's agenda: meetings, sessions, calendar events, task deadlines */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} />
+        {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} />
 
         {/* Personal to-dos */}
         <PersonalTodos />
@@ -276,10 +285,6 @@ export default async function DashboardHome() {
               orgMembers={mappedMembers ?? []}
             />
           </div>
-        )}
-
-        {isManager && orgId && (
-          <PendingApprovals orgId={orgId} userId={user.id} role={role} />
         )}
 
         {isManager && orgId && (
