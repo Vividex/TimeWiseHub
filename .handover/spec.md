@@ -37,7 +37,7 @@ or overdue) into one chronological, actionable list.
 ## C-1 — Sydney-aware "today" boundary helper
 
 *Codex edits:*
-- [ ] Create `src/lib/today.ts`:
+- [x] Create `src/lib/today.ts`:
   ```typescript
   const SYDNEY_TZ = 'Australia/Sydney'
 
@@ -66,11 +66,11 @@ or overdue) into one chronological, actionable list.
     return { todayStart, todayEnd }
   }
   ```
-- [ ] Report back "Done this turn" listing the file created. Do NOT add any temporary
+- [x] Report back "Done this turn" listing the file created. Do NOT add any temporary
   verification script — the conductor handles manual verification separately (Step below).
 
 *Conductor:*
-- [ ] Sanity-check the boundary math manually: temporarily append to the bottom of
+- [x] Sanity-check the boundary math manually: temporarily append to the bottom of
   `src/lib/today.ts`:
   ```typescript
   if (process.argv[1]?.endsWith('today.ts')) {
@@ -82,8 +82,9 @@ or overdue) into one chronological, actionable list.
   `2026-07-03T14:00:00.000Z` (midnight AEST = 14:00 UTC previous day); January case prints
   `todayStart` `2026-01-15T13:00:00.000Z` (midnight AEDT = 13:00 UTC same day). Remove the
   temporary block afterward — never commit it.
-- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [ ] Commit: `git add src/lib/today.ts && git commit -m "feat: dashboard Today section — Sydney-aware day boundary helper"`
+  Result: both cases matched exactly.
+- [x] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [x] Commit: `git add src/lib/today.ts && git commit -m "feat: dashboard Today section — Sydney-aware day boundary helper"`
 
 ---
 
