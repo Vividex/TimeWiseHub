@@ -4,6 +4,12 @@
 
 ## Spending
 - spend-budget-usd: 2
+- Client email messaging (current phase): zero cost — reuses the existing Resend account for both
+  outbound (already used) and inbound (new receiving domain, no separate paid add-on as of the
+  research done during brainstorming). No SMS in this phase (explicitly deferred, would need a new
+  paid Twilio account — its own future phase with its own cost approval). Manual testing (Task 8)
+  sends a handful of real emails through the existing Resend account — same zero-marginal-cost
+  pattern as every other email already sent by this app.
 - Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
   calls (create user, generate link), no external paid API. No Daily.co/Resend usage in this
   phase.
@@ -24,6 +30,33 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Client Email Messaging)
+- Source spec: docs/superpowers/specs/2026-07-04-client-email-messaging-design.md
+- Source plan: docs/superpowers/plans/2026-07-04-client-email-messaging.md
+- Raised as direct customer feedback: funnel all client communication through the app without the
+  client needing an account. Scoped during brainstorming to: email only (SMS deferred, needs a new
+  paid Twilio provider), one thread per client (not per session/invoice), new ad-hoc messages only
+  (not retrofitting existing automated emails like invoice sends/reminders — separate follow-up).
+- New `client_messages` table, no changes to existing `chat_*` infrastructure — deliberately NOT
+  reusing the room-chat model, which requires an authenticated participant; a client here never
+  touches the app at all.
+- Reply routing: a per-client address `client-<clientId>@<RESEND_INBOUND_DOMAIN>` set as the
+  `replyTo` on outbound sends (via the existing `sendEmail()` helper, unmodified). Resend's
+  `email.received` webhook payload is metadata-only (no body) — the actual text requires a
+  separate authenticated call to Resend's receiving-email API using the `email_id` from the
+  webhook.
+- Webhook signature verification uses Node's built-in `crypto` (Standard Webhooks spec: HMAC-SHA256
+  over `${id}.${timestamp}.${rawBody}`, secret is `whsec_`-prefixed then base64-decoded) —
+  deliberately not a new `svix`/`resend` npm dependency, matching this codebase's existing
+  raw-fetch-only approach to Resend (`src/lib/email-notifications.ts` never used the `resend` SDK
+  either).
+- Task 7 (Resend receiving domain, DNS, webhook creation, signing secret) is manual and can only be
+  done by the user — happens in parallel with Codex's C-1..C-6 turns, not blocking them. C-8 (the
+  real send→reply round trip) can't be verified until C-7 is fully done and deployed, since
+  webhooks need a public HTTPS URL.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Dashboard "Today" Section) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-dashboard-today-section-design.md

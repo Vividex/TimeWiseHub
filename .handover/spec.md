@@ -1,397 +1,545 @@
-# Dashboard "Today" Section
+# Client Email Messaging
 
 ## Goal
-Replace the dashboard's 7-day "Upcoming" preview with a single-day "what's on today" agenda
-merging scheduled video meetings, client sessions, calendar events, and task deadlines (due today
-or overdue) into one chronological, actionable list.
+Let staff send and receive email with a client from inside a client's record — one running
+thread, no client account required — by routing replies through a per-client address on a new
+Resend receiving domain.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-04-dashboard-today-section-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-04-dashboard-today-section.md`
-- No schema changes — reuses `scheduled_calls`, `sessions`, `calendar_events`, `tasks`, all
-  already queried elsewhere in `dashboard/page.tsx`.
-- New Sydney-aware day-boundary helper (`src/lib/today.ts`) — the existing day/week boundary math
-  resolves in the server's local timezone (UTC on Vercel), invisible across a 7-day window but
-  wrong for a large fraction of the business day once scoped to exactly today.
-- Task deadlines are personal (assignee = current user), reusing the *already-fetched* `myTasks`
-  data in `dashboard/page.tsx` rather than issuing a new query — no duplicate round-trip.
-- Meetings and sessions stay org-wide; calendar events stay personal-scope (`created_by = user`) —
-  only their date bound changes, not their ownership filter.
-- No new npm dependencies (`Intl.DateTimeFormat` covers the timezone math).
+- Source spec: `docs/superpowers/specs/2026-07-04-client-email-messaging-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-04-client-email-messaging.md`
+- Email only this phase — no SMS (needs a new paid Twilio account, deferred to its own phase).
+- One thread per client. New ad-hoc messages only — existing automated emails (invoices,
+  reminders, invites) are NOT retrofitted into this thread in this phase.
+- No attachments — text only.
+- New `client_messages` table — deliberately not reusing the room-chat `chat_*` infrastructure,
+  which requires an authenticated participant; a client here never touches the app at all.
+- Reply routing: `client-<clientId>@<RESEND_INBOUND_DOMAIN>` as the `replyTo` on outbound sends.
+  Resend's `email.received` webhook is metadata-only — the real body needs a separate call to
+  Resend's receiving-email API using the webhook's `email_id`.
+- Webhook signature verification via Node's built-in `crypto` (Standard Webhooks spec) — no new
+  npm dependency.
+- No schema changes needed beyond the one new table.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node) — the conductor handles those.
 - Read a file before editing it if its structure is unknown.
 - After each task, list the files changed.
-- All Tailwind classes must include `dark:` variants (this UI is not hard-coded dark, unlike the
-  video call room).
+- All Tailwind classes must include `dark:` variants.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
-- C-1's temporary manual verification script must be added AND removed within the same turn —
-  never commit it.
-- C-4 needs a manual browser smoke test (no test runner) before ticking it done.
+- C-1 is conductor-only (DB migration via Supabase MCP).
+- C-7 is mostly the user's own manual setup (Resend dashboard + DNS) — can proceed in parallel
+  with C-1..C-6, doesn't block them.
+- C-8 needs a real send→reply round trip and can't be verified until C-7 is fully done and
+  deployed (webhooks need a public HTTPS URL, not localhost).
 
 ---
 
-## C-1 — Sydney-aware "today" boundary helper
+## C-1 — Database migration
+
+*Conductor only (no Codex dispatch):*
+- [ ] Create `supabase/schema-081-client-messages.sql`:
+  ```sql
+  create table public.client_messages (
+    id             uuid primary key default gen_random_uuid(),
+    client_id      uuid not null references public.clients on delete cascade,
+    org_id         uuid not null references public.organisations on delete cascade,
+    direction      text not null check (direction in ('outbound', 'inbound')),
+    body           text not null,
+    sender_user_id uuid references public.profiles on delete set null,
+    created_at     timestamptz not null default now()
+  );
+
+  create index client_messages_client on public.client_messages (client_id, created_at);
+
+  alter table public.client_messages enable row level security;
+
+  create policy "client_messages: view"
+    on public.client_messages for select
+    using (
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = client_messages.org_id and om.user_id = auth.uid()
+      )
+    );
+
+  create policy "client_messages: insert"
+    on public.client_messages for insert
+    with check (
+      exists (
+        select 1 from public.organisation_members om
+        where om.org_id = client_messages.org_id and om.user_id = auth.uid()
+      )
+      and sender_user_id = auth.uid()
+    );
+  ```
+- [ ] Apply via Supabase MCP `apply_migration` (name: `client_messages`).
+- [ ] Verify via MCP `execute_sql`:
+  ```sql
+  select column_name, data_type, is_nullable
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'client_messages'
+  order by ordinal_position;
+  ```
+  Expected: 6 rows.
+- [ ] Commit: `git add supabase/schema-081-client-messages.sql && git commit -m "feat: client email messaging — database migration"`
+
+---
+
+## C-2 — Reply-to address helpers
 
 *Codex edits:*
-- [x] Create `src/lib/today.ts`:
+- [ ] Create `src/lib/client-messages.ts`:
   ```typescript
-  const SYDNEY_TZ = 'Australia/Sydney'
+  const CLIENT_MESSAGE_ADDRESS_RE = /^client-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})@/i
 
-  function sydneyOffsetMinutes(date: Date): number {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: SYDNEY_TZ,
-      timeZoneName: 'longOffset',
-    }).formatToParts(date)
-    const offset = parts.find(p => p.type === 'timeZoneName')?.value ?? 'GMT+10:00'
-    const match = offset.match(/GMT([+-])(\d{2}):(\d{2})/)
-    if (!match) return 600 // fallback: AEST, no daylight saving
-    const sign = match[1] === '-' ? -1 : 1
-    return sign * (Number(match[2]) * 60 + Number(match[3]))
+  function inboundDomain(): string {
+    const domain = process.env.RESEND_INBOUND_DOMAIN
+    if (!domain) throw new Error('RESEND_INBOUND_DOMAIN is not configured')
+    return domain
   }
 
-  /** Start/end of the Australia/Sydney calendar day containing `now`, as real UTC instants. */
-  export function getTodayBoundsSydney(now = new Date()): { todayStart: Date; todayEnd: Date } {
-    const ymd = new Intl.DateTimeFormat('en-CA', {
-      timeZone: SYDNEY_TZ,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-    }).format(now)
-    const [year, month, day] = ymd.split('-').map(Number)
-    const offsetMinutes = sydneyOffsetMinutes(now)
-    const todayStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0) - offsetMinutes * 60_000)
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
-    return { todayStart, todayEnd }
+  /** The per-client address a client's replies get routed back through. */
+  export function buildReplyToAddress(clientId: string): string {
+    return `client-${clientId}@${inboundDomain()}`
+  }
+
+  /** Extracts the client UUID from a `client-<uuid>@...` address, or null if it doesn't match. */
+  export function parseClientIdFromAddress(address: string): string | null {
+    const match = address.match(CLIENT_MESSAGE_ADDRESS_RE)
+    return match ? match[1] : null
   }
   ```
-- [x] Report back "Done this turn" listing the file created. Do NOT add any temporary
-  verification script — the conductor handles manual verification separately (Step below).
 
 *Conductor:*
-- [x] Sanity-check the boundary math manually: temporarily append to the bottom of
-  `src/lib/today.ts`:
+- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [ ] Commit: `git add src/lib/client-messages.ts && git commit -m "feat: client email messaging — reply-to address helpers"`
+
+---
+
+## C-3 — Webhook signature verification
+
+*Codex edits:*
+- [ ] Create `src/lib/resend-webhook.ts`:
   ```typescript
-  if (process.argv[1]?.endsWith('today.ts')) {
-    console.log('July:', getTodayBoundsSydney(new Date('2026-07-04T02:00:00Z')))
-    console.log('January:', getTodayBoundsSydney(new Date('2026-01-15T13:00:00Z')))
+  import { createHmac, timingSafeEqual } from 'crypto'
+
+  export function verifyResendWebhookSignature(opts: {
+    id: string
+    timestamp: string
+    signatureHeader: string
+    rawBody: string
+    secret: string
+  }): boolean {
+    const { id, timestamp, signatureHeader, rawBody, secret } = opts
+
+    const secretBytes = Buffer.from(secret.replace(/^whsec_/, ''), 'base64')
+    const signedContent = `${id}.${timestamp}.${rawBody}`
+    const expected = createHmac('sha256', secretBytes).update(signedContent).digest('base64')
+    const expectedBuf = Buffer.from(expected, 'base64')
+
+    for (const candidate of signatureHeader.split(' ')) {
+      const [version, sig] = candidate.split(',')
+      if (version !== 'v1' || !sig) continue
+      const sigBuf = Buffer.from(sig, 'base64')
+      if (sigBuf.length === expectedBuf.length && timingSafeEqual(sigBuf, expectedBuf)) {
+        return true
+      }
+    }
+    return false
   }
   ```
-  Run `npx tsx src/lib/today.ts`. Expected: July case prints `todayStart`
-  `2026-07-03T14:00:00.000Z` (midnight AEST = 14:00 UTC previous day); January case prints
-  `todayStart` `2026-01-15T13:00:00.000Z` (midnight AEDT = 13:00 UTC same day). Remove the
-  temporary block afterward — never commit it.
-  Result: both cases matched exactly.
-- [x] `pnpm run build` — must pass clean. Nothing imports this yet.
-- [x] Commit: `git add src/lib/today.ts && git commit -m "feat: dashboard Today section — Sydney-aware day boundary helper"`
-
----
-
-## C-2 — `dashboard/page.tsx` data layer
-
-*Codex edits:*
-- [x] Read `src/app/dashboard/page.tsx` first, then:
-  1. Replace the date-boundary block:
-     ```typescript
-     // Date helpers
-     const now = new Date()
-     const { weekStart, weekEnd } = getWeekBounds(now)
-     const { todayStart, todayEnd } = getTodayBoundsSydney(now)
-
-     const todayStartIso = todayStart.toISOString()
-     const todayEndIso   = todayEnd.toISOString()
-     ```
-  2. Add imports:
-     ```typescript
-     import { getTodayBoundsSydney } from '@/lib/today'
-     ```
-     and update the existing type-only import to:
-     ```typescript
-     import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask } from '@/components/dashboard/DashboardUpcoming'
-     ```
-     (`UpcomingSession`/`UpcomingTask` won't resolve until C-3 lands — expected, matches the
-     build-failure note below.)
-  3. In the stage-1 `Promise.all`, change `meetingsRes`'s bounds from
-     `.gte('starts_at', now.toISOString()).lte('starts_at', nextWeekIso)` to
-     `.gte('starts_at', todayStartIso).lt('starts_at', todayEndIso)`, and `calendarRes`'s bounds
-     from `.gte('start_at', todayStartIso).lte('start_at', nextWeekIso)` to
-     `.gte('start_at', todayStartIso).lt('start_at', todayEndIso)`. Add a new array entry
-     `sessionsListRes` (keep the existing `sessionsRes` count query untouched — it's a different,
-     still-needed query for the metrics card):
-     ```typescript
-     orgId
-       ? supabase
-           .from('sessions')
-           .select('id, title, scheduled_at, client_id, clients(name)')
-           .eq('org_id', orgId)
-           .gte('scheduled_at', todayStartIso)
-           .lt('scheduled_at', todayEndIso)
-           .order('scheduled_at')
-           .limit(10)
-       : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null }[], error: null }),
-     ```
-     Update the destructuring to include it in the matching position:
-     `const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes] = await Promise.all([...])`.
-  4. Remove `nextWeek`/`nextWeekIso` — no longer used anywhere in this file once the two queries
-     above are updated.
-  5. After the existing `meetings`/`events` derivation, add:
-     ```typescript
-     const todaySessions: UpcomingSession[] = (
-       (sessionsListRes.data ?? []) as unknown as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null }[]
-     ).map(s => ({
-       id: s.id,
-       title: s.title,
-       scheduled_at: s.scheduled_at,
-       client_id: s.client_id,
-       client_name: s.clients?.name ?? 'Client',
-     }))
-
-     const todayEndDate = new Date(todayEndIso)
-     const todayTasks: UpcomingTask[] = myTasks
-       .filter(t => t.due_date && new Date(t.due_date) < todayEndDate)
-       .map(t => ({
-         id: t.id,
-         title: t.title,
-         due_date: t.due_date as string,
-         project_name: t.projectName,
-       }))
-     ```
-  6. Update the `DashboardUpcoming` render:
-     ```typescript
-     <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} />
-     ```
-- [x] Report back "Done this turn" listing the file changed. Build WILL fail after this turn
-  (C-3 hasn't landed yet) — that's expected, do not treat it as a blocker.
 
 *Conductor:*
-- [x] `pnpm run build` — expect a type error (`UpcomingSession`/`UpcomingTask` not exported yet
-  from `DashboardUpcoming.tsx`). Expected here, resolved by C-3. Do not commit yet — C-2 and C-3
-  commit together once both land (see C-3's commit step).
-  Result: confirmed the expected type error (`Module has no exported member 'UpcomingSession'`).
-  Also fixed a stale JSX comment above `<DashboardUpcoming>` myself (still said "Upcoming
-  meetings + calendar events") — a gap in this spec's own transcription from the plan, not a
-  Codex error; too trivial to round-trip through a Codex turn.
+- [ ] `pnpm run build` — must pass clean. Nothing imports this yet.
+- [ ] Commit: `git add src/lib/resend-webhook.ts && git commit -m "feat: client email messaging — Resend webhook signature verification"`
 
 ---
 
-## C-3 — `DashboardUpcoming.tsx` — session and task item kinds
+## C-4 — Outbound send route
 
 *Codex edits:*
-- [x] Read `src/components/dashboard/DashboardUpcoming.tsx` first, then replace its full contents:
+- [ ] Create `src/app/api/clients/[id]/messages/route.ts`:
+  ```typescript
+  import { NextResponse } from 'next/server'
+  import { createClient } from '@/lib/supabase-server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { sendEmail } from '@/lib/email-notifications'
+  import { buildReplyToAddress } from '@/lib/client-messages'
+
+  export async function POST(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> },
+  ) {
+    const { id: clientId } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { body } = await req.json() as { body?: string }
+    if (!body?.trim()) return NextResponse.json({ error: 'Message is empty' }, { status: 400 })
+
+    const service = createServiceClient()
+    const { data: client } = await service
+      .from('clients').select('id, org_id, name, email').eq('id', clientId).maybeSingle()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    if (!client.email) {
+      return NextResponse.json({ error: 'Add an email address to this client first.' }, { status: 400 })
+    }
+
+    const { data: membership } = await supabase
+      .from('organisation_members').select('role')
+      .eq('user_id', user.id).eq('org_id', client.org_id ?? '').maybeSingle()
+    if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { data: profile } = await supabase
+      .from('profiles').select('full_name, email').eq('id', user.id).maybeSingle()
+    const senderName = profile?.full_name || profile?.email || 'A team member'
+
+    const subject = `Message from ${senderName}`
+    const html = `<p>${body.replace(/\n/g, '<br>')}</p>`
+
+    try {
+      await sendEmail({
+        to: client.email,
+        subject,
+        text: body,
+        html,
+        fromName: senderName,
+        replyTo: buildReplyToAddress(client.id),
+      })
+    } catch (err) {
+      return NextResponse.json({ error: `Failed to send: ${(err as Error).message}` }, { status: 502 })
+    }
+
+    const { data: inserted, error } = await supabase
+      .from('client_messages')
+      .insert({ client_id: client.id, org_id: client.org_id, direction: 'outbound', body, sender_user_id: user.id })
+      .select('id')
+      .single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    return NextResponse.json({ ok: true, id: inserted.id })
+  }
+  ```
+  Note: the message is only logged after `sendEmail` succeeds — never record a message as sent
+  when it wasn't.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/api/clients/[id]/messages/route.ts" && git commit -m "feat: client email messaging — outbound send route"`
+
+---
+
+## C-5 — Inbound webhook route
+
+*Codex edits:*
+- [ ] Create `src/app/api/webhooks/resend-inbound/route.ts`:
+  ```typescript
+  import { NextResponse } from 'next/server'
+  import { createServiceClient } from '@/lib/supabase-service'
+  import { verifyResendWebhookSignature } from '@/lib/resend-webhook'
+  import { parseClientIdFromAddress } from '@/lib/client-messages'
+  import { sendPushToUser } from '@/lib/push'
+
+  const FIVE_MINUTES_SECONDS = 5 * 60
+
+  export async function POST(req: Request) {
+    const rawBody = await req.text()
+    const id = req.headers.get('svix-id')
+    const timestamp = req.headers.get('svix-timestamp')
+    const signatureHeader = req.headers.get('svix-signature')
+    const secret = process.env.RESEND_WEBHOOK_SECRET
+
+    if (!id || !timestamp || !signatureHeader || !secret) {
+      return NextResponse.json({ error: 'Missing signature headers or secret' }, { status: 400 })
+    }
+
+    const ageSeconds = Math.abs(Date.now() / 1000 - Number(timestamp))
+    if (!Number.isFinite(ageSeconds) || ageSeconds > FIVE_MINUTES_SECONDS) {
+      return NextResponse.json({ error: 'Timestamp out of tolerance' }, { status: 400 })
+    }
+
+    const valid = verifyResendWebhookSignature({ id, timestamp, signatureHeader, rawBody, secret })
+    if (!valid) return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+
+    const payload = JSON.parse(rawBody) as {
+      type: string
+      data: { email_id: string; to: string[]; from: string }
+    }
+
+    if (payload.type !== 'email.received') return NextResponse.json({ ok: true })
+
+    const toAddress = payload.data.to.find(addr => parseClientIdFromAddress(addr))
+    const clientId = toAddress ? parseClientIdFromAddress(toAddress) : null
+    if (!clientId) return NextResponse.json({ ok: true })
+
+    const resendApiKey = process.env.RESEND_API_KEY
+    if (!resendApiKey) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+
+    const emailRes = await fetch(`https://api.resend.com/emails/receiving/${payload.data.email_id}`, {
+      headers: { Authorization: `Bearer ${resendApiKey}` },
+    })
+    if (!emailRes.ok) return NextResponse.json({ error: 'Failed to fetch received email' }, { status: 502 })
+    const email = await emailRes.json() as { text: string | null; html: string | null }
+    const body = email.text?.trim() || email.html?.trim() || '(empty message)'
+
+    const service = createServiceClient()
+    const { data: client } = await service
+      .from('clients').select('id, org_id, name').eq('id', clientId).maybeSingle()
+    if (!client) return NextResponse.json({ ok: true })
+
+    await service
+      .from('client_messages')
+      .insert({ client_id: client.id, org_id: client.org_id, direction: 'inbound', body, sender_user_id: null })
+
+    const { data: recipients } = await service
+      .from('organisation_members').select('user_id')
+      .eq('org_id', client.org_id ?? '').in('role', ['owner', 'admin', 'manager'])
+
+    for (const r of recipients ?? []) {
+      sendPushToUser(r.user_id, {
+        title: `New reply from ${client.name}`,
+        body: body.slice(0, 120),
+        url: `/dashboard/clients/${client.id}/messages`,
+      }).catch(() => {})
+    }
+
+    return NextResponse.json({ ok: true })
+  }
+  ```
+  `PushPayload` (`src/lib/push.ts:10-15`) is `{ title: string; body: string; url?: string; tag?: string }`
+  — already matched exactly by the call above, no adjustment needed.
+  `req.text()` (not `req.json()`) is deliberate — signature verification needs the exact raw bytes.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/api/webhooks/resend-inbound/route.ts" && git commit -m "feat: client email messaging — inbound webhook route"`
+
+---
+
+## C-6 — UI: messages page and client overview tile
+
+*Codex edits:*
+- [ ] Read `src/app/dashboard/clients/[id]/page.tsx` and
+  `src/app/dashboard/clients/[id]/sessions/page.tsx` first (for the Tile grid pattern and the
+  server-fetches-then-passes-to-client-component convention), then:
+- [ ] Create `src/components/clients/ClientMessagesThread.tsx`:
   ```typescript
   'use client'
 
   import { useState } from 'react'
-  import Link from 'next/link'
-  import { Calendar, Video, Clock3, CheckSquare } from 'lucide-react'
-  import { createClient } from '@/lib/supabase-browser'
+  import { Send } from 'lucide-react'
 
-  export type UpcomingMeeting = { id: string; title: string; starts_at: string }
-  export type UpcomingEvent   = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean }
-  export type UpcomingSession = { id: string; title: string; scheduled_at: string; client_id: string; client_name: string }
-  export type UpcomingTask    = { id: string; title: string; due_date: string; project_name: string | null }
-
-  function fmtTime(iso: string, allDay: boolean) {
-    if (allDay) return 'All day'
-    return new Date(iso).toLocaleString('en-AU', {
-      weekday: 'short', month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit',
-    })
+  export type ClientMessage = {
+    id: string
+    direction: 'outbound' | 'inbound'
+    body: string
+    created_at: string
+    sender_name: string | null
   }
 
-  function fmtDueDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-AU', { weekday: 'short', month: 'short', day: 'numeric' })
+  function fmtTime(iso: string) {
+    return new Date(iso).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })
   }
 
-  type TimedItem =
-    | { id: string; title: string; time: string; kind: 'meeting' }
-    | { id: string; title: string; time: string; kind: 'event'; allDay: boolean }
-    | { id: string; title: string; time: string; kind: 'session'; clientId: string }
-
-  export default function DashboardUpcoming({
-    meetings,
-    events,
-    sessions,
-    tasks,
+  export default function ClientMessagesThread({
+    clientId,
+    initialMessages,
+    hasEmail,
   }: {
-    meetings: UpcomingMeeting[]
-    events: UpcomingEvent[]
-    sessions: UpcomingSession[]
-    tasks: UpcomingTask[]
+    clientId: string
+    initialMessages: ClientMessage[]
+    hasEmail: boolean
   }) {
-    const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
+    const [messages, setMessages] = useState(initialMessages)
+    const [body, setBody] = useState('')
+    const [sending, setSending] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
-    const timedItems: TimedItem[] = [
-      ...meetings.map(m => ({ id: m.id, title: m.title, time: m.starts_at, kind: 'meeting' as const })),
-      ...events.map(e => ({ id: e.id, title: e.title, time: e.start_at, kind: 'event' as const, allDay: e.all_day })),
-      ...sessions.map(s => ({ id: s.id, title: `${s.title} — ${s.client_name}`, time: s.scheduled_at, clientId: s.client_id, kind: 'session' as const })),
-    ].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-
-    const visibleTasks = tasks.filter(t => !doneIds.has(t.id))
-    const todayStartOfDay = new Date()
-    todayStartOfDay.setHours(0, 0, 0, 0)
-
-    async function markDone(taskId: string) {
-      setDoneIds(prev => new Set(prev).add(taskId))
-      const supabase = createClient()
-      await supabase.from('tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', taskId)
+    async function handleSend() {
+      if (!body.trim() || sending) return
+      setSending(true)
+      setError(null)
+      const res = await fetch(`/api/clients/${clientId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      })
+      const data = await res.json() as { ok?: boolean; id?: string; error?: string }
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? 'Failed to send')
+        setSending(false)
+        return
+      }
+      setMessages(prev => [...prev, {
+        id: data.id!, direction: 'outbound', body, created_at: new Date().toISOString(), sender_name: 'You',
+      }])
+      setBody('')
+      setSending(false)
     }
 
-    if (timedItems.length === 0 && visibleTasks.length === 0) return null
+    if (!hasEmail) {
+      return (
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          Add an email address to this client before sending messages.
+        </p>
+      )
+    }
 
     return (
-      <div className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Today</h2>
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          {visibleTasks.map((task, i) => {
-            const overdue = new Date(task.due_date) < todayStartOfDay
-            const isLast = i === visibleTasks.length - 1 && timedItems.length === 0
-            return (
-              <div
-                key={`task-${task.id}`}
-                className={`flex items-center gap-4 px-5 py-4 ${!isLast ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
-              >
-                <button
-                  onClick={() => markDone(task.id)}
-                  title="Mark done"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 transition-colors hover:bg-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400"
-                >
-                  <CheckSquare size={15} />
-                </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{task.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-500">
-                    {task.project_name ? `${task.project_name} — ` : ''}Due {fmtDueDate(task.due_date)}
-                  </p>
+      <div className="space-y-4">
+        <div className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          {messages.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-slate-500">No messages yet.</p>
+          ) : (
+            messages.map(m => (
+              <div key={m.id} className={`flex flex-col ${m.direction === 'outbound' ? 'items-end' : 'items-start'}`}>
+                <span className="mb-0.5 px-1 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
+                  {m.direction === 'outbound' ? (m.sender_name ?? 'You') : 'Client'} — {fmtTime(m.created_at)}
+                </span>
+                <div className={`max-w-md whitespace-pre-line rounded-2xl px-3 py-2 text-sm ${
+                  m.direction === 'outbound'
+                    ? 'bg-cyan-600 text-white'
+                    : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200'
+                }`}>
+                  {m.body}
                 </div>
-                {overdue && (
-                  <span className="shrink-0 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 dark:bg-red-500/15 dark:text-red-400">
-                    Overdue
-                  </span>
-                )}
               </div>
-            )
-          })}
-          {timedItems.map((item, i) => (
-            <div
-              key={`${item.kind}-${item.id}`}
-              className={`flex items-center gap-4 px-5 py-4 ${i < timedItems.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
-            >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                item.kind === 'meeting'
-                  ? 'bg-violet-500/10 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400'
-                  : item.kind === 'session'
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
-                    : 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400'
-              }`}>
-                {item.kind === 'meeting' ? <Video size={15} /> : item.kind === 'session' ? <Clock3 size={15} /> : <Calendar size={15} />}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{item.title}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-500">
-                  {fmtTime(item.time, item.kind === 'event' ? item.allDay : false)}
-                </p>
-              </div>
-              {item.kind === 'meeting' && (
-                <Link
-                  href={`/dashboard/video/${item.id}`}
-                  className="shrink-0 rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600"
-                >
-                  Join
-                </Link>
-              )}
-              {item.kind === 'session' && (
-                <Link
-                  href={`/dashboard/clients/${item.clientId}/sessions/${item.id}`}
-                  className="shrink-0 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-600"
-                >
-                  View
-                </Link>
-              )}
-            </div>
-          ))}
+            ))
+          )}
+        </div>
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <div className="flex items-end gap-2">
+          <textarea
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            rows={2}
+            placeholder="Type a message…"
+            className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !body.trim()}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500 text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+          >
+            <Send size={18} />
+          </button>
         </div>
       </div>
     )
   }
   ```
-- [x] Report back "Done this turn" listing the file changed.
+- [ ] Create `src/app/dashboard/clients/[id]/messages/page.tsx`:
+  ```typescript
+  import { redirect, notFound } from 'next/navigation'
+  import { createClient } from '@/lib/supabase-server'
+  import ClientMessagesThread from '@/components/clients/ClientMessagesThread'
+  import type { ClientMessage } from '@/components/clients/ClientMessagesThread'
+
+  export default async function ClientMessagesPage({
+    params,
+  }: {
+    params: Promise<{ id: string }>
+  }) {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
+
+    const { data: client } = await supabase
+      .from('clients').select('id, name, email').eq('id', id).maybeSingle()
+    if (!client) notFound()
+
+    const { data: rows } = await supabase
+      .from('client_messages')
+      .select('id, direction, body, created_at, sender_user_id, profiles(full_name, email)')
+      .eq('client_id', id)
+      .order('created_at', { ascending: true })
+
+    const messages: ClientMessage[] = (rows ?? []).map(r => {
+      const senderProfile = r.profiles as unknown as { full_name: string | null; email: string } | null
+      return {
+        id: r.id,
+        direction: r.direction as 'outbound' | 'inbound',
+        body: r.body,
+        created_at: r.created_at,
+        sender_name: senderProfile?.full_name || senderProfile?.email || null,
+      }
+    })
+
+    return (
+      <div className="p-6 max-w-3xl mx-auto space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Messages</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{client.name}</p>
+        </div>
+        <ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} />
+      </div>
+    )
+  }
+  ```
+- [ ] In `src/app/dashboard/clients/[id]/page.tsx`, add `Mail` to the existing `lucide-react`
+  import, and add one more tile to the `TileGrid` containing Projects/Sessions/Progress notes:
+  ```typescript
+  <Tile title="Messages" icon={Mail} accent="#0d9488" href={`/dashboard/clients/${id}/messages`} />
+  ```
+  No `stat` count prop for this tile — omit it rather than adding a count query just to fill it in.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean now (C-2's props now match this component's accepted
-  props).
-- [x] Commit both files together (they only compile together):
-  `git add src/app/dashboard/page.tsx src/components/dashboard/DashboardUpcoming.tsx && git commit -m "feat: dashboard Today section — merge sessions and task deadlines into the agenda"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add "src/app/dashboard/clients/[id]/messages" src/components/clients/ClientMessagesThread.tsx "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: client email messaging — messages page and client overview tile"`
 
 ---
 
-## Addendum (found during C-4 manual testing) — session/meeting dedup
+## C-7 — Manual setup (Resend domain, webhook, env vars)
 
-User reported sessions with a linked video call showing up twice (once as a session item, once
-as a separate meeting item) — root cause: `scheduled_calls.session_id` (from the prior "video chat
-in sessions" phase) wasn't considered when building either list. Fixed directly by the conductor
-(small, well-understood fix, not worth a full Codex round-trip): `sessionsListRes` now embeds
-`scheduled_calls(id)`; `meetings` filters out any call ID already represented by a session; the
-session row shows both Join (if a call is linked) and View. Build clean, committed
-(`357ad2d`).
+*Codex edits:*
+- [ ] Add to `.env.example`, in its own section:
+  ```
+  # --- Client email messaging (Resend) ---
+  RESEND_INBOUND_DOMAIN=       # e.g. inbound.timewisehub.com.au — set up as a receiving domain in Resend
+  RESEND_WEBHOOK_SECRET=       # from the webhook's signing secret in the Resend dashboard (starts with whsec_)
+  ```
+
+*Conductor + user (in parallel with C-1..C-6, not blocking them):*
+- [ ] User sets up a Resend receiving domain (e.g. `inbound.timewisehub.com.au`), adds the DNS
+  records Resend provides, waits for verification.
+- [ ] User creates a webhook in Resend for the `email.received` event, pointing to
+  `https://www.timewisehub.com.au/api/webhooks/resend-inbound`, copies the signing secret.
+- [ ] Once C-5 is deployed: add `RESEND_INBOUND_DOMAIN` and `RESEND_WEBHOOK_SECRET` to
+  `.env.local` and via `vercel env add ... production`.
+- [ ] Commit: `git add .env.example && git commit -m "docs: document client email messaging env vars"`
 
 ---
 
-## C-4 — Manual end-to-end verification
+## C-8 — Manual end-to-end verification
 
 *Conductor + user:*
-- [x] `pnpm run build` — final clean check after C-1..C-3 are committed.
-- [x] Seed today's data: one video meeting later today, one client session scheduled today, one
-  personal calendar event today, at least one non-done task assigned to you due today or earlier.
-  Also seed one of each kind for tomorrow — these must NOT appear.
-  (User had 5 real test sessions today, each with a linked video call — this is what surfaced the
-  dedup bug, addressed in the addendum above.)
-- [x] Load the dashboard and confirm:
-  - Section header reads "Today" (not "Upcoming").
-  - All of today's items appear; none of tomorrow's items appear.
-  - Ordering: task(s) first, then meetings/sessions/events in time order.
-  - Overdue task shows a red "Overdue" tag; a task due exactly today shows no tag.
-  - "Join" on the meeting opens the call room.
-  - "View" on the session opens that session's detail page.
-  - Clicking the task's checkbox removes it from the list immediately, and it's still gone after a
-    reload (confirms the Supabase update persisted, not just local state).
-  - Empty state: with nothing scheduled today, the section doesn't render at all.
-
-  User confirmed the section overall ("much better") after the dedup fix and asked to ship — the
-  core flow (today-scoping, dedup, Join/View actions) was verified live. The full itemized
-  sub-checklist above (overdue tag styling, checkbox persistence after reload, empty state) was
-  not walked line-by-line; flagging honestly rather than claiming exhaustive coverage, same as the
-  prior phase's C-11 closeout.
-- [x] Report pass/fail; fix inline if something's off before finishing. (Fixed: session/meeting
-  dedup, then folded pending approvals into the same list per user request — see addenda above and
-  below.)
-
----
-
-## Addendum 2 (found after C-4) — fold pending invoice approvals into the list
-
-User asked for pending invoice approvals to also appear in the Today list rather than as their
-own separate dashboard section — consistent with the dedup fix above, avoiding showing the same
-kind of information in two places. Extracted the standalone `PendingApprovals` component's
-role-scoped query into `src/lib/pending-approvals.ts` (`getPendingApprovals`), deleted the
-now-superseded component, and added an `approvals` block to `DashboardUpcoming.tsx` (Receipt icon,
-amber theme matching the original component, links to the invoice). Build clean, committed
-(`74260c9`). No pending-approval invoices existed in the DB at the time to visually confirm, but
-the query logic is an unmodified extraction of the previously-working component.
+- [ ] `pnpm run build` — final clean check after C-1..C-6.
+- [ ] Send a test message from a client's Messages page (client has your own email on file) —
+  confirm it appears in the thread and arrives with the right `From` display name.
+- [ ] Reply to that email (only works once C-7 is fully done and deployed) — confirm the reply
+  shows up in the thread and a push notification fires for an org admin/owner/manager.
+- [ ] Confirm a client with no email on file sees the "add an email" prompt, no compose box.
+- [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `src/lib/today.ts` compiles clean, boundary math manually verified against known
-  AEST/AEDT instants
-- [x] C-2: `dashboard/page.tsx` queries narrowed to today, sessions query added, task deadlines
-  derived from the existing `myTasks` fetch (no duplicate query)
-- [x] C-3: `DashboardUpcoming.tsx` renders tasks + timed items, section relabelled "Today",
-  mark-done works and persists
-- [x] C-4: full manual smoke test passes (core flow verified live by user; full itemized
-  sub-checklist not walked line-by-line, see notes above)
+- [ ] C-1: `client_messages` table + RLS applied and verified
+- [ ] C-2: reply-to address helpers compile clean
+- [ ] C-3: webhook signature verification compiles clean
+- [ ] C-4: outbound send route — sends via `sendEmail()`, logs only on success
+- [ ] C-5: inbound webhook route — verifies signature, fetches body via Resend's receiving-email
+  API, logs, notifies
+- [ ] C-6: Messages page + tile
+- [ ] C-7: env vars documented; user's Resend domain/webhook setup done
+- [ ] C-8: full manual smoke test passes, including a real send→reply round trip
 
 ## Verification
-`pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
-smoke test required for C-4 (no test runner in this project).
+`pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser +
+email round trip required for C-8 (no test runner in this project).
