@@ -93,7 +93,7 @@ Resend receiving domain.
 *Codex edits:*
 - [ ] Create `src/lib/client-messages.ts`:
   ```typescript
-  const CLIENT_MESSAGE_ADDRESS_RE = /^client-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})@/i
+  const CLIENT_MESSAGE_ADDRESS_RE = /client-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})@/i
 
   function inboundDomain(): string {
     const domain = process.env.RESEND_INBOUND_DOMAIN
@@ -101,12 +101,21 @@ Resend receiving domain.
     return domain
   }
 
-  /** The per-client address a client's replies get routed back through. */
-  export function buildReplyToAddress(clientId: string): string {
-    return `client-${clientId}@${inboundDomain()}`
+  /**
+   * The org-branded, per-client address a client's replies get routed back through.
+   * Display-name-wrapped so a client inspecting the address sees the org's name, not a
+   * cryptic string — the org is the "hero" of everything client-facing here, TimeWiseHub's
+   * own domain is an invisible-as-possible implementation detail underneath it.
+   */
+  export function buildReplyToAddress(clientId: string, orgName: string): string {
+    return `"${orgName.replace(/"/g, '')}" <client-${clientId}@${inboundDomain()}>`
   }
 
-  /** Extracts the client UUID from a `client-<uuid>@...` address, or null if it doesn't match. */
+  /**
+   * Extracts the client UUID from a `client-<uuid>@...` address. Not anchored to the start
+   * of the string — inbound webhook `to` values are documented as bare addresses, but this
+   * stays robust if a display-name-wrapped form ever shows up instead.
+   */
   export function parseClientIdFromAddress(address: string): string | null {
     const match = address.match(CLIENT_MESSAGE_ADDRESS_RE)
     return match ? match[1] : null
@@ -183,7 +192,7 @@ Resend receiving domain.
 
     const service = createServiceClient()
     const { data: client } = await service
-      .from('clients').select('id, org_id, name, email').eq('id', clientId).maybeSingle()
+      .from('clients').select('id, org_id, name, email, organisations(name)').eq('id', clientId).maybeSingle()
     if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     if (!client.email) {
       return NextResponse.json({ error: 'Add an email address to this client first.' }, { status: 400 })
@@ -194,21 +203,24 @@ Resend receiving domain.
       .eq('user_id', user.id).eq('org_id', client.org_id ?? '').maybeSingle()
     if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const { data: profile } = await supabase
-      .from('profiles').select('full_name, email').eq('id', user.id).maybeSingle()
-    const senderName = profile?.full_name || profile?.email || 'A team member'
+    // The org is the "hero" of every client-facing surface here (From name, subject, reply-to
+    // display name) — TimeWiseHub's own domain/branding is kept to the invisible minimum needed
+    // to actually deliver the email, per explicit product decision.
+    const orgName = (client.organisations as unknown as { name: string } | null)?.name ?? 'Our team'
 
-    const subject = `Message from ${senderName}`
-    const html = `<p>${body.replace(/\n/g, '<br>')}</p>`
+    const subject = `Message from ${orgName}`
+    const reassurance = `You can reply directly to this email — it'll come straight to ${orgName}.`
+    const html = `<p>${body.replace(/\n/g, '<br>')}</p><p style="color:#888;font-size:12px">${reassurance}</p>`
+    const text = `${body}\n\n${reassurance}`
 
     try {
       await sendEmail({
         to: client.email,
         subject,
-        text: body,
+        text,
         html,
-        fromName: senderName,
-        replyTo: buildReplyToAddress(client.id),
+        fromName: orgName,
+        replyTo: buildReplyToAddress(client.id, orgName),
       })
     } catch (err) {
       return NextResponse.json({ error: `Failed to send: ${(err as Error).message}` }, { status: 502 })
