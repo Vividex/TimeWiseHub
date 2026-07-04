@@ -55,7 +55,7 @@ Resend receiving domain.
 org) — so the policies below mirror the existing dual org-member-or-owner pattern already used on
 the `clients` and `sessions` tables, not a single org-only policy.
 
-- [ ] Create `supabase/schema-081-client-messages.sql`:
+- [x] Create `supabase/schema-081-client-messages.sql`:
   ```sql
   create table public.client_messages (
     id             uuid primary key default gen_random_uuid(),
@@ -109,15 +109,16 @@ the `clients` and `sessions` tables, not a single org-only policy.
       and sender_user_id = auth.uid()
     );
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `client_messages`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `client_messages`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
   where table_schema = 'public' and table_name = 'client_messages'
   order by ordinal_position;
   ```
-  Expected: 6 rows.
+  Expected: 6 rows. Result: 7 columns returned (id, client_id, org_id, direction, body,
+  sender_user_id, created_at) — `org_id` confirmed nullable as intended.
 - [ ] Commit: `git add supabase/schema-081-client-messages.sql && git commit -m "feat: client email messaging — database migration"`
 
 ---
