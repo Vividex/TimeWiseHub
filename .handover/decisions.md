@@ -7,8 +7,9 @@
 - Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
   calls (create user, generate link), no external paid API. No Daily.co/Resend usage in this
   phase.
-- Dashboard "Today" section (current phase): zero cost — pure code, reuses existing Supabase reads
-  only (`scheduled_calls`, `sessions`, `calendar_events`, `tasks`), no new tables, no external API.
+- Dashboard "Today" section (prior phase, complete): zero cost — pure code, reuses existing
+  Supabase reads only (`scheduled_calls`, `sessions`, `calendar_events`, `tasks`, `invoices`), no
+  new tables, no external API.
 - In-call program reference panel (prior phase, complete): zero cost — pure code, internal
   Supabase reads only, no external API calls.
 - Time page additional hours fixes (prior phase, complete): zero cost — pure code, internal
@@ -23,6 +24,27 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Dashboard "Today" Section) [complete, kept for reference]
+- Source spec: docs/superpowers/specs/2026-07-04-dashboard-today-section-design.md
+- Source plan: docs/superpowers/plans/2026-07-04-dashboard-today-section.md
+- No schema changes. New src/lib/today.ts (Sydney-aware day boundary helper — the existing
+  server-local-timezone math was invisible across a 7-day window but wrong for a large fraction
+  of the day once scoped to exactly today).
+- C-4 manual verification was completed conversationally with the user on 2026-07-04, same
+  pattern as the prior phase's C-11 — core flow confirmed live, full itemized sub-checklist not
+  walked line-by-line.
+- Two fixes/additions found during live testing, done directly by the conductor (not full Codex
+  handover turns, small well-understood changes):
+  (1) A session with its own linked video call (`scheduled_calls.session_id`, from the earlier
+  "video chat in sessions" phase) was appearing twice — once as a session item, once as a
+  standalone meeting. Fixed by embedding the linked call into the sessions query and filtering it
+  out of the meetings list; the session row now shows both Join and View.
+  (2) User asked for pending invoice approvals to also appear in this list rather than as their
+  own separate dashboard section. Extracted the standalone `PendingApprovals` component's query
+  into `src/lib/pending-approvals.ts`, deleted the component, added an approvals block to
+  `DashboardUpcoming.tsx`. No pending-approval invoices existed in the DB to visually confirm at
+  the time — the query logic is an unmodified extraction of the previously-working component.
 
 ## Notes (Room Chat + Client Delivery) [complete, kept for reference]
 - C-11 (manual smoke test) was completed conversationally with the user on 2026-07-04 rather than

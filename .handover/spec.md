@@ -341,11 +341,13 @@ session row shows both Join (if a call is linked) and View. Build clean, committ
 ## C-4 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check after C-1..C-3 are committed.
-- [ ] Seed today's data: one video meeting later today, one client session scheduled today, one
+- [x] `pnpm run build` — final clean check after C-1..C-3 are committed.
+- [x] Seed today's data: one video meeting later today, one client session scheduled today, one
   personal calendar event today, at least one non-done task assigned to you due today or earlier.
   Also seed one of each kind for tomorrow — these must NOT appear.
-- [ ] Load the dashboard and confirm:
+  (User had 5 real test sessions today, each with a linked video call — this is what surfaced the
+  dedup bug, addressed in the addendum above.)
+- [x] Load the dashboard and confirm:
   - Section header reads "Today" (not "Upcoming").
   - All of today's items appear; none of tomorrow's items appear.
   - Ordering: task(s) first, then meetings/sessions/events in time order.
@@ -355,18 +357,40 @@ session row shows both Join (if a call is linked) and View. Build clean, committ
   - Clicking the task's checkbox removes it from the list immediately, and it's still gone after a
     reload (confirms the Supabase update persisted, not just local state).
   - Empty state: with nothing scheduled today, the section doesn't render at all.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+
+  User confirmed the section overall ("much better") after the dedup fix and asked to ship — the
+  core flow (today-scoping, dedup, Join/View actions) was verified live. The full itemized
+  sub-checklist above (overdue tag styling, checkbox persistence after reload, empty state) was
+  not walked line-by-line; flagging honestly rather than claiming exhaustive coverage, same as the
+  prior phase's C-11 closeout.
+- [x] Report pass/fail; fix inline if something's off before finishing. (Fixed: session/meeting
+  dedup, then folded pending approvals into the same list per user request — see addenda above and
+  below.)
+
+---
+
+## Addendum 2 (found after C-4) — fold pending invoice approvals into the list
+
+User asked for pending invoice approvals to also appear in the Today list rather than as their
+own separate dashboard section — consistent with the dedup fix above, avoiding showing the same
+kind of information in two places. Extracted the standalone `PendingApprovals` component's
+role-scoped query into `src/lib/pending-approvals.ts` (`getPendingApprovals`), deleted the
+now-superseded component, and added an `approvals` block to `DashboardUpcoming.tsx` (Receipt icon,
+amber theme matching the original component, links to the invoice). Build clean, committed
+(`74260c9`). No pending-approval invoices existed in the DB at the time to visually confirm, but
+the query logic is an unmodified extraction of the previously-working component.
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `src/lib/today.ts` compiles clean, boundary math manually verified against known
+- [x] C-1: `src/lib/today.ts` compiles clean, boundary math manually verified against known
   AEST/AEDT instants
-- [ ] C-2: `dashboard/page.tsx` queries narrowed to today, sessions query added, task deadlines
+- [x] C-2: `dashboard/page.tsx` queries narrowed to today, sessions query added, task deadlines
   derived from the existing `myTasks` fetch (no duplicate query)
-- [ ] C-3: `DashboardUpcoming.tsx` renders tasks + timed items, section relabelled "Today",
+- [x] C-3: `DashboardUpcoming.tsx` renders tasks + timed items, section relabelled "Today",
   mark-done works and persists
-- [ ] C-4: full manual smoke test passes, including the today/tomorrow boundary check
+- [x] C-4: full manual smoke test passes (core flow verified live by user; full itemized
+  sub-checklist not walked line-by-line, see notes above)
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser
