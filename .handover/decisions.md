@@ -4,8 +4,11 @@
 
 ## Spending
 - spend-budget-usd: 2
-- Room chat + client delivery (current phase): zero cost — pure code + Supabase admin API calls
-  (create user, generate link), no external paid API. No Daily.co/Resend usage in this phase.
+- Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
+  calls (create user, generate link), no external paid API. No Daily.co/Resend usage in this
+  phase.
+- Dashboard "Today" section (current phase): zero cost — pure code, reuses existing Supabase reads
+  only (`scheduled_calls`, `sessions`, `calendar_events`, `tasks`), no new tables, no external API.
 - In-call program reference panel (prior phase, complete): zero cost — pure code, internal
   Supabase reads only, no external API calls.
 - Time page additional hours fixes (prior phase, complete): zero cost — pure code, internal
@@ -21,7 +24,24 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Room Chat + Client Delivery)
+## Notes (Room Chat + Client Delivery) [complete, kept for reference]
+- C-11 (manual smoke test) was completed conversationally with the user on 2026-07-04 rather than
+  through the loop — the core flow (staff + guest chat, live messages, share-to-chat, Call Chat
+  review section, Team Chat exclusion) was confirmed working end to end. The full itemized C-11
+  checklist (guest-no-email block, same-guest-rejoin dedup, etc.) was not walked line-by-line;
+  flagging honestly rather than claiming exhaustive coverage.
+- Same session surfaced and fixed 5 bugs beyond the original plan, each committed separately (done
+  directly by the conductor as reactive fixes during manual testing, not planned handover turns):
+  (1) `GuestJoinClient.tsx` verifyOtp call mixed `email` + `token_hash` — GoTrue rejects that
+  combination outright, guest chat sign-in never worked before this fix; (2) `CallRoom.tsx` had no
+  top safe-area padding, hiding buttons under a phone's notch/status bar; (3) shared program files
+  posted as a raw expiring URL instead of a real attachment — schema-079 added a `bucket` column
+  to `chat_attachments` plus two new API routes so shared files render/download like normal
+  attachments and never expire; (4) guest chat accounts (real Supabase auth users) could reach the
+  internal `/dashboard` after leaving a call — fixed via an `app_metadata` gate in
+  `dashboard/layout.tsx` plus signing guests out to a new `/call-ended` page; (5) session-chat
+  messages were leaking into the Team Chat unread badge — fixed via schema-080 +
+  `ChatRealtimeProvider.tsx`.
 - Source spec: docs/superpowers/specs/2026-07-03-room-chat-client-delivery-design.md
 - Source plan: docs/superpowers/plans/2026-07-03-room-chat-client-delivery.md
 - Phase 2 of Programs-in-Sessions integration (Phase 1 = In-Call Program Reference Panel, below).
