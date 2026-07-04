@@ -605,7 +605,7 @@ members if the client belongs to an org, or the client's own owner if it doesn't
 ## C-7 — Manual setup (Resend domain, webhook, env vars)
 
 *Codex edits:*
-- [ ] Add to `.env.example`, in its own section:
+- [x] Add to `.env.example`, in its own section:
   ```
   # --- Client email messaging (Resend) ---
   RESEND_INBOUND_DOMAIN=       # e.g. inbound.timewisehub.com.au — set up as a receiving domain in Resend
@@ -619,7 +619,7 @@ members if the client belongs to an org, or the client's own owner if it doesn't
   `https://www.timewisehub.com.au/api/webhooks/resend-inbound`, copies the signing secret.
 - [ ] Once C-5 is deployed: add `RESEND_INBOUND_DOMAIN` and `RESEND_WEBHOOK_SECRET` to
   `.env.local` and via `vercel env add ... production`.
-- [ ] Commit: `git add .env.example && git commit -m "docs: document client email messaging env vars"`
+- [x] Commit: `git add .env.example && git commit -m "docs: document client email messaging env vars"`
 
 ---
 
