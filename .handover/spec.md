@@ -14,11 +14,21 @@ Resend receiving domain.
 - No attachments — text only.
 - New `client_messages` table — deliberately not reusing the room-chat `chat_*` infrastructure,
   which requires an authenticated participant; a client here never touches the app at all.
-- Reply routing: `client-<clientId>@<RESEND_INBOUND_DOMAIN>` as the `replyTo` on outbound sends.
-  Resend's `email.received` webhook is metadata-only — the real body needs a separate call to
-  Resend's receiving-email API using the webhook's `email_id`.
+- Reply routing: `"{senderName}" <client-<clientId>@<RESEND_INBOUND_DOMAIN>>` as the `replyTo` on
+  outbound sends — display-name-wrapped and quoted (RFC 5322) so a client inspecting the address
+  sees a business name, not a cryptic string. Resend's `email.received` webhook is metadata-only —
+  the real body needs a separate call to Resend's receiving-email API using the webhook's `email_id`.
 - Webhook signature verification via Node's built-in `crypto` (Standard Webhooks spec) — no new
   npm dependency.
+- **Business identity is the "hero," TimeWiseHub branding is minimized**: sender name, email
+  subject, reply-to display name, and logo all resolve via the *existing*
+  `invoiceLetterhead()`/`invoiceLogo()` helpers (`src/lib/invoice-letterhead.ts`) — Team plan → org
+  name/logo, solo Pro → the individual's own name/logo, Free → falls back to literal
+  "TimeWiseHub". That fallback is exactly why this feature is **gated to paid plans** (mirrors the
+  existing invoice-emailing gate) — a Free user should never be able to trigger it.
+- `clients.org_id` is nullable (solo Pro users have clients with no org) — `client_messages`
+  mirrors that nullability and reuses the same dual org-member-or-owner RLS/access pattern already
+  used on `clients` and `sessions`, rather than assuming every client belongs to an org.
 - No schema changes needed beyond the one new table.
 
 ## Rules for Codex
@@ -40,12 +50,17 @@ Resend receiving domain.
 ## C-1 — Database migration
 
 *Conductor only (no Codex dispatch):*
+
+`org_id` is nullable — `clients.org_id` is nullable too (solo Pro users have clients with no
+org) — so the policies below mirror the existing dual org-member-or-owner pattern already used on
+the `clients` and `sessions` tables, not a single org-only policy.
+
 - [ ] Create `supabase/schema-081-client-messages.sql`:
   ```sql
   create table public.client_messages (
     id             uuid primary key default gen_random_uuid(),
     client_id      uuid not null references public.clients on delete cascade,
-    org_id         uuid not null references public.organisations on delete cascade,
+    org_id         uuid references public.organisations on delete cascade,
     direction      text not null check (direction in ('outbound', 'inbound')),
     body           text not null,
     sender_user_id uuid references public.profiles on delete set null,
@@ -56,21 +71,40 @@ Resend receiving domain.
 
   alter table public.client_messages enable row level security;
 
-  create policy "client_messages: view"
+  create policy "client_messages: org members view"
     on public.client_messages for select
     using (
-      exists (
+      org_id is not null and exists (
         select 1 from public.organisation_members om
         where om.org_id = client_messages.org_id and om.user_id = auth.uid()
       )
     );
 
-  create policy "client_messages: insert"
+  create policy "client_messages: org members insert"
     on public.client_messages for insert
     with check (
-      exists (
+      org_id is not null and exists (
         select 1 from public.organisation_members om
         where om.org_id = client_messages.org_id and om.user_id = auth.uid()
+      )
+      and sender_user_id = auth.uid()
+    );
+
+  create policy "client_messages: owner view"
+    on public.client_messages for select
+    using (
+      org_id is null and exists (
+        select 1 from public.clients c
+        where c.id = client_messages.client_id and c.owner_id = auth.uid()
+      )
+    );
+
+  create policy "client_messages: owner insert"
+    on public.client_messages for insert
+    with check (
+      org_id is null and exists (
+        select 1 from public.clients c
+        where c.id = client_messages.client_id and c.owner_id = auth.uid()
       )
       and sender_user_id = auth.uid()
     );
@@ -102,13 +136,13 @@ Resend receiving domain.
   }
 
   /**
-   * The org-branded, per-client address a client's replies get routed back through.
-   * Display-name-wrapped so a client inspecting the address sees the org's name, not a
-   * cryptic string — the org is the "hero" of everything client-facing here, TimeWiseHub's
+   * The business-branded, per-client address a client's replies get routed back through.
+   * Display-name-wrapped so a client inspecting the address sees the business's name (org or
+   * individual), not a cryptic string — that identity is the "hero" here, TimeWiseHub's
    * own domain is an invisible-as-possible implementation detail underneath it.
    */
-  export function buildReplyToAddress(clientId: string, orgName: string): string {
-    return `"${orgName.replace(/"/g, '')}" <client-${clientId}@${inboundDomain()}>`
+  export function buildReplyToAddress(clientId: string, senderName: string): string {
+    return `"${senderName.replace(/"/g, '')}" <client-${clientId}@${inboundDomain()}>`
   }
 
   /**
@@ -170,6 +204,16 @@ Resend receiving domain.
 ## C-4 — Outbound send route
 
 *Codex edits:*
+
+Business identity (sender name + logo) reuses the exact resolution already established for
+invoice emails (`src/lib/invoice-letterhead.ts`) rather than inventing a parallel "org name"
+concept: Team plan → org's name/logo, Pro (solo, no org) → the individual's own name/logo, Free →
+falls back to "TimeWiseHub" — which is why this route gates on `isPaidPlan`, mirroring
+`src/app/api/invoices/[id]/send/route.ts`'s own gate exactly. Resolved from `client.owner_id` (the
+client's actual owner), not the acting staff member — same as the invoice route resolves from
+`invoice.owner_id`. Access control has two branches because `clients.org_id` is nullable: org
+members if the client belongs to an org, or the client's own owner if it doesn't.
+
 - [ ] Create `src/app/api/clients/[id]/messages/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
@@ -177,6 +221,8 @@ Resend receiving domain.
   import { createServiceClient } from '@/lib/supabase-service'
   import { sendEmail } from '@/lib/email-notifications'
   import { buildReplyToAddress } from '@/lib/client-messages'
+  import { invoiceLetterhead, invoiceLogo } from '@/lib/invoice-letterhead'
+  import { getSubscription, isPaidPlan } from '@/lib/subscription'
 
   export async function POST(
     req: Request,
@@ -192,25 +238,46 @@ Resend receiving domain.
 
     const service = createServiceClient()
     const { data: client } = await service
-      .from('clients').select('id, org_id, name, email, organisations(name)').eq('id', clientId).maybeSingle()
+      .from('clients').select('id, org_id, owner_id, name, email').eq('id', clientId).maybeSingle()
     if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     if (!client.email) {
       return NextResponse.json({ error: 'Add an email address to this client first.' }, { status: 400 })
     }
 
-    const { data: membership } = await supabase
-      .from('organisation_members').select('role')
-      .eq('user_id', user.id).eq('org_id', client.org_id ?? '').maybeSingle()
-    if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Access: org member (org-owned client) or the client's own owner (solo Pro, no org).
+    if (client.org_id) {
+      const { data: membership } = await supabase
+        .from('organisation_members').select('role')
+        .eq('user_id', user.id).eq('org_id', client.org_id).maybeSingle()
+      if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    } else if (client.owner_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
-    // The org is the "hero" of every client-facing surface here (From name, subject, reply-to
-    // display name) — TimeWiseHub's own domain/branding is kept to the invisible minimum needed
-    // to actually deliver the email, per explicit product decision.
-    const orgName = (client.organisations as unknown as { name: string } | null)?.name ?? 'Our team'
+    const subscription = await getSubscription(client.owner_id)
+    if (!isPaidPlan(subscription)) {
+      return NextResponse.json({ error: 'Upgrade to Pro to message clients.' }, { status: 403 })
+    }
 
-    const subject = `Message from ${orgName}`
-    const reassurance = `You can reply directly to this email — it'll come straight to ${orgName}.`
-    const html = `<p>${body.replace(/\n/g, '<br>')}</p><p style="color:#888;font-size:12px">${reassurance}</p>`
+    const [{ data: profile }, { data: organisation }] = await Promise.all([
+      service.from('profiles').select('full_name, email, invoice_letterhead, logo_url').eq('id', client.owner_id).maybeSingle(),
+      client.org_id
+        ? service.from('organisations').select('name, invoice_letterhead, logo_url').eq('id', client.org_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ])
+
+    // Business identity is the "hero" of every client-facing surface here (From name, subject,
+    // reply-to display name, logo) — TimeWiseHub's own domain/branding is kept to the invisible
+    // minimum needed to actually deliver the email, per explicit product decision.
+    const senderName = invoiceLetterhead({ profile, organisation, subscription })
+    const logoUrl = invoiceLogo({ profile, organisation, subscription })
+
+    const subject = `Message from ${senderName}`
+    const reassurance = `You can reply directly to this email — it'll come straight to ${senderName}.`
+    const logoHtml = logoUrl
+      ? `<img src="${logoUrl}" alt="" style="max-height:60px;max-width:200px;object-fit:contain;display:block;margin-bottom:16px;" />`
+      : ''
+    const html = `${logoHtml}<p>${body.replace(/\n/g, '<br>')}</p><p style="color:#888;font-size:12px">${reassurance}</p>`
     const text = `${body}\n\n${reassurance}`
 
     try {
@@ -219,8 +286,8 @@ Resend receiving domain.
         subject,
         text,
         html,
-        fromName: orgName,
-        replyTo: buildReplyToAddress(client.id, orgName),
+        fromName: senderName,
+        replyTo: buildReplyToAddress(client.id, senderName),
       })
     } catch (err) {
       return NextResponse.json({ error: `Failed to send: ${(err as Error).message}` }, { status: 502 })
@@ -301,19 +368,27 @@ Resend receiving domain.
 
     const service = createServiceClient()
     const { data: client } = await service
-      .from('clients').select('id, org_id, name').eq('id', clientId).maybeSingle()
+      .from('clients').select('id, org_id, owner_id, name').eq('id', clientId).maybeSingle()
     if (!client) return NextResponse.json({ ok: true })
 
     await service
       .from('client_messages')
       .insert({ client_id: client.id, org_id: client.org_id, direction: 'inbound', body, sender_user_id: null })
 
-    const { data: recipients } = await service
-      .from('organisation_members').select('user_id')
-      .eq('org_id', client.org_id ?? '').in('role', ['owner', 'admin', 'manager'])
+    // Notification recipients: org managers/admins/owner for an org-owned client, or just the
+    // client's own owner for a solo Pro user (clients.org_id is nullable).
+    let recipientIds: string[]
+    if (client.org_id) {
+      const { data: recipients } = await service
+        .from('organisation_members').select('user_id')
+        .eq('org_id', client.org_id).in('role', ['owner', 'admin', 'manager'])
+      recipientIds = (recipients ?? []).map(r => r.user_id)
+    } else {
+      recipientIds = [client.owner_id]
+    }
 
-    for (const r of recipients ?? []) {
-      sendPushToUser(r.user_id, {
+    for (const userId of recipientIds) {
+      sendPushToUser(userId, {
         title: `New reply from ${client.name}`,
         body: body.slice(0, 120),
         url: `/dashboard/clients/${client.id}/messages`,
@@ -448,7 +523,9 @@ Resend receiving domain.
 - [ ] Create `src/app/dashboard/clients/[id]/messages/page.tsx`:
   ```typescript
   import { redirect, notFound } from 'next/navigation'
+  import Link from 'next/link'
   import { createClient } from '@/lib/supabase-server'
+  import { getSubscription, isPaidPlan } from '@/lib/subscription'
   import ClientMessagesThread from '@/components/clients/ClientMessagesThread'
   import type { ClientMessage } from '@/components/clients/ClientMessagesThread'
 
@@ -463,8 +540,25 @@ Resend receiving domain.
     if (!user) redirect('/login')
 
     const { data: client } = await supabase
-      .from('clients').select('id, name, email').eq('id', id).maybeSingle()
+      .from('clients').select('id, name, email, owner_id').eq('id', id).maybeSingle()
     if (!client) notFound()
+
+    const subscription = await getSubscription(client.owner_id)
+    if (!isPaidPlan(subscription)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] px-6 text-center">
+          <div className="text-4xl mb-4">💬</div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Client messaging is a Pro feature</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
+            Send and receive email with clients right from their record, branded as your business,
+            with no client login required. Upgrade to Pro to unlock it.
+          </p>
+          <Link href="/dashboard/billing" className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 transition-colors">
+            Upgrade to Pro
+          </Link>
+        </div>
+      )
+    }
 
     const { data: rows } = await supabase
       .from('client_messages')
@@ -532,25 +626,34 @@ Resend receiving domain.
 
 *Conductor + user:*
 - [ ] `pnpm run build` — final clean check after C-1..C-6.
-- [ ] Send a test message from a client's Messages page (client has your own email on file) —
-  confirm it appears in the thread and arrives with the right `From` display name.
+- [ ] Confirm the paid-plan gate: a Free-plan client sees "Upgrade to Pro" instead of the compose
+  box, and the send route itself rejects with 403 if called directly.
+- [ ] Send a test message from a client's Messages page (Pro/Team test account, client has your
+  own email on file) — confirm it appears in the thread, arrives with the `From` display name
+  showing the org's name (Team) or individual's name (solo Pro) — never "TimeWiseHub" — the logo
+  renders if one is configured, and the reassurance line about replying is present.
 - [ ] Reply to that email (only works once C-7 is fully done and deployed) — confirm the reply
-  shows up in the thread and a push notification fires for an org admin/owner/manager.
+  shows up in the thread and a push notification fires (org admin/owner/manager for a Team client,
+  the solo owner directly for a client with no org).
 - [ ] Confirm a client with no email on file sees the "add an email" prompt, no compose box.
+- [ ] Repeat the send/reply/notify checks for a client belonging to a solo Pro user with no
+  organisation at all — confirms the nullable-`org_id` fix in C-1 actually works end to end.
 - [ ] Report pass/fail; fix inline if something's off before finishing.
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `client_messages` table + RLS applied and verified
-- [ ] C-2: reply-to address helpers compile clean
+- [ ] C-1: `client_messages` table (nullable `org_id`) + dual org/owner RLS applied and verified
+- [ ] C-2: reply-to address helpers compile clean, display-name-wrapped and quoted
 - [ ] C-3: webhook signature verification compiles clean
-- [ ] C-4: outbound send route — sends via `sendEmail()`, logs only on success
+- [ ] C-4: outbound send route — gates on paid plan, resolves identity via
+  `invoiceLetterhead()`/`invoiceLogo()`, sends via `sendEmail()`, logs only on success
 - [ ] C-5: inbound webhook route — verifies signature, fetches body via Resend's receiving-email
-  API, logs, notifies
-- [ ] C-6: Messages page + tile
+  API, logs, notifies (org managers or solo owner depending on the client)
+- [ ] C-6: Messages page + tile + upgrade prompt for non-paid plans
 - [ ] C-7: env vars documented; user's Resend domain/webhook setup done
-- [ ] C-8: full manual smoke test passes, including a real send→reply round trip
+- [ ] C-8: full manual smoke test passes, including a real send→reply round trip, logo rendering,
+  and the free-plan upgrade prompt
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser +
