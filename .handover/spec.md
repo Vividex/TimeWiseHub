@@ -317,7 +317,7 @@ members if the client belongs to an org, or the client's own owner if it doesn't
 ## C-5 — Inbound webhook route
 
 *Codex edits:*
-- [ ] Create `src/app/api/webhooks/resend-inbound/route.ts`:
+- [x] Create `src/app/api/webhooks/resend-inbound/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createServiceClient } from '@/lib/supabase-service'
@@ -404,8 +404,8 @@ members if the client belongs to an org, or the client's own owner if it doesn't
   `req.text()` (not `req.json()`) is deliberate — signature verification needs the exact raw bytes.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/webhooks/resend-inbound/route.ts" && git commit -m "feat: client email messaging — inbound webhook route"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/webhooks/resend-inbound/route.ts" && git commit -m "feat: client email messaging — inbound webhook route"`
 
 ---
 
