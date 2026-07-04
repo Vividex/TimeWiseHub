@@ -149,7 +149,10 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, cal
   }
 
   return (
-    <div className="relative flex flex-col bg-slate-950" style={{ height: '100dvh' }}>
+    <div
+      className="relative flex flex-col bg-slate-950"
+      style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       {/* Recording banner */}
       {noteState === 'active' && (
         <div className="absolute top-0 inset-x-0 z-10 bg-red-600/90 text-white text-xs font-semibold text-center py-1.5">
