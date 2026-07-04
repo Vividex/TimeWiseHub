@@ -412,10 +412,10 @@ members if the client belongs to an org, or the client's own owner if it doesn't
 ## C-6 — UI: messages page and client overview tile
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/clients/[id]/page.tsx` and
+- [x] Read `src/app/dashboard/clients/[id]/page.tsx` and
   `src/app/dashboard/clients/[id]/sessions/page.tsx` first (for the Tile grid pattern and the
   server-fetches-then-passes-to-client-component convention), then:
-- [ ] Create `src/components/clients/ClientMessagesThread.tsx`:
+- [x] Create `src/components/clients/ClientMessagesThread.tsx`:
   ```typescript
   'use client'
 
@@ -521,7 +521,7 @@ members if the client belongs to an org, or the client's own owner if it doesn't
     )
   }
   ```
-- [ ] Create `src/app/dashboard/clients/[id]/messages/page.tsx`:
+- [x] Create `src/app/dashboard/clients/[id]/messages/page.tsx`:
   ```typescript
   import { redirect, notFound } from 'next/navigation'
   import Link from 'next/link'
@@ -589,7 +589,7 @@ members if the client belongs to an org, or the client's own owner if it doesn't
     )
   }
   ```
-- [ ] In `src/app/dashboard/clients/[id]/page.tsx`, add `Mail` to the existing `lucide-react`
+- [x] In `src/app/dashboard/clients/[id]/page.tsx`, add `Mail` to the existing `lucide-react`
   import, and add one more tile to the `TileGrid` containing Projects/Sessions/Progress notes:
   ```typescript
   <Tile title="Messages" icon={Mail} accent="#0d9488" href={`/dashboard/clients/${id}/messages`} />
@@ -597,8 +597,8 @@ members if the client belongs to an org, or the client's own owner if it doesn't
   No `stat` count prop for this tile — omit it rather than adding a count query just to fill it in.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/messages" src/components/clients/ClientMessagesThread.tsx "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: client email messaging — messages page and client overview tile"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/messages" src/components/clients/ClientMessagesThread.tsx "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: client email messaging — messages page and client overview tile"`
 
 ---
 
