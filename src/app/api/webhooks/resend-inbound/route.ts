@@ -14,27 +14,40 @@ export async function POST(req: Request) {
   const secret = process.env.RESEND_WEBHOOK_SECRET
 
   if (!id || !timestamp || !signatureHeader || !secret) {
+    console.error('[resend-inbound] missing signature material', {
+      hasId: !!id, hasTimestamp: !!timestamp, hasSignature: !!signatureHeader, hasSecret: !!secret,
+    })
     return NextResponse.json({ error: 'Missing signature headers or secret' }, { status: 400 })
   }
 
   const ageSeconds = Math.abs(Date.now() / 1000 - Number(timestamp))
   if (!Number.isFinite(ageSeconds) || ageSeconds > FIVE_MINUTES_SECONDS) {
+    console.error('[resend-inbound] timestamp out of tolerance', { timestamp, ageSeconds })
     return NextResponse.json({ error: 'Timestamp out of tolerance' }, { status: 400 })
   }
 
   const valid = verifyResendWebhookSignature({ id, timestamp, signatureHeader, rawBody, secret })
-  if (!valid) return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  if (!valid) {
+    console.error('[resend-inbound] invalid signature', { id, timestamp })
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
 
   const payload = JSON.parse(rawBody) as {
     type: string
     data: { email_id: string; to: string[]; from: string }
   }
 
-  if (payload.type !== 'email.received') return NextResponse.json({ ok: true })
+  if (payload.type !== 'email.received') {
+    console.info('[resend-inbound] ignoring non-email.received event', { type: payload.type })
+    return NextResponse.json({ ok: true })
+  }
 
   const toAddress = payload.data.to.find(addr => parseClientIdFromAddress(addr))
   const clientId = toAddress ? parseClientIdFromAddress(toAddress) : null
-  if (!clientId) return NextResponse.json({ ok: true })
+  if (!clientId) {
+    console.error('[resend-inbound] no client id found in "to" addresses', { to: payload.data.to })
+    return NextResponse.json({ ok: true })
+  }
 
   const resendApiKey = process.env.RESEND_API_KEY
   if (!resendApiKey) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
@@ -42,14 +55,20 @@ export async function POST(req: Request) {
   const emailRes = await fetch(`https://api.resend.com/emails/receiving/${payload.data.email_id}`, {
     headers: { Authorization: `Bearer ${resendApiKey}` },
   })
-  if (!emailRes.ok) return NextResponse.json({ error: 'Failed to fetch received email' }, { status: 502 })
+  if (!emailRes.ok) {
+    console.error('[resend-inbound] failed to fetch received email body', { status: emailRes.status, emailId: payload.data.email_id })
+    return NextResponse.json({ error: 'Failed to fetch received email' }, { status: 502 })
+  }
   const email = await emailRes.json() as { text: string | null; html: string | null }
   const body = email.text?.trim() || email.html?.trim() || '(empty message)'
 
   const service = createServiceClient()
   const { data: client } = await service
     .from('clients').select('id, org_id, owner_id, name').eq('id', clientId).maybeSingle()
-  if (!client) return NextResponse.json({ ok: true })
+  if (!client) {
+    console.error('[resend-inbound] no client found for parsed id', { clientId })
+    return NextResponse.json({ ok: true })
+  }
 
   await service
     .from('client_messages')
