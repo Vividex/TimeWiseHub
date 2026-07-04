@@ -215,7 +215,7 @@ client's actual owner), not the acting staff member — same as the invoice rout
 `invoice.owner_id`. Access control has two branches because `clients.org_id` is nullable: org
 members if the client belongs to an org, or the client's own owner if it doesn't.
 
-- [ ] Create `src/app/api/clients/[id]/messages/route.ts`:
+- [x] Create `src/app/api/clients/[id]/messages/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -309,8 +309,8 @@ members if the client belongs to an org, or the client's own owner if it doesn't
   when it wasn't.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/clients/[id]/messages/route.ts" && git commit -m "feat: client email messaging — outbound send route"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/clients/[id]/messages/route.ts" && git commit -m "feat: client email messaging — outbound send route"`
 
 ---
 
