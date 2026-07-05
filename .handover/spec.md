@@ -240,9 +240,9 @@ Messages tile, so staff don't have to check each client individually to discover
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `messages_last_viewed_at` column + `get_unread_client_messages()` RPC applied and
+- [x] C-1: `messages_last_viewed_at` column + `get_unread_client_messages()` RPC applied and
   verified, RPC takes no parameters
-- [ ] C-2: viewing a client's Messages page marks it read via service-role update
+- [x] C-2: viewing a client's Messages page marks it read via service-role update
 - [x] C-3: dashboard Today agenda shows an unread-messages block
 - [x] C-4: client overview page's Messages tile shows a red "New" badge when unread
 - [ ] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
