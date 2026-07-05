@@ -28,16 +28,15 @@ Messages tile, so staff don't have to check each client individually to discover
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
 - C-1 is conductor-only (DB migration via Supabase MCP).
-- C-5 (manual verification) depends on a real inbound client message existing — the prior phase's
-  own final verification (C-8) was never completed (zero inbound rows in `client_messages` as of
-  this phase starting). Flag this to the user rather than assuming it'll just work.
+- C-5 (manual verification) depended on the prior phase's C-8 — now confirmed working (2026-07-05,
+  real inbound rows exist in `client_messages`), no longer a blocker.
 
 ---
 
 ## C-1 — Database migration and unread RPC
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-082-client-messages-unread.sql`:
+- [x] Create `supabase/schema-082-client-messages-unread.sql`:
   ```sql
   alter table public.clients
     add column messages_last_viewed_at timestamptz;
@@ -65,8 +64,8 @@ Messages tile, so staff don't have to check each client individually to discover
 
   grant execute on function public.get_unread_client_messages() to authenticated;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `client_messages_unread`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `client_messages_unread`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
@@ -76,8 +75,8 @@ Messages tile, so staff don't have to check each client individually to discover
   ```sql
   select exists (select 1 from pg_proc where proname = 'get_unread_client_messages');
   ```
-  Expected: `true`.
-- [ ] Commit: `git add supabase/schema-082-client-messages-unread.sql && git commit -m "feat: unread client messages — database migration and RPC"`
+  Expected: `true`. Result: both confirmed exactly as expected.
+- [x] Commit: `git add supabase/schema-082-client-messages-unread.sql && git commit -m "feat: unread client messages — database migration and RPC"`
 
 ---
 
