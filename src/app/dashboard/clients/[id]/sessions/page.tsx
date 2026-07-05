@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import NewSessionModal from '@/components/clients/NewSessionModal'
+import BillableSessionsPanel from '@/components/clients/BillableSessionsPanel'
 
 const STATUS_TONE: Record<string, 'blue' | 'amber' | 'green'> = {
   scheduled: 'blue', in_progress: 'amber', completed: 'green',
@@ -24,7 +25,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
     .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
   const orgId = membership?.org_id ?? null
 
-  const { data: client } = await supabase.from('clients').select('id, name').eq('id', id).maybeSingle()
+  const { data: client } = await supabase.from('clients').select('id, name, default_rate, currency').eq('id', id).maybeSingle()
   if (!client) notFound()
 
   const { data: sessions } = await supabase
@@ -39,6 +40,25 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
     .eq('client_id', id)
     .eq('archived', false)
     .order('name')
+
+  const { data: billableSessions } = await supabase
+    .from('sessions')
+    .select('id, title, scheduled_at, duration_minutes, students(name)')
+    .eq('client_id', id)
+    .eq('status', 'completed')
+    .is('invoice_id', null)
+    .order('scheduled_at', { ascending: true })
+
+  const billableItems = (billableSessions ?? []).map(s => {
+    const student = (s.students as unknown as { name: string } | null)
+    return {
+      id: s.id,
+      title: s.title as string,
+      scheduled_at: s.scheduled_at as string,
+      duration_minutes: s.duration_minutes as number,
+      studentName: student?.name ?? null,
+    }
+  })
 
   const items = (sessions ?? []).map(s => {
     const todos = (s.session_todos as { completed: boolean }[]) ?? []
@@ -63,6 +83,14 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
           <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} />
         </div>
+
+        <BillableSessionsPanel
+          clientId={id}
+          orgId={orgId}
+          defaultRate={client.default_rate ?? 0}
+          currency={client.currency}
+          sessions={billableItems}
+        />
 
         <TileGrid empty="No sessions yet.">
           {items.map(s => (

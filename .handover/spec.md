@@ -133,7 +133,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
 ## C-3 — BillableSessionsPanel and sessions page integration
 
 *Codex edits:*
-- [ ] Create `src/components/clients/BillableSessionsPanel.tsx`:
+- [x] Create `src/components/clients/BillableSessionsPanel.tsx`:
   ```typescript
   'use client'
 
@@ -258,7 +258,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
     )
   }
   ```
-- [ ] Read `src/app/dashboard/clients/[id]/sessions/page.tsx`, then:
+- [x] Read `src/app/dashboard/clients/[id]/sessions/page.tsx`, then:
   1. Add import `import BillableSessionsPanel from '@/components/clients/BillableSessionsPanel'`.
   2. Change `const { data: client } = await supabase.from('clients').select('id, name').eq('id', id).maybeSingle()`
      to `const { data: client } = await supabase.from('clients').select('id, name, default_rate, currency').eq('id', id).maybeSingle()`.
@@ -294,24 +294,24 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
                sessions={billableItems}
              />
      ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: find/create a completed session with no `invoice_id`, confirm it appears
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: find/create a completed session with no `invoice_id`, confirm it appears
   in the "Billable lessons" panel with the correct computed price; confirm a client with zero
   completed-uninvoiced sessions shows no panel at all; select it, create an invoice, confirm
   redirect + correct line item; confirm the session no longer appears in the panel (SQL check:
   `invoice_id` now set); confirm this all works under the real account's current (non-tutoring)
   profile, since this feature isn't gated.
-- [ ] Commit: `git add src/components/clients/BillableSessionsPanel.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" && git commit -m "feat: tutoring per-lesson billing — BillableSessionsPanel and sessions page integration"`
+- [x] Commit: `git add src/components/clients/BillableSessionsPanel.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" && git commit -m "feat: tutoring per-lesson billing — BillableSessionsPanel and sessions page integration"`
 
 ---
 
 ## Acceptance checklist
 - [x] C-1: `sessions.invoice_id` + `invoice_items.session_id` + index applied and verified
 - [x] C-2: `/api/invoices` accepts and processes `session_id` line items, build passes
-- [ ] C-3: `BillableSessionsPanel` created and wired in, manual smoke confirms full flow works
+- [x] C-3: `BillableSessionsPanel` created and wired in, manual smoke confirms full flow works
   regardless of workspace profile
 
 ## Verification
