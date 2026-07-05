@@ -15,8 +15,11 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Topic File Uploads (current phase): zero direct cost — pure code + one additive DB
-  migration (new bucket, new table) + Supabase Storage usage (file storage volume/egress on the
+- Tutoring Progress Reports to Parents (current phase): zero cost — pure code + one additive DB
+  migration (two new nullable columns on an existing table), reuses the existing Resend email
+  infrastructure already paid for, no external API calls, no new npm dependencies.
+- Tutoring Topic File Uploads (prior phase, complete): zero direct cost — pure code + one additive
+  DB migration (new bucket, new table) + Supabase Storage usage (file storage volume/egress on the
   existing plan, no new paid service). No AI summarization this phase (explicitly deferred), so no
   Claude API cost either.
 - Tutoring Year Group/Subject/Topic Structure (prior phase, complete): zero cost — pure code + one
@@ -63,6 +66,35 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Progress Reports to Parents) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-progress-reports-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-progress-reports.md
+- Sixth deep-dive feature for tutoring. User pointed out an existing staff-only
+  `progress_notes` feature (append-only client-scoped notes, fed manually or promoted from a
+  session's notes/call-summary) could be appropriated rather than building a new "progress report"
+  entity from scratch — this phase does exactly that: adds `student_id` (so a client with multiple
+  children can be filtered/tagged per kid) and `sent_to_parent_at` (send-state tracking) to the
+  existing table, no new tables.
+- Sending reuses the existing `/api/clients/[id]/messages` route (sender-identity resolution,
+  plan-gating, reply-to, `client_messages` insert) via a small backward-compatible extension
+  (optional `subject` override, optional `noteIds` to mark sent) rather than a parallel send path.
+- **Real RLS bug caught during spec self-review, before any code was written:** marking a note
+  `sent_to_parent_at` cannot go through a client-side `progress_notes` update — the existing
+  schema-042 RLS only allows a note's own creator or an org admin to UPDATE it, but "any org member
+  can send a progress report" (this phase's explicit scope decision) means a regular member must be
+  able to send and mark-sent a colleague's note too. Fixed by doing that write inside the messages
+  API route using its existing service-role client, scoped by `client_id` as a lightweight defense
+  against marking unrelated notes.
+- Session-promoted notes auto-tag `student_id` from the session's own `student_id` (already exists
+  from an earlier phase) — no new UI needed for that path, just plumbing.
+- Existing notes stay untagged (`student_id = null`) — no retroactive backfill attempted or needed
+  (confirmed acceptable, no real customer data yet).
+- Send-to-parent is deliberately NOT gated to the tutoring profile — matches the precedent set by
+  per-lesson billing (also ungated) since "select some notes and email them to the client" is
+  generally useful regardless of industry.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Tutoring Topic File Uploads) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-topic-file-uploads-design.md
