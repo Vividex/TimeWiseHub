@@ -799,23 +799,24 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: "Subjects" appears in the sidebar under Delivery; visiting
+- [x] Manual smoke test: "Subjects" appears in the sidebar under Delivery; visiting
   `/dashboard/subjects` shows subjects/topics with file counts; expand a topic, upload a PDF,
   confirm it opens via signed URL; add a note and a link, confirm both display correctly; delete
   a file, confirm it's removed and the count updates; a second non-admin org member can upload
   their own files and delete their own uploads but not someone else's; switching the account's
   Industry to a non-tutoring profile hides "Subjects" from the sidebar, switching back to
   Tutoring shows it again (don't leave the real account's industry changed afterward).
-- [ ] Commit: `git add src/components/nav/SidebarNav.tsx src/lib/workspace-profiles/registry.ts && git commit -m "feat: tutoring topic file uploads — navigation wiring"`
+- [x] Commit: `git add src/components/nav/SidebarNav.tsx src/lib/workspace-profiles/registry.ts && git commit -m "feat: tutoring topic file uploads — navigation wiring"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `topic-assets` bucket + `topic_assets` table + RLS applied and verified
-- [ ] C-2: storage/access helpers shipped, build passes
-- [ ] C-3: API routes shipped, build passes
-- [ ] C-4: subjects/topics browser page shipped, build passes
-- [ ] C-5: nav wiring shipped, build passes, manual smoke confirms full flow
+- [x] C-1: `topic-assets` bucket + `topic_assets` table + RLS applied and verified
+- [x] C-2: storage/access helpers shipped, build passes
+- [x] C-3: API routes shipped, build passes
+- [x] C-4: subjects/topics browser page shipped, build passes (redesigned post-smoke-test to a
+  cascading year group → subject → topic drill-down; see decisions.md)
+- [x] C-5: nav wiring shipped, build passes, manual smoke confirms full flow
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
