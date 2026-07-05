@@ -15,9 +15,13 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Subject Tagging (current phase): zero cost — pure code + one additive/destructive DB
-  migration (drop `students.subject`, add `students.subjects` backfilled from it, add
-  `sessions.subject`), no external API calls, no new npm dependencies.
+- Tutoring Year Group/Subject/Topic Structure (current phase): zero cost — pure code + one
+  additive/destructive DB migration (two new tables, drop `students.subjects`/`sessions.subject`,
+  add `sessions.year_group`/`subject_id`/`topic_id`), no external API calls, no new npm
+  dependencies.
+- Tutoring Subject Tagging (prior phase, complete, superseded by this phase): zero cost — pure code
+  + one additive/destructive DB migration (drop `students.subject`, add `students.subjects`
+  backfilled from it, add `sessions.subject`), no external API calls, no new npm dependencies.
 - Tutoring Per-Lesson Billing (prior phase, complete): zero cost — pure code + one additive DB
   migration (two new nullable columns, one index), no external API calls, no new npm dependencies.
 - Tutoring Student Entity (prior phase, complete): zero cost — pure code + one additive DB
@@ -55,6 +59,43 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Year Group/Subject/Topic Structure) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-year-subject-topic-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-year-subject-topic.md
+- Fourth deep-dive feature for tutoring. Directly supersedes/replaces the just-shipped free-text
+  subject tags (schema-086) — confirmed explicitly, not run alongside. User's original ask was
+  modeled on IXL (year groups, subjects, areas of study within subjects, course material uploads),
+  requiring "a complete and comprehensive library of the Australian curriculum from Kindergarten to
+  Year 12." **Flagged directly before starting:** sourcing real curriculum content is a content
+  project (no ACARA API exists), not a coding task — scoped down to structure-only (year groups +
+  seeded subject names + empty tutor-populated topics), with file uploads and real curriculum
+  content both explicitly deferred to their own future phases.
+- Year groups are a fixed code constant (`YEAR_GROUPS`), never a DB table — nothing about it varies
+  per org or changes over time, unlike subjects/topics which are genuinely per-org data.
+- `subjects`/`topics` RLS deliberately mirrors the existing `sessions` table's exact 3-policy shape
+  (creator manages own, org admins manage all, org members view all) rather than the more
+  restrictive `clients` shape — any regular tutor (not just owner/admin) can add a subject/topic
+  while booking, matching how any org member can already create sessions.
+- Students no longer carry their own subject list at all — the Students page instead derives a
+  display from that student's own session history (dedup'd in JS, not a Postgres `distinct on` or
+  view, given realistic session volumes per client).
+- Subjects are lazily seeded (8 defaults) the first time an org/solo-pro's Sessions page loads with
+  zero subjects for their scope — no `/setup` wizard or Settings industry-switch hook needed, one
+  code path covers both "already tutoring" and "switches to tutoring later."
+- **Plan revision during writing-plans self-review:** the first draft split consumer file changes
+  across 3 tasks (booking flow+sessions page, then student CRUD+students page), each individually
+  leaving `pnpm run build` red until the next task landed. Recognized this conflicts with the
+  project's actual "build must pass clean after every change" rule, and that this codebase's
+  Supabase queries aren't strictly schema-typed (no generated `Database` type used — everything
+  goes through manual `as unknown as` casts), so a partial cutover's build failure couldn't be
+  guaranteed rather than assumed. Fixed by merging every consumer-file change into one single task
+  (8 files, one turn) — slower to review as one diff, but never leaves an intermediate broken
+  state. **Pattern worth remembering:** in this codebase specifically, don't assume a half-migrated
+  prop/type contract will fail `tsc` loudly — check whether the surrounding code is strictly typed
+  before splitting a rename/reshape across tasks.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Tutoring Subject Tagging) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-subject-tagging-design.md
