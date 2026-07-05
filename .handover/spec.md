@@ -113,7 +113,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 ## C-2 — Storage and access helpers
 
 *Codex edits:*
-- [ ] Write `src/lib/tutoring/topic-storage.ts`:
+- [x] Write `src/lib/tutoring/topic-storage.ts`:
   ```typescript
   import { createServiceClient } from '@/lib/supabase-service'
 
@@ -141,7 +141,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     await service.storage.from('topic-assets').remove([storagePath])
   }
   ```
-- [ ] Write `src/lib/tutoring/topic-access.ts`:
+- [x] Write `src/lib/tutoring/topic-access.ts`:
   ```typescript
   import { createServiceClient } from '@/lib/supabase-service'
 
@@ -169,11 +169,11 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     return { isMember: true, isAdmin: ['owner', 'admin'].includes(membership.role as string) }
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean (not imported anywhere yet).
-- [ ] Commit: `git add src/lib/tutoring/topic-storage.ts src/lib/tutoring/topic-access.ts && git commit -m "feat: tutoring topic file uploads — storage and access helpers"`
+- [x] `pnpm run build` — must pass clean (not imported anywhere yet).
+- [x] Commit: `git add src/lib/tutoring/topic-storage.ts src/lib/tutoring/topic-access.ts && git commit -m "feat: tutoring topic file uploads — storage and access helpers"`
 
 ---
 
