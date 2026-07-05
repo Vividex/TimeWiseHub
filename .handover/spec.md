@@ -116,7 +116,7 @@ workspace profile.
 ## C-2 — Student CRUD components and API route
 
 *Codex edits:*
-- [ ] Create `src/components/students/StudentForm.tsx`:
+- [x] Create `src/components/students/StudentForm.tsx`:
   ```typescript
   'use client'
 
@@ -197,7 +197,7 @@ workspace profile.
     )
   }
   ```
-- [ ] Create `src/components/students/EditStudentModal.tsx`:
+- [x] Create `src/components/students/EditStudentModal.tsx`:
   ```typescript
   'use client'
 
@@ -291,7 +291,7 @@ workspace profile.
     )
   }
   ```
-- [ ] Create `src/components/students/EditStudentButton.tsx`:
+- [x] Create `src/components/students/EditStudentButton.tsx`:
   ```typescript
   'use client'
 
@@ -323,7 +323,7 @@ workspace profile.
     )
   }
   ```
-- [ ] Create `src/components/students/DeleteStudentButton.tsx`:
+- [x] Create `src/components/students/DeleteStudentButton.tsx`:
   ```typescript
   'use client'
 
@@ -370,7 +370,7 @@ workspace profile.
     )
   }
   ```
-- [ ] Create `src/app/api/students/[id]/route.ts`:
+- [x] Create `src/app/api/students/[id]/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -435,7 +435,7 @@ workspace profile.
     return NextResponse.json({ ok: true })
   }
   ```
-- [ ] Create `src/app/dashboard/clients/[id]/students/page.tsx`:
+- [x] Create `src/app/dashboard/clients/[id]/students/page.tsx`:
   ```typescript
   import { redirect, notFound } from 'next/navigation'
   import Link from 'next/link'
@@ -500,11 +500,11 @@ workspace profile.
     )
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx src/components/students/DeleteStudentButton.tsx src/app/api/students/[id]/route.ts src/app/dashboard/clients/[id]/students/page.tsx && git commit -m "feat: tutoring student entity — student CRUD"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx src/components/students/DeleteStudentButton.tsx src/app/api/students/[id]/route.ts src/app/dashboard/clients/[id]/students/page.tsx && git commit -m "feat: tutoring student entity — student CRUD"`
 
 ---
 
@@ -626,7 +626,7 @@ workspace profile.
 
 ## Acceptance checklist
 - [x] C-1: `students` table + RLS + `sessions.student_id` applied and verified
-- [ ] C-2: Student CRUD components + API route + students page created, build passes
+- [x] C-2: Student CRUD components + API route + students page created, build passes
 - [ ] C-3: Students tile shown only for tutoring profile, build passes
 - [ ] C-4: student picker wired into session creation, student shown per session, manual smoke
   confirms the full flow and real account industry is restored afterward
