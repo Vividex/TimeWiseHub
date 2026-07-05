@@ -60,7 +60,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Year Group/Subject/Topic Structure) [current phase]
+## Notes (Tutoring Year Group/Subject/Topic Structure) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-year-subject-topic-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-year-subject-topic.md
 - Fourth deep-dive feature for tutoring. Directly supersedes/replaces the just-shipped free-text
@@ -96,6 +96,20 @@
   before splitting a rename/reshape across tasks.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP.
+- **Bug found + fixed during C-3 manual testing (2026-07-05):** the Subject dropdown showed
+  hundreds of duplicate "English" entries (and every other seed subject) instead of 8. Root cause:
+  `ensureSeedSubjects()`'s check-then-insert (select count, insert if zero) is not atomic — some
+  repeated invocation of the Sessions page (~1150 inserts of each seed subject within ~3 minutes;
+  exact trigger not conclusively diagnosed, no `setInterval`/polling found in the sessions-related
+  components) hit the non-atomic check enough times to pile up unbounded duplicates. Fixed with a
+  real DB-level uniqueness constraint (schema-088: partial unique indexes on `subjects(org_id,
+  name)` and `subjects(created_by, name) where org_id is null`, plus the same class of defensive
+  constraint on `topics(subject_id, year_group, name)`) rather than trying to make the application
+  logic perfectly race-free — confirmed zero topics/sessions referenced any duplicate subject yet,
+  so cleanup (keep-earliest-per-scope delete) was safe. **Pattern worth remembering:** a lazy
+  "seed if empty" helper with no supporting DB constraint is not actually idempotent under
+  concurrent/repeated invocation — pair any such helper with a real uniqueness constraint from the
+  start in future phases, don't rely on the read-check alone.
 
 ## Notes (Tutoring Subject Tagging) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-subject-tagging-design.md
