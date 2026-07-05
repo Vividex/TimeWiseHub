@@ -46,7 +46,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Dynamic Terminology — Clients Section) [current phase]
+## Notes (Dynamic Terminology — Clients Section) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-dynamic-terminology-clients-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-dynamic-terminology-clients.md
 - Phase 3 of the Workspace Profile roadmap. The roadmap doc's Phase 3 in full ("Dynamic
@@ -68,6 +68,16 @@
   — must not leave the real account's industry changed after the phase completes.
 - Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
   this phase (no migration).
+- **Found + fixed during C-4 manual testing (2026-07-05):** `DashboardShell.tsx`'s page-title
+  header (top bar on every dashboard page) had its own hardcoded `PAGE_TITLES`/`getTitle()` lookup
+  showing "Clients"/"Client" — missed by the original audit since it derives text from the URL
+  pathname, not a literal string inside a Clients-section file. Fixed directly: `dashboard/layout.tsx`
+  resolves `getWorkspaceProfileForUser` once and passes `clientLabel` down to `DashboardShell`.
+  **Pattern worth remembering for future terminology-conversion phases:** any app-shell/layout
+  component that derives page titles or labels from the route path (not literal per-page strings)
+  is easy to miss during a file-by-file audit — check `DashboardShell.tsx` and similar shared
+  layout components explicitly when scoping future terminology phases (Sessions, Programs,
+  Projects), not just the section's own files.
 
 ## Notes (Organisation Setup Wizard) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-organisation-setup-wizard-design.md
