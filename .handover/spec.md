@@ -36,15 +36,15 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 ## C-1 — Database migration: progress_notes student_id and sent_to_parent_at
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-090-tutoring-progress-report-notes.sql`:
+- [x] Create `supabase/schema-090-tutoring-progress-report-notes.sql`:
   ```sql
   alter table public.progress_notes add column student_id uuid references public.students on delete set null;
   alter table public.progress_notes add column sent_to_parent_at timestamptz;
 
   create index progress_notes_student on public.progress_notes (student_id) where student_id is not null;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_progress_report_notes`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_progress_report_notes`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
@@ -59,7 +59,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
   select count(*) from public.progress_notes where student_id is not null or sent_to_parent_at is not null;
   ```
   Expected: 0 (existing rows untouched).
-- [ ] Commit: `git add supabase/schema-090-tutoring-progress-report-notes.sql && git commit -m "feat: tutoring progress reports — database migration"`
+- [x] Commit: `git add supabase/schema-090-tutoring-progress-report-notes.sql && git commit -m "feat: tutoring progress reports — database migration"`
 
 ---
 
