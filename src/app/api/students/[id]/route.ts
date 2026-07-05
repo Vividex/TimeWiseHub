@@ -31,13 +31,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!isOwner && !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json().catch(() => ({}))
-  const { name, notes } = body as { name: string; notes?: string | null }
-  if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
-  const { error } = await supabase.from('students').update({
-    name: name.trim(),
-    notes: notes || null,
-  }).eq('id', id)
+  // Field-edit path — triggered when body contains 'name'
+  if ('name' in body) {
+    const { name, notes } = body as { name: string; notes?: string | null }
+    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+
+    const { error } = await supabase.from('students').update({
+      name: name.trim(),
+      notes: notes || null,
+    }).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  // Archive toggle path (e.g. restoring an archived student)
+  const { error } = await supabase
+    .from('students').update({ archived: body.archived ?? false }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

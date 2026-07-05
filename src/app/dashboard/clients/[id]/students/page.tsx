@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import StudentForm from '@/components/students/StudentForm'
 import EditStudentButton from '@/components/students/EditStudentButton'
 import DeleteStudentButton from '@/components/students/DeleteStudentButton'
+import RestoreStudentButton from '@/components/students/RestoreStudentButton'
 
 export default async function ClientStudentsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,12 +20,17 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
   if (!client) notFound()
   const canEdit = isAdmin || client.owner_id === user.id
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('id, name, notes')
-    .eq('client_id', id)
-    .eq('archived', false)
-    .order('name')
+  const [{ data: students }, { data: archivedStudents }] = await Promise.all([
+    supabase
+      .from('students')
+      .select('id, name, notes')
+      .eq('client_id', id)
+      .eq('archived', false)
+      .order('name'),
+    canEdit
+      ? supabase.from('students').select('id, name').eq('client_id', id).eq('archived', true).order('name')
+      : Promise.resolve({ data: [] }),
+  ])
 
   const studentIds = (students ?? []).map(s => s.id)
   const subjectPills = new Map<string, string[]>()
@@ -90,6 +96,22 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
             </ul>
           )}
         </div>
+
+        {canEdit && (archivedStudents ?? []).length > 0 && (
+          <div>
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-gray-400">Archived ({(archivedStudents ?? []).length})</h2>
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <ul className="divide-y divide-gray-50 dark:divide-slate-800">
+                {(archivedStudents ?? []).map(s => (
+                  <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
+                    <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">{s.name}</p>
+                    <RestoreStudentButton studentId={s.id} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
