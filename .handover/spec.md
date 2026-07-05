@@ -152,7 +152,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 ## C-3 — Resolver function
 
 *Codex edits:*
-- [ ] Create `src/lib/workspace-profiles/resolve.ts`:
+- [x] Create `src/lib/workspace-profiles/resolve.ts`:
   ```typescript
   import type { SupabaseClient } from '@supabase/supabase-js'
   import { getWorkspaceProfile } from './registry'
@@ -185,17 +185,20 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
     return getWorkspaceProfile(profile?.workspace_profile ?? 'generic')
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] One-off functional verification (not committed): write a throwaway script to the scratchpad
+- [x] `pnpm run build` — must pass clean.
+- [x] One-off functional verification (not committed): write a throwaway script to the scratchpad
   directory, run via `npx tsx` (not added as a project dependency), using the service-role client
   to call `getWorkspaceProfileForUser` for a real org's member — confirm it returns `generic`
   terminology by default, then confirm it returns the `tutoring` dictionary after manually setting
   that org's `workspace_profile` to `'tutoring'`, then revert the row and confirm via MCP
   `execute_sql` that it's back to `generic`. This phase must not leave any real data mutated.
-- [ ] Commit: `git add src/lib/workspace-profiles/resolve.ts && git commit -m "feat: workspace profile engine — resolver function"`
+  Result: confirmed — BEFORE=generic (Client/Session/Program/Project), AFTER=tutoring
+  (Student/Lesson/Course/Learning Plan), REVERTED=generic. SQL check post-cleanup confirmed the
+  org row is back to generic/false. Script deleted, never staged.
+- [x] Commit: `git add src/lib/workspace-profiles/resolve.ts && git commit -m "feat: workspace profile engine — resolver function"`
 
 ---
 
@@ -203,7 +206,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 - [x] C-1: `workspace_profile`/`setup_completed`/`setup_completed_at` columns on `organisations`
   and `profiles`, defaults verified applied to existing rows
 - [x] C-2: `src/lib/workspace-profiles/types.ts` + `registry.ts` created, build passes
-- [ ] C-3: `src/lib/workspace-profiles/resolve.ts` created, build passes, functional verification
+- [x] C-3: `src/lib/workspace-profiles/resolve.ts` created, build passes, functional verification
   confirms correct terminology resolution and no data left mutated
 
 ## Verification
