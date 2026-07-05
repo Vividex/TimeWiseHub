@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import ThemeToggle from '@/components/ThemeToggle'
 import SidebarNav from '@/components/nav/SidebarNav'
 import MobileSidebar from '@/components/nav/MobileSidebar'
+import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -40,10 +41,12 @@ export default function DashboardShell({
   children,
   email,
   clientLabel,
+  navOverrides,
 }: {
   children: React.ReactNode
   email: string
   clientLabel: { singular: string; plural: string }
+  navOverrides?: NavOverrides
 }) {
   const pathname = usePathname()
   const title = getTitle(pathname, clientLabel)
@@ -61,7 +64,7 @@ export default function DashboardShell({
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-y-auto bg-slate-900 px-4 py-6 lg:flex">
-        <SidebarNav email={email} clientLabel={clientLabel} />
+        <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
       </aside>
 
       <div className="lg:pl-64">
@@ -71,7 +74,7 @@ export default function DashboardShell({
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <MobileSidebar email={email} clientLabel={clientLabel} />
+              <MobileSidebar email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-cyan-500">TimeWiseHub</p>
                 <h1 className="font-['Poppins'] text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>

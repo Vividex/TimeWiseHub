@@ -12,9 +12,41 @@ import {
 import SignOutButton from '@/components/SignOutButton'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
 import { useTutorial } from '@/components/tutorial/TutorialProvider'
+import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
 type NavItem = { label: string; href: string; icon: LucideIcon; tutorialId?: string }
 type NavGroup = { title: string; items: NavItem[] }
+
+function reorderByKeys<T>(list: T[], order: string[] | undefined, keyOf: (item: T) => string): T[] {
+  if (!order || order.length === 0) return list
+  const byKey = new Map(list.map(item => [keyOf(item), item]))
+  const ordered: T[] = []
+  for (const key of order) {
+    const item = byKey.get(key)
+    if (item) { ordered.push(item); byKey.delete(key) }
+  }
+  for (const item of list) {
+    if (byKey.has(keyOf(item))) { ordered.push(item); byKey.delete(keyOf(item)) }
+  }
+  return ordered
+}
+
+function applyNavOverrides(groups: NavGroup[], overrides?: NavOverrides): NavGroup[] {
+  if (!overrides) return groups
+
+  const hiddenHrefs = new Set(overrides.hiddenHrefs ?? [])
+  const visible = groups
+    .map(group => ({ ...group, items: group.items.filter(item => !hiddenHrefs.has(item.href)) }))
+    .filter(group => group.items.length > 0)
+
+  const reorderedGroups = reorderByKeys(visible, overrides.groupOrder, g => g.title)
+
+  return reorderedGroups.map(group => {
+    const order = overrides.itemOrder?.[group.title]
+    if (!order) return group
+    return { ...group, items: reorderByKeys(group.items, order, item => item.href) }
+  })
+}
 
 export const NAV_GROUPS: NavGroup[] = [
   { title: 'Home', items: [
@@ -94,9 +126,11 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export default function SidebarNav({
   email,
   clientLabel,
+  navOverrides,
 }: {
   email: string
   clientLabel: { singular: string; plural: string }
+  navOverrides?: NavOverrides
 }) {
   const pathname = usePathname()
   return (
@@ -112,7 +146,7 @@ export default function SidebarNav({
       </Link>
 
       <nav className="space-y-0.5">
-        {NAV_GROUPS.map(group => (
+        {applyNavOverrides(NAV_GROUPS, navOverrides).map(group => (
           <div key={group.title}>
             <p className="mt-6 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">{group.title}</p>
             {group.items.map(item => (

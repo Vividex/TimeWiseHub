@@ -73,7 +73,7 @@ identically to before this phase. Phase 4 of the Workspace Profile roadmap.
 ## C-2 — applyNavOverrides and prop threading
 
 *Codex edits:*
-- [ ] Edit `src/components/nav/SidebarNav.tsx`:
+- [x] Edit `src/components/nav/SidebarNav.tsx`:
   - Add import `import type { NavOverrides } from '@/lib/workspace-profiles/types'`.
   - Add these two functions after the `NavGroup`/`NavItem` type definitions (before `NAV_GROUPS`):
     ```typescript
@@ -111,35 +111,35 @@ identically to before this phase. Phase 4 of the Workspace Profile roadmap.
   - Change the component signature to accept and destructure a new optional `navOverrides?:
     NavOverrides` prop (alongside `email`/`clientLabel`).
   - Change `{NAV_GROUPS.map(group => (` to `{applyNavOverrides(NAV_GROUPS, navOverrides).map(group => (`.
-- [ ] Edit `src/components/nav/MobileSidebar.tsx`:
+- [x] Edit `src/components/nav/MobileSidebar.tsx`:
   - Add import `import type { NavOverrides } from '@/lib/workspace-profiles/types'`.
   - Add `navOverrides?: NavOverrides` to the props destructuring/type.
   - Change `<SidebarNav email={email} clientLabel={clientLabel} />` to `<SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />`.
-- [ ] Edit `src/components/DashboardShell.tsx`:
+- [x] Edit `src/components/DashboardShell.tsx`:
   - Add import `import type { NavOverrides } from '@/lib/workspace-profiles/types'`.
   - Add `navOverrides?: NavOverrides` to the props destructuring/type.
   - Change `<SidebarNav email={email} clientLabel={clientLabel} />` to `<SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />`.
   - Change `<MobileSidebar email={email} clientLabel={clientLabel} />` to `<MobileSidebar email={email} clientLabel={clientLabel} navOverrides={navOverrides} />`.
-- [ ] Edit `src/app/dashboard/layout.tsx`:
+- [x] Edit `src/app/dashboard/layout.tsx`:
   - Change `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)` to `const { terminology, navOverrides } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `<DashboardShell email={user.email ?? ''} clientLabel={terminology.client}>` to `<DashboardShell email={user.email ?? ''} clientLabel={terminology.client} navOverrides={navOverrides}>`.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] One-off functional verification (not committed): throwaway `npx tsx` script (scratchpad,
+- [x] `pnpm run build` — must pass clean.
+- [x] One-off functional verification (not committed): throwaway `npx tsx` script (scratchpad,
   never committed) proving `applyNavOverrides(groups, undefined)` is the identity, and a synthetic
   override correctly hides an item, reorders groups, reorders items within a group, and drops a
   group left with zero items.
-- [ ] Manual smoke test: confirm the sidebar (desktop and mobile) renders identically to before
+- [x] Manual smoke test: confirm the sidebar (desktop and mobile) renders identically to before
   this phase for the real account.
-- [ ] Commit: `git add src/components/nav/SidebarNav.tsx src/components/nav/MobileSidebar.tsx src/components/DashboardShell.tsx src/app/dashboard/layout.tsx && git commit -m "feat: dynamic navigation — applyNavOverrides and prop threading"`
+- [x] Commit: `git add src/components/nav/SidebarNav.tsx src/components/nav/MobileSidebar.tsx src/components/DashboardShell.tsx src/app/dashboard/layout.tsx && git commit -m "feat: dynamic navigation — applyNavOverrides and prop threading"`
 
 ---
 
 ## Acceptance checklist
 - [x] C-1: `NavOverrides` type shipped, `WorkspaceProfileConfig` extended, build passes
-- [ ] C-2: `applyNavOverrides` implemented and verified (identity + synthetic override cases),
+- [x] C-2: `applyNavOverrides` implemented and verified (identity + synthetic override cases),
   prop threading complete, manual smoke confirms zero visible change for the real account
 
 ## Verification

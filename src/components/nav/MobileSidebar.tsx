@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import SidebarNav from '@/components/nav/SidebarNav'
+import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
-export default function MobileSidebar({ email, clientLabel }: { email: string; clientLabel: { singular: string; plural: string } }) {
+export default function MobileSidebar({ email, clientLabel, navOverrides }: { email: string; clientLabel: { singular: string; plural: string }; navOverrides?: NavOverrides }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -46,7 +47,7 @@ export default function MobileSidebar({ email, clientLabel }: { email: string; c
                 <X size={18} />
               </button>
             </div>
-            <SidebarNav email={email} clientLabel={clientLabel} />
+            <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
           </aside>
         </div>
       )}
