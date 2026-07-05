@@ -15,7 +15,9 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Dynamic Terminology — Clients section (current phase): zero cost — pure code, no schema
+- Dynamic Navigation Engine (current phase): zero cost — pure code, no schema changes, no
+  external API calls, no new npm dependencies.
+- Dynamic Terminology — Clients section (prior phase, complete): zero cost — pure code, no schema
   changes, no external API calls, no new npm dependencies.
 - Organisation Setup Wizard (prior phase, complete): zero cost — pure code, no schema changes
   (Phase 1's columns already cover everything needed), no external API calls, no new npm
@@ -45,6 +47,23 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Dynamic Navigation Engine) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-dynamic-navigation-engine-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-dynamic-navigation-engine.md
+- Phase 4 of the Workspace Profile roadmap. Explicitly confirmed during brainstorming: no real
+  tutoring/personal-training prospect has said which nav items to hide/reorder — user was warned
+  this is speculative and chose to proceed anyway ("keep building Phase 4 anyway"). Resolved by
+  building only the mechanism (mirrors Phase 1's engine-first pattern): every registry entry ships
+  with no `navOverrides`, so the sidebar is byte-for-byte identical to today for every current
+  profile. Actual per-profile hide/reorder decisions remain deferred until real feedback exists.
+- Icons and drag-and-drop are explicitly out of scope for this whole phase, not just this pass —
+  no persistence model exists for drag-and-drop (per-user? per-org? new DB column?) and nobody has
+  asked for icon variation.
+- `applyNavOverrides()` is a pure function, verified the same way as Phase 1's resolver: a
+  throwaway `npx tsx` script (conductor-only, never committed) rather than a real test suite.
+- Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
+  this phase (no migration).
 
 ## Notes (Dynamic Terminology — Clients Section) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-dynamic-terminology-clients-design.md
