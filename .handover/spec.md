@@ -180,7 +180,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 ## C-3 — API routes
 
 *Codex edits:*
-- [ ] Write `src/app/api/topics/[id]/assets/route.ts`:
+- [x] Write `src/app/api/topics/[id]/assets/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -333,7 +333,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     return NextResponse.json(data)
   }
   ```
-- [ ] Write `src/app/api/topics/[id]/assets/[assetId]/route.ts`:
+- [x] Write `src/app/api/topics/[id]/assets/[assetId]/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -372,7 +372,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     return NextResponse.json({ ok: true })
   }
   ```
-- [ ] Write `src/app/api/topics/[id]/assets/[assetId]/signed-url/route.ts`:
+- [x] Write `src/app/api/topics/[id]/assets/[assetId]/signed-url/route.ts`:
   ```typescript
   import { NextResponse } from 'next/server'
   import { createClient } from '@/lib/supabase-server'
@@ -404,11 +404,11 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     return NextResponse.json({ url })
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/topics/[id]/assets/route.ts" "src/app/api/topics/[id]/assets/[assetId]/route.ts" "src/app/api/topics/[id]/assets/[assetId]/signed-url/route.ts" && git commit -m "feat: tutoring topic file uploads — API routes"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/topics/[id]/assets/route.ts" "src/app/api/topics/[id]/assets/[assetId]/route.ts" "src/app/api/topics/[id]/assets/[assetId]/signed-url/route.ts" && git commit -m "feat: tutoring topic file uploads — API routes"`
 
 ---
 
