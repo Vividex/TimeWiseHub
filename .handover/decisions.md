@@ -15,8 +15,10 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Workspace Profile Engine (current phase): zero cost — pure code + one additive DB migration
-  (two new columns × two tables), no external API calls, no new npm dependencies.
+- Organisation Setup Wizard (current phase): zero cost — pure code, no schema changes (Phase 1's
+  columns already cover everything needed), no external API calls, no new npm dependencies.
+- Workspace Profile Engine (prior phase, complete): zero cost — pure code + one additive DB
+  migration (two new columns × two tables), no external API calls, no new npm dependencies.
 - Unread client messages (prior phase, complete): zero cost — pure code, reuses the existing
   `client_messages` table and Resend setup from the prior phase, one new column, one new
   security-definer RPC. No external API calls.
@@ -41,7 +43,33 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Workspace Profile Engine) [current phase]
+## Notes (Organisation Setup Wizard) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-organisation-setup-wizard-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-organisation-setup-wizard.md
+- Phase 2 of the Workspace Profile roadmap. An audit confirmed business hours, employee count,
+  org-level currency, org-level date format, and org-level timezone all have zero current consumer
+  anywhere in the app — deferred, not part of this phase. Only industry is genuinely new; org name
+  and logo already have working homes (existing `/onboarding` page; `logo_url` already editable in
+  Settings for both org and solo Pro).
+- User explicitly chose a real multi-step wizard shell (not a single screen) despite there being
+  only one real question today — deliberate, so future fields can slot in without restructuring.
+  Fleshed out per user request with: a welcome step, an explicit "Not sure / Other" option (not
+  buried — satisfied by preserving the registry's insertion order, `generic` is already first),
+  and the choice stays editable later via Settings rather than being a wizard-only lock-in.
+- Gate only ever applies to org owner/admin or solo Pro users — `organisations` UPDATE is
+  RLS-restricted to owner/admin, so an employee redirected to `/setup` would just hit a permission
+  error. Employees are never gated regardless of their org's `setup_completed` state.
+- An org member's personal `profiles.workspace_profile` is never actually read by the resolver
+  (org membership wins first) — so the Settings Industry picker in `AccountSettingsForm` is hidden
+  entirely for org members (`showWorkspaceProfile = !membership?.org_id`), not just
+  de-emphasized, to avoid a UI field that edits dead data.
+- Completion copy deliberately doesn't oversell Phase 3 (dynamic terminology) since it doesn't
+  exist yet — says the choice "shapes future features," not that anything visibly changes today.
+- No DB migration this phase — Phase 1's schema already covers everything needed.
+- Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
+  this phase (no migration).
+
+## Notes (Workspace Profile Engine) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-workspace-profile-engine-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-workspace-profile-engine.md
 - Phase 1 of a larger roadmap (`docs/superpowers/specs/TimeWiseHub_Development_Specification.docx`
