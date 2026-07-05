@@ -415,7 +415,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 ## C-4 — Subjects/Topics browser page
 
 *Codex edits:*
-- [ ] Write `src/components/topics/TopicAssetsPanel.tsx`:
+- [x] Write `src/components/topics/TopicAssetsPanel.tsx`:
   ```typescript
   'use client'
 
@@ -570,7 +570,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     )
   }
   ```
-- [ ] Write `src/components/topics/SubjectsBrowser.tsx`:
+- [x] Write `src/components/topics/SubjectsBrowser.tsx`:
   ```typescript
   'use client'
 
@@ -621,7 +621,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     )
   }
   ```
-- [ ] Write `src/app/dashboard/subjects/page.tsx`:
+- [x] Write `src/app/dashboard/subjects/page.tsx`:
   ```typescript
   import { redirect } from 'next/navigation'
   import { createClient } from '@/lib/supabase-server'
@@ -671,11 +671,11 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     )
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/subjects/page.tsx" src/components/topics/SubjectsBrowser.tsx src/components/topics/TopicAssetsPanel.tsx && git commit -m "feat: tutoring topic file uploads — subjects/topics browser page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/subjects/page.tsx" src/components/topics/SubjectsBrowser.tsx src/components/topics/TopicAssetsPanel.tsx && git commit -m "feat: tutoring topic file uploads — subjects/topics browser page"`
 
 ---
 
