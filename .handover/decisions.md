@@ -64,7 +64,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Topic File Uploads) [current phase]
+## Notes (Tutoring Topic File Uploads) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-topic-file-uploads-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-topic-file-uploads.md
 - Fifth deep-dive feature for tutoring — the deferred half of the year/subject/topic phase (file
@@ -91,6 +91,30 @@
 - Every task in this phase is purely additive (new files) except the nav task (append-only edits
   to an existing array/object) — no intermediate red-build risk expected, unlike the prior phase's
   consumer-file rewrite which required combining tasks.
+- **Redesigned post-smoke-test (2026-07-05):** user caught a real scaling flaw in the
+  as-shipped Subjects page — it listed every topic under a subject in one flat expandable list
+  (subject → topic tree), which breaks down badly at realistic volume (up to 30 topics × 13 year
+  groups = 390 topics under a single subject). Fixed by replacing the subject-first tree with a
+  cascading year-group → subject → topic drill-down (three selects, exactly mirroring
+  `NewSessionModal`'s own selection pattern), so only one `(subject_id, year_group)` pair's topics
+  are ever queried/rendered at once. This also removed the page's eager per-topic file-count
+  aggregation entirely (no longer needed or meaningful once topics aren't all listed together).
+  Two smaller fixes landed in the same pass: the native `<input type="file">` read as ambiguous
+  plain text (no visible button) — wrapped in a styled `<label>` so it renders as a real button;
+  and "Foundation" was renamed to "Kindergarten" to match Australian terminology (confirmed no
+  existing test data used the old value, so no backfill needed). Fixed directly rather than through
+  a new spec/plan/handover cycle — small, confined to code shipped this same session, not yet
+  pushed to production, matching this project's established "process scales with task size"
+  convention.
+- **User question, answered directly (not a code change):** whether needing industry-switching
+  only for testing (not for a real single-industry customer long-term) changes how this should be
+  built. Answer: no — the switchability is an inherent, essentially free side effect of the
+  `workspace_profile` architecture (a plain editable column + a picker), not extra engineering
+  investment; the terminology/nav adaptation benefits every real customer regardless of whether
+  they can re-switch later. Flagged as a future consideration, not an architecture change: once
+  there's a real paying customer, consider locking or warning on the Settings Industry picker
+  post-onboarding, since switching on a live account with real Subjects/Topics/Students data would
+  produce a confusing half-migrated state.
 
 ## Notes (Tutoring Year Group/Subject/Topic Structure) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-year-subject-topic-design.md
