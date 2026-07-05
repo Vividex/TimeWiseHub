@@ -77,7 +77,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 ## C-2 — Workspace Profile types and registry
 
 *Codex edits:*
-- [ ] Create `src/lib/workspace-profiles/types.ts`:
+- [x] Create `src/lib/workspace-profiles/types.ts`:
   ```typescript
   export type WorkspaceProfileKey =
     | 'generic'
@@ -101,7 +101,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
     terminology: Terminology
   }
   ```
-- [ ] Create `src/lib/workspace-profiles/registry.ts`:
+- [x] Create `src/lib/workspace-profiles/registry.ts`:
   ```typescript
   import type { WorkspaceProfileConfig, WorkspaceProfileKey } from './types'
 
@@ -141,11 +141,11 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
     return WORKSPACE_PROFILES[key as WorkspaceProfileKey] ?? WORKSPACE_PROFILES.generic
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: workspace profile engine — types and registry"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: workspace profile engine — types and registry"`
 
 ---
 
@@ -202,7 +202,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 ## Acceptance checklist
 - [x] C-1: `workspace_profile`/`setup_completed`/`setup_completed_at` columns on `organisations`
   and `profiles`, defaults verified applied to existing rows
-- [ ] C-2: `src/lib/workspace-profiles/types.ts` + `registry.ts` created, build passes
+- [x] C-2: `src/lib/workspace-profiles/types.ts` + `registry.ts` created, build passes
 - [ ] C-3: `src/lib/workspace-profiles/resolve.ts` created, build passes, functional verification
   confirms correct terminology resolution and no data left mutated
 
