@@ -47,7 +47,7 @@ registry + resolver engine, already shipped).
 ## C-1 — IndustryPicker component
 
 *Codex edits:*
-- [ ] Create `src/components/setup/IndustryPicker.tsx`:
+- [x] Create `src/components/setup/IndustryPicker.tsx`:
   ```typescript
   'use client'
 
@@ -83,11 +83,11 @@ registry + resolver engine, already shipped).
   ```
   `Object.values()` on a `Record` preserves insertion order — `generic` ("Other / Not Listed") is
   the first key in `WORKSPACE_PROFILES`, so it renders first, not sorted to the bottom.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/setup/IndustryPicker.tsx && git commit -m "feat: setup wizard — IndustryPicker component"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/setup/IndustryPicker.tsx && git commit -m "feat: setup wizard — IndustryPicker component"`
 
 ---
 
@@ -402,7 +402,7 @@ registry + resolver engine, already shipped).
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `IndustryPicker` component created, build passes
+- [x] C-1: `IndustryPicker` component created, build passes
 - [ ] C-2: `SetupWizard` + `/setup` page created, build passes
 - [ ] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
   routed through `/setup` once and not again after completing
