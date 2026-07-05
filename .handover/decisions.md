@@ -43,7 +43,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Organisation Setup Wizard) [current phase]
+## Notes (Organisation Setup Wizard) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-organisation-setup-wizard-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-organisation-setup-wizard.md
 - Phase 2 of the Workspace Profile roadmap. An audit confirmed business hours, employee count,
