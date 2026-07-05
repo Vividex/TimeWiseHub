@@ -69,6 +69,13 @@
   created before this shipped, keeps `student_id = null` and behaves exactly as before.
 - Students CRUD and the "Students" tile are gated to `profile.key === 'tutoring'` directly —
   genuinely tutoring-only functionality right now, not a new generic registry capability.
+- **Terminology correction after shipping (2026-07-05):** once the real Student entity existed,
+  the user caught that Phase 3's `tutoring.terminology.client = 'Student'` was now actively wrong
+  — a tutor would see "Students (3)" on what's really their parent/family list, with the actual
+  students living one level down. Reverted `tutoring.client` to `'Client'`/`'Clients'` in
+  `registry.ts` (matches the research too — TutorCruncher's own UI calls the payer "Client," not
+  "Student"). `session`("Lesson")/`program`("Course")/`project`("Learning Plan") are untouched,
+  unaffected by the entity split. Confirmed live before shipping.
 - `/api/students/[id]`'s `DELETE` uses `isOwner || isAdmin`, deliberately NOT mirroring the
   existing `/api/clients/[id]` `DELETE` route's admin-only check (a latent gap in the older route
   that would incorrectly block a solo Pro tutor with no org from archiving their own students) —

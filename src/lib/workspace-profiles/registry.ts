@@ -17,7 +17,7 @@ export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileCon
     key: 'tutoring',
     label: 'Tutoring & Education',
     terminology: {
-      client: { singular: 'Student', plural: 'Students' },
+      client: { singular: 'Client', plural: 'Clients' },
       session: { singular: 'Lesson', plural: 'Lessons' },
       program: { singular: 'Course', plural: 'Courses' },
       project: { singular: 'Learning Plan', plural: 'Learning Plans' },
