@@ -48,7 +48,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Dynamic Navigation Engine) [current phase]
+## Notes (Dynamic Navigation Engine) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-dynamic-navigation-engine-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-dynamic-navigation-engine.md
 - Phase 4 of the Workspace Profile roadmap. Explicitly confirmed during brainstorming: no real
