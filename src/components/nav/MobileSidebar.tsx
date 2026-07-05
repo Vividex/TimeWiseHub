@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import SidebarNav from '@/components/nav/SidebarNav'
 
-export default function MobileSidebar({ email }: { email: string }) {
+export default function MobileSidebar({ email, clientLabel }: { email: string; clientLabel: { singular: string; plural: string } }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -46,7 +46,7 @@ export default function MobileSidebar({ email }: { email: string }) {
                 <X size={18} />
               </button>
             </div>
-            <SidebarNav email={email} />
+            <SidebarNav email={email} clientLabel={clientLabel} />
           </aside>
         </div>
       )}

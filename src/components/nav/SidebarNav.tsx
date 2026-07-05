@@ -91,7 +91,13 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   )
 }
 
-export default function SidebarNav({ email }: { email: string }) {
+export default function SidebarNav({
+  email,
+  clientLabel,
+}: {
+  email: string
+  clientLabel: { singular: string; plural: string }
+}) {
   const pathname = usePathname()
   return (
     <div className="flex flex-col lg:flex-1">
@@ -109,7 +115,13 @@ export default function SidebarNav({ email }: { email: string }) {
         {NAV_GROUPS.map(group => (
           <div key={group.title}>
             <p className="mt-6 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">{group.title}</p>
-            {group.items.map(item => <NavLink key={item.href} item={item} pathname={pathname} />)}
+            {group.items.map(item => (
+              <NavLink
+                key={item.href}
+                item={item.href === '/dashboard/clients' ? { ...item, label: clientLabel.plural } : item}
+                pathname={pathname}
+              />
+            ))}
           </div>
         ))}
         <div className="my-3 border-t border-slate-800" />
