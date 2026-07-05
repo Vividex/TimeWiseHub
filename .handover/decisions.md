@@ -68,6 +68,18 @@
 - No DB migration this phase — Phase 1's schema already covers everything needed.
 - Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
   this phase (no migration).
+- **Bug found + fixed during C-3 manual testing (2026-07-05):** `router.push(X); router.refresh()`
+  in the same tick (a pattern already present in the pre-existing `/onboarding` page, harmless
+  there since nothing on `/dashboard` depended on freshly-mutated data) raced against this phase's
+  new conditional redirect on `/dashboard` (which now reads `setup_completed` right as it's being
+  written by the wizard's Finish action) — produced a real `ERR_TOO_MANY_REDIRECTS` in the browser
+  even though the DB write itself was correct both times (confirmed via SQL). Fixed by switching
+  both `SetupWizard.tsx`'s Finish handler and `/onboarding`'s two buttons to a hard navigation
+  (`window.location.href`) instead of push+refresh — guarantees a fresh request with no client
+  router-cache involvement. **Pattern worth remembering:** any future phase that adds a conditional
+  redirect gating a destination route should treat `push+refresh` immediately following a mutation
+  of the very field that gate reads as a race risk, not a safe combo — prefer a hard navigation at
+  that specific transition point.
 
 ## Notes (Workspace Profile Engine) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-workspace-profile-engine-design.md
