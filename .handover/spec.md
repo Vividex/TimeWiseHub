@@ -186,7 +186,7 @@ Messages tile, so staff don't have to check each client individually to discover
 ## C-4 — Unread badge on the client's Messages tile
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/clients/[id]/page.tsx` first, then:
+- [x] Read `src/app/dashboard/clients/[id]/page.tsx` first, then:
   1. Add `messages_last_viewed_at` to the existing `clients` select:
      ```typescript
      const { data: client } = await supabase
@@ -220,8 +220,8 @@ Messages tile, so staff don't have to check each client individually to discover
      ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: unread client messages — badge on client overview tile"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: unread client messages — badge on client overview tile"`
 
 ---
 
@@ -244,7 +244,7 @@ Messages tile, so staff don't have to check each client individually to discover
   verified, RPC takes no parameters
 - [ ] C-2: viewing a client's Messages page marks it read via service-role update
 - [x] C-3: dashboard Today agenda shows an unread-messages block
-- [ ] C-4: client overview page's Messages tile shows a red "New" badge when unread
+- [x] C-4: client overview page's Messages tile shows a red "New" badge when unread
 - [ ] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
   actually works)
 

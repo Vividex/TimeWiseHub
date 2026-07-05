@@ -19,7 +19,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const isAdmin = ['owner', 'admin'].includes(role)
 
   const { data: client } = await supabase
-    .from('clients').select('id, name, email, phone, address, owner_id, default_rate, currency').eq('id', id).maybeSingle()
+    .from('clients').select('id, name, email, phone, address, owner_id, default_rate, currency, messages_last_viewed_at').eq('id', id).maybeSingle()
   if (!client) notFound()
 
   const canEdit = isAdmin || client.owner_id === user.id
@@ -33,6 +33,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('client_id', id),
     supabase.from('progress_notes').select('id', { count: 'exact', head: true }).eq('client_id', id),
   ])
+
+  const { data: latestInboundMessage } = await supabase
+    .from('client_messages')
+    .select('created_at')
+    .eq('client_id', id)
+    .eq('direction', 'inbound')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const hasUnreadMessages = !!latestInboundMessage && (
+    !client.messages_last_viewed_at || new Date(latestInboundMessage.created_at) > new Date(client.messages_last_viewed_at)
+  )
 
   let quoteCount = 0
   let invoiceCount = 0
@@ -97,7 +110,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <Tile title="Projects" icon={FolderKanban} accent="#2563eb" stat={projectCount ?? 0} href={`/dashboard/clients/${id}/projects`} />
             <Tile title="Sessions" icon={CalendarClock} accent="#0891b2" stat={sessionCount ?? 0} href={`/dashboard/clients/${id}/sessions`} />
             <Tile title="Progress notes" icon={NotebookPen} accent="#7c3aed" stat={noteCount ?? 0} href={`/dashboard/clients/${id}/notes`} />
-            <Tile title="Messages" icon={Mail} accent="#0d9488" href={`/dashboard/clients/${id}/messages`} />
+            <Tile
+              title="Messages"
+              icon={Mail}
+              accent="#0d9488"
+              href={`/dashboard/clients/${id}/messages`}
+              badge={hasUnreadMessages ? { label: 'New', tone: 'red' } : undefined}
+            />
           </TileGrid>
         </div>
 
