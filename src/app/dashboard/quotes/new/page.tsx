@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import NewInvoiceForm from '@/components/invoices/NewInvoiceForm'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function NewQuotePage({
   searchParams,
@@ -11,6 +12,7 @@ export default async function NewQuotePage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members')
@@ -23,13 +25,14 @@ export default async function NewQuotePage({
       <div className="mx-auto max-w-3xl space-y-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">New quote</h1>
-          <p className="mt-1 text-sm text-gray-500">Client is optional — you can create a free-standing quote and assign it later.</p>
+          <p className="mt-1 text-sm text-gray-500">{terminology.client.singular} is optional — you can create a free-standing quote and assign it later.</p>
         </div>
         <NewInvoiceForm
           orgId={membership?.org_id ?? null}
           userId={user.id}
           initialClientId={clientId}
           isQuote={true}
+          clientLabel={terminology.client}
         />
       </div>
     </div>

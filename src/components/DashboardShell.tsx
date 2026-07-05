@@ -11,7 +11,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/chat': 'Chat',
   '/dashboard/assistant': 'Assistant',
   '/dashboard/expenses': 'Expenses',
-  '/dashboard/clients': 'Clients',
   '/dashboard/invoices': 'Invoices',
   '/dashboard/calendar': 'Calendar',
   '/dashboard/leave': 'Leave',
@@ -21,13 +20,14 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/programs': 'Programs',
 }
 
-function getTitle(pathname: string) {
+function getTitle(pathname: string, clientLabel: { singular: string; plural: string }) {
   if (pathname.includes('/projects/')) return 'Project'
   if (pathname.includes('/sessions/')) return 'Session'
   if (pathname.endsWith('/projects')) return 'Projects'
   if (pathname.endsWith('/sessions')) return 'Sessions'
   if (pathname.endsWith('/notes')) return 'Progress notes'
-  if (pathname.startsWith('/dashboard/clients/')) return 'Client'
+  if (pathname === '/dashboard/clients') return clientLabel.plural
+  if (pathname.startsWith('/dashboard/clients/')) return clientLabel.singular
   if (pathname.startsWith('/dashboard/programs/')) return 'Program'
   return PAGE_TITLES[pathname] ?? 'TimeWiseHub'
 }
@@ -39,12 +39,14 @@ function initials(email: string) {
 export default function DashboardShell({
   children,
   email,
+  clientLabel,
 }: {
   children: React.ReactNode
   email: string
+  clientLabel: { singular: string; plural: string }
 }) {
   const pathname = usePathname()
-  const title = getTitle(pathname)
+  const title = getTitle(pathname, clientLabel)
   const isInvoicePrint = pathname.startsWith('/dashboard/invoices/') && pathname.endsWith('/print')
   const isVideoRoom = /^\/dashboard\/video\/[^/]+/.test(pathname)
 

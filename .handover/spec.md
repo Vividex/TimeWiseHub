@@ -222,7 +222,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ## C-4 — Shared invoice/quote creation form
 
 *Codex edits:*
-- [ ] Edit `src/components/invoices/NewInvoiceForm.tsx`:
+- [x] Edit `src/components/invoices/NewInvoiceForm.tsx`:
   - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
   - Change `<h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Client &amp; period</h2>` to `<h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">{clientLabel.singular} &amp; period</h2>`.
   - Change:
@@ -243,7 +243,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
               <option value="">— Select {clientLabel.singular.toLowerCase()} —</option>
     ```
-- [ ] Edit `src/app/dashboard/quotes/new/page.tsx`:
+- [x] Edit `src/app/dashboard/quotes/new/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change:
@@ -269,20 +269,30 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
           clientLabel={terminology.client}
         />
     ```
-- [ ] Edit `src/app/dashboard/invoices/new/page.tsx`:
+- [x] Edit `src/app/dashboard/invoices/new/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `<NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} initialClientId={clientId} />` to `<NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} initialClientId={clientId} clientLabel={terminology.client} />`.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: temporarily switch the Vividex org's Industry to "Tutoring & Education"
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: temporarily switch the Vividex org's Industry to "Tutoring & Education"
   via Settings, walk through every page in scope (Clients list, add/edit/archive client, client
   detail, Sessions/Projects/Invoices/Quotes/Messages sub-pages, messages composer,
   `/dashboard/invoices/new`, `/dashboard/quotes/new`) confirming "Student"/"Students" appears
   correctly throughout, then switch Industry back to restore the real account's prior state.
-- [ ] Commit: `git add src/components/invoices/NewInvoiceForm.tsx src/app/dashboard/quotes/new/page.tsx src/app/dashboard/invoices/new/page.tsx && git commit -m "feat: dynamic terminology — shared invoice/quote creation form"`
+
+  Result: user confirmed every planned string converts correctly. Found one real gap outside the
+  plan: `DashboardShell.tsx`'s page-title header (the bar at the top of every dashboard page) has
+  its own hardcoded `PAGE_TITLES`/`getTitle()` lookup — `/dashboard/clients` showed "Clients" and
+  any `/dashboard/clients/...` sub-route showed "Client", missed by the original audit since it
+  derives text from the URL pathname rather than a literal string inside a Clients-section file.
+  Fixed directly (not a new Codex turn — small, mechanical, found mid-smoke-test): `dashboard/layout.tsx`
+  now resolves `getWorkspaceProfileForUser` and passes `clientLabel={terminology.client}` into
+  `DashboardShell`, which uses it in `getTitle()` instead of the hardcoded strings. The sidebar
+  nav's "Clients" label is unaffected — still correctly deferred to Phase 4.
+- [x] Commit: `git add src/components/invoices/NewInvoiceForm.tsx src/app/dashboard/quotes/new/page.tsx src/app/dashboard/invoices/new/page.tsx src/app/dashboard/layout.tsx src/components/DashboardShell.tsx && git commit -m "feat: dynamic terminology — shared invoice/quote form and dashboard header title"`
 
 ---
 
@@ -290,8 +300,9 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 - [x] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
 - [x] C-2: Clients list/detail/CRUD converted, build passes
 - [x] C-3: client sub-pages converted, build passes
-- [ ] C-4: shared invoice/quote form converted, manual smoke confirms every string switches
-  correctly under "Tutoring & Education" and real account industry is restored afterward
+- [x] C-4: shared invoice/quote form converted, manual smoke confirms every string switches
+  correctly under "Tutoring & Education" (plus a found-and-fixed DashboardShell header gap) and
+  real account industry is restored afterward
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in

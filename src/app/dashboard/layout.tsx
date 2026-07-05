@@ -10,6 +10,7 @@ import TipsScreen from '@/components/tutorial/TipsScreen'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
 import PushAutoPrompt from '@/components/PushAutoPrompt'
 import type { UserRole } from '@/lib/tutorial-steps'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function DashboardLayout({
   children,
@@ -62,6 +63,7 @@ export default async function DashboardLayout({
   }
 
   const role = (membership?.role ?? 'employee') as UserRole
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   if (orgId && ['owner', 'admin'].includes(role)) {
     const { data: org } = await supabase
@@ -76,7 +78,7 @@ export default async function DashboardLayout({
   return (
     <TutorialProvider initialDismissed={initialDismissed} role={role}>
       <ChatRealtimeProvider userId={user.id} orgId={orgId ?? ''}>
-        <DashboardShell email={user.email ?? ''}>
+        <DashboardShell email={user.email ?? ''} clientLabel={terminology.client}>
           {children}
           <FloatingWidgets userEmail={user.email ?? ''} />
         </DashboardShell>

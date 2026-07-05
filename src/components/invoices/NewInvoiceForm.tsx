@@ -15,11 +15,13 @@ export default function NewInvoiceForm({
   userId,
   initialClientId,
   isQuote = false,
+  clientLabel,
 }: {
   orgId: string | null
   userId: string
   initialClientId?: string
   isQuote?: boolean
+  clientLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
@@ -179,16 +181,16 @@ export default function NewInvoiceForm({
     <div className="space-y-6">
       {/* Client + date range */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Client &amp; period</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">{clientLabel.singular} &amp; period</h2>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="sm:col-span-1">
             <label className="mb-1 block text-xs font-semibold text-gray-500">
-              Client{isQuote && <span className="ml-1 font-normal text-gray-400">(optional)</span>}
+              {clientLabel.singular}{isQuote && <span className="ml-1 font-normal text-gray-400">(optional)</span>}
             </label>
             <select value={clientId} onChange={e => { setClientId(e.target.value); const c = clients.find(x => x.id === e.target.value); if (c) setCurrency(c.currency) }}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-              <option value="">— Select client —</option>
+              <option value="">— Select {clientLabel.singular.toLowerCase()} —</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
