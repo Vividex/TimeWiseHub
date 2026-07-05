@@ -30,20 +30,20 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
 
   const { data: sessions } = await supabase
     .from('sessions')
-    .select('id, title, scheduled_at, duration_minutes, status, student_id, students(name), session_todos(id, completed)')
+    .select('id, title, scheduled_at, duration_minutes, status, student_id, subject, students(name), session_todos(id, completed)')
     .eq('client_id', id)
     .order('scheduled_at', { ascending: true })
 
   const { data: students } = await supabase
     .from('students')
-    .select('id, name')
+    .select('id, name, subjects')
     .eq('client_id', id)
     .eq('archived', false)
     .order('name')
 
   const { data: billableSessions } = await supabase
     .from('sessions')
-    .select('id, title, scheduled_at, duration_minutes, students(name)')
+    .select('id, title, scheduled_at, duration_minutes, subject, students(name)')
     .eq('client_id', id)
     .eq('status', 'completed')
     .is('invoice_id', null)
@@ -57,6 +57,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
       scheduled_at: s.scheduled_at as string,
       duration_minutes: s.duration_minutes as number,
       studentName: student?.name ?? null,
+      subject: s.subject as string | null,
     }
   })
 
@@ -70,6 +71,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
       duration: s.duration_minutes as number,
       status: s.status as string,
       studentName: student?.name ?? null,
+      subject: s.subject as string | null,
       done: todos.filter(t => t.completed).length,
       total: todos.length,
     }
@@ -97,7 +99,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
             <Tile
               key={s.id}
               title={s.title}
-              meta={`${new Date(s.scheduled_at).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })} · ${s.duration} min${s.studentName ? ` · ${s.studentName}` : ''}`}
+              meta={`${new Date(s.scheduled_at).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })} · ${s.duration} min${s.studentName ? ` · ${s.studentName}` : ''}${s.subject ? ` · ${s.subject}` : ''}`}
               badge={{ label: STATUS_LABEL[s.status], tone: STATUS_TONE[s.status] }}
               progress={s.total > 0 ? { done: s.done, total: s.total } : undefined}
               href={`/dashboard/clients/${id}/sessions/${s.id}`}

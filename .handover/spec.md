@@ -813,10 +813,10 @@ list. Third deep-dive feature for the Tutoring workspace profile.
                   {s.title}{s.studentName ? ` · ${s.studentName}` : ''}{s.subject ? ` · ${s.subject}` : ''}
                 </p>
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual smoke test: book a session for a student with 2+ tags, confirm the dropdown shows
   exactly those tags plus "Other…" (and no dropdown before a student is picked); select an existing
   tag, confirm it saves and displays in the session's meta line; book a second session for the same
@@ -824,7 +824,7 @@ list. Third deep-dive feature for the Tutoring workspace profile.
   student's tag list (check via Edit modal or SQL); book a session with no student, confirm no
   subject picker and no `· subject` in the meta line; if a completed uninvoiced session with a
   subject exists, confirm the Billable lessons panel also shows it.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" src/components/clients/BillableSessionsPanel.tsx && git commit -m "feat: tutoring subject tagging — booking flow, sessions page, billable panel"`
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" src/components/clients/BillableSessionsPanel.tsx && git commit -m "feat: tutoring subject tagging — booking flow, sessions page, billable panel"`
 
 ---
 

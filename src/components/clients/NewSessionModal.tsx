@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase-browser'
 
 type Template = { id: string; title: string; position: number }
 type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
+type StudentOption = { id: string; name: string; subjects: string[] }
+
+const OTHER_SUBJECT = '__other__'
 
 export default function NewSessionModal({
   clientId,
@@ -16,19 +19,28 @@ export default function NewSessionModal({
   clientId: string
   orgId: string | null
   clientLabel: { singular: string; plural: string }
-  students: { id: string; name: string }[]
+  students: StudentOption[]
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [studentId, setStudentId] = useState('')
+  const [subjectChoice, setSubjectChoice] = useState('')
+  const [newSubject, setNewSubject] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [duration, setDuration] = useState(60)
   const [repeat, setRepeat] = useState<Repeat>('none')
   const [templates, setTemplates] = useState<Template[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  const selectedStudent = students.find(s => s.id === studentId) ?? null
+
+  useEffect(() => {
+    setSubjectChoice('')
+    setNewSubject('')
+  }, [studentId])
 
   useEffect(() => {
     if (!open) return
@@ -46,6 +58,10 @@ export default function NewSessionModal({
     setSaving(true)
     setError('')
 
+    const resolvedSubject = subjectChoice === OTHER_SUBJECT
+      ? (newSubject.trim() || null)
+      : (subjectChoice || null)
+
     if (repeat !== 'none') {
       const res = await fetch(`/api/clients/${clientId}/sessions/series`, {
         method: 'POST',
@@ -56,6 +72,7 @@ export default function NewSessionModal({
           durationMinutes: duration,
           recurrenceInterval: repeat,
           studentId: studentId || null,
+          subject: resolvedSubject,
         }),
       })
       const json = await res.json()
@@ -79,6 +96,7 @@ export default function NewSessionModal({
         duration_minutes: duration,
         status: 'scheduled',
         student_id: studentId || null,
+        subject: resolvedSubject,
       })
       .select('id')
       .single()
@@ -98,6 +116,18 @@ export default function NewSessionModal({
           position: t.position,
         }))
       )
+    }
+
+    if (
+      selectedStudent &&
+      subjectChoice === OTHER_SUBJECT &&
+      resolvedSubject &&
+      !selectedStudent.subjects.includes(resolvedSubject)
+    ) {
+      await supabase
+        .from('students')
+        .update({ subjects: [...selectedStudent.subjects, resolvedSubject] })
+        .eq('id', selectedStudent.id)
     }
 
     router.push(`/dashboard/clients/${clientId}/sessions/${session.id}`)
@@ -141,6 +171,28 @@ export default function NewSessionModal({
                 <option value="">— Select student —</option>
                 {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
+            </div>
+          )}
+          {selectedStudent && (
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
+              <select
+                value={subjectChoice}
+                onChange={e => setSubjectChoice(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              >
+                <option value="">— None —</option>
+                {selectedStudent.subjects.map(subj => <option key={subj} value={subj}>{subj}</option>)}
+                <option value={OTHER_SUBJECT}>Other…</option>
+              </select>
+              {subjectChoice === OTHER_SUBJECT && (
+                <input
+                  value={newSubject}
+                  onChange={e => setNewSubject(e.target.value)}
+                  placeholder="e.g. Year 10 Maths"
+                  className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                />
+              )}
             </div>
           )}
           <div>

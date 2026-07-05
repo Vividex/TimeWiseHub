@@ -9,6 +9,7 @@ type BillableSession = {
   scheduled_at: string
   duration_minutes: number
   studentName: string | null
+  subject: string | null
 }
 
 export default function BillableSessionsPanel({
@@ -90,7 +91,7 @@ export default function BillableSessionsPanel({
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                {s.title}{s.studentName ? ` · ${s.studentName}` : ''}
+                {s.title}{s.studentName ? ` · ${s.studentName}` : ''}{s.subject ? ` · ${s.subject}` : ''}
               </p>
               <p className="text-xs text-gray-400">
                 {new Date(s.scheduled_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })} · {s.duration_minutes} min
