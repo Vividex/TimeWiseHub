@@ -8,6 +8,8 @@ import { resolveQuietHours } from '@/lib/chat/availability'
 import type { QuietHours } from '@/lib/chat/types'
 import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
 import LogoUpload from '@/components/LogoUpload'
+import IndustryPicker from '@/components/setup/IndustryPicker'
+import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'
 
 const TIMEZONES = [
   'UTC',
@@ -46,8 +48,10 @@ type Props = {
   initialAuState: AustralianState | ''
   initialInvoiceLetterhead: string
   initialLogoUrl: string | null
+  initialWorkspaceProfile: WorkspaceProfileKey
   initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
+  showWorkspaceProfile: boolean
   initialNotifications: NotificationPreferences
 }
 
@@ -59,14 +63,17 @@ export default function AccountSettingsForm({
   initialAuState,
   initialInvoiceLetterhead,
   initialLogoUrl,
+  initialWorkspaceProfile,
   initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
+  showWorkspaceProfile,
   initialNotifications,
 }: Props) {
   const [fullName, setFullName] = useState(initialFullName)
   const [timezone, setTimezone] = useState(initialTimezone)
   const [auState, setAuState] = useState<AustralianState | ''>(initialAuState)
   const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
+  const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfileKey>(initialWorkspaceProfile)
   const [paymentDetails, setPaymentDetails] = useState<InvoicePaymentDetails>(() => normaliseInvoicePaymentDetails(initialInvoicePaymentDetails))
   const [notifications, setNotifications] = useState<NotificationPreferences>(initialNotifications)
   const [saved, setSaved] = useState(false)
@@ -103,6 +110,7 @@ export default function AccountSettingsForm({
       notification_preferences: payloadNotifications,
       invoice_payment_details: paymentDetails,
       ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
+      ...(showWorkspaceProfile ? { workspace_profile: workspaceProfile } : {}),
     }
 
     const { error } = await supabase
@@ -148,6 +156,14 @@ export default function AccountSettingsForm({
           />
         </div>
       </div>
+
+      {showWorkspaceProfile && (
+        <div className="space-y-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900">Industry</h2>
+          <p className="text-sm font-semibold text-gray-500">Shapes future industry-specific features.</p>
+          <IndustryPicker value={workspaceProfile} onChange={setWorkspaceProfile} />
+        </div>
+      )}
 
       {/* Timezone */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">

@@ -7,6 +7,8 @@ import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
 import { normaliseInvoicePaymentDetails, type InvoicePaymentDetails } from '@/lib/invoice-payment-details'
 import LogoUpload from '@/components/LogoUpload'
+import IndustryPicker from '@/components/setup/IndustryPicker'
+import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'
 
 type OrgMember = {
   id: string
@@ -24,6 +26,7 @@ export default function OrgBillingSettingsForm({
   initialOrgName,
   initialInvoiceLetterhead,
   initialLogoUrl,
+  initialWorkspaceProfile,
   initialInvoicePaymentDetails,
   canEditInvoiceLetterhead,
   initialMembers,
@@ -36,6 +39,7 @@ export default function OrgBillingSettingsForm({
   initialOrgName: string
   initialInvoiceLetterhead: string
   initialLogoUrl: string | null
+  initialWorkspaceProfile: WorkspaceProfileKey
   initialInvoicePaymentDetails: InvoicePaymentDetails
   canEditInvoiceLetterhead: boolean
   initialMembers: OrgMember[]
@@ -46,6 +50,7 @@ export default function OrgBillingSettingsForm({
   const [superRate, setSuperRate] = useState(String(initialSuperRate))
   const [payWeekStartDay, setPayWeekStartDay] = useState(initialPayWeekStartDay)
   const [invoiceLetterhead, setInvoiceLetterhead] = useState(initialInvoiceLetterhead)
+  const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfileKey>(initialWorkspaceProfile)
   const [paymentDetails, setPaymentDetails] = useState<InvoicePaymentDetails>(() => normaliseInvoicePaymentDetails(initialInvoicePaymentDetails))
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries(initialMembers.map(member => [member.id, member.hourly_rate?.toString() ?? ''])),
@@ -72,6 +77,7 @@ export default function OrgBillingSettingsForm({
         pay_cadence: payCadence,
         super_rate: superRate.trim() ? Number(superRate) : 12,
         pay_week_start_day: payWeekStartDay,
+        workspace_profile: workspaceProfile,
         invoice_payment_details: paymentDetails,
         ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
       })
@@ -111,6 +117,14 @@ export default function OrgBillingSettingsForm({
         <p className="text-sm font-bold uppercase tracking-wide text-cyan-600">Organisation</p>
         <h2 className="mt-1 text-xl font-bold text-gray-900">Billable rates &amp; time rounding</h2>
         <p className="mt-1 text-sm font-semibold text-gray-500">Set employee hourly rates and optionally round time entries to the nearest 15 minutes.</p>
+      </div>
+
+      <div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+        <div>
+          <p className="text-sm font-bold text-gray-900">Industry</p>
+          <p className="text-xs font-medium text-gray-500">Shapes future industry-specific features.</p>
+        </div>
+        <IndustryPicker value={workspaceProfile} onChange={setWorkspaceProfile} />
       </div>
 
       {canEditInvoiceLetterhead && (

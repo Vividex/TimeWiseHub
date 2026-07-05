@@ -343,7 +343,7 @@ registry + resolver engine, already shipped).
 ## C-4 — Settings integration: industry becomes editable later
 
 *Codex edits:*
-- [ ] Read `src/components/OrgBillingSettingsForm.tsx`, then:
+- [x] Read `src/components/OrgBillingSettingsForm.tsx`, then:
   1. Add `import IndustryPicker from '@/components/setup/IndustryPicker'` and
      `import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'` to the imports.
   2. Add `initialWorkspaceProfile: WorkspaceProfileKey` to the destructured props and the inline
@@ -363,7 +363,7 @@ registry + resolver engine, already shipped).
           <IndustryPicker value={workspaceProfile} onChange={setWorkspaceProfile} />
         </div>
      ```
-- [ ] Read `src/components/AccountSettingsForm.tsx`, then:
+- [x] Read `src/components/AccountSettingsForm.tsx`, then:
   1. Add `import IndustryPicker from '@/components/setup/IndustryPicker'` and
      `import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'` to the imports.
   2. Add `initialWorkspaceProfile: WorkspaceProfileKey` and `showWorkspaceProfile: boolean` to the
@@ -394,7 +394,7 @@ registry + resolver engine, already shipped).
           </div>
         )}
      ```
-- [ ] Read `src/app/settings/page.tsx`, then:
+- [x] Read `src/app/settings/page.tsx`, then:
   1. Add `workspace_profile` to the `profiles` select (currently line 22).
   2. Add `workspace_profile` to the `organisations` select (currently line 39).
   3. Add `initialWorkspaceProfile={profile?.workspace_profile ?? 'generic'}` and
@@ -402,15 +402,22 @@ registry + resolver engine, already shipped).
      lines 89-106).
   4. Add `initialWorkspaceProfile={organisation?.workspace_profile ?? 'generic'}` to the
      `<OrgBillingSettingsForm>` call (currently lines 131-143).
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: as org owner, Settings → Organisation tab → change Industry → save →
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: as org owner, Settings → Organisation tab → change Industry → save →
   refresh → confirm persisted. As a solo Pro user, Settings → Profile tab → confirm the Industry
   section appears there instead. As an org employee (non-owner/admin), confirm the Profile tab's
   Industry section does NOT appear.
-- [ ] Commit: `git add src/components/OrgBillingSettingsForm.tsx src/components/AccountSettingsForm.tsx src/app/settings/page.tsx && git commit -m "feat: setup wizard — industry editable later via Settings"`
+
+  Result: org owner case confirmed live (Vividex, changed industry, persisted after refresh). The
+  solo-Pro/employee distinction (`showWorkspaceProfile={!membership?.org_id}`) was verified by
+  code inspection rather than a second live account — the expression is unambiguous: any org
+  member (owner, admin, or employee alike) has `membership.org_id` set, so `showWorkspaceProfile`
+  is `false` for all of them uniformly, and only `true` for an orgless solo Pro account. No
+  separate test account was available to exercise this live.
+- [x] Commit: `git add src/components/OrgBillingSettingsForm.tsx src/components/AccountSettingsForm.tsx src/app/settings/page.tsx && git commit -m "feat: setup wizard — industry editable later via Settings"`
 
 ---
 
@@ -420,7 +427,7 @@ registry + resolver engine, already shipped).
 - [x] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
   routed through `/setup` once and not again after completing (redirect-loop bug found and fixed
   during this test — see notes)
-- [ ] C-4: industry editable via Settings for org admins and solo Pro, hidden for employees, build
+- [x] C-4: industry editable via Settings for org admins and solo Pro, hidden for employees, build
   passes
 
 ## Verification
