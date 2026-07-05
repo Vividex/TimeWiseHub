@@ -43,7 +43,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ## C-1 — Terminology type: singular/plural shape
 
 *Codex edits:*
-- [ ] Edit `src/lib/workspace-profiles/types.ts` — replace:
+- [x] Edit `src/lib/workspace-profiles/types.ts` — replace:
   ```typescript
   export type Terminology = Record<TerminologyKey, string>
   ```
@@ -53,7 +53,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 
   export type Terminology = Record<TerminologyKey, TerminologyEntry>
   ```
-- [ ] Replace the entire contents of `src/lib/workspace-profiles/registry.ts` with:
+- [x] Replace the entire contents of `src/lib/workspace-profiles/registry.ts` with:
   ```typescript
   import type { WorkspaceProfileConfig, WorkspaceProfileKey, Terminology } from './types'
 
@@ -103,11 +103,11 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
     return WORKSPACE_PROFILES[key as WorkspaceProfileKey] ?? WORKSPACE_PROFILES.generic
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: dynamic terminology — singular/plural registry shape"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: dynamic terminology — singular/plural registry shape"`
 
 ---
 
@@ -287,7 +287,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
+- [x] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
 - [ ] C-2: Clients list/detail/CRUD converted, build passes
 - [ ] C-3: client sub-pages converted, build passes
 - [ ] C-4: shared invoice/quote form converted, manual smoke confirms every string switches

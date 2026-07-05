@@ -12,7 +12,9 @@ export type WorkspaceProfileKey =
 
 export type TerminologyKey = 'client' | 'session' | 'program' | 'project'
 
-export type Terminology = Record<TerminologyKey, string>
+export type TerminologyEntry = { singular: string; plural: string }
+
+export type Terminology = Record<TerminologyKey, TerminologyEntry>
 
 export type WorkspaceProfileConfig = {
   key: WorkspaceProfileKey

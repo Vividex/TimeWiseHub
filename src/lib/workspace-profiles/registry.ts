@@ -1,11 +1,11 @@
-import type { WorkspaceProfileConfig, WorkspaceProfileKey } from './types'
+import type { WorkspaceProfileConfig, WorkspaceProfileKey, Terminology } from './types'
 
-const GENERIC_TERMINOLOGY = {
-  client: 'Client',
-  session: 'Session',
-  program: 'Program',
-  project: 'Project',
-} as const
+const GENERIC_TERMINOLOGY: Terminology = {
+  client: { singular: 'Client', plural: 'Clients' },
+  session: { singular: 'Session', plural: 'Sessions' },
+  program: { singular: 'Program', plural: 'Programs' },
+  project: { singular: 'Project', plural: 'Projects' },
+}
 
 export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
   generic: {
@@ -16,12 +16,22 @@ export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileCon
   tutoring: {
     key: 'tutoring',
     label: 'Tutoring & Education',
-    terminology: { client: 'Student', session: 'Lesson', program: 'Course', project: 'Learning Plan' },
+    terminology: {
+      client: { singular: 'Student', plural: 'Students' },
+      session: { singular: 'Lesson', plural: 'Lessons' },
+      program: { singular: 'Course', plural: 'Courses' },
+      project: { singular: 'Learning Plan', plural: 'Learning Plans' },
+    },
   },
   personal_training: {
     key: 'personal_training',
     label: 'Personal Training & Fitness',
-    terminology: { client: 'Member', session: 'Appointment', program: 'Training Plan', project: 'Package' },
+    terminology: {
+      client: { singular: 'Member', plural: 'Members' },
+      session: { singular: 'Appointment', plural: 'Appointments' },
+      program: { singular: 'Training Plan', plural: 'Training Plans' },
+      project: { singular: 'Package', plural: 'Packages' },
+    },
   },
   builder_construction: { key: 'builder_construction', label: 'Builder & Construction', terminology: GENERIC_TERMINOLOGY },
   trades_field_services: { key: 'trades_field_services', label: 'Trades & Field Services', terminology: GENERIC_TERMINOLOGY },
