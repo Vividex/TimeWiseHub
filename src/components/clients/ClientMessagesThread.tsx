@@ -70,7 +70,7 @@ export default function ClientMessagesThread({
               <span className="mb-0.5 px-1 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
                 {m.direction === 'outbound' ? (m.sender_name ?? 'You') : 'Client'} — {fmtTime(m.created_at)}
               </span>
-              <div className={`max-w-md whitespace-pre-line rounded-2xl px-3 py-2 text-sm ${
+              <div className={`max-w-md whitespace-pre-line break-words rounded-2xl px-3 py-2 text-sm ${
                 m.direction === 'outbound'
                   ? 'bg-cyan-600 text-white'
                   : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200'

@@ -228,14 +228,20 @@ Messages tile, so staff don't have to check each client individually to discover
 ## C-5 — Manual end-to-end verification
 
 *Conductor + user:*
-- [ ] `pnpm run build` — final clean check.
-- [ ] **Prerequisite:** confirm the prior phase's send→reply round trip actually works first (a
+- [x] `pnpm run build` — final clean check.
+- [x] **Prerequisite:** confirm the prior phase's send→reply round trip actually works first (a
   real inbound row must exist in `client_messages` — zero exist as of this phase starting).
-- [ ] Trigger an unread state via the send→reply flow, confirm the dashboard Today block and the
+- [x] Trigger an unread state via the send→reply flow, confirm the dashboard Today block and the
   client tile badge both show it.
-- [ ] Open the client's Messages page, confirm both indicators clear on next load.
-- [ ] Confirm a client with only outbound messages, or no messages at all, never shows as unread.
-- [ ] Report pass/fail; fix inline if something's off before finishing.
+- [x] Open the client's Messages page, confirm both indicators clear on next load.
+- [x] Confirm a client with only outbound messages, or no messages at all, never shows as unread.
+- [x] Report pass/fail; fix inline if something's off before finishing.
+
+Result: PASS. Real inbound reply (Message 9) came through, unread indicators confirmed on both
+dashboard Today agenda and client tile. Found a pre-existing, unrelated display bug while
+verifying: Outlook's quoted-reply chain includes a long unbroken logo image URL that overflowed
+the message bubble (missing `break-words`), fixed inline in
+`src/components/clients/ClientMessagesThread.tsx`.
 
 ---
 
@@ -245,7 +251,7 @@ Messages tile, so staff don't have to check each client individually to discover
 - [x] C-2: viewing a client's Messages page marks it read via service-role update
 - [x] C-3: dashboard Today agenda shows an unread-messages block
 - [x] C-4: client overview page's Messages tile shows a red "New" badge when unread
-- [ ] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
+- [x] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
   actually works)
 
 ## Verification
