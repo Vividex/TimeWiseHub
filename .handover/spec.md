@@ -682,7 +682,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 ## C-5 — Navigation wiring
 
 *Codex edits:*
-- [ ] Edit `src/components/nav/SidebarNav.tsx` — change the `lucide-react` import line:
+- [x] Edit `src/components/nav/SidebarNav.tsx` — change the `lucide-react` import line:
   ```typescript
   import {
     LayoutDashboard, Clock, CalendarDays, Palmtree, Receipt, Users, FileText,
@@ -717,7 +717,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
       { label: 'Time',      href: '/dashboard/time',     icon: Clock,    tutorialId: 'time' },
     ] },
   ```
-- [ ] Edit `src/lib/workspace-profiles/registry.ts` — change:
+- [x] Edit `src/lib/workspace-profiles/registry.ts` — change:
   ```typescript
   export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
     generic: {
@@ -795,10 +795,10 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
     creative_agencies: { key: 'creative_agencies', label: 'Creative Agencies & Marketing', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV },
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual smoke test: "Subjects" appears in the sidebar under Delivery; visiting
   `/dashboard/subjects` shows subjects/topics with file counts; expand a topic, upload a PDF,
   confirm it opens via signed URL; add a note and a link, confirm both display correctly; delete
