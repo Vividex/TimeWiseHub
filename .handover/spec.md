@@ -36,7 +36,7 @@ list. Third deep-dive feature for the Tutoring workspace profile.
 ## C-1 — Database migration: students.subjects and sessions.subject
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-086-tutoring-subjects.sql`:
+- [x] Create `supabase/schema-086-tutoring-subjects.sql`:
   ```sql
   alter table public.students add column subjects text[] not null default '{}';
 
@@ -48,8 +48,8 @@ list. Third deep-dive feature for the Tutoring workspace profile.
 
   alter table public.sessions add column subject text;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_subject_tagging`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_subject_tagging`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
@@ -66,7 +66,7 @@ list. Third deep-dive feature for the Tutoring workspace profile.
   select id, name, subjects from public.students limit 5;
   ```
   Expected: prior subject values now show as one-element arrays; students with no subject show `{}`.
-- [ ] Commit: `git add supabase/schema-086-tutoring-subjects.sql && git commit -m "feat: tutoring subject tagging — database migration"`
+- [x] Commit: `git add supabase/schema-086-tutoring-subjects.sql && git commit -m "feat: tutoring subject tagging — database migration"`
 
 ---
 
