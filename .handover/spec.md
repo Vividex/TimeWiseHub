@@ -114,7 +114,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ## C-2 — Clients list + detail + CRUD
 
 *Codex edits:*
-- [ ] Edit `src/app/dashboard/clients/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `{canAdd && <ClientForm orgId={orgId} />}` to `{canAdd && <ClientForm orgId={orgId} clientLabel={terminology.client} />}`.
@@ -128,24 +128,24 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
           <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">{terminology.client.plural} ({clients.length})</h2>
           <TileGrid empty={`No ${terminology.client.plural.toLowerCase()} yet. Add your first.`}>
     ```
-- [ ] Edit `src/app/dashboard/clients/[id]/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `<Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← Clients</Link>` to `<Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← {terminology.client.plural}</Link>`.
   - Add `clientLabel={terminology.client}` prop to `<EditClientButton client={{...}} />` and to `<DeleteClientButton clientId={id} clientName={client.name} />`.
-- [ ] Edit `src/components/clients/ClientForm.tsx`:
+- [x] Edit `src/components/clients/ClientForm.tsx`:
   - Change signature to `export default function ClientForm({ orgId, clientLabel }: { orgId: string | null; clientLabel: { singular: string; plural: string } }) {`.
   - Change `{open ? 'Cancel' : '+ Add client'}` to `` {open ? 'Cancel' : `+ Add ${clientLabel.singular.toLowerCase()}`} ``.
   - Change `Client name *` label to `{clientLabel.singular} name *`.
   - Change `{loading ? 'Saving…' : 'Save client'}` to `` {loading ? 'Saving…' : `Save ${clientLabel.singular.toLowerCase()}`} ``.
-- [ ] Edit `src/components/clients/EditClientButton.tsx`:
+- [x] Edit `src/components/clients/EditClientButton.tsx`:
   - Change signature to `export default function EditClientButton({ client, clientLabel }: { client: Client; clientLabel: { singular: string; plural: string } }) {`.
   - Change `{open && <EditClientModal client={client} onClose={() => setOpen(false)} />}` to `{open && <EditClientModal client={client} onClose={() => setOpen(false)} clientLabel={clientLabel} />}`.
-- [ ] Edit `src/components/clients/EditClientModal.tsx`:
+- [x] Edit `src/components/clients/EditClientModal.tsx`:
   - Change signature to `export default function EditClientModal({ client, onClose, clientLabel }: { client: Client; onClose: () => void; clientLabel: { singular: string; plural: string } }) {`.
   - Change `Edit client` heading to `Edit {clientLabel.singular.toLowerCase()}`.
   - Change `Client name *` label to `{clientLabel.singular} name *`.
-- [ ] Edit `src/components/clients/DeleteClientButton.tsx`:
+- [x] Edit `src/components/clients/DeleteClientButton.tsx`:
   - Change signature to `export default function DeleteClientButton({ clientId, clientName, clientLabel }: { clientId: string; clientName: string; clientLabel: { singular: string; plural: string } }) {`.
   - Change:
     ```typescript
@@ -157,11 +157,11 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
         message={`${clientName} will be removed from your active ${clientLabel.singular.toLowerCase()} list. All sessions, notes, and invoices are preserved — this is reversible via the database.`}
         confirmLabel={`Archive ${clientLabel.singular.toLowerCase()}`}
     ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/dashboard/clients/page.tsx src/app/dashboard/clients/[id]/page.tsx src/components/clients/ClientForm.tsx src/components/clients/EditClientButton.tsx src/components/clients/EditClientModal.tsx src/components/clients/DeleteClientButton.tsx && git commit -m "feat: dynamic terminology — Clients list, detail, and CRUD"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/dashboard/clients/page.tsx src/app/dashboard/clients/[id]/page.tsx src/components/clients/ClientForm.tsx src/components/clients/EditClientButton.tsx src/components/clients/EditClientModal.tsx src/components/clients/DeleteClientButton.tsx && git commit -m "feat: dynamic terminology — Clients list, detail, and CRUD"`
 
 ---
 
@@ -288,7 +288,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 
 ## Acceptance checklist
 - [x] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
-- [ ] C-2: Clients list/detail/CRUD converted, build passes
+- [x] C-2: Clients list/detail/CRUD converted, build passes
 - [ ] C-3: client sub-pages converted, build passes
 - [ ] C-4: shared invoice/quote form converted, manual smoke confirms every string switches
   correctly under "Tutoring & Education" and real account industry is restored afterward

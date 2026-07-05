@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 
 const CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR', 'NZD', 'CAD', 'SGD']
 
-export default function ClientForm({ orgId }: { orgId: string | null }) {
+export default function ClientForm({ orgId, clientLabel }: { orgId: string | null; clientLabel: { singular: string; plural: string } }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -52,13 +52,13 @@ export default function ClientForm({ orgId }: { orgId: string | null }) {
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <button onClick={() => setOpen(o => !o)}
         className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
-        {open ? 'Cancel' : '+ Add client'}
+        {open ? 'Cancel' : `+ Add ${clientLabel.singular.toLowerCase()}`}
       </button>
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Client name *</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">{clientLabel.singular} name *</label>
             <input required type="text" value={name} onChange={e => setName(e.target.value)}
               placeholder="e.g. Acme Corp"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
@@ -104,7 +104,7 @@ export default function ClientForm({ orgId }: { orgId: string | null }) {
 
           <button type="submit" disabled={loading}
             className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
-            {loading ? 'Saving…' : 'Save client'}
+            {loading ? 'Saving…' : `Save ${clientLabel.singular.toLowerCase()}`}
           </button>
         </form>
       )}

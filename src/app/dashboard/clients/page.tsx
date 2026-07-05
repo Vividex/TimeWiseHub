@@ -5,6 +5,7 @@ import ClientForm from '@/components/clients/ClientForm'
 import QuickSaleForm from '@/components/clients/QuickSaleForm'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import RestoreClientButton from '@/components/clients/RestoreClientButton'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 const fmtCurrency = (n: number) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(n)
 
@@ -12,6 +13,7 @@ export default async function ClientsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members')
@@ -76,11 +78,11 @@ export default async function ClientsPage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        {canAdd && <ClientForm orgId={orgId} />}
+        {canAdd && <ClientForm orgId={orgId} clientLabel={terminology.client} />}
         {isAdmin && <QuickSaleForm orgId={orgId} />}
         <div>
-          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Clients ({clients.length})</h2>
-          <TileGrid empty="No clients yet. Add your first.">
+          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">{terminology.client.plural} ({clients.length})</h2>
+          <TileGrid empty={`No ${terminology.client.plural.toLowerCase()} yet. Add your first.`}>
             {clients.map(c => (
               <Tile
                 key={c.id}

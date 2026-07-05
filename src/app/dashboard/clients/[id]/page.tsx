@@ -5,12 +5,14 @@ import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import DeleteClientButton from '@/components/clients/DeleteClientButton'
 import EditClientButton from '@/components/clients/EditClientButton'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('role').eq('user_id', user.id).maybeSingle()
@@ -77,7 +79,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        <Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← Clients</Link>
+        <Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← {terminology.client.plural}</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">
@@ -97,9 +99,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                   address: client.address ?? null,
                   default_rate: client.default_rate ?? null,
                   currency: client.currency,
-                }} />
+                }} clientLabel={terminology.client} />
               )}
-              {isAdmin && <DeleteClientButton clientId={id} clientName={client.name} />}
+              {isAdmin && <DeleteClientButton clientId={id} clientName={client.name} clientLabel={terminology.client} />}
             </div>
           </div>
         </div>

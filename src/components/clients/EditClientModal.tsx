@@ -15,7 +15,7 @@ type Client = {
   currency: string
 }
 
-export default function EditClientModal({ client, onClose }: { client: Client; onClose: () => void }) {
+export default function EditClientModal({ client, onClose, clientLabel }: { client: Client; onClose: () => void; clientLabel: { singular: string; plural: string } }) {
   const router = useRouter()
   const [name, setName] = useState(client.name)
   const [email, setEmail] = useState(client.email ?? '')
@@ -67,11 +67,11 @@ export default function EditClientModal({ client, onClose }: { client: Client; o
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
-        <h2 className="font-['Poppins'] text-lg font-black text-slate-900 dark:text-slate-100">Edit client</h2>
+        <h2 className="font-['Poppins'] text-lg font-black text-slate-900 dark:text-slate-100">Edit {clientLabel.singular.toLowerCase()}</h2>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Client name *</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">{clientLabel.singular} name *</label>
             <input ref={firstRef} required type="text" value={name} onChange={e => setName(e.target.value)}
               className={inputCls} />
           </div>

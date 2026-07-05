@@ -14,7 +14,7 @@ type Client = {
   currency: string
 }
 
-export default function EditClientButton({ client }: { client: Client }) {
+export default function EditClientButton({ client, clientLabel }: { client: Client; clientLabel: { singular: string; plural: string } }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -26,7 +26,7 @@ export default function EditClientButton({ client }: { client: Client }) {
         <Pencil className="h-3.5 w-3.5" />
         Edit
       </button>
-      {open && <EditClientModal client={client} onClose={() => setOpen(false)} />}
+      {open && <EditClientModal client={client} onClose={() => setOpen(false)} clientLabel={clientLabel} />}
     </>
   )
 }

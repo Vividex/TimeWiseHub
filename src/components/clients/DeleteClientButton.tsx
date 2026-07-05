@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
-export default function DeleteClientButton({ clientId, clientName }: { clientId: string; clientName: string }) {
+export default function DeleteClientButton({ clientId, clientName, clientLabel }: { clientId: string; clientName: string; clientLabel: { singular: string; plural: string } }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -34,8 +34,8 @@ export default function DeleteClientButton({ clientId, clientName }: { clientId:
       <ConfirmDialog
         open={open}
         title={`Archive ${clientName}?`}
-        message={`${clientName} will be removed from your active client list. All sessions, notes, and invoices are preserved — this is reversible via the database.`}
-        confirmLabel="Archive client"
+        message={`${clientName} will be removed from your active ${clientLabel.singular.toLowerCase()} list. All sessions, notes, and invoices are preserved — this is reversible via the database.`}
+        confirmLabel={`Archive ${clientLabel.singular.toLowerCase()}`}
         onConfirm={handleArchive}
         onCancel={() => setOpen(false)}
       />
