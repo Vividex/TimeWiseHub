@@ -1,259 +1,211 @@
-# Unread Client Messages
+# Workspace Profile Engine
 
 ## Goal
-Surface unread client replies on the dashboard Today agenda and as a badge on the client's own
-Messages tile, so staff don't have to check each client individually to discover a reply exists.
+Build the additive schema + code registry + resolver function that lets terminology vary per
+Workspace Profile, with zero visible behaviour change to the app today. Phase 1 of a larger
+multi-phase roadmap (setup wizard, dynamic terminology, dynamic navigation, dashboard
+personalisation, dynamic tutorial — each a future separate brainstorm/spec/plan/handover cycle).
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-04-unread-client-messages-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-04-unread-client-messages.md`
-- Shared org-wide read state (not per-user) — whoever last viewed a client's Messages page marks
-  it read for the whole team.
-- No new tables — one nullable column (`clients.messages_last_viewed_at`) plus a security-definer
-  RPC that takes no parameters (derives everything from `auth.uid()`, mirrors `get_chat_unread()`'s
-  security pattern exactly — never trusts a client-supplied org/owner id).
-- Marking read goes through the service-role client, not the caller's own session — `clients`'
-  UPDATE policy only covers owner/admin roles, but any org member can legitimately view a client's
-  Messages page (broader SELECT policy) and should be able to mark it read. This is a deliberate
-  choice, not a workaround to flag as wrong later.
-- No per-user read tracking, no unread indicator on the client list page — both explicitly out of
-  scope for this pass.
+- Source spec: `docs/superpowers/specs/2026-07-05-workspace-profile-engine-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-05-workspace-profile-engine.md`
+- One product, one brand (TimeWiseHub) for now — no separate branded products (BuilderHub,
+  TutorHub, etc.) and no industry marketing landing pages in scope. Driven by two real prospects
+  (tutoring, personal training), not speculative.
+- `workspace_profile` is plain `text`, not a Postgres enum — the code registry is the only source
+  of truth for valid keys. Only `generic`/`tutoring`/`personal_training` get real terminology; the
+  other 7 categories from the roadmap doc are stubbed to generic terminology until real demand
+  exists.
+- No new RLS policies needed — confirmed via audit that `organisations`' existing "Owners and
+  admins can update organisation settings" policy and `profiles`' existing "Users can update their
+  own profile" policy already cover any column, including the new ones.
+- Works for solo Pro users (no organisation) too, not just team orgs — columns added to both
+  `organisations` and `profiles`, resolver checks org membership first, falls back to the user's
+  own profile row.
+- No UI changes in this phase. Nothing calls the resolver from any existing page yet.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node) — the conductor handles those.
 - Read a file before editing it if its structure is unknown.
 - After each task, list the files changed.
-- All Tailwind classes must include `dark:` variants.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
 - C-1 is conductor-only (DB migration via Supabase MCP).
-- C-5 (manual verification) depended on the prior phase's C-8 — now confirmed working (2026-07-05,
-  real inbound rows exist in `client_messages`), no longer a blocker.
+- C-3's functional verification script is conductor-only, throwaway (scratchpad, never committed,
+  run via `npx tsx` — not added as a project dependency).
 
 ---
 
-## C-1 — Database migration and unread RPC
+## C-1 — Database migration: Workspace Profile columns
 
 *Conductor only (no Codex dispatch):*
-- [x] Create `supabase/schema-082-client-messages-unread.sql`:
+- [ ] Create `supabase/schema-083-workspace-profiles.sql`:
   ```sql
-  alter table public.clients
-    add column messages_last_viewed_at timestamptz;
+  alter table public.organisations
+    add column workspace_profile text not null default 'generic',
+    add column setup_completed boolean not null default false,
+    add column setup_completed_at timestamptz;
 
-  create or replace function public.get_unread_client_messages()
-  returns table (client_id uuid, client_name text, preview text, created_at timestamptz)
-  language sql security definer stable set search_path = public as $$
-    select distinct on (c.id)
-      c.id as client_id,
-      c.name as client_name,
-      cm.body as preview,
-      cm.created_at
-    from public.clients c
-    join public.client_messages cm on cm.client_id = c.id and cm.direction = 'inbound'
-    where (
-      c.owner_id = auth.uid()
-      or (c.org_id is not null and exists (
-        select 1 from public.organisation_members om
-        where om.org_id = c.org_id and om.user_id = auth.uid()
-      ))
-    )
-      and cm.created_at > coalesce(c.messages_last_viewed_at, '-infinity'::timestamptz)
-    order by c.id, cm.created_at desc;
-  $$;
-
-  grant execute on function public.get_unread_client_messages() to authenticated;
+  alter table public.profiles
+    add column workspace_profile text not null default 'generic',
+    add column setup_completed boolean not null default false,
+    add column setup_completed_at timestamptz;
   ```
-- [x] Apply via Supabase MCP `apply_migration` (name: `client_messages_unread`).
-- [x] Verify via MCP `execute_sql`:
+- [ ] Apply via Supabase MCP `apply_migration` (name: `workspace_profile_columns`).
+- [ ] Verify via MCP `execute_sql`:
   ```sql
-  select column_name, data_type, is_nullable
+  select column_name, data_type, is_nullable, column_default
   from information_schema.columns
-  where table_schema = 'public' and table_name = 'clients' and column_name = 'messages_last_viewed_at';
+  where table_schema = 'public'
+    and table_name in ('organisations', 'profiles')
+    and column_name in ('workspace_profile', 'setup_completed', 'setup_completed_at')
+  order by table_name, column_name;
   ```
-  Expected: 1 row, `timestamptz`, nullable. Then:
+  Expected: 6 rows, `workspace_profile` default `'generic'::text`, `setup_completed` default
+  `false`, `setup_completed_at` nullable with no default. Then:
   ```sql
-  select exists (select 1 from pg_proc where proname = 'get_unread_client_messages');
+  select workspace_profile, setup_completed from public.organisations;
+  select workspace_profile, setup_completed from public.profiles;
   ```
-  Expected: `true`. Result: both confirmed exactly as expected.
-- [x] Commit: `git add supabase/schema-082-client-messages-unread.sql && git commit -m "feat: unread client messages — database migration and RPC"`
+  Expected: every existing row shows `generic` / `false`.
+- [ ] Commit: `git add supabase/schema-083-workspace-profiles.sql && git commit -m "feat: workspace profile engine — database migration"`
 
 ---
 
-## C-2 — Mark client messages read on page view
+## C-2 — Workspace Profile types and registry
 
 *Codex edits:*
-- [x] Read `src/app/dashboard/clients/[id]/messages/page.tsx` first, then add the import
-  `import { createServiceClient } from '@/lib/supabase-service'` alongside the existing
-  `createClient` import, and immediately after the existing paid-plan gate block (after its
-  closing brace, before `const { data: rows } = await supabase...`), add:
+- [ ] Create `src/lib/workspace-profiles/types.ts`:
   ```typescript
-    // Viewing this page is the "read" signal — shared across the whole org, not per-user. Uses
-    // the service-role client because clients' UPDATE policy only covers owner/admin roles, while
-    // any org member can legitimately view this page (already proven by the RLS-respecting SELECT
-    // above succeeding) and should be able to mark it read.
-    const service = createServiceClient()
-    await service.from('clients').update({ messages_last_viewed_at: new Date().toISOString() }).eq('id', id)
+  export type WorkspaceProfileKey =
+    | 'generic'
+    | 'tutoring'
+    | 'personal_training'
+    | 'builder_construction'
+    | 'trades_field_services'
+    | 'consulting'
+    | 'healthcare'
+    | 'real_estate'
+    | 'cleaning_maintenance'
+    | 'creative_agencies'
 
+  export type TerminologyKey = 'client' | 'session' | 'program' | 'project'
+
+  export type Terminology = Record<TerminologyKey, string>
+
+  export type WorkspaceProfileConfig = {
+    key: WorkspaceProfileKey
+    label: string
+    terminology: Terminology
+  }
   ```
+- [ ] Create `src/lib/workspace-profiles/registry.ts`:
+  ```typescript
+  import type { WorkspaceProfileConfig, WorkspaceProfileKey } from './types'
+
+  const GENERIC_TERMINOLOGY = {
+    client: 'Client',
+    session: 'Session',
+    program: 'Program',
+    project: 'Project',
+  } as const
+
+  export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
+    generic: {
+      key: 'generic',
+      label: 'Other / Not Listed',
+      terminology: GENERIC_TERMINOLOGY,
+    },
+    tutoring: {
+      key: 'tutoring',
+      label: 'Tutoring & Education',
+      terminology: { client: 'Student', session: 'Lesson', program: 'Course', project: 'Learning Plan' },
+    },
+    personal_training: {
+      key: 'personal_training',
+      label: 'Personal Training & Fitness',
+      terminology: { client: 'Member', session: 'Appointment', program: 'Training Plan', project: 'Package' },
+    },
+    builder_construction: { key: 'builder_construction', label: 'Builder & Construction', terminology: GENERIC_TERMINOLOGY },
+    trades_field_services: { key: 'trades_field_services', label: 'Trades & Field Services', terminology: GENERIC_TERMINOLOGY },
+    consulting: { key: 'consulting', label: 'Consulting & Professional Services', terminology: GENERIC_TERMINOLOGY },
+    healthcare: { key: 'healthcare', label: 'Healthcare & Allied Health', terminology: GENERIC_TERMINOLOGY },
+    real_estate: { key: 'real_estate', label: 'Real Estate & Property', terminology: GENERIC_TERMINOLOGY },
+    cleaning_maintenance: { key: 'cleaning_maintenance', label: 'Cleaning & Maintenance', terminology: GENERIC_TERMINOLOGY },
+    creative_agencies: { key: 'creative_agencies', label: 'Creative Agencies & Marketing', terminology: GENERIC_TERMINOLOGY },
+  }
+
+  export function getWorkspaceProfile(key: string): WorkspaceProfileConfig {
+    return WORKSPACE_PROFILES[key as WorkspaceProfileKey] ?? WORKSPACE_PROFILES.generic
+  }
+  ```
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add "src/app/dashboard/clients/[id]/messages/page.tsx" && git commit -m "feat: unread client messages — mark read on page view"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: workspace profile engine — types and registry"`
 
 ---
 
-## C-3 — Dashboard Today agenda unread messages block
+## C-3 — Resolver function
 
 *Codex edits:*
-- [ ] Read `src/components/dashboard/DashboardUpcoming.tsx` first, then:
-  1. Add `export type UnreadClientMessage = { client_id: string; client_name: string; preview: string }`
-     alongside the other exported types.
-  2. Add `MessageCircle` to the existing `lucide-react` import.
-  3. Add `unreadMessages: UnreadClientMessage[]` to both the destructured props and the type
-     signature.
-  4. Change the empty-state check from
-     `if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0) return null`
-     to
-     `if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0) return null`.
-  5. Add a new block after the `{approvals.map(...)}` block and before `{timedItems.map(...)}`:
-     ```typescript
-        {unreadMessages.map((msg, i) => (
-          <Link
-            key={`unread-${msg.client_id}`}
-            href={`/dashboard/clients/${msg.client_id}/messages`}
-            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${i < unreadMessages.length - 1 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
-              <MessageCircle size={15} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{msg.client_name}</p>
-              <p className="truncate text-xs text-gray-500 dark:text-slate-500">{msg.preview}</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
-              Unread
-            </span>
-          </Link>
-        ))}
-     ```
-  6. Update the approvals block's border condition (it's no longer necessarily the last block) —
-     change
-     `` `flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}` ``
-     to
-     `` `flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || unreadMessages.length > 0 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}` ``.
-  7. Update the tasks block's `isLast` calculation — change
-     `const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && timedItems.length === 0`
-     to
-     `const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0`.
-- [x] Report back — build WILL fail this turn (`dashboard/page.tsx` doesn't pass the new prop yet).
-  That's expected, not a blocker.
+- [ ] Create `src/lib/workspace-profiles/resolve.ts`:
+  ```typescript
+  import type { SupabaseClient } from '@supabase/supabase-js'
+  import { getWorkspaceProfile } from './registry'
+  import type { WorkspaceProfileConfig } from './types'
+
+  export async function getWorkspaceProfileForUser(
+    supabase: SupabaseClient,
+    userId: string
+  ): Promise<WorkspaceProfileConfig> {
+    const { data: membership } = await supabase
+      .from('organisation_members')
+      .select('org_id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (membership?.org_id) {
+      const { data: org } = await supabase
+        .from('organisations')
+        .select('workspace_profile')
+        .eq('id', membership.org_id)
+        .maybeSingle()
+      return getWorkspaceProfile(org?.workspace_profile ?? 'generic')
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('workspace_profile')
+      .eq('id', userId)
+      .maybeSingle()
+    return getWorkspaceProfile(profile?.workspace_profile ?? 'generic')
+  }
+  ```
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — expect a type error (`unreadMessages` prop missing). Expected here,
-  resolved by the next Codex turn.
-
-*Codex edits (second half of C-3):*
-- [x] Read `src/app/dashboard/page.tsx` first, then:
-  1. Update the type-only import to add `UnreadClientMessage`:
-     ```typescript
-     import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
-     ```
-  2. Add one more entry to the stage-1 `Promise.all` array and its destructuring — change
-     `const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes] = await Promise.all([`
-     to
-     `const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes] = await Promise.all([`,
-     and add `supabase.rpc('get_unread_client_messages'),` as the last array entry before the
-     closing `])`.
-  3. After the existing `todayTasks` derivation, add:
-     ```typescript
-       const unreadMessages: UnreadClientMessage[] = (
-         (unreadMessagesRes.data ?? []) as { client_id: string; client_name: string; preview: string; created_at: string }[]
-       ).map(m => ({
-         client_id: m.client_id,
-         client_name: m.client_name,
-         preview: m.preview.length > 80 ? m.preview.slice(0, 77) + '…' : m.preview,
-       }))
-     ```
-  4. Update the `DashboardUpcoming` render to add `unreadMessages={unreadMessages}`.
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean now.
-- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "feat: unread client messages — dashboard Today agenda block"`
-
----
-
-## C-4 — Unread badge on the client's Messages tile
-
-*Codex edits:*
-- [x] Read `src/app/dashboard/clients/[id]/page.tsx` first, then:
-  1. Add `messages_last_viewed_at` to the existing `clients` select:
-     ```typescript
-     const { data: client } = await supabase
-       .from('clients').select('id, name, email, phone, address, owner_id, default_rate, currency, messages_last_viewed_at').eq('id', id).maybeSingle()
-     ```
-  2. After the existing `Promise.all` fetching `projectCount`/`sessionCount`/`noteCount` (before
-     `let quoteCount = 0`), add:
-     ```typescript
-       const { data: latestInboundMessage } = await supabase
-         .from('client_messages')
-         .select('created_at')
-         .eq('client_id', id)
-         .eq('direction', 'inbound')
-         .order('created_at', { ascending: false })
-         .limit(1)
-         .maybeSingle()
-
-       const hasUnreadMessages = !!latestInboundMessage && (
-         !client.messages_last_viewed_at || new Date(latestInboundMessage.created_at) > new Date(client.messages_last_viewed_at)
-       )
-     ```
-  3. Update the Messages tile:
-     ```typescript
-             <Tile
-               title="Messages"
-               icon={Mail}
-               accent="#0d9488"
-               href={`/dashboard/clients/${id}/messages`}
-               badge={hasUnreadMessages ? { label: 'New', tone: 'red' } : undefined}
-             />
-     ```
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: unread client messages — badge on client overview tile"`
-
----
-
-## C-5 — Manual end-to-end verification
-
-*Conductor + user:*
-- [x] `pnpm run build` — final clean check.
-- [x] **Prerequisite:** confirm the prior phase's send→reply round trip actually works first (a
-  real inbound row must exist in `client_messages` — zero exist as of this phase starting).
-- [x] Trigger an unread state via the send→reply flow, confirm the dashboard Today block and the
-  client tile badge both show it.
-- [x] Open the client's Messages page, confirm both indicators clear on next load.
-- [x] Confirm a client with only outbound messages, or no messages at all, never shows as unread.
-- [x] Report pass/fail; fix inline if something's off before finishing.
-
-Result: PASS. Real inbound reply (Message 9) came through, unread indicators confirmed on both
-dashboard Today agenda and client tile. Found a pre-existing, unrelated display bug while
-verifying: Outlook's quoted-reply chain includes a long unbroken logo image URL that overflowed
-the message bubble (missing `break-words`), fixed inline in
-`src/components/clients/ClientMessagesThread.tsx`.
+- [ ] `pnpm run build` — must pass clean.
+- [ ] One-off functional verification (not committed): write a throwaway script to the scratchpad
+  directory, run via `npx tsx` (not added as a project dependency), using the service-role client
+  to call `getWorkspaceProfileForUser` for a real org's member — confirm it returns `generic`
+  terminology by default, then confirm it returns the `tutoring` dictionary after manually setting
+  that org's `workspace_profile` to `'tutoring'`, then revert the row and confirm via MCP
+  `execute_sql` that it's back to `generic`. This phase must not leave any real data mutated.
+- [ ] Commit: `git add src/lib/workspace-profiles/resolve.ts && git commit -m "feat: workspace profile engine — resolver function"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `messages_last_viewed_at` column + `get_unread_client_messages()` RPC applied and
-  verified, RPC takes no parameters
-- [x] C-2: viewing a client's Messages page marks it read via service-role update
-- [x] C-3: dashboard Today agenda shows an unread-messages block
-- [x] C-4: client overview page's Messages tile shows a red "New" badge when unread
-- [x] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
-  actually works)
+- [ ] C-1: `workspace_profile`/`setup_completed`/`setup_completed_at` columns on `organisations`
+  and `profiles`, defaults verified applied to existing rows
+- [ ] C-2: `src/lib/workspace-profiles/types.ts` + `registry.ts` created, build passes
+- [ ] C-3: `src/lib/workspace-profiles/resolve.ts` created, build passes, functional verification
+  confirms correct terminology resolution and no data left mutated
 
 ## Verification
-`pnpm run build` (next build = tsc + eslint) must pass clean after every task. Manual browser +
-email round trip required for C-5 (no test runner in this project).
+`pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
+this project. C-3's resolver is verified via a throwaway `npx tsx` script (conductor-only, never
+committed) since nothing in the existing UI calls it yet.

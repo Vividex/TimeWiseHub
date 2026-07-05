@@ -15,7 +15,9 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Unread client messages (current phase): zero cost — pure code, reuses the existing
+- Workspace Profile Engine (current phase): zero cost — pure code + one additive DB migration
+  (two new columns × two tables), no external API calls, no new npm dependencies.
+- Unread client messages (prior phase, complete): zero cost — pure code, reuses the existing
   `client_messages` table and Resend setup from the prior phase, one new column, one new
   security-definer RPC. No external API calls.
 - Room chat + client delivery (prior phase, complete): zero cost — pure code + Supabase admin API
@@ -38,6 +40,34 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Workspace Profile Engine) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-workspace-profile-engine-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-workspace-profile-engine.md
+- Phase 1 of a larger roadmap (`docs/superpowers/specs/TimeWiseHub_Development_Specification.docx`
+  — moved here from `public/` where it was accidentally web-servable, never committed while there).
+  Scope for the whole roadmap, decided during brainstorming: one product/brand (TimeWiseHub) for
+  now, no separate branded products or industry landing pages (roadmap doc's Phase 7 + multi-brand
+  endgame explicitly deferred). Driven by two real prospects (tutoring, personal training), not
+  speculative — hence only those two profiles plus `generic` get real terminology; the other 7
+  categories from the doc are stubbed to generic terminology until real demand exists.
+  This document specs only Phase 1 (schema + registry + resolver, no UI changes). Phases 2-6
+  (setup wizard, dynamic terminology in the UI, dynamic navigation, dashboard personalisation,
+  dynamic tutorial) are each their own future brainstorm/spec/plan/handover cycle.
+- User's explicit framing: "as uninvasive as possible... go slow, think carefully, design
+  intentionally. we can always add later." Confirmed via audit that zero new RLS policies are
+  needed (existing `organisations`/`profiles` UPDATE policies already cover any new column) and
+  every existing row defaults to values that preserve today's behaviour exactly.
+- `workspace_profile` is plain `text`, not a Postgres enum — the code registry
+  (`src/lib/workspace-profiles/`) is the only source of truth for valid keys, matching how
+  `NAV_GROUPS`/`TUTORIAL_STEPS` are already hardcoded TS, not DB-driven.
+- Works for solo Pro users too (no organisation) — columns on both `organisations` and `profiles`,
+  resolver checks org membership first, falls back to the user's own profile row. Matches the
+  existing nullable-org_id dual-ownership pattern from `clients`/`client_messages`.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. C-3's functional verification is a throwaway `npx tsx` script (scratchpad only,
+  never committed, not a project dependency) since nothing in the existing UI calls the resolver
+  yet — no test runner in this project either way.
 
 ## Notes (Client Email Messaging) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-client-email-messaging-design.md
@@ -83,7 +113,7 @@
   just the new text — flagged by the user, decision pending (small npm library vs hand-rolled
   regex heuristic), deliberately deferred until after the Unread Client Messages phase below.
 
-## Notes (Unread Client Messages) [current phase]
+## Notes (Unread Client Messages) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-unread-client-messages-design.md
 - Source plan: docs/superpowers/plans/2026-07-04-unread-client-messages.md
 - Raised directly by the user after confirming the notification-only visibility gap in the prior
