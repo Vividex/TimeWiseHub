@@ -39,7 +39,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Client Email Messaging) [code complete, C-8 not fully confirmed — see below]
+## Notes (Client Email Messaging) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-client-email-messaging-design.md
 - Source plan: docs/superpowers/plans/2026-07-04-client-email-messaging.md
 - Raised as direct customer feedback: funnel all client communication through the app without the
@@ -72,11 +72,16 @@
   own SPF/DKIM setup, unlike the MX-only records receiving needs). Then the reply itself never
   arrived — root-caused via Vercel logs + diagnostic instrumentation to `RESEND_WEBHOOK_SECRET`
   never actually being set in Vercel (only `.env.local` had it) — user added it, redeployed, fixed.
-  **C-8 was never re-confirmed after this last fix** — zero inbound rows exist in `client_messages`
-  as of the start of the "Unread Client Messages" phase below. The conductor asked the user to
-  retest before starting the new phase; no response within the wait window, proceeding with the
-  new phase's code (which doesn't require inbound rows to exist for Tasks 1-4) while flagging that
-  both phases' final manual verification should happen together once a real inbound message exists.
+  **Update (2026-07-05): C-8 now confirmed working.** Two more bugs surfaced testing the fix:
+  (a) the receiving-email API 401'd because `RESEND_API_KEY` is a `sending_access`-restricted key
+  — reading a received email needs `full_access`, so a separate `RESEND_RECEIVING_API_KEY` was
+  added rather than widening the send key's permissions app-wide; (b) that new key was pasted
+  incorrectly into Vercel the first time ("API key is invalid") — regenerated and re-pasted
+  correctly. After all three fixes, a real reply was confirmed landing in `client_messages`. C-8
+  is genuinely done now. Known follow-up, not yet scoped: replies via Outlook include the entire
+  quoted reply chain (`From:/Sent:/To:/Subject:` block + original message) in the stored body, not
+  just the new text — flagged by the user, decision pending (small npm library vs hand-rolled
+  regex heuristic), deliberately deferred until after the Unread Client Messages phase below.
 
 ## Notes (Unread Client Messages) [current phase]
 - Source spec: docs/superpowers/specs/2026-07-04-unread-client-messages-design.md
@@ -94,8 +99,8 @@
   Global Constraint in the plan, not an oversight.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP.
-- Task 5 (manual verification) depends on the still-unconfirmed C-8 from the prior phase — see the
-  note above. Flag this to the user before ticking Task 5 done.
+- Task 5 (manual verification) depended on the prior phase's C-8 — now confirmed working
+  (2026-07-05, see note above), no longer a blocker.
 
 ## Notes (Dashboard "Today" Section) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-04-dashboard-today-section-design.md
