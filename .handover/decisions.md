@@ -15,7 +15,11 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Year Group/Subject/Topic Structure (current phase): zero cost — pure code + one
+- Tutoring Topic File Uploads (current phase): zero direct cost — pure code + one additive DB
+  migration (new bucket, new table) + Supabase Storage usage (file storage volume/egress on the
+  existing plan, no new paid service). No AI summarization this phase (explicitly deferred), so no
+  Claude API cost either.
+- Tutoring Year Group/Subject/Topic Structure (prior phase, complete): zero cost — pure code + one
   additive/destructive DB migration (two new tables, drop `students.subjects`/`sessions.subject`,
   add `sessions.year_group`/`subject_id`/`topic_id`), no external API calls, no new npm
   dependencies.
@@ -59,6 +63,34 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Topic File Uploads) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-topic-file-uploads-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-topic-file-uploads.md
+- Fifth deep-dive feature for tutoring — the deferred half of the year/subject/topic phase (file
+  uploads per topic). Modeled structurally on the existing Programs feature's `program_assets`
+  pattern (private bucket, permissive storage-layer policies, real auth enforced in application
+  code via the service-role client, signed URLs for reads) but deliberately simpler: no AI
+  summarization (explicitly declined — real ongoing Claude API cost not worth it for this pass),
+  no categories, no video/audio types.
+- Any org member can upload (matches subject/topic creation itself); only the creator or an org
+  admin can delete — same "creator manages own, admin manages all" shape used for
+  subjects/topics/sessions throughout this whole tutoring deep-dive.
+- Routes use the service-role client (needed to pair storage + DB writes atomically, rollback an
+  uploaded file if the row insert fails) — this means **table RLS does not actually enforce
+  authorization** for these routes, same architectural note as Programs' own `assertAdminAccess`.
+  A new `getTopicAccess()` helper centralizes the explicit check every route performs.
+- New Subjects/Topics browser page is scoped to file management only — subjects/topics themselves
+  are still only created inline during session booking (prior phase); renaming/archiving them is
+  explicitly out of scope this pass.
+- **First real use of Phase 4's `NavOverrides` mechanism** (shipped inert back when the Dynamic
+  Navigation Engine phase built it, explicitly flagged as "waiting for real signal"): every
+  non-tutoring profile gets `hiddenHrefs: ['/dashboard/subjects']`; tutoring gets none, so it shows.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
+- Every task in this phase is purely additive (new files) except the nav task (append-only edits
+  to an existing array/object) — no intermediate red-build risk expected, unlike the prior phase's
+  consumer-file rewrite which required combining tasks.
 
 ## Notes (Tutoring Year Group/Subject/Topic Structure) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-year-subject-topic-design.md
