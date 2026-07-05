@@ -15,7 +15,9 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Dynamic Navigation Engine (current phase): zero cost — pure code, no schema changes, no
+- Tutoring Student Entity (current phase): zero cost — pure code + one additive DB migration
+  (one new table, one new nullable column), no external API calls, no new npm dependencies.
+- Dynamic Navigation Engine (prior phase, complete): zero cost — pure code, no schema changes, no
   external API calls, no new npm dependencies.
 - Dynamic Terminology — Clients section (prior phase, complete): zero cost — pure code, no schema
   changes, no external API calls, no new npm dependencies.
@@ -47,6 +49,34 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Student Entity) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-student-entity-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-student-entity.md
+- First deep-dive feature for the Tutoring workspace profile, following the roadmap's Phases 1-4
+  (engine/wizard/terminology/nav). Motivated by real research (agent research into
+  TutorCruncher/TutorBird/Teachworks/My Music Staff, 2026-07-05: real tutoring software models
+  the paying parent ("Client") and the learner ("Student") as two separate, linked entities, not
+  one relabeled entity) plus direct user confirmation that multiple children per paying family is
+  common in this market, not an edge case — this tipped the decision toward building the real
+  entity split now rather than treating it as premature guesswork.
+- Schema audit before starting: 25 files reference `.from('clients')` directly, 9 schema files
+  have `client_id` foreign keys — this is why the pass is scoped to just `students` + `sessions`,
+  not every client-referencing table at once. `progress_notes`, `client_messages`, `projects`, and
+  invoicing all stay keyed to `client_id`, explicitly deferred to later passes.
+- `sessions.client_id` stays `not null` (auto-derived from the chosen student's `client_id`);
+  `sessions.student_id` is nullable and additive — every non-tutoring session, and every session
+  created before this shipped, keeps `student_id = null` and behaves exactly as before.
+- Students CRUD and the "Students" tile are gated to `profile.key === 'tutoring'` directly —
+  genuinely tutoring-only functionality right now, not a new generic registry capability.
+- `/api/students/[id]`'s `DELETE` uses `isOwner || isAdmin`, deliberately NOT mirroring the
+  existing `/api/clients/[id]` `DELETE` route's admin-only check (a latent gap in the older route
+  that would incorrectly block a solo Pro tutor with no org from archiving their own students) —
+  a considered deviation, not a blind copy.
+- Recurring (repeating) sessions do not get `student_id` wired up this pass — only single sessions
+  do. Flagged explicitly rather than silently under-delivering.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Dynamic Navigation Engine) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-dynamic-navigation-engine-design.md
