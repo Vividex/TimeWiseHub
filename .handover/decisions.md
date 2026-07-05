@@ -67,7 +67,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Progress Reports to Parents) [current phase]
+## Notes (Tutoring Progress Reports to Parents) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-progress-reports-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-progress-reports.md
 - Sixth deep-dive feature for tutoring. User pointed out an existing staff-only
@@ -95,6 +95,22 @@
   generally useful regardless of industry.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP.
+- **Bug found + fixed during C-4 manual testing (2026-07-05):** the "Save note" button in
+  `AddProgressNote` stuck on "Saving…" after a successful save, blocking a second note without a
+  full page reload. Root cause: `handleSave()` only called `setSaving(false)` on the error
+  branches, never on success — a pre-existing bug that predates this phase, carried forward
+  unnoticed when the component was rewritten for student tagging. `router.refresh()` doesn't
+  remount the client component, so the stale local state persisted. Fixed with one added
+  `setSaving(false)` line on the success path.
+- **Second gap found + fixed in the same session (2026-07-05), unrelated to progress reports:**
+  students could be archived (via the existing Delete action) but had no way back — unlike
+  Clients, which already has an "Archived (N)" section + `RestoreClientButton` on its list page.
+  Fixed by mirroring that exact pattern for students: new `RestoreStudentButton`, the students
+  PATCH route gains a `'name' in body` branch (field-edit vs archive-toggle, same shape as the
+  clients route), and the Students page now shows an Archived section. Deliberately kept the
+  existing `isOwner || isAdmin` authorization (not the clients route's admin-only restriction) for
+  both branches, consistent with the earlier "Tutoring Student Entity" phase's own correctness fix
+  for the same reason (a solo Pro tutor with no org must be able to manage their own students).
 
 ## Notes (Tutoring Topic File Uploads) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-topic-file-uploads-design.md
