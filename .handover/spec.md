@@ -43,7 +43,7 @@ workspace profile.
 ## C-1 — Database migration: students table and sessions.student_id
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-084-tutoring-students.sql`:
+- [x] Create `supabase/schema-084-tutoring-students.sql`:
   ```sql
   create table public.students (
     id          uuid primary key default gen_random_uuid(),
@@ -90,8 +90,8 @@ workspace profile.
   alter table public.sessions
     add column student_id uuid references public.students on delete set null;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_students`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_students`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
@@ -109,7 +109,7 @@ workspace profile.
   select count(*) from pg_policies where schemaname = 'public' and tablename = 'students';
   ```
   Expected: `3`.
-- [ ] Commit: `git add supabase/schema-084-tutoring-students.sql && git commit -m "feat: tutoring student entity — database migration"`
+- [x] Commit: `git add supabase/schema-084-tutoring-students.sql && git commit -m "feat: tutoring student entity — database migration"`
 
 ---
 
@@ -625,7 +625,7 @@ workspace profile.
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `students` table + RLS + `sessions.student_id` applied and verified
+- [x] C-1: `students` table + RLS + `sessions.student_id` applied and verified
 - [ ] C-2: Student CRUD components + API route + students page created, build passes
 - [ ] C-3: Students tile shown only for tutoring profile, build passes
 - [ ] C-4: student picker wired into session creation, student shown per session, manual smoke
