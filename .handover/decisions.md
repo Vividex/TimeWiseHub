@@ -15,8 +15,11 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Per-Lesson Billing (current phase): zero cost — pure code + one additive DB migration
-  (two new nullable columns, one index), no external API calls, no new npm dependencies.
+- Tutoring Subject Tagging (current phase): zero cost — pure code + one additive/destructive DB
+  migration (drop `students.subject`, add `students.subjects` backfilled from it, add
+  `sessions.subject`), no external API calls, no new npm dependencies.
+- Tutoring Per-Lesson Billing (prior phase, complete): zero cost — pure code + one additive DB
+  migration (two new nullable columns, one index), no external API calls, no new npm dependencies.
 - Tutoring Student Entity (prior phase, complete): zero cost — pure code + one additive DB
   migration (one new table, one new nullable column), no external API calls, no new npm
   dependencies.
@@ -52,6 +55,31 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Subject Tagging) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-subject-tagging-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-subject-tagging.md
+- Third deep-dive feature for the Tutoring workspace profile. Students already had a single
+  free-text `subject` column; user confirmed two real gaps ("Both"): a student can see the same
+  tutor for more than one subject, and individual sessions weren't tagged at all. Chose the
+  simplest data model available: free-text tags per student (`text[]`), no shared/org-wide subject
+  vocabulary, exact-string dedup only.
+- Booking a session: subject dropdown scoped to the selected student's tags + an "Other…"
+  free-text fallback. Choosing "Other…" and submitting both tags the session AND appends the new
+  value to that student's `subjects` array — user explicitly chose this self-maintaining behavior
+  ("Yes, add it to the student") over session-only tagging, so a tutor's ad hoc/improv topics
+  become available for next time without a separate edit step.
+- Always optional, matching the existing `student_id` pattern — no session is ever forced to have
+  a subject.
+- **Deliberately not touching recurring sessions:** `/api/clients/[id]/sessions/series` was
+  confirmed (by reading it) to not persist `student_id` at all today, despite `NewSessionModal`
+  already passing it in that request body — a pre-existing, unrelated gap. `subject` is passed
+  into that same body for consistency but will be silently ignored by the route exactly like
+  `studentId` is today. Only single (non-repeating) sessions actually get a subject.
+- `students.subject` (single text) is dropped, not kept alongside — this is an early-stage feature
+  with low real data volume, so a clean replace was chosen over a compatibility shim.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Tutoring Per-Lesson Billing) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-per-lesson-billing-design.md
