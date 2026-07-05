@@ -94,7 +94,7 @@ registry + resolver engine, already shipped).
 ## C-2 — SetupWizard component and /setup page
 
 *Codex edits:*
-- [ ] Create `src/components/setup/SetupWizard.tsx`:
+- [x] Create `src/components/setup/SetupWizard.tsx`:
   ```typescript
   'use client'
 
@@ -235,7 +235,7 @@ registry + resolver engine, already shipped).
     )
   }
   ```
-- [ ] Create `src/app/setup/page.tsx`:
+- [x] Create `src/app/setup/page.tsx`:
   ```typescript
   import { redirect } from 'next/navigation'
   import { cookies } from 'next/headers'
@@ -287,11 +287,11 @@ registry + resolver engine, already shipped).
   ```
   This mirrors `dashboard/layout.tsx`'s own org-resolution pattern — matching existing convention
   of inline per-route org resolution rather than introducing a new shared helper.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/setup/SetupWizard.tsx src/app/setup/page.tsx && git commit -m "feat: setup wizard — SetupWizard component and /setup page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/setup/SetupWizard.tsx src/app/setup/page.tsx && git commit -m "feat: setup wizard — SetupWizard component and /setup page"`
 
 ---
 
@@ -403,7 +403,7 @@ registry + resolver engine, already shipped).
 
 ## Acceptance checklist
 - [x] C-1: `IndustryPicker` component created, build passes
-- [ ] C-2: `SetupWizard` + `/setup` page created, build passes
+- [x] C-2: `SetupWizard` + `/setup` page created, build passes
 - [ ] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
   routed through `/setup` once and not again after completing
 - [ ] C-4: industry editable via Settings for org admins and solo Pro, hidden for employees, build
