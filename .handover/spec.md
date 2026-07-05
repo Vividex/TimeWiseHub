@@ -511,7 +511,7 @@ workspace profile.
 ## C-3 — Students tile on client detail page
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/clients/[id]/page.tsx`, then:
+- [x] Read `src/app/dashboard/clients/[id]/page.tsx`, then:
   1. Add `GraduationCap` to the existing lucide-react import.
   2. Change `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)` to
      `const { terminology, key: profileKey } = await getWorkspaceProfileForUser(supabase, user.id)`.
@@ -532,11 +532,11 @@ workspace profile.
                <Tile title="Students" icon={GraduationCap} accent="#16a34a" stat={studentCount} href={`/dashboard/clients/${id}/students`} />
              )}
      ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: tutoring student entity — Students tile on client detail page"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/page.tsx" && git commit -m "feat: tutoring student entity — Students tile on client detail page"`
 
 ---
 
@@ -627,7 +627,7 @@ workspace profile.
 ## Acceptance checklist
 - [x] C-1: `students` table + RLS + `sessions.student_id` applied and verified
 - [x] C-2: Student CRUD components + API route + students page created, build passes
-- [ ] C-3: Students tile shown only for tutoring profile, build passes
+- [x] C-3: Students tile shown only for tutoring profile, build passes
 - [ ] C-4: student picker wired into session creation, student shown per session, manual smoke
   confirms the full flow and real account industry is restored afterward
 

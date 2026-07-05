@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknote, Mail } from 'lucide-react'
+import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknote, Mail, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import DeleteClientButton from '@/components/clients/DeleteClientButton'
@@ -12,7 +12,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { terminology, key: profileKey } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('role').eq('user_id', user.id).maybeSingle()
@@ -35,6 +35,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('client_id', id),
     supabase.from('progress_notes').select('id', { count: 'exact', head: true }).eq('client_id', id),
   ])
+
+  let studentCount = 0
+  if (profileKey === 'tutoring') {
+    const { count } = await supabase
+      .from('students').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('archived', false)
+    studentCount = count ?? 0
+  }
 
   const { data: latestInboundMessage } = await supabase
     .from('client_messages')
@@ -112,6 +119,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <Tile title="Projects" icon={FolderKanban} accent="#2563eb" stat={projectCount ?? 0} href={`/dashboard/clients/${id}/projects`} />
             <Tile title="Sessions" icon={CalendarClock} accent="#0891b2" stat={sessionCount ?? 0} href={`/dashboard/clients/${id}/sessions`} />
             <Tile title="Progress notes" icon={NotebookPen} accent="#7c3aed" stat={noteCount ?? 0} href={`/dashboard/clients/${id}/notes`} />
+            {profileKey === 'tutoring' && (
+              <Tile title="Students" icon={GraduationCap} accent="#16a34a" stat={studentCount} href={`/dashboard/clients/${id}/students`} />
+            )}
             <Tile
               title="Messages"
               icon={Mail}
