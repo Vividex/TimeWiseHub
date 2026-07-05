@@ -25,3 +25,26 @@ export function parseClientIdFromAddress(address: string): string | null {
   const match = address.match(CLIENT_MESSAGE_ADDRESS_RE)
   return match ? match[1] : null
 }
+
+const QUOTE_CHAIN_MARKERS = [
+  /^_{8,}\s*$/m, // Outlook: divider line before From:/Sent:/To:/Subject:
+  /^-{3,}\s*Original Message\s*-{3,}\s*$/im, // generic: "-----Original Message-----"
+  /^On .{0,120}wrote:\s*$/im, // Gmail/Apple Mail: "On <date>, <name> wrote:"
+]
+
+/**
+ * Cuts a quoted reply chain off an inbound email body, keeping only the client's actual new
+ * text. Render-time only — the stored body is untouched, so improving this list later needs
+ * no backfill, just a redeploy.
+ */
+export function stripQuoteChain(body: string): string {
+  let cutIndex = body.length
+  for (const marker of QUOTE_CHAIN_MARKERS) {
+    const match = body.match(marker)
+    if (match && match.index !== undefined && match.index < cutIndex) {
+      cutIndex = match.index
+    }
+  }
+  const stripped = body.slice(0, cutIndex).trim()
+  return stripped || body.trim()
+}

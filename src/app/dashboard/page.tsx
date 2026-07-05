@@ -12,6 +12,7 @@ import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
 import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
+import { stripQuoteChain } from '@/lib/client-messages'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
@@ -226,11 +227,14 @@ export default async function DashboardHome() {
     }))
   const unreadMessages: UnreadClientMessage[] = (
     (unreadMessagesRes.data ?? []) as { client_id: string; client_name: string; preview: string; created_at: string }[]
-  ).map(m => ({
-    client_id: m.client_id,
-    client_name: m.client_name,
-    preview: m.preview.length > 80 ? m.preview.slice(0, 77) + '…' : m.preview,
-  }))
+  ).map(m => {
+    const preview = stripQuoteChain(m.preview)
+    return {
+      client_id: m.client_id,
+      client_name: m.client_name,
+      preview: preview.length > 80 ? preview.slice(0, 77) + '…' : preview,
+    }
+  })
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   return (

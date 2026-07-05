@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Send } from 'lucide-react'
+import { stripQuoteChain } from '@/lib/client-messages'
 
 export type ClientMessage = {
   id: string
@@ -75,7 +76,7 @@ export default function ClientMessagesThread({
                   ? 'bg-cyan-600 text-white'
                   : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200'
               }`}>
-                {m.body}
+                {m.direction === 'inbound' ? stripQuoteChain(m.body) : m.body}
               </div>
             </div>
           ))
