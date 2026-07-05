@@ -72,14 +72,14 @@ export default function OnboardingPage() {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => { router.push('/dashboard'); router.refresh() }}
+                onClick={() => { window.location.href = '/setup' }}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Skip for now
               </button>
               <button
                 type="button"
-                onClick={() => { router.push('/dashboard'); router.refresh() }}
+                onClick={() => { window.location.href = '/setup' }}
                 className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
               >
                 Done

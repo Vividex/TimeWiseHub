@@ -63,6 +63,16 @@ export default async function DashboardLayout({
 
   const role = (membership?.role ?? 'employee') as UserRole
 
+  if (orgId && ['owner', 'admin'].includes(role)) {
+    const { data: org } = await supabase
+      .from('organisations').select('setup_completed').eq('id', orgId).maybeSingle()
+    if (org && !org.setup_completed) redirect('/setup')
+  } else if (!orgId) {
+    const { data: profile } = await supabase
+      .from('profiles').select('setup_completed').eq('id', user.id).maybeSingle()
+    if (profile && !profile.setup_completed) redirect('/setup')
+  }
+
   return (
     <TutorialProvider initialDismissed={initialDismissed} role={role}>
       <ChatRealtimeProvider userId={user.id} orgId={orgId ?? ''}>

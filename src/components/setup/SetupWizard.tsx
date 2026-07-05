@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import IndustryPicker from './IndustryPicker'
 import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'
@@ -20,7 +19,6 @@ export default function SetupWizard({
   orgId: string | null
   userId: string
 }) {
-  const router = useRouter()
   const [stepIndex, setStepIndex] = useState(0)
   const [complete, setComplete] = useState(false)
   const [selected, setSelected] = useState<WorkspaceProfileKey | null>(null)
@@ -71,7 +69,7 @@ export default function SetupWizard({
           </p>
           <button
             type="button"
-            onClick={() => { router.push('/dashboard'); router.refresh() }}
+            onClick={() => { window.location.href = '/dashboard' }}
             className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
           >
             Go to dashboard

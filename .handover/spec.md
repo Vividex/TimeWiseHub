@@ -298,7 +298,7 @@ registry + resolver engine, already shipped).
 ## C-3 — Wire up entry points: dashboard gate and onboarding redirect
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/layout.tsx`, then insert this block right after line 64
+- [x] Read `src/app/dashboard/layout.tsx`, then insert this block right after line 64
   (`const role = (membership?.role ?? 'employee') as UserRole`) and before the `return` statement:
   ```typescript
     if (orgId && ['owner', 'admin'].includes(role)) {
@@ -312,18 +312,31 @@ registry + resolver engine, already shipped).
     }
   ```
   `employee`-role members are never redirected regardless of their org's `setup_completed` value.
-- [ ] Read `src/app/onboarding/page.tsx`, then change both occurrences of
+- [x] Read `src/app/onboarding/page.tsx`, then change both occurrences of
   `router.push('/dashboard'); router.refresh()` (currently lines 75 and 82, the "Skip for now" and
   "Done" buttons) to `router.push('/setup'); router.refresh()`. No other change to this file.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: sign in as the existing org's owner (Vividex, `setup_completed = false`
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: sign in as the existing org's owner (Vividex, `setup_completed = false`
   since the Phase 1 migration), confirm the dashboard redirects to `/setup`. Complete the wizard,
   confirm it lands back on `/dashboard`, confirm a second dashboard visit does NOT redirect again
   (SQL check: `organisations.setup_completed` is now `true`).
-- [ ] Commit: `git add src/app/dashboard/layout.tsx src/app/onboarding/page.tsx && git commit -m "feat: setup wizard — gate dashboard access and redirect from onboarding"`
+
+  Result: found and fixed a real bug during this test. Picking an industry and finishing (as the
+  Vividex owner, chose Builder & Construction) wrote `workspace_profile`/`setup_completed` to the
+  DB correctly (confirmed via SQL both times), but the browser hit `ERR_TOO_MANY_REDIRECTS` on the
+  way to `/dashboard`. Root cause: `router.push('/dashboard'); router.refresh()` (both in
+  `SetupWizard.tsx`'s Finish handler and `/onboarding`'s two buttons) fires a soft client
+  navigation and a refresh in the same tick — harmless before this phase (nothing on `/dashboard`
+  depended on freshly-mutated data), but now that `dashboard/layout.tsx`'s gate reads
+  `setup_completed` right as it's written, the race produced conflicting redirect targets. Fixed
+  by switching both to a hard navigation (`window.location.href`), guaranteeing a fresh
+  request with no client-router-cache involvement. Also restarted the dev server (had been running
+  60+ hours) to rule out stale state. Confirmed working after the fix: fresh tab, cookies cleared,
+  `/dashboard` now loads normally with no redirect.
+- [x] Commit: `git add src/app/dashboard/layout.tsx src/app/onboarding/page.tsx src/components/setup/SetupWizard.tsx && git commit -m "feat: setup wizard — gate dashboard access and redirect from onboarding"`
 
 ---
 
@@ -404,8 +417,9 @@ registry + resolver engine, already shipped).
 ## Acceptance checklist
 - [x] C-1: `IndustryPicker` component created, build passes
 - [x] C-2: `SetupWizard` + `/setup` page created, build passes
-- [ ] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
-  routed through `/setup` once and not again after completing
+- [x] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
+  routed through `/setup` once and not again after completing (redirect-loop bug found and fixed
+  during this test — see notes)
 - [ ] C-4: industry editable via Settings for org admins and solo Pro, hidden for employees, build
   passes
 
