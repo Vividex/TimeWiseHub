@@ -35,7 +35,7 @@ identically to before this phase. Phase 4 of the Workspace Profile roadmap.
 ## C-1 — NavOverrides type
 
 *Codex edits:*
-- [ ] Edit `src/lib/workspace-profiles/types.ts` — add this new type anywhere after
+- [x] Edit `src/lib/workspace-profiles/types.ts` — add this new type anywhere after
   `TerminologyEntry`/`Terminology` and before `WorkspaceProfileConfig`:
   ```typescript
   export type NavOverrides = {
@@ -61,12 +61,12 @@ identically to before this phase. Phase 4 of the Workspace Profile roadmap.
     navOverrides?: NavOverrides
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean. `navOverrides` is optional and no registry entry sets
+- [x] `pnpm run build` — must pass clean. `navOverrides` is optional and no registry entry sets
   it, so `registry.ts` needs no changes.
-- [ ] Commit: `git add src/lib/workspace-profiles/types.ts && git commit -m "feat: dynamic navigation — NavOverrides type"`
+- [x] Commit: `git add src/lib/workspace-profiles/types.ts && git commit -m "feat: dynamic navigation — NavOverrides type"`
 
 ---
 
@@ -138,7 +138,7 @@ identically to before this phase. Phase 4 of the Workspace Profile roadmap.
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `NavOverrides` type shipped, `WorkspaceProfileConfig` extended, build passes
+- [x] C-1: `NavOverrides` type shipped, `WorkspaceProfileConfig` extended, build passes
 - [ ] C-2: `applyNavOverrides` implemented and verified (identity + synthetic override cases),
   prop threading complete, manual smoke confirms zero visible change for the real account
 

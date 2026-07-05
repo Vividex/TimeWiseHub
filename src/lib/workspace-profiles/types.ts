@@ -16,8 +16,15 @@ export type TerminologyEntry = { singular: string; plural: string }
 
 export type Terminology = Record<TerminologyKey, TerminologyEntry>
 
+export type NavOverrides = {
+  hiddenHrefs?: string[]
+  groupOrder?: string[]
+  itemOrder?: Record<string, string[]>
+}
+
 export type WorkspaceProfileConfig = {
   key: WorkspaceProfileKey
   label: string
   terminology: Terminology
+  navOverrides?: NavOverrides
 }
