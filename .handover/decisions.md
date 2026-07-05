@@ -15,8 +15,11 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Student Entity (current phase): zero cost — pure code + one additive DB migration
-  (one new table, one new nullable column), no external API calls, no new npm dependencies.
+- Tutoring Per-Lesson Billing (current phase): zero cost — pure code + one additive DB migration
+  (two new nullable columns, one index), no external API calls, no new npm dependencies.
+- Tutoring Student Entity (prior phase, complete): zero cost — pure code + one additive DB
+  migration (one new table, one new nullable column), no external API calls, no new npm
+  dependencies.
 - Dynamic Navigation Engine (prior phase, complete): zero cost — pure code, no schema changes, no
   external API calls, no new npm dependencies.
 - Dynamic Terminology — Clients section (prior phase, complete): zero cost — pure code, no schema
@@ -49,6 +52,29 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Tutoring Per-Lesson Billing) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-tutoring-per-lesson-billing-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-tutoring-per-lesson-billing.md
+- Second deep-dive feature for the Tutoring workspace profile. Two billing rhythms exist for
+  tutoring (per-lesson and prepaid packages/credits) — user prioritized per-lesson first as the
+  simpler, more commonly-needed mode ("many families find it easier to pay weekly"). Packages/
+  credits deferred to a future phase.
+- Key finding during exploration: the existing `/api/invoices` route already had the exact
+  extension point needed (`invoice_items.time_entry_id` + marking `time_entries.invoice_id`) —
+  extended it to also handle `session_id`, rather than building a parallel invoice-creation path.
+  `NewInvoiceForm.tsx`'s time-entry-based flow is completely untouched.
+- Pricing reuses `clients.default_rate` (hourly) × session duration, falling back to 0 when null
+  (matches `NewInvoiceForm.tsx`'s own existing fallback for the same nullable field) — no new
+  pricing concept invented.
+- **Deliberately not gated to the tutoring profile** — billing sessions directly isn't an
+  inherently tutoring-only concept (a personal trainer might equally want it). Confirmed via
+  manual smoke test with the real account's non-tutoring profile.
+- Flagged but not fixed: `/api/invoices` uses the service-role client with only an
+  authentication check, no ownership verification on `clientId`/entry IDs — a pre-existing gap,
+  not introduced or worsened by this phase's `session_id` handling.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
 
 ## Notes (Tutoring Student Entity) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-student-entity-design.md
