@@ -53,7 +53,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Per-Lesson Billing) [current phase]
+## Notes (Tutoring Per-Lesson Billing) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-per-lesson-billing-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-per-lesson-billing.md
 - Second deep-dive feature for the Tutoring workspace profile. Two billing rhythms exist for
