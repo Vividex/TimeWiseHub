@@ -44,6 +44,7 @@ export default function AddProgressNote({
 
     setBody('')
     setStudentId('')
+    setSaving(false)
     router.refresh()
   }
 
