@@ -625,7 +625,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: on a session with a student set, use "Add to progress notes" (session
+- [x] Manual smoke test: on a session with a student set, use "Add to progress notes" (session
   notes or call summary), confirm the resulting note has the correct student_id; confirm the
   student filter on the Notes page shows/hides notes correctly; add a manual "General note" and
   confirm it's untagged; select 2 unsent notes for the same student and send, confirm one email
@@ -635,15 +635,17 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
   (non-report) client message and confirm the original default subject still works; if a second
   non-admin org member account is available, confirm they can send a note created by someone else
   and it correctly gets marked sent.
-- [ ] Commit: `git add src/components/clients/AddProgressNote.tsx src/components/clients/ProgressNotesList.tsx "src/app/dashboard/clients/[id]/notes/page.tsx" && git commit -m "feat: tutoring progress reports — notes page student tagging, filter, and send-to-parent"`
+- [x] Commit: `git add src/components/clients/AddProgressNote.tsx src/components/clients/ProgressNotesList.tsx "src/app/dashboard/clients/[id]/notes/page.tsx" && git commit -m "feat: tutoring progress reports — notes page student tagging, filter, and send-to-parent"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `progress_notes.student_id`/`sent_to_parent_at` migration applied and verified
-- [ ] C-2: session-detail student_id threading shipped, build passes
-- [ ] C-3: messages API subject/noteIds extension shipped, build passes
-- [ ] C-4: notes page UI shipped, build passes, manual smoke confirms full flow
+- [x] C-1: `progress_notes.student_id`/`sent_to_parent_at` migration applied and verified
+- [x] C-2: session-detail student_id threading shipped, build passes
+- [x] C-3: messages API subject/noteIds extension shipped, build passes
+- [x] C-4: notes page UI shipped, build passes, manual smoke confirms full flow (plus two
+  post-testing fixes: a pre-existing stuck-"Saving…" bug in AddProgressNote, and a missing
+  restore-from-archive capability for students)
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
