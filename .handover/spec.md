@@ -47,7 +47,7 @@ feature for the Tutoring workspace profile.
 ## C-1 — Database migration: subjects, topics, sessions/students columns
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-087-tutoring-year-subject-topic.sql`:
+- [x] Create `supabase/schema-087-tutoring-year-subject-topic.sql`:
   ```sql
   create table public.subjects (
     id uuid primary key default gen_random_uuid(),
@@ -113,8 +113,8 @@ feature for the Tutoring workspace profile.
 
   alter table public.students drop column subjects;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_year_subject_topic`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_year_subject_topic`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select table_name from information_schema.tables where table_schema = 'public' and table_name in ('subjects', 'topics');
   ```
@@ -133,7 +133,7 @@ feature for the Tutoring workspace profile.
   select column_name from information_schema.columns where table_schema = 'public' and table_name = 'students' and column_name = 'subjects';
   ```
   Expected: 0 rows.
-- [ ] Commit: `git add supabase/schema-087-tutoring-year-subject-topic.sql && git commit -m "feat: tutoring year/subject/topic structure — database migration"`
+- [x] Commit: `git add supabase/schema-087-tutoring-year-subject-topic.sql && git commit -m "feat: tutoring year/subject/topic structure — database migration"`
 
 ---
 
