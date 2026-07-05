@@ -1,6 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase-service'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import ClientMessagesThread from '@/components/clients/ClientMessagesThread'
 import type { ClientMessage } from '@/components/clients/ClientMessagesThread'
@@ -35,6 +36,13 @@ export default async function ClientMessagesPage({
       </div>
     )
   }
+
+  // Viewing this page is the "read" signal — shared across the whole org, not per-user. Uses
+  // the service-role client because clients' UPDATE policy only covers owner/admin roles, while
+  // any org member can legitimately view this page (already proven by the RLS-respecting SELECT
+  // above succeeding) and should be able to mark it read.
+  const service = createServiceClient()
+  await service.from('clients').update({ messages_last_viewed_at: new Date().toISOString() }).eq('id', id)
 
   const { data: rows } = await supabase
     .from('client_messages')

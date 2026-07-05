@@ -83,7 +83,7 @@ Messages tile, so staff don't have to check each client individually to discover
 ## C-2 — Mark client messages read on page view
 
 *Codex edits:*
-- [ ] Read `src/app/dashboard/clients/[id]/messages/page.tsx` first, then add the import
+- [x] Read `src/app/dashboard/clients/[id]/messages/page.tsx` first, then add the import
   `import { createServiceClient } from '@/lib/supabase-service'` alongside the existing
   `createClient` import, and immediately after the existing paid-plan gate block (after its
   closing brace, before `const { data: rows } = await supabase...`), add:
@@ -98,8 +98,8 @@ Messages tile, so staff don't have to check each client individually to discover
   ```
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/messages/page.tsx" && git commit -m "feat: unread client messages — mark read on page view"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/messages/page.tsx" && git commit -m "feat: unread client messages — mark read on page view"`
 
 ---
 
