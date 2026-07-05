@@ -389,14 +389,14 @@ list. Third deep-dive feature for the Tutoring workspace profile.
                       )}
                     </div>
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: existing student's migrated subject shows as one pill; add a new student
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: existing student's migrated subject shows as one pill; add a new student
   with two subjects; edit a student (remove one pill, add a different one), confirm persistence on
   reload; confirm duplicate subject text does not add a second pill.
-- [ ] Commit: `git add src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx "src/app/api/students/[id]/route.ts" "src/app/dashboard/clients/[id]/students/page.tsx" && git commit -m "feat: tutoring subject tagging — student CRUD and display"`
+- [x] Commit: `git add src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx "src/app/api/students/[id]/route.ts" "src/app/dashboard/clients/[id]/students/page.tsx" && git commit -m "feat: tutoring subject tagging — student CRUD and display"`
 
 ---
 

@@ -21,7 +21,7 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
 
   const { data: students } = await supabase
     .from('students')
-    .select('id, name, subject, notes')
+    .select('id, name, subjects, notes')
     .eq('client_id', id)
     .eq('archived', false)
     .order('name')
@@ -43,7 +43,15 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
                 <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.name}</p>
-                    {s.subject && <p className="text-xs text-gray-400">{s.subject}</p>}
+                    {s.subjects.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {s.subjects.map((subj: string) => (
+                          <span key={subj} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">
+                            {subj}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {canEdit && (
                     <div className="flex shrink-0 items-center gap-2">
