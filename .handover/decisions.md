@@ -50,7 +50,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Student Entity) [current phase]
+## Notes (Tutoring Student Entity) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-student-entity-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-student-entity.md
 - First deep-dive feature for the Tutoring workspace profile, following the roadmap's Phases 1-4
