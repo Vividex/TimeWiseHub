@@ -40,7 +40,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 ## C-1 — Database migration: Workspace Profile columns
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-083-workspace-profiles.sql`:
+- [x] Create `supabase/schema-083-workspace-profiles.sql`:
   ```sql
   alter table public.organisations
     add column workspace_profile text not null default 'generic',
@@ -52,8 +52,8 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
     add column setup_completed boolean not null default false,
     add column setup_completed_at timestamptz;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `workspace_profile_columns`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `workspace_profile_columns`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable, column_default
   from information_schema.columns
@@ -68,8 +68,9 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
   select workspace_profile, setup_completed from public.organisations;
   select workspace_profile, setup_completed from public.profiles;
   ```
-  Expected: every existing row shows `generic` / `false`.
-- [ ] Commit: `git add supabase/schema-083-workspace-profiles.sql && git commit -m "feat: workspace profile engine — database migration"`
+  Expected: every existing row shows `generic` / `false`. Result: confirmed — 1/1 organisations,
+  7/7 profiles match the default exactly.
+- [x] Commit: `git add supabase/schema-083-workspace-profiles.sql && git commit -m "feat: workspace profile engine — database migration"`
 
 ---
 
@@ -199,7 +200,7 @@ personalisation, dynamic tutorial — each a future separate brainstorm/spec/pla
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `workspace_profile`/`setup_completed`/`setup_completed_at` columns on `organisations`
+- [x] C-1: `workspace_profile`/`setup_completed`/`setup_completed_at` columns on `organisations`
   and `profiles`, defaults verified applied to existing rows
 - [ ] C-2: `src/lib/workspace-profiles/types.ts` + `registry.ts` created, build passes
 - [ ] C-3: `src/lib/workspace-profiles/resolve.ts` created, build passes, functional verification
