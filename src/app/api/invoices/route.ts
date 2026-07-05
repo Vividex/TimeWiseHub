@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { clientId, orgId, items, dueDate, notes, currency, issueDate, invoicedEntryIds, isQuote } = await req.json()
+  const { clientId, orgId, items, dueDate, notes, currency, issueDate, invoicedEntryIds, invoicedSessionIds, isQuote } = await req.json()
   if (!items?.length) return NextResponse.json({ error: 'Invoice must have at least one line item' }, { status: 400 })
 
   const service = createServiceClient()
@@ -54,12 +54,13 @@ export async function POST(req: Request) {
   if (invError || !invoice) return NextResponse.json({ error: invError?.message }, { status: 500 })
 
   // Insert line items
-  const lineItems = items.map((item: { description: string; quantity: number; unit_price: number; time_entry_id?: string }, idx: number) => ({
+  const lineItems = items.map((item: { description: string; quantity: number; unit_price: number; time_entry_id?: string; session_id?: string }, idx: number) => ({
     invoice_id: invoice.id,
     description: item.description,
     quantity: item.quantity,
     unit_price: item.unit_price,
     time_entry_id: item.time_entry_id || null,
+    session_id: item.session_id || null,
     sort_order: idx,
   }))
 
@@ -73,6 +74,16 @@ export async function POST(req: Request) {
   const uniqueEntryIds = [...new Set(allEntryIds)] as string[]
   if (uniqueEntryIds.length > 0) {
     await service.from('time_entries').update({ invoice_id: invoice.id }).in('id', uniqueEntryIds).eq('user_id', user.id)
+  }
+
+  // Mark sessions as invoiced
+  const allSessionIds = [
+    ...(invoicedSessionIds ?? []),
+    ...items.map((i: { session_id?: string }) => i.session_id).filter(Boolean),
+  ]
+  const uniqueSessionIds = [...new Set(allSessionIds)] as string[]
+  if (uniqueSessionIds.length > 0) {
+    await service.from('sessions').update({ invoice_id: invoice.id }).in('id', uniqueSessionIds)
   }
 
   return NextResponse.json({ id: invoice.id, invoice_number: invoiceNumber })

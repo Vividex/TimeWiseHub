@@ -77,7 +77,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
 ## C-2 — Extend /api/invoices to accept session_id line items
 
 *Codex edits:*
-- [ ] Read `src/app/api/invoices/route.ts`, then:
+- [x] Read `src/app/api/invoices/route.ts`, then:
   1. Change:
      ```typescript
      const { clientId, orgId, items, dueDate, notes, currency, issueDate, invoicedEntryIds, isQuote } = await req.json()
@@ -122,11 +122,11 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
          await service.from('sessions').update({ invoice_id: invoice.id }).in('id', uniqueSessionIds)
        }
      ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/invoices/route.ts && git commit -m "feat: tutoring per-lesson billing — /api/invoices session_id support"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/api/invoices/route.ts && git commit -m "feat: tutoring per-lesson billing — /api/invoices session_id support"`
 
 ---
 
@@ -310,7 +310,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
 
 ## Acceptance checklist
 - [x] C-1: `sessions.invoice_id` + `invoice_items.session_id` + index applied and verified
-- [ ] C-2: `/api/invoices` accepts and processes `session_id` line items, build passes
+- [x] C-2: `/api/invoices` accepts and processes `session_id` line items, build passes
 - [ ] C-3: `BillableSessionsPanel` created and wired in, manual smoke confirms full flow works
   regardless of workspace profile
 
