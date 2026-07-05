@@ -7,7 +7,6 @@ import EditStudentModal from './EditStudentModal'
 type Student = {
   id: string
   name: string
-  subjects: string[]
   notes: string | null
 }
 

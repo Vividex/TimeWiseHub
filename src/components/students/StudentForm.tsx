@@ -8,22 +8,9 @@ export default function StudentForm({ clientId }: { clientId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [subjects, setSubjects] = useState<string[]>([])
-  const [newSubject, setNewSubject] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  function addSubject() {
-    const trimmed = newSubject.trim()
-    if (!trimmed || subjects.includes(trimmed)) return
-    setSubjects(prev => [...prev, trimmed])
-    setNewSubject('')
-  }
-
-  function removeSubject(subject: string) {
-    setSubjects(prev => prev.filter(s => s !== subject))
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,7 +21,6 @@ export default function StudentForm({ clientId }: { clientId: string }) {
     const { error: insertError } = await supabase.from('students').insert({
       client_id: clientId,
       name,
-      subjects,
       notes: notes || null,
     })
 
@@ -42,7 +28,7 @@ export default function StudentForm({ clientId }: { clientId: string }) {
       setError(insertError.message)
     } else {
       setOpen(false)
-      setName(''); setSubjects([]); setNewSubject(''); setNotes('')
+      setName(''); setNotes('')
       router.refresh()
     }
     setLoading(false)
@@ -62,30 +48,6 @@ export default function StudentForm({ clientId }: { clientId: string }) {
             <input required type="text" value={name} onChange={e => setName(e.target.value)}
               placeholder="e.g. Emma"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Subjects</label>
-            {subjects.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {subjects.map(s => (
-                  <span key={s} className="flex items-center gap-1 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
-                    {s}
-                    <button type="button" onClick={() => removeSubject(s)} className="text-cyan-400 hover:text-cyan-700">✕</button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <input type="text" value={newSubject} onChange={e => setNewSubject(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubject() } }}
-                placeholder="e.g. Year 10 Maths"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-              <button type="button" onClick={addSubject}
-                className="shrink-0 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50">
-                Add
-              </button>
-            </div>
           </div>
 
           <div>

@@ -3,31 +3,41 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import { YEAR_GROUPS } from '@/lib/tutoring/constants'
 
 type Template = { id: string; title: string; position: number }
 type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
-type StudentOption = { id: string; name: string; subjects: string[] }
+type StudentOption = { id: string; name: string }
+type SubjectOption = { id: string; name: string }
+type TopicOption = { id: string; name: string }
 
-const OTHER_SUBJECT = '__other__'
+const NEW_SUBJECT = '__new_subject__'
+const NEW_TOPIC = '__new_topic__'
 
 export default function NewSessionModal({
   clientId,
   orgId,
   clientLabel,
   students,
+  subjects,
 }: {
   clientId: string
   orgId: string | null
   clientLabel: { singular: string; plural: string }
   students: StudentOption[]
+  subjects: SubjectOption[]
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [studentId, setStudentId] = useState('')
+  const [yearGroup, setYearGroup] = useState('')
   const [subjectChoice, setSubjectChoice] = useState('')
-  const [newSubject, setNewSubject] = useState('')
+  const [newSubjectName, setNewSubjectName] = useState('')
+  const [topicChoice, setTopicChoice] = useState('')
+  const [newTopicName, setNewTopicName] = useState('')
+  const [topicOptions, setTopicOptions] = useState<TopicOption[]>([])
   const [scheduledAt, setScheduledAt] = useState('')
   const [duration, setDuration] = useState(60)
   const [repeat, setRepeat] = useState<Repeat>('none')
@@ -35,12 +45,41 @@ export default function NewSessionModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const selectedStudent = students.find(s => s.id === studentId) ?? null
+  const isNewSubject = subjectChoice === NEW_SUBJECT
 
   useEffect(() => {
+    setYearGroup('')
     setSubjectChoice('')
-    setNewSubject('')
+    setNewSubjectName('')
+    setTopicChoice('')
+    setNewTopicName('')
+    if (!studentId) return
+    supabase
+      .from('sessions')
+      .select('year_group, subject_id')
+      .eq('student_id', studentId)
+      .order('scheduled_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        const last = data?.[0]
+        if (last?.year_group) setYearGroup(last.year_group as string)
+        if (last?.subject_id) setSubjectChoice(last.subject_id as string)
+      })
   }, [studentId])
+
+  useEffect(() => {
+    setTopicChoice('')
+    setNewTopicName('')
+    if (!subjectChoice || isNewSubject || !yearGroup) { setTopicOptions([]); return }
+    supabase
+      .from('topics')
+      .select('id, name')
+      .eq('subject_id', subjectChoice)
+      .eq('year_group', yearGroup)
+      .eq('archived', false)
+      .order('name')
+      .then(({ data }) => setTopicOptions(data ?? []))
+  }, [subjectChoice, yearGroup, isNewSubject])
 
   useEffect(() => {
     if (!open) return
@@ -58,9 +97,39 @@ export default function NewSessionModal({
     setSaving(true)
     setError('')
 
-    const resolvedSubject = subjectChoice === OTHER_SUBJECT
-      ? (newSubject.trim() || null)
-      : (subjectChoice || null)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setError('Not logged in.'); setSaving(false); return }
+
+    let resolvedSubjectId: string | null = subjectChoice && !isNewSubject ? subjectChoice : null
+    if (isNewSubject && newSubjectName.trim()) {
+      const { data: newSubject, error: subjErr } = await supabase
+        .from('subjects')
+        .insert({ org_id: orgId, created_by: user.id, name: newSubjectName.trim() })
+        .select('id')
+        .single()
+      if (subjErr || !newSubject) {
+        setError(subjErr?.message ?? 'Failed to create subject.')
+        setSaving(false)
+        return
+      }
+      resolvedSubjectId = newSubject.id
+    }
+
+    let resolvedTopicId: string | null = topicChoice && topicChoice !== NEW_TOPIC ? topicChoice : null
+    const topicNameToCreate = isNewSubject ? newTopicName.trim() : (topicChoice === NEW_TOPIC ? newTopicName.trim() : '')
+    if (topicNameToCreate && resolvedSubjectId && yearGroup) {
+      const { data: newTopic, error: topicErr } = await supabase
+        .from('topics')
+        .insert({ subject_id: resolvedSubjectId, year_group: yearGroup, created_by: user.id, name: topicNameToCreate })
+        .select('id')
+        .single()
+      if (topicErr || !newTopic) {
+        setError(topicErr?.message ?? 'Failed to create topic.')
+        setSaving(false)
+        return
+      }
+      resolvedTopicId = newTopic.id
+    }
 
     if (repeat !== 'none') {
       const res = await fetch(`/api/clients/${clientId}/sessions/series`, {
@@ -72,7 +141,9 @@ export default function NewSessionModal({
           durationMinutes: duration,
           recurrenceInterval: repeat,
           studentId: studentId || null,
-          subject: resolvedSubject,
+          yearGroup: yearGroup || null,
+          subjectId: resolvedSubjectId,
+          topicId: resolvedTopicId,
         }),
       })
       const json = await res.json()
@@ -81,9 +152,6 @@ export default function NewSessionModal({
       router.push(`/dashboard/clients/${clientId}/sessions/${json.firstSessionId}`)
       return
     }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Not logged in.'); setSaving(false); return }
 
     const { data: session, error: sessErr } = await supabase
       .from('sessions')
@@ -96,7 +164,9 @@ export default function NewSessionModal({
         duration_minutes: duration,
         status: 'scheduled',
         student_id: studentId || null,
-        subject: resolvedSubject,
+        year_group: yearGroup || null,
+        subject_id: resolvedSubjectId,
+        topic_id: resolvedTopicId,
       })
       .select('id')
       .single()
@@ -116,18 +186,6 @@ export default function NewSessionModal({
           position: t.position,
         }))
       )
-    }
-
-    if (
-      selectedStudent &&
-      subjectChoice === OTHER_SUBJECT &&
-      resolvedSubject &&
-      !selectedStudent.subjects.includes(resolvedSubject)
-    ) {
-      await supabase
-        .from('students')
-        .update({ subjects: [...selectedStudent.subjects, resolvedSubject] })
-        .eq('id', selectedStudent.id)
     }
 
     router.push(`/dashboard/clients/${clientId}/sessions/${session.id}`)
@@ -173,25 +231,67 @@ export default function NewSessionModal({
               </select>
             </div>
           )}
-          {selectedStudent && (
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Year group</label>
+            <select
+              value={yearGroup}
+              onChange={e => setYearGroup(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="">— None —</option>
+              {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
+            <select
+              value={subjectChoice}
+              onChange={e => setSubjectChoice(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="">— None —</option>
+              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <option value={NEW_SUBJECT}>+ Add new subject…</option>
+            </select>
+            {isNewSubject && (
+              <input
+                value={newSubjectName}
+                onChange={e => setNewSubjectName(e.target.value)}
+                placeholder="e.g. Music"
+                className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              />
+            )}
+          </div>
+          {subjectChoice && (
             <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
-              <select
-                value={subjectChoice}
-                onChange={e => setSubjectChoice(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-              >
-                <option value="">— None —</option>
-                {selectedStudent.subjects.map(subj => <option key={subj} value={subj}>{subj}</option>)}
-                <option value={OTHER_SUBJECT}>Other…</option>
-              </select>
-              {subjectChoice === OTHER_SUBJECT && (
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Topic</label>
+              {isNewSubject ? (
                 <input
-                  value={newSubject}
-                  onChange={e => setNewSubject(e.target.value)}
-                  placeholder="e.g. Year 10 Maths"
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                  value={newTopicName}
+                  onChange={e => setNewTopicName(e.target.value)}
+                  placeholder="e.g. Algebra"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
                 />
+              ) : (
+                <>
+                  <select
+                    value={topicChoice}
+                    onChange={e => setTopicChoice(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                  >
+                    <option value="">— None —</option>
+                    {topicOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    <option value={NEW_TOPIC}>+ Add new topic…</option>
+                  </select>
+                  {topicChoice === NEW_TOPIC && (
+                    <input
+                      value={newTopicName}
+                      onChange={e => setNewTopicName(e.target.value)}
+                      placeholder="e.g. Algebra"
+                      className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                    />
+                  )}
+                </>
               )}
             </div>
           )}

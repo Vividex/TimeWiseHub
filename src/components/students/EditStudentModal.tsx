@@ -6,15 +6,12 @@ import { useRouter } from 'next/navigation'
 type Student = {
   id: string
   name: string
-  subjects: string[]
   notes: string | null
 }
 
 export default function EditStudentModal({ student, onClose }: { student: Student; onClose: () => void }) {
   const router = useRouter()
   const [name, setName] = useState(student.name)
-  const [subjects, setSubjects] = useState<string[]>(student.subjects)
-  const [newSubject, setNewSubject] = useState('')
   const [notes, setNotes] = useState(student.notes ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,17 +25,6 @@ export default function EditStudentModal({ student, onClose }: { student: Studen
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  function addSubject() {
-    const trimmed = newSubject.trim()
-    if (!trimmed || subjects.includes(trimmed)) return
-    setSubjects(prev => [...prev, trimmed])
-    setNewSubject('')
-  }
-
-  function removeSubject(subject: string) {
-    setSubjects(prev => prev.filter(s => s !== subject))
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -46,7 +32,7 @@ export default function EditStudentModal({ student, onClose }: { student: Studen
     const res = await fetch(`/api/students/${student.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, subjects, notes: notes || null }),
+      body: JSON.stringify({ name, notes: notes || null }),
     })
     if (res.ok) {
       onClose()
@@ -71,29 +57,6 @@ export default function EditStudentModal({ student, onClose }: { student: Studen
             <label className="mb-1 block text-xs font-semibold text-gray-500">Student name *</label>
             <input ref={firstRef} required type="text" value={name} onChange={e => setName(e.target.value)}
               className={inputCls} />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Subjects</label>
-            {subjects.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {subjects.map(s => (
-                  <span key={s} className="flex items-center gap-1 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300">
-                    {s}
-                    <button type="button" onClick={() => removeSubject(s)} className="text-cyan-400 hover:text-cyan-700">✕</button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <input type="text" value={newSubject} onChange={e => setNewSubject(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubject() } }}
-                className={inputCls} />
-              <button type="button" onClick={addSubject}
-                className="shrink-0 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400">
-                Add
-              </button>
-            </div>
           </div>
 
           <div>

@@ -21,10 +21,36 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
 
   const { data: students } = await supabase
     .from('students')
-    .select('id, name, subjects, notes')
+    .select('id, name, notes')
     .eq('client_id', id)
     .eq('archived', false)
     .order('name')
+
+  const studentIds = (students ?? []).map(s => s.id)
+  const subjectPills = new Map<string, string[]>()
+
+  if (studentIds.length > 0) {
+    const { data: taggedSessions } = await supabase
+      .from('sessions')
+      .select('student_id, subject_id, year_group, scheduled_at, subjects(name)')
+      .in('student_id', studentIds)
+      .not('subject_id', 'is', null)
+      .order('scheduled_at', { ascending: false })
+
+    const seen = new Set<string>()
+    for (const s of taggedSessions ?? []) {
+      const sid = s.student_id as string
+      const subjectId = s.subject_id as string
+      const key = `${sid}:${subjectId}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const subject = (s.subjects as unknown as { name: string } | null)
+      const label = [s.year_group as string | null, subject?.name ?? null].filter(Boolean).join(' ')
+      if (!label) continue
+      const existing = subjectPills.get(sid) ?? []
+      subjectPills.set(sid, [...existing, label])
+    }
+  }
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -43,11 +69,11 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
                 <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.name}</p>
-                    {s.subjects.length > 0 && (
+                    {(subjectPills.get(s.id) ?? []).length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {s.subjects.map((subj: string) => (
-                          <span key={subj} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">
-                            {subj}
+                        {(subjectPills.get(s.id) ?? []).map(label => (
+                          <span key={label} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">
+                            {label}
                           </span>
                         ))}
                       </div>

@@ -186,7 +186,7 @@ feature for the Tutoring workspace profile.
 
 *Codex edits (all 8 files in one turn — deliberate, keeps the build green):*
 
-- [ ] Rewrite `src/components/clients/NewSessionModal.tsx`:
+- [x] Rewrite `src/components/clients/NewSessionModal.tsx`:
   ```typescript
   'use client'
 
@@ -552,7 +552,7 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Rewrite `src/app/dashboard/clients/[id]/sessions/page.tsx`:
+- [x] Rewrite `src/app/dashboard/clients/[id]/sessions/page.tsx`:
   ```typescript
   // src/app/dashboard/clients/[id]/sessions/page.tsx
   import { redirect, notFound } from 'next/navigation'
@@ -684,7 +684,7 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Edit `src/components/clients/BillableSessionsPanel.tsx` — change:
+- [x] Edit `src/components/clients/BillableSessionsPanel.tsx` — change:
   ```typescript
   type BillableSession = {
     id: string
@@ -719,7 +719,7 @@ feature for the Tutoring workspace profile.
                 </p>
   ```
 
-- [ ] Rewrite `src/components/students/StudentForm.tsx`:
+- [x] Rewrite `src/components/students/StudentForm.tsx`:
   ```typescript
   'use client'
 
@@ -792,7 +792,7 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Rewrite `src/components/students/EditStudentModal.tsx`:
+- [x] Rewrite `src/components/students/EditStudentModal.tsx`:
   ```typescript
   'use client'
 
@@ -880,7 +880,7 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Edit `src/components/students/EditStudentButton.tsx` — change:
+- [x] Edit `src/components/students/EditStudentButton.tsx` — change:
   ```typescript
   type Student = {
     id: string
@@ -898,7 +898,7 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Edit `src/app/api/students/[id]/route.ts` — in `PATCH`, change:
+- [x] Edit `src/app/api/students/[id]/route.ts` — in `PATCH`, change:
   ```typescript
     const body = await req.json().catch(() => ({}))
     const { name, subjects, notes } = body as { name: string; subjects?: string[]; notes?: string | null }
@@ -922,7 +922,7 @@ feature for the Tutoring workspace profile.
     }).eq('id', id)
   ```
 
-- [ ] Rewrite `src/app/dashboard/clients/[id]/students/page.tsx`:
+- [x] Rewrite `src/app/dashboard/clients/[id]/students/page.tsx`:
   ```typescript
   import { redirect, notFound } from 'next/navigation'
   import Link from 'next/link'
@@ -1022,25 +1022,25 @@ feature for the Tutoring workspace profile.
   }
   ```
 
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: default 8 subjects appear in the picker on first visit; book a session
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: default 8 subjects appear in the picker on first visit; book a session
   picking a year group + existing subject + new topic, confirm the tile shows "Year X · Subject ·
   Topic"; book a second session for the same student, confirm year group/subject pre-fill and the
   new topic is now pickable; book a session choosing "+ Add new subject…" with a new topic in the
   same submit, confirm both are created correctly; Students page shows derived pills per student;
   Add/Edit Student forms show no subject field at all; a second non-admin org member can also add a
   new subject/topic while booking.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" src/components/clients/BillableSessionsPanel.tsx src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx "src/app/api/students/[id]/route.ts" "src/app/dashboard/clients/[id]/students/page.tsx" && git commit -m "feat: tutoring year/subject/topic structure — booking flow, sessions/students pages, student CRUD revert"`
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" src/components/clients/BillableSessionsPanel.tsx src/components/students/StudentForm.tsx src/components/students/EditStudentModal.tsx src/components/students/EditStudentButton.tsx "src/app/api/students/[id]/route.ts" "src/app/dashboard/clients/[id]/students/page.tsx" && git commit -m "feat: tutoring year/subject/topic structure — booking flow, sessions/students pages, student CRUD revert"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `subjects`/`topics` tables + `sessions`/`students` column changes applied and verified
-- [ ] C-2: constants + seeding helper shipped, build passes
-- [ ] C-3: booking flow + sessions/students pages + student CRUD revert shipped, build passes,
+- [x] C-1: `subjects`/`topics` tables + `sessions`/`students` column changes applied and verified
+- [x] C-2: constants + seeding helper shipped, build passes
+- [x] C-3: booking flow + sessions/students pages + student CRUD revert shipped, build passes,
   manual smoke confirms full flow
 
 ## Verification
