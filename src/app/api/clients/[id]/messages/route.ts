@@ -15,7 +15,7 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { body } = await req.json() as { body?: string }
+  const { body, subject, noteIds } = await req.json() as { body?: string; subject?: string; noteIds?: string[] }
   if (!body?.trim()) return NextResponse.json({ error: 'Message is empty' }, { status: 400 })
 
   const service = createServiceClient()
@@ -54,7 +54,7 @@ export async function POST(
   const senderName = invoiceLetterhead({ profile, organisation, subscription })
   const logoUrl = invoiceLogo({ profile, organisation, subscription })
 
-  const subject = `Message from ${senderName}`
+  const emailSubject = subject?.trim() || `Message from ${senderName}`
   const reassurance = `You can reply directly to this email — it'll come straight to ${senderName}.`
   const logoHtml = logoUrl
     ? `<img src="${logoUrl}" alt="" style="max-height:60px;max-width:200px;object-fit:contain;display:block;margin-bottom:16px;" />`
@@ -65,7 +65,7 @@ export async function POST(
   try {
     await sendEmail({
       to: client.email,
-      subject,
+      subject: emailSubject,
       text,
       html,
       fromName: senderName,
@@ -83,6 +83,13 @@ export async function POST(
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (noteIds && noteIds.length > 0) {
+    await service.from('progress_notes')
+      .update({ sent_to_parent_at: new Date().toISOString() })
+      .eq('client_id', client.id)
+      .in('id', noteIds)
+  }
 
   return NextResponse.json({ ok: true, id: inserted.id })
 }

@@ -162,7 +162,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 ## C-3 — Extend the client-messages API route (subject + noteIds)
 
 *Codex edits:*
-- [ ] Read `src/app/api/clients/[id]/messages/route.ts`, then:
+- [x] Read `src/app/api/clients/[id]/messages/route.ts`, then:
   1. Change:
      ```typescript
      const { body } = await req.json() as { body?: string }
@@ -242,11 +242,11 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 
      return NextResponse.json({ ok: true, id: inserted.id })
      ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/api/clients/[id]/messages/route.ts" && git commit -m "feat: tutoring progress reports — messages API subject and noteIds support"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/api/clients/[id]/messages/route.ts" && git commit -m "feat: tutoring progress reports — messages API subject and noteIds support"`
 
 ---
 
