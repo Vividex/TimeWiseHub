@@ -817,7 +817,7 @@ list. Third deep-dive feature for the Tutoring workspace profile.
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: book a session for a student with 2+ tags, confirm the dropdown shows
+- [x] Manual smoke test: book a session for a student with 2+ tags, confirm the dropdown shows
   exactly those tags plus "Other…" (and no dropdown before a student is picked); select an existing
   tag, confirm it saves and displays in the session's meta line; book a second session for the same
   student choosing "Other…" with a brand-new value, confirm it saves AND gets appended to the
@@ -829,9 +829,9 @@ list. Third deep-dive feature for the Tutoring workspace profile.
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `students.subjects` + `sessions.subject` migration applied and verified
-- [ ] C-2: student subject-tag CRUD/display shipped, build passes, manual smoke confirms
-- [ ] C-3: session booking flow + display shipped, build passes, manual smoke confirms full flow
+- [x] C-1: `students.subjects` + `sessions.subject` migration applied and verified
+- [x] C-2: student subject-tag CRUD/display shipped, build passes, manual smoke confirms
+- [x] C-3: session booking flow + display shipped, build passes, manual smoke confirms full flow
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
