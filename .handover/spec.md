@@ -40,7 +40,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
 ## C-1 — Database migration: topic-assets bucket and topic_assets table
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-089-tutoring-topic-assets.sql`:
+- [x] Create `supabase/schema-089-tutoring-topic-assets.sql`:
   ```sql
   insert into storage.buckets (id, name, public) values ('topic-assets', 'topic-assets', false);
 
@@ -88,8 +88,8 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
   create policy "Creator can manage own topic assets" on public.topic_assets for all
     using (created_by = auth.uid());
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_topic_assets`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_topic_assets`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select id, public from storage.buckets where id = 'topic-assets';
   ```
@@ -106,7 +106,7 @@ new dedicated Subjects/Topics page. Fifth deep-dive feature for the Tutoring wor
   select policyname from pg_policies where schemaname = 'public' and tablename = 'topic_assets' order by policyname;
   ```
   Expected: 3 rows.
-- [ ] Commit: `git add supabase/schema-089-tutoring-topic-assets.sql && git commit -m "feat: tutoring topic file uploads — database migration"`
+- [x] Commit: `git add supabase/schema-089-tutoring-topic-assets.sql && git commit -m "feat: tutoring topic file uploads — database migration"`
 
 ---
 
