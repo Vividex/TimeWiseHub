@@ -47,7 +47,7 @@ export default function SessionDetailClient({
   call,
   sessionChatConversationId,
 }: {
-  session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
+  session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status; studentId: string | null }
   todos: Todo[]
   clientId: string
   clientName: string
@@ -200,6 +200,7 @@ export default function SessionDetailClient({
       org_id: orgId,
       created_by: user.id,
       body,
+      student_id: initial.studentId,
     })
 
     setSavingProgressNote(false)
@@ -235,6 +236,7 @@ export default function SessionDetailClient({
       org_id: orgId,
       created_by: user.id,
       body,
+      student_id: initial.studentId,
     })
 
     setSavingCallSummaryNote(false)

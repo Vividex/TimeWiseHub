@@ -66,7 +66,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 ## C-2 — Session detail: thread student_id into promoted progress notes
 
 *Codex edits:*
-- [ ] Edit `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` — change:
+- [x] Edit `src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx` — change:
   ```typescript
     supabase
       .from('sessions')
@@ -105,7 +105,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
         studentId: session.student_id,
       }}
   ```
-- [ ] Edit `src/components/clients/SessionDetailClient.tsx` — change the `session` prop type:
+- [x] Edit `src/components/clients/SessionDetailClient.tsx` — change the `session` prop type:
   ```typescript
     session: { id: string; title: string; scheduledAt: string; durationMinutes: number; notes: string; status: Status }
   ```
@@ -151,11 +151,11 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
       student_id: initial.studentId,
     })
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: tutoring progress reports — thread student_id from sessions into promoted notes"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/sessions/[sessionId]/page.tsx" src/components/clients/SessionDetailClient.tsx && git commit -m "feat: tutoring progress reports — thread student_id from sessions into promoted notes"`
 
 ---
 
