@@ -1,48 +1,89 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase-browser'
+import { YEAR_GROUPS } from '@/lib/tutoring/constants'
 import TopicAssetsPanel from './TopicAssetsPanel'
 
-type TopicItem = { id: string; name: string; year_group: string; assetCount: number }
-type SubjectItem = { id: string; name: string; topics: TopicItem[] }
+type SubjectOption = { id: string; name: string }
+type TopicOption = { id: string; name: string }
 
-export default function SubjectsBrowser({ subjects }: { subjects: SubjectItem[] }) {
-  const [expandedTopicId, setExpandedTopicId] = useState<string | null>(null)
+export default function SubjectsBrowser({ subjects }: { subjects: SubjectOption[] }) {
+  const supabase = createClient()
+  const [yearGroup, setYearGroup] = useState('')
+  const [subjectId, setSubjectId] = useState('')
+  const [topicId, setTopicId] = useState('')
+  const [topicOptions, setTopicOptions] = useState<TopicOption[]>([])
+  const [loadingTopics, setLoadingTopics] = useState(false)
+
+  useEffect(() => {
+    setTopicId('')
+    if (!yearGroup || !subjectId) { setTopicOptions([]); return }
+    setLoadingTopics(true)
+    supabase
+      .from('topics')
+      .select('id, name')
+      .eq('subject_id', subjectId)
+      .eq('year_group', yearGroup)
+      .eq('archived', false)
+      .order('name')
+      .then(({ data }) => { setTopicOptions(data ?? []); setLoadingTopics(false) })
+  }, [yearGroup, subjectId])
 
   if (subjects.length === 0) {
     return <p className="text-sm text-gray-400 dark:text-slate-500">No subjects yet.</p>
   }
 
   return (
-    <div className="space-y-6">
-      {subjects.map(subject => (
-        <div key={subject.id}>
-          <h2 className="text-lg font-black text-gray-900 dark:text-slate-100">{subject.name}</h2>
-          {subject.topics.length === 0 ? (
-            <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">No topics yet.</p>
+    <div className="space-y-4">
+      <div>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Year group</label>
+        <select
+          value={yearGroup}
+          onChange={e => setYearGroup(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        >
+          <option value="">— Select year group —</option>
+          {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
+        <select
+          value={subjectId}
+          onChange={e => setSubjectId(e.target.value)}
+          disabled={!yearGroup}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        >
+          <option value="">— Select subject —</option>
+          {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+
+      {yearGroup && subjectId && (
+        <div>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Topic</label>
+          {loadingTopics ? (
+            <p className="text-xs text-gray-400">Loading…</p>
+          ) : topicOptions.length === 0 ? (
+            <p className="text-xs text-gray-400">
+              No topics for {yearGroup} · {subjects.find(s => s.id === subjectId)?.name} yet — create one while booking a session.
+            </p>
           ) : (
-            <ul className="mt-2 space-y-1">
-              {subject.topics.map(topic => (
-                <li key={topic.id}>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedTopicId(prev => prev === topic.id ? null : topic.id)}
-                    className="flex w-full items-center gap-2 rounded-xl border border-gray-100 bg-white px-4 py-2 text-left text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:border-cyan-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-                  >
-                    {expandedTopicId === topic.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                    <span>{topic.year_group} · {topic.name}</span>
-                    <span className="ml-auto text-xs font-normal text-gray-400">
-                      {topic.assetCount} {topic.assetCount === 1 ? 'file' : 'files'}
-                    </span>
-                  </button>
-                  {expandedTopicId === topic.id && <TopicAssetsPanel topicId={topic.id} />}
-                </li>
-              ))}
-            </ul>
+            <select
+              value={topicId}
+              onChange={e => setTopicId(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <option value="">— Select topic —</option>
+              {topicOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
           )}
         </div>
-      ))}
+      )}
+
+      {topicId && <TopicAssetsPanel topicId={topicId} />}
     </div>
   )
 }

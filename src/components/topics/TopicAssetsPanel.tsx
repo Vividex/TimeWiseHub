@@ -132,7 +132,16 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
       <div className="mt-3 space-y-3 border-t border-gray-200 pt-3 dark:border-slate-800">
         <div>
           <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Upload a file</label>
-          <input type="file" onChange={handleFileUpload} disabled={uploading} accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" className="text-xs" />
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-cyan-600 aria-disabled:cursor-not-allowed aria-disabled:opacity-50" aria-disabled={uploading}>
+            {uploading ? 'Uploading…' : 'Choose file'}
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+              className="hidden"
+            />
+          </label>
         </div>
 
         <form onSubmit={handleAddLink} className="flex gap-2">
