@@ -543,7 +543,7 @@ workspace profile.
 ## C-4 — Student picker in session creation, student shown per session
 
 *Codex edits:*
-- [ ] Read `src/components/clients/NewSessionModal.tsx`, then:
+- [x] Read `src/components/clients/NewSessionModal.tsx`, then:
   1. Change the props signature to add `students: { id: string; name: string }[]` alongside the
      existing `clientId`/`orgId`/`clientLabel`.
   2. Add `const [studentId, setStudentId] = useState('')` alongside the other `useState` calls.
@@ -570,7 +570,7 @@ workspace profile.
   Note: the recurring-series API route is NOT modified this task — recurring sessions won't get
   `student_id` set until a future pass touches that route. Only single (non-repeating) sessions
   get it wired up here.
-- [ ] Read `src/app/dashboard/clients/[id]/sessions/page.tsx`, then:
+- [x] Read `src/app/dashboard/clients/[id]/sessions/page.tsx`, then:
   1. Change the `sessions` query's `.select(...)` to:
      ```typescript
      const { data: sessions } = await supabase
@@ -611,16 +611,16 @@ workspace profile.
      ```typescript
      meta={`${new Date(s.scheduled_at).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })} · ${s.duration} min${s.studentName ? ` · ${s.studentName}` : ''}`}
      ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test: temporarily switch Industry to "Tutoring & Education" via Settings.
+- [x] `pnpm run build` — must pass clean.
+- [x] Manual smoke test: temporarily switch Industry to "Tutoring & Education" via Settings.
   Create a client, confirm the Students tile appears; add two students; confirm
   `NewSessionModal`'s Student dropdown lists both; create one session per student; confirm the
   sessions list shows each session's student name; edit and archive a student, confirm it
   disappears from the list and picker. Switch Industry back afterward, confirm via SQL.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" && git commit -m "feat: tutoring student entity — student picker in session creation and session list"`
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx "src/app/dashboard/clients/[id]/sessions/page.tsx" && git commit -m "feat: tutoring student entity — student picker in session creation and session list"`
 
 ---
 
@@ -628,7 +628,7 @@ workspace profile.
 - [x] C-1: `students` table + RLS + `sessions.student_id` applied and verified
 - [x] C-2: Student CRUD components + API route + students page created, build passes
 - [x] C-3: Students tile shown only for tutoring profile, build passes
-- [ ] C-4: student picker wired into session creation, student shown per session, manual smoke
+- [x] C-4: student picker wired into session creation, student shown per session, manual smoke
   confirms the full flow and real account industry is restored afterward
 
 ## Verification

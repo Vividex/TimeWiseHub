@@ -11,15 +11,18 @@ export default function NewSessionModal({
   clientId,
   orgId,
   clientLabel,
+  students,
 }: {
   clientId: string
   orgId: string | null
   clientLabel: { singular: string; plural: string }
+  students: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
+  const [studentId, setStudentId] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [duration, setDuration] = useState(60)
   const [repeat, setRepeat] = useState<Repeat>('none')
@@ -52,6 +55,7 @@ export default function NewSessionModal({
           scheduledAt,
           durationMinutes: duration,
           recurrenceInterval: repeat,
+          studentId: studentId || null,
         }),
       })
       const json = await res.json()
@@ -74,6 +78,7 @@ export default function NewSessionModal({
         scheduled_at: new Date(scheduledAt).toISOString(),
         duration_minutes: duration,
         status: 'scheduled',
+        student_id: studentId || null,
       })
       .select('id')
       .single()
@@ -125,6 +130,19 @@ export default function NewSessionModal({
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
             />
           </div>
+          {students.length > 0 && (
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Student</label>
+              <select
+                value={studentId}
+                onChange={e => setStudentId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              >
+                <option value="">— Select student —</option>
+                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Date &amp; time</label>
             <input
