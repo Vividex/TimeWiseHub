@@ -15,8 +15,11 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Organisation Setup Wizard (current phase): zero cost — pure code, no schema changes (Phase 1's
-  columns already cover everything needed), no external API calls, no new npm dependencies.
+- Dynamic Terminology — Clients section (current phase): zero cost — pure code, no schema
+  changes, no external API calls, no new npm dependencies.
+- Organisation Setup Wizard (prior phase, complete): zero cost — pure code, no schema changes
+  (Phase 1's columns already cover everything needed), no external API calls, no new npm
+  dependencies.
 - Workspace Profile Engine (prior phase, complete): zero cost — pure code + one additive DB
   migration (two new columns × two tables), no external API calls, no new npm dependencies.
 - Unread client messages (prior phase, complete): zero cost — pure code, reuses the existing
@@ -42,6 +45,29 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Dynamic Terminology — Clients Section) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-05-dynamic-terminology-clients-design.md
+- Source plan: docs/superpowers/plans/2026-07-05-dynamic-terminology-clients.md
+- Phase 3 of the Workspace Profile roadmap. The roadmap doc's Phase 3 in full ("Dynamic
+  Terminology... refactor existing UI to consume the provider") is a 2,609-occurrence, 326-file
+  effort (confirmed via audit) — this phase deliberately converts only the Clients section as a
+  first vertical slice, not the full sweep. Sidebar nav labels are explicitly out of scope
+  (roadmap's own Phase 4 owns that).
+- `Terminology` changed shape from `Record<TerminologyKey, string>` to
+  `Record<TerminologyKey, { singular: string; plural: string }>` — explicit plurals rather than
+  guess-pluralizing at call sites. Safe change confirmed via audit: nothing outside
+  `src/lib/workspace-profiles/` destructured the old shape.
+- Two files not identified during brainstorming were found while reading the actual code:
+  `clients/[id]/sessions/page.tsx` (the real parent of `NewSessionModal`, not `clients/[id]/page.tsx`
+  as first assumed) and `EditClientButton.tsx` (pass-through wrapper around `EditClientModal`) —
+  both folded into scope without a separate brainstorm/spec cycle since they're structurally
+  necessary for the already-approved design to actually work.
+- C-4's manual smoke test requires temporarily changing the real Vividex org's Industry via
+  Settings (to "Tutoring & Education", to see "Student"/"Students" appear) then switching it back
+  — must not leave the real account's industry changed after the phase completes.
+- Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
+  this phase (no migration).
 
 ## Notes (Organisation Setup Wizard) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-organisation-setup-wizard-design.md

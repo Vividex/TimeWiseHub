@@ -1,435 +1,298 @@
-# Organisation Setup Wizard
+# Dynamic Terminology — Clients Section
 
 ## Goal
-Build a setup wizard (Welcome → Industry → Complete) that sets `workspace_profile` and
-`setup_completed`, gated to org owners/admins and solo Pro users, plus make the industry choice
-editable later via Settings. Phase 2 of the Workspace Profile roadmap (Phase 1 = the schema +
-registry + resolver engine, already shipped).
+Make the word "Client" configurable (Student/Member/etc.) across the Clients section — list page,
+detail page, all sub-pages, and their forms/modals — as the first working consumer of Phase 1's
+terminology registry. Phase 3 of the Workspace Profile roadmap, deliberately scoped to a single
+vertical slice rather than the full 326-file/2,609-occurrence sweep.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-05-organisation-setup-wizard-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-05-organisation-setup-wizard.md`
-- Only **industry** is genuinely new to collect — organisation name and logo already have working
-  homes (existing `/onboarding` page; `logo_url` already editable in Settings for both org and
-  solo Pro). Business hours, employee count, org-level currency/date format/timezone all have zero
-  current consumer anywhere in the app — explicitly deferred, no task for them in this phase.
-- Built as a genuine multi-step wizard shell (Welcome + Industry steps, extensible), even though
-  only one real step exists today — deliberate choice so future fields can slot in without
-  restructuring.
-- `organisations` UPDATE is RLS-restricted to owner/admin roles — the dashboard gate only ever
-  redirects owner/admin org members or solo Pro users to `/setup`; `employee`-role members are
-  never redirected regardless of their org's `setup_completed` state (they have no permission to
-  change it).
-- Industry choice must stay editable later via Settings, not locked into the wizard forever — same
-  `IndustryPicker` component reused in both places.
-- An org member's personal `profiles.workspace_profile` is never actually read by the resolver
-  (org membership wins first) — so the Settings Industry picker in `AccountSettingsForm` is hidden
-  entirely for org members (`showWorkspaceProfile = !membership?.org_id`), not just de-emphasized,
-  to avoid editing dead data behind a UI that looks like it does something.
-- Completion copy must not overpromise: Phase 3 (dynamic terminology actually changing UI text)
-  doesn't exist yet.
-- No new RLS policies needed — same reasoning as Phase 1.
+- Source spec: `docs/superpowers/specs/2026-07-05-dynamic-terminology-clients-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-05-dynamic-terminology-clients.md`
+- Only the Clients section converts this phase — Sessions/Programs/Projects terminology, sidebar
+  nav (Phase 4's job), dashboard, and everything else among the 326 files stays unchanged, rolled
+  out incrementally in future phases.
+- `Terminology` changes shape: `Record<TerminologyKey, { singular: string; plural: string }>`
+  instead of a flat string — explicit plurals rather than guess-pluralizing at call sites (English
+  plurals are irregular in general). Safe change: nothing outside `src/lib/workspace-profiles/`
+  currently destructures the old shape.
+- Server pages call the existing `getWorkspaceProfileForUser()` (Phase 1, its first real UI
+  consumer) and pass `terminology.client` down as a plain `clientLabel: { singular; plural }` prop
+  to client children — no new data-fetching pattern, no context provider, no client-side hook.
+- Two files not identified during brainstorming were found while reading the actual code:
+  `src/app/dashboard/clients/[id]/sessions/page.tsx` (the real parent of `NewSessionModal`, not
+  `clients/[id]/page.tsx` as first assumed) and `src/components/clients/EditClientButton.tsx` (a
+  pass-through wrapper around `EditClientModal`) — both included in scope.
+- Lowercase, mid-sentence usage uses `.toLowerCase()` at the call site — registry stores Title
+  Case only.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node) — the conductor handles those.
 - Read a file before editing it if its structure is unknown.
 - After each task, list the files changed.
-- All Tailwind classes must include `dark:` variants where the file already uses them (existing
-  convention in `SetupWizard.tsx`'s own template below — mirror it, don't drop it).
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before committing.
-- No DB migration this phase — Phase 1's schema already has everything needed.
-- Manual smoke tests (Task 3 Step 5, Task 4 Step 6) are conductor + user, not Codex.
+- No DB migration this phase.
+- C-4's manual smoke test requires temporarily switching the real org's Industry to "Tutoring &
+  Education" via Settings, then switching it back afterward — must not leave real account data
+  changed.
 
 ---
 
-## C-1 — IndustryPicker component
+## C-1 — Terminology type: singular/plural shape
 
 *Codex edits:*
-- [x] Create `src/components/setup/IndustryPicker.tsx`:
+- [ ] Edit `src/lib/workspace-profiles/types.ts` — replace:
   ```typescript
-  'use client'
+  export type Terminology = Record<TerminologyKey, string>
+  ```
+  with:
+  ```typescript
+  export type TerminologyEntry = { singular: string; plural: string }
 
-  import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'
-  import { WORKSPACE_PROFILES } from '@/lib/workspace-profiles/registry'
+  export type Terminology = Record<TerminologyKey, TerminologyEntry>
+  ```
+- [ ] Replace the entire contents of `src/lib/workspace-profiles/registry.ts` with:
+  ```typescript
+  import type { WorkspaceProfileConfig, WorkspaceProfileKey, Terminology } from './types'
 
-  export default function IndustryPicker({
-    value,
-    onChange,
-  }: {
-    value: WorkspaceProfileKey | null
-    onChange: (key: WorkspaceProfileKey) => void
-  }) {
-    return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {Object.values(WORKSPACE_PROFILES).map(profile => (
-          <button
-            key={profile.key}
-            type="button"
-            onClick={() => onChange(profile.key)}
-            className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors ${
-              value === profile.key
-                ? 'border-cyan-500 bg-cyan-50 text-cyan-700 dark:border-cyan-400 dark:bg-cyan-500/10 dark:text-cyan-300'
-                : 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-            }`}
-          >
-            {profile.label}
-          </button>
-        ))}
-      </div>
-    )
+  const GENERIC_TERMINOLOGY: Terminology = {
+    client: { singular: 'Client', plural: 'Clients' },
+    session: { singular: 'Session', plural: 'Sessions' },
+    program: { singular: 'Program', plural: 'Programs' },
+    project: { singular: 'Project', plural: 'Projects' },
+  }
+
+  export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
+    generic: {
+      key: 'generic',
+      label: 'Other / Not Listed',
+      terminology: GENERIC_TERMINOLOGY,
+    },
+    tutoring: {
+      key: 'tutoring',
+      label: 'Tutoring & Education',
+      terminology: {
+        client: { singular: 'Student', plural: 'Students' },
+        session: { singular: 'Lesson', plural: 'Lessons' },
+        program: { singular: 'Course', plural: 'Courses' },
+        project: { singular: 'Learning Plan', plural: 'Learning Plans' },
+      },
+    },
+    personal_training: {
+      key: 'personal_training',
+      label: 'Personal Training & Fitness',
+      terminology: {
+        client: { singular: 'Member', plural: 'Members' },
+        session: { singular: 'Appointment', plural: 'Appointments' },
+        program: { singular: 'Training Plan', plural: 'Training Plans' },
+        project: { singular: 'Package', plural: 'Packages' },
+      },
+    },
+    builder_construction: { key: 'builder_construction', label: 'Builder & Construction', terminology: GENERIC_TERMINOLOGY },
+    trades_field_services: { key: 'trades_field_services', label: 'Trades & Field Services', terminology: GENERIC_TERMINOLOGY },
+    consulting: { key: 'consulting', label: 'Consulting & Professional Services', terminology: GENERIC_TERMINOLOGY },
+    healthcare: { key: 'healthcare', label: 'Healthcare & Allied Health', terminology: GENERIC_TERMINOLOGY },
+    real_estate: { key: 'real_estate', label: 'Real Estate & Property', terminology: GENERIC_TERMINOLOGY },
+    cleaning_maintenance: { key: 'cleaning_maintenance', label: 'Cleaning & Maintenance', terminology: GENERIC_TERMINOLOGY },
+    creative_agencies: { key: 'creative_agencies', label: 'Creative Agencies & Marketing', terminology: GENERIC_TERMINOLOGY },
+  }
+
+  export function getWorkspaceProfile(key: string): WorkspaceProfileConfig {
+    return WORKSPACE_PROFILES[key as WorkspaceProfileKey] ?? WORKSPACE_PROFILES.generic
   }
   ```
-  `Object.values()` on a `Record` preserves insertion order — `generic` ("Other / Not Listed") is
-  the first key in `WORKSPACE_PROFILES`, so it renders first, not sorted to the bottom.
-- [x] Report back — list files changed.
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/setup/IndustryPicker.tsx && git commit -m "feat: setup wizard — IndustryPicker component"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "feat: dynamic terminology — singular/plural registry shape"`
 
 ---
 
-## C-2 — SetupWizard component and /setup page
+## C-2 — Clients list + detail + CRUD
 
 *Codex edits:*
-- [x] Create `src/components/setup/SetupWizard.tsx`:
-  ```typescript
-  'use client'
+- [ ] Edit `src/app/dashboard/clients/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `{canAdd && <ClientForm orgId={orgId} />}` to `{canAdd && <ClientForm orgId={orgId} clientLabel={terminology.client} />}`.
+  - Change:
+    ```typescript
+          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Clients ({clients.length})</h2>
+          <TileGrid empty="No clients yet. Add your first.">
+    ```
+    to:
+    ```typescript
+          <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">{terminology.client.plural} ({clients.length})</h2>
+          <TileGrid empty={`No ${terminology.client.plural.toLowerCase()} yet. Add your first.`}>
+    ```
+- [ ] Edit `src/app/dashboard/clients/[id]/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `<Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← Clients</Link>` to `<Link href="/dashboard/clients" className="text-sm font-semibold text-cyan-600 hover:underline">← {terminology.client.plural}</Link>`.
+  - Add `clientLabel={terminology.client}` prop to `<EditClientButton client={{...}} />` and to `<DeleteClientButton clientId={id} clientName={client.name} />`.
+- [ ] Edit `src/components/clients/ClientForm.tsx`:
+  - Change signature to `export default function ClientForm({ orgId, clientLabel }: { orgId: string | null; clientLabel: { singular: string; plural: string } }) {`.
+  - Change `{open ? 'Cancel' : '+ Add client'}` to `` {open ? 'Cancel' : `+ Add ${clientLabel.singular.toLowerCase()}`} ``.
+  - Change `Client name *` label to `{clientLabel.singular} name *`.
+  - Change `{loading ? 'Saving…' : 'Save client'}` to `` {loading ? 'Saving…' : `Save ${clientLabel.singular.toLowerCase()}`} ``.
+- [ ] Edit `src/components/clients/EditClientButton.tsx`:
+  - Change signature to `export default function EditClientButton({ client, clientLabel }: { client: Client; clientLabel: { singular: string; plural: string } }) {`.
+  - Change `{open && <EditClientModal client={client} onClose={() => setOpen(false)} />}` to `{open && <EditClientModal client={client} onClose={() => setOpen(false)} clientLabel={clientLabel} />}`.
+- [ ] Edit `src/components/clients/EditClientModal.tsx`:
+  - Change signature to `export default function EditClientModal({ client, onClose, clientLabel }: { client: Client; onClose: () => void; clientLabel: { singular: string; plural: string } }) {`.
+  - Change `Edit client` heading to `Edit {clientLabel.singular.toLowerCase()}`.
+  - Change `Client name *` label to `{clientLabel.singular} name *`.
+- [ ] Edit `src/components/clients/DeleteClientButton.tsx`:
+  - Change signature to `export default function DeleteClientButton({ clientId, clientName, clientLabel }: { clientId: string; clientName: string; clientLabel: { singular: string; plural: string } }) {`.
+  - Change:
+    ```typescript
+        message={`${clientName} will be removed from your active client list. All sessions, notes, and invoices are preserved — this is reversible via the database.`}
+        confirmLabel="Archive client"
+    ```
+    to:
+    ```typescript
+        message={`${clientName} will be removed from your active ${clientLabel.singular.toLowerCase()} list. All sessions, notes, and invoices are preserved — this is reversible via the database.`}
+        confirmLabel={`Archive ${clientLabel.singular.toLowerCase()}`}
+    ```
+- [ ] Report back — list files changed.
 
-  import { useState } from 'react'
-  import { useRouter } from 'next/navigation'
-  import { createClient } from '@/lib/supabase-browser'
-  import IndustryPicker from './IndustryPicker'
-  import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/dashboard/clients/page.tsx src/app/dashboard/clients/[id]/page.tsx src/components/clients/ClientForm.tsx src/components/clients/EditClientButton.tsx src/components/clients/EditClientModal.tsx src/components/clients/DeleteClientButton.tsx && git commit -m "feat: dynamic terminology — Clients list, detail, and CRUD"`
 
-  type WizardStepId = 'welcome' | 'industry'
+---
 
-  const WIZARD_STEPS: { id: WizardStepId; label: string }[] = [
-    { id: 'welcome', label: 'Welcome' },
-    { id: 'industry', label: 'Industry' },
-  ]
+## C-3 — Client sub-pages (sessions, projects, invoices, quotes, messages)
 
-  export default function SetupWizard({
-    orgId,
-    userId,
-  }: {
-    orgId: string | null
-    userId: string
-  }) {
-    const router = useRouter()
-    const [stepIndex, setStepIndex] = useState(0)
-    const [complete, setComplete] = useState(false)
-    const [selected, setSelected] = useState<WorkspaceProfileKey | null>(null)
-    const [saving, setSaving] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-
-    const currentStep = WIZARD_STEPS[stepIndex]
-
-    async function handleSelectIndustry(key: WorkspaceProfileKey) {
-      setSelected(key)
-      setError(null)
-      const supabase = createClient()
-      const table = orgId ? 'organisations' : 'profiles'
-      const id = orgId ?? userId
-      const { error: updateError } = await supabase
-        .from(table)
-        .update({ workspace_profile: key })
-        .eq('id', id)
-      if (updateError) setError(updateError.message)
-    }
-
-    async function handleFinish() {
-      setSaving(true)
-      setError(null)
-      const supabase = createClient()
-      const table = orgId ? 'organisations' : 'profiles'
-      const id = orgId ?? userId
-      const { error: updateError } = await supabase
-        .from(table)
-        .update({ setup_completed: true, setup_completed_at: new Date().toISOString() })
-        .eq('id', id)
-      setSaving(false)
-      if (updateError) {
-        setError(updateError.message)
-        return
-      }
-      setComplete(true)
-    }
-
-    if (complete) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-slate-950">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600 dark:text-cyan-400">TimeWiseHub</p>
-            <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">You&apos;re all set</h1>
-            <p className="mb-8 text-sm font-medium text-gray-500 dark:text-slate-400">
-              Saved — as more industry-specific features roll out, this is what shapes them.
-            </p>
-            <button
-              type="button"
-              onClick={() => { router.push('/dashboard'); router.refresh() }}
-              className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
-            >
-              Go to dashboard
-            </button>
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-slate-950">
-        <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-cyan-600 dark:text-cyan-400">TimeWiseHub</p>
-          <p className="mb-6 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            Step {stepIndex + 1} of {WIZARD_STEPS.length}
+*Codex edits:*
+- [ ] Edit `src/app/dashboard/clients/[id]/sessions/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `<NewSessionModal clientId={id} orgId={orgId} />` to `<NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} />`.
+- [ ] Edit `src/components/clients/NewSessionModal.tsx`:
+  - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
+  - Change `Checklist will be pre-filled from this client&apos;s saved template ({templates.length} items).` to `Checklist will be pre-filled from this {clientLabel.singular.toLowerCase()}&apos;s saved template ({templates.length} items).`.
+- [ ] Edit `src/app/dashboard/clients/[id]/projects/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `<TileGrid empty="No projects yet for this client.">` to `` <TileGrid empty={`No projects yet for this ${terminology.client.singular.toLowerCase()}.`}> ``.
+- [ ] Edit `src/app/dashboard/clients/[id]/invoices/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `No invoices for this client yet.` to `No invoices for this {terminology.client.singular.toLowerCase()} yet.`.
+- [ ] Edit `src/app/dashboard/clients/[id]/quotes/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `No quotes for this client yet.` to `No quotes for this {terminology.client.singular.toLowerCase()} yet.`.
+- [ ] Edit `src/app/dashboard/clients/[id]/messages/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change:
+    ```typescript
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Client messaging is a Pro feature</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
+            Send and receive email with clients right from their record, branded as your business,
+            with no client login required. Upgrade to Pro to unlock it.
           </p>
-
-          {currentStep.id === 'welcome' && (
-            <>
-              <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">Let&apos;s set up your workspace</h1>
-              <p className="mb-8 text-sm font-medium text-gray-500 dark:text-slate-400">
-                A couple of quick questions so TimeWiseHub fits how you actually work.
-              </p>
-              <button
-                type="button"
-                onClick={() => setStepIndex(1)}
-                className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
-              >
-                Next
-              </button>
-            </>
-          )}
-
-          {currentStep.id === 'industry' && (
-            <>
-              <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">What field are you in?</h1>
-              <p className="mb-6 text-sm font-medium text-gray-500 dark:text-slate-400">
-                Not sure, or don&apos;t see your field? Choose &quot;Other / Not Listed&quot; — you can change this anytime in Settings.
-              </p>
-
-              <div className="mb-6">
-                <IndustryPicker value={selected} onChange={handleSelectIndustry} />
-              </div>
-
-              {error && (
-                <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleFinish}
-                disabled={!selected || saving}
-                className="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Finish'}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    )
-  }
-  ```
-- [x] Create `src/app/setup/page.tsx`:
-  ```typescript
-  import { redirect } from 'next/navigation'
-  import { cookies } from 'next/headers'
-  import { createClient } from '@/lib/supabase-server'
-  import SetupWizard from '@/components/setup/SetupWizard'
-
-  export default async function SetupPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-
-    const { data: membership } = await supabase
-      .from('organisation_members')
-      .select('org_id, role')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    const cookieStore = await cookies()
-    let orgId = cookieStore.get('active_org_id')?.value ?? null
-
-    if (orgId) {
-      const { count } = await supabase
-        .from('organisation_members')
-        .select('id', { count: 'exact', head: true })
-        .eq('org_id', orgId)
-        .eq('user_id', user.id)
-      if (!count) orgId = null
-    }
-
-    if (!orgId) {
-      orgId = membership?.org_id ?? null
-    }
-
-    const role = membership?.role ?? 'employee'
-
-    if (orgId) {
-      if (!['owner', 'admin'].includes(role)) redirect('/dashboard')
-      const { data: org } = await supabase
-        .from('organisations').select('setup_completed').eq('id', orgId).maybeSingle()
-      if (org?.setup_completed) redirect('/dashboard')
-    } else {
-      const { data: profile } = await supabase
-        .from('profiles').select('setup_completed').eq('id', user.id).maybeSingle()
-      if (profile?.setup_completed) redirect('/dashboard')
-    }
-
-    return <SetupWizard orgId={orgId} userId={user.id} />
-  }
-  ```
-  This mirrors `dashboard/layout.tsx`'s own org-resolution pattern — matching existing convention
-  of inline per-route org resolution rather than introducing a new shared helper.
-- [x] Report back — list files changed.
+    ```
+    to:
+    ```typescript
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{terminology.client.singular} messaging is a Pro feature</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
+            Send and receive email with {terminology.client.plural.toLowerCase()} right from their record, branded as your business,
+            with no {terminology.client.singular.toLowerCase()} login required. Upgrade to Pro to unlock it.
+          </p>
+    ```
+  - Change `<ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} />` to `<ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} clientLabel={terminology.client} />`.
+- [ ] Edit `src/components/clients/ClientMessagesThread.tsx`:
+  - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
+  - Change `Add an email address to this client before sending messages.` to `Add an email address to this {clientLabel.singular.toLowerCase()} before sending messages.`.
+  - Change `{m.direction === 'outbound' ? (m.sender_name ?? 'You') : 'Client'} — {fmtTime(m.created_at)}` to `{m.direction === 'outbound' ? (m.sender_name ?? 'You') : clientLabel.singular} — {fmtTime(m.created_at)}`.
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/setup/SetupWizard.tsx src/app/setup/page.tsx && git commit -m "feat: setup wizard — SetupWizard component and /setup page"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/dashboard/clients/[id]/sessions/page.tsx src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/projects/page.tsx src/app/dashboard/clients/[id]/invoices/page.tsx src/app/dashboard/clients/[id]/quotes/page.tsx src/app/dashboard/clients/[id]/messages/page.tsx src/components/clients/ClientMessagesThread.tsx && git commit -m "feat: dynamic terminology — client sub-pages (sessions, projects, invoices, quotes, messages)"`
 
 ---
 
-## C-3 — Wire up entry points: dashboard gate and onboarding redirect
+## C-4 — Shared invoice/quote creation form
 
 *Codex edits:*
-- [x] Read `src/app/dashboard/layout.tsx`, then insert this block right after line 64
-  (`const role = (membership?.role ?? 'employee') as UserRole`) and before the `return` statement:
-  ```typescript
-    if (orgId && ['owner', 'admin'].includes(role)) {
-      const { data: org } = await supabase
-        .from('organisations').select('setup_completed').eq('id', orgId).maybeSingle()
-      if (org && !org.setup_completed) redirect('/setup')
-    } else if (!orgId) {
-      const { data: profile } = await supabase
-        .from('profiles').select('setup_completed').eq('id', user.id).maybeSingle()
-      if (profile && !profile.setup_completed) redirect('/setup')
-    }
-  ```
-  `employee`-role members are never redirected regardless of their org's `setup_completed` value.
-- [x] Read `src/app/onboarding/page.tsx`, then change both occurrences of
-  `router.push('/dashboard'); router.refresh()` (currently lines 75 and 82, the "Skip for now" and
-  "Done" buttons) to `router.push('/setup'); router.refresh()`. No other change to this file.
-- [x] Report back — list files changed.
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Manual smoke test: sign in as the existing org's owner (Vividex, `setup_completed = false`
-  since the Phase 1 migration), confirm the dashboard redirects to `/setup`. Complete the wizard,
-  confirm it lands back on `/dashboard`, confirm a second dashboard visit does NOT redirect again
-  (SQL check: `organisations.setup_completed` is now `true`).
-
-  Result: found and fixed a real bug during this test. Picking an industry and finishing (as the
-  Vividex owner, chose Builder & Construction) wrote `workspace_profile`/`setup_completed` to the
-  DB correctly (confirmed via SQL both times), but the browser hit `ERR_TOO_MANY_REDIRECTS` on the
-  way to `/dashboard`. Root cause: `router.push('/dashboard'); router.refresh()` (both in
-  `SetupWizard.tsx`'s Finish handler and `/onboarding`'s two buttons) fires a soft client
-  navigation and a refresh in the same tick — harmless before this phase (nothing on `/dashboard`
-  depended on freshly-mutated data), but now that `dashboard/layout.tsx`'s gate reads
-  `setup_completed` right as it's written, the race produced conflicting redirect targets. Fixed
-  by switching both to a hard navigation (`window.location.href`), guaranteeing a fresh
-  request with no client-router-cache involvement. Also restarted the dev server (had been running
-  60+ hours) to rule out stale state. Confirmed working after the fix: fresh tab, cookies cleared,
-  `/dashboard` now loads normally with no redirect.
-- [x] Commit: `git add src/app/dashboard/layout.tsx src/app/onboarding/page.tsx src/components/setup/SetupWizard.tsx && git commit -m "feat: setup wizard — gate dashboard access and redirect from onboarding"`
-
----
-
-## C-4 — Settings integration: industry becomes editable later
-
-*Codex edits:*
-- [x] Read `src/components/OrgBillingSettingsForm.tsx`, then:
-  1. Add `import IndustryPicker from '@/components/setup/IndustryPicker'` and
-     `import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'` to the imports.
-  2. Add `initialWorkspaceProfile: WorkspaceProfileKey` to the destructured props and the inline
-     props type (alongside `initialLogoUrl: string | null`, currently lines 26/38).
-  3. Add `const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfileKey>(initialWorkspaceProfile)`
-     alongside the other `useState` calls (currently lines 44-53).
-  4. Add `workspace_profile: workspaceProfile,` to the `organisations` `.update()` call's object
-     (currently lines 70-77).
-  5. Add a new section right after the header `<div>` (currently lines 110-114, before the
-     `canEditInvoiceLetterhead &&` block):
-     ```typescript
-        <div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-          <div>
-            <p className="text-sm font-bold text-gray-900">Industry</p>
-            <p className="text-xs font-medium text-gray-500">Shapes future industry-specific features.</p>
-          </div>
-          <IndustryPicker value={workspaceProfile} onChange={setWorkspaceProfile} />
+- [ ] Edit `src/components/invoices/NewInvoiceForm.tsx`:
+  - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
+  - Change `<h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Client &amp; period</h2>` to `<h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">{clientLabel.singular} &amp; period</h2>`.
+  - Change:
+    ```typescript
+            <label className="mb-1 block text-xs font-semibold text-gray-500">
+              Client{isQuote && <span className="ml-1 font-normal text-gray-400">(optional)</span>}
+            </label>
+            <select value={clientId} onChange={e => { setClientId(e.target.value); const c = clients.find(x => x.id === e.target.value); if (c) setCurrency(c.currency) }}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+              <option value="">— Select client —</option>
+    ```
+    to:
+    ```typescript
+            <label className="mb-1 block text-xs font-semibold text-gray-500">
+              {clientLabel.singular}{isQuote && <span className="ml-1 font-normal text-gray-400">(optional)</span>}
+            </label>
+            <select value={clientId} onChange={e => { setClientId(e.target.value); const c = clients.find(x => x.id === e.target.value); if (c) setCurrency(c.currency) }}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+              <option value="">— Select {clientLabel.singular.toLowerCase()} —</option>
+    ```
+- [ ] Edit `src/app/dashboard/quotes/new/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change:
+    ```typescript
+          <p className="mt-1 text-sm text-gray-500">Client is optional — you can create a free-standing quote and assign it later.</p>
         </div>
-     ```
-- [x] Read `src/components/AccountSettingsForm.tsx`, then:
-  1. Add `import IndustryPicker from '@/components/setup/IndustryPicker'` and
-     `import type { WorkspaceProfileKey } from '@/lib/workspace-profiles/types'` to the imports.
-  2. Add `initialWorkspaceProfile: WorkspaceProfileKey` and `showWorkspaceProfile: boolean` to the
-     `Props` type (currently lines 41-52) and the destructured function parameters (currently
-     lines 54-65).
-  3. Add `const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfileKey>(initialWorkspaceProfile)`
-     alongside the other `useState` calls (currently lines 66-74).
-  4. Change the `updates` object (currently lines 99-106) to conditionally include the field:
-     ```typescript
-     const updates = {
-       full_name: fullName,
-       timezone,
-       au_state: auState || null,
-       notification_preferences: payloadNotifications,
-       invoice_payment_details: paymentDetails,
-       ...(canEditInvoiceLetterhead ? { invoice_letterhead: invoiceLetterhead.trim() || null } : {}),
-       ...(showWorkspaceProfile ? { workspace_profile: workspaceProfile } : {}),
-     }
-     ```
-  5. Add a new section, gated on `showWorkspaceProfile`, near the existing "Profile" section
-     (currently starting line 127):
-     ```typescript
-        {showWorkspaceProfile && (
-          <div className="space-y-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900">Industry</h2>
-            <p className="text-sm font-semibold text-gray-500">Shapes future industry-specific features.</p>
-            <IndustryPicker value={workspaceProfile} onChange={setWorkspaceProfile} />
-          </div>
-        )}
-     ```
-- [x] Read `src/app/settings/page.tsx`, then:
-  1. Add `workspace_profile` to the `profiles` select (currently line 22).
-  2. Add `workspace_profile` to the `organisations` select (currently line 39).
-  3. Add `initialWorkspaceProfile={profile?.workspace_profile ?? 'generic'}` and
-     `showWorkspaceProfile={!membership?.org_id}` to the `<AccountSettingsForm>` call (currently
-     lines 89-106).
-  4. Add `initialWorkspaceProfile={organisation?.workspace_profile ?? 'generic'}` to the
-     `<OrgBillingSettingsForm>` call (currently lines 131-143).
-- [x] Report back — list files changed.
+        <NewInvoiceForm
+          orgId={membership?.org_id ?? null}
+          userId={user.id}
+          initialClientId={clientId}
+          isQuote={true}
+        />
+    ```
+    to:
+    ```typescript
+          <p className="mt-1 text-sm text-gray-500">{terminology.client.singular} is optional — you can create a free-standing quote and assign it later.</p>
+        </div>
+        <NewInvoiceForm
+          orgId={membership?.org_id ?? null}
+          userId={user.id}
+          initialClientId={clientId}
+          isQuote={true}
+          clientLabel={terminology.client}
+        />
+    ```
+- [ ] Edit `src/app/dashboard/invoices/new/page.tsx`:
+  - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
+  - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
+  - Change `<NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} initialClientId={clientId} />` to `<NewInvoiceForm orgId={membership?.org_id ?? null} userId={user.id} initialClientId={clientId} clientLabel={terminology.client} />`.
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Manual smoke test: as org owner, Settings → Organisation tab → change Industry → save →
-  refresh → confirm persisted. As a solo Pro user, Settings → Profile tab → confirm the Industry
-  section appears there instead. As an org employee (non-owner/admin), confirm the Profile tab's
-  Industry section does NOT appear.
-
-  Result: org owner case confirmed live (Vividex, changed industry, persisted after refresh). The
-  solo-Pro/employee distinction (`showWorkspaceProfile={!membership?.org_id}`) was verified by
-  code inspection rather than a second live account — the expression is unambiguous: any org
-  member (owner, admin, or employee alike) has `membership.org_id` set, so `showWorkspaceProfile`
-  is `false` for all of them uniformly, and only `true` for an orgless solo Pro account. No
-  separate test account was available to exercise this live.
-- [x] Commit: `git add src/components/OrgBillingSettingsForm.tsx src/components/AccountSettingsForm.tsx src/app/settings/page.tsx && git commit -m "feat: setup wizard — industry editable later via Settings"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test: temporarily switch the Vividex org's Industry to "Tutoring & Education"
+  via Settings, walk through every page in scope (Clients list, add/edit/archive client, client
+  detail, Sessions/Projects/Invoices/Quotes/Messages sub-pages, messages composer,
+  `/dashboard/invoices/new`, `/dashboard/quotes/new`) confirming "Student"/"Students" appears
+  correctly throughout, then switch Industry back to restore the real account's prior state.
+- [ ] Commit: `git add src/components/invoices/NewInvoiceForm.tsx src/app/dashboard/quotes/new/page.tsx src/app/dashboard/invoices/new/page.tsx && git commit -m "feat: dynamic terminology — shared invoice/quote creation form"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `IndustryPicker` component created, build passes
-- [x] C-2: `SetupWizard` + `/setup` page created, build passes
-- [x] C-3: dashboard gate + onboarding redirect wired, manual smoke confirms Vividex owner is
-  routed through `/setup` once and not again after completing (redirect-loop bug found and fixed
-  during this test — see notes)
-- [x] C-4: industry editable via Settings for org admins and solo Pro, hidden for employees, build
-  passes
+- [ ] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
+- [ ] C-2: Clients list/detail/CRUD converted, build passes
+- [ ] C-3: client sub-pages converted, build passes
+- [ ] C-4: shared invoice/quote form converted, manual smoke confirms every string switches
+  correctly under "Tutoring & Education" and real account industry is restored afterward
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
-this project — manual browser smoke required for C-3 and C-4.
+this project — manual browser smoke required for C-4.
