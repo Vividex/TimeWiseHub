@@ -140,7 +140,7 @@ feature for the Tutoring workspace profile.
 ## C-2 — Constants and seeding helper
 
 *Codex edits:*
-- [ ] Write `src/lib/tutoring/constants.ts`:
+- [x] Write `src/lib/tutoring/constants.ts`:
   ```typescript
   export const YEAR_GROUPS = [
     'Foundation', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6',
@@ -152,7 +152,7 @@ feature for the Tutoring workspace profile.
     'Languages', 'The Arts', 'Health & Physical Education', 'Technologies',
   ] as const
   ```
-- [ ] Write `src/lib/tutoring/ensure-seed-subjects.ts`:
+- [x] Write `src/lib/tutoring/ensure-seed-subjects.ts`:
   ```typescript
   import { DEFAULT_SUBJECTS } from './constants'
   import type { createClient } from '@/lib/supabase-server'
@@ -174,11 +174,11 @@ feature for the Tutoring workspace profile.
     )
   }
   ```
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean (files not imported anywhere yet).
-- [ ] Commit: `git add src/lib/tutoring/constants.ts src/lib/tutoring/ensure-seed-subjects.ts && git commit -m "feat: tutoring year/subject/topic structure — constants and seeding helper"`
+- [x] `pnpm run build` — must pass clean (files not imported anywhere yet).
+- [x] Commit: `git add src/lib/tutoring/constants.ts src/lib/tutoring/ensure-seed-subjects.ts && git commit -m "feat: tutoring year/subject/topic structure — constants and seeding helper"`
 
 ---
 
