@@ -42,7 +42,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
 ## C-1 — Database migration: sessions.invoice_id and invoice_items.session_id
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-085-tutoring-lesson-billing.sql`:
+- [x] Create `supabase/schema-085-tutoring-lesson-billing.sql`:
   ```sql
   alter table public.sessions
     add column invoice_id uuid references public.invoices on delete set null;
@@ -52,8 +52,8 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
   alter table public.invoice_items
     add column session_id uuid references public.sessions on delete set null;
   ```
-- [ ] Apply via Supabase MCP `apply_migration` (name: `tutoring_lesson_billing`).
-- [ ] Verify via MCP `execute_sql`:
+- [x] Apply via Supabase MCP `apply_migration` (name: `tutoring_lesson_billing`).
+- [x] Verify via MCP `execute_sql`:
   ```sql
   select column_name, data_type, is_nullable
   from information_schema.columns
@@ -70,7 +70,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
   select indexname from pg_indexes where schemaname = 'public' and tablename = 'sessions' and indexname = 'sessions_invoice';
   ```
   Expected: 1 row.
-- [ ] Commit: `git add supabase/schema-085-tutoring-lesson-billing.sql && git commit -m "feat: tutoring per-lesson billing — database migration"`
+- [x] Commit: `git add supabase/schema-085-tutoring-lesson-billing.sql && git commit -m "feat: tutoring per-lesson billing — database migration"`
 
 ---
 
@@ -309,7 +309,7 @@ deep-dive feature for the Tutoring workspace profile — not gated to tutoring.
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `sessions.invoice_id` + `invoice_items.session_id` + index applied and verified
+- [x] C-1: `sessions.invoice_id` + `invoice_items.session_id` + index applied and verified
 - [ ] C-2: `/api/invoices` accepts and processes `session_id` line items, build passes
 - [ ] C-3: `BillableSessionsPanel` created and wired in, manual smoke confirms full flow works
   regardless of workspace profile
