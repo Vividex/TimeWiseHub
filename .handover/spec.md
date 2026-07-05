@@ -168,26 +168,26 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ## C-3 — Client sub-pages (sessions, projects, invoices, quotes, messages)
 
 *Codex edits:*
-- [ ] Edit `src/app/dashboard/clients/[id]/sessions/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/sessions/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `<NewSessionModal clientId={id} orgId={orgId} />` to `<NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} />`.
-- [ ] Edit `src/components/clients/NewSessionModal.tsx`:
+- [x] Edit `src/components/clients/NewSessionModal.tsx`:
   - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
   - Change `Checklist will be pre-filled from this client&apos;s saved template ({templates.length} items).` to `Checklist will be pre-filled from this {clientLabel.singular.toLowerCase()}&apos;s saved template ({templates.length} items).`.
-- [ ] Edit `src/app/dashboard/clients/[id]/projects/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/projects/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `<TileGrid empty="No projects yet for this client.">` to `` <TileGrid empty={`No projects yet for this ${terminology.client.singular.toLowerCase()}.`}> ``.
-- [ ] Edit `src/app/dashboard/clients/[id]/invoices/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/invoices/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `No invoices for this client yet.` to `No invoices for this {terminology.client.singular.toLowerCase()} yet.`.
-- [ ] Edit `src/app/dashboard/clients/[id]/quotes/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/quotes/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change `No quotes for this client yet.` to `No quotes for this {terminology.client.singular.toLowerCase()} yet.`.
-- [ ] Edit `src/app/dashboard/clients/[id]/messages/page.tsx`:
+- [x] Edit `src/app/dashboard/clients/[id]/messages/page.tsx`:
   - Add import `import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'`.
   - After `if (!user) redirect('/login')`, add `const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)`.
   - Change:
@@ -207,15 +207,15 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
           </p>
     ```
   - Change `<ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} />` to `<ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} clientLabel={terminology.client} />`.
-- [ ] Edit `src/components/clients/ClientMessagesThread.tsx`:
+- [x] Edit `src/components/clients/ClientMessagesThread.tsx`:
   - Add `clientLabel: { singular: string; plural: string }` to the props type/destructuring.
   - Change `Add an email address to this client before sending messages.` to `Add an email address to this {clientLabel.singular.toLowerCase()} before sending messages.`.
   - Change `{m.direction === 'outbound' ? (m.sender_name ?? 'You') : 'Client'} — {fmtTime(m.created_at)}` to `{m.direction === 'outbound' ? (m.sender_name ?? 'You') : clientLabel.singular} — {fmtTime(m.created_at)}`.
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/dashboard/clients/[id]/sessions/page.tsx src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/projects/page.tsx src/app/dashboard/clients/[id]/invoices/page.tsx src/app/dashboard/clients/[id]/quotes/page.tsx src/app/dashboard/clients/[id]/messages/page.tsx src/components/clients/ClientMessagesThread.tsx && git commit -m "feat: dynamic terminology — client sub-pages (sessions, projects, invoices, quotes, messages)"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/dashboard/clients/[id]/sessions/page.tsx src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/projects/page.tsx src/app/dashboard/clients/[id]/invoices/page.tsx src/app/dashboard/clients/[id]/quotes/page.tsx src/app/dashboard/clients/[id]/messages/page.tsx src/components/clients/ClientMessagesThread.tsx && git commit -m "feat: dynamic terminology — client sub-pages (sessions, projects, invoices, quotes, messages)"`
 
 ---
 
@@ -289,7 +289,7 @@ vertical slice rather than the full 326-file/2,609-occurrence sweep.
 ## Acceptance checklist
 - [x] C-1: `Terminology` singular/plural shape shipped, registry updated, build passes
 - [x] C-2: Clients list/detail/CRUD converted, build passes
-- [ ] C-3: client sub-pages converted, build passes
+- [x] C-3: client sub-pages converted, build passes
 - [ ] C-4: shared invoice/quote form converted, manual smoke confirms every string switches
   correctly under "Tutoring & Education" and real account industry is restored afterward
 

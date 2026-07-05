@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 const STATUS_STYLE: Record<string, string> = {
   pending_approval: 'bg-amber-100 text-amber-700',
@@ -26,6 +27,7 @@ export default async function ClientInvoicesPage({ params }: { params: Promise<{
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('role').eq('user_id', user.id).maybeSingle()
@@ -74,7 +76,7 @@ export default async function ClientInvoicesPage({ params }: { params: Promise<{
 
         {!invoices || invoices.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center dark:border-slate-700">
-            <p className="text-sm font-semibold text-gray-400">No invoices for this client yet.</p>
+            <p className="text-sm font-semibold text-gray-400">No invoices for this {terminology.client.singular.toLowerCase()} yet.</p>
             <Link href={`/dashboard/invoices/new?clientId=${id}`}
               className="mt-3 inline-block text-sm font-bold text-cyan-600 hover:underline">
               Create the first invoice →

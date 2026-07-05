@@ -2,6 +2,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import NewSessionModal from '@/components/clients/NewSessionModal'
 
@@ -17,6 +18,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
@@ -50,7 +52,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
-          <NewSessionModal clientId={id} orgId={orgId} />
+          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} />
         </div>
 
         <TileGrid empty="No sessions yet.">

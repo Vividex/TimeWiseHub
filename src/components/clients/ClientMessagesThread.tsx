@@ -20,10 +20,12 @@ export default function ClientMessagesThread({
   clientId,
   initialMessages,
   hasEmail,
+  clientLabel,
 }: {
   clientId: string
   initialMessages: ClientMessage[]
   hasEmail: boolean
+  clientLabel: { singular: string; plural: string }
 }) {
   const [messages, setMessages] = useState(initialMessages)
   const [body, setBody] = useState('')
@@ -55,7 +57,7 @@ export default function ClientMessagesThread({
   if (!hasEmail) {
     return (
       <p className="text-sm text-gray-500 dark:text-slate-400">
-        Add an email address to this client before sending messages.
+        Add an email address to this {clientLabel.singular.toLowerCase()} before sending messages.
       </p>
     )
   }
@@ -69,7 +71,7 @@ export default function ClientMessagesThread({
           messages.map(m => (
             <div key={m.id} className={`flex flex-col ${m.direction === 'outbound' ? 'items-end' : 'items-start'}`}>
               <span className="mb-0.5 px-1 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
-                {m.direction === 'outbound' ? (m.sender_name ?? 'You') : 'Client'} — {fmtTime(m.created_at)}
+                {m.direction === 'outbound' ? (m.sender_name ?? 'You') : clientLabel.singular} — {fmtTime(m.created_at)}
               </span>
               <div className={`max-w-md whitespace-pre-line break-words rounded-2xl px-3 py-2 text-sm ${
                 m.direction === 'outbound'

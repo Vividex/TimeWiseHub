@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import ClientMessagesThread from '@/components/clients/ClientMessagesThread'
 import type { ClientMessage } from '@/components/clients/ClientMessagesThread'
@@ -15,6 +16,7 @@ export default async function ClientMessagesPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: client } = await supabase
     .from('clients').select('id, name, email, owner_id').eq('id', id).maybeSingle()
@@ -25,10 +27,10 @@ export default async function ClientMessagesPage({
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] px-6 text-center">
         <div className="text-4xl mb-4">💬</div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Client messaging is a Pro feature</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{terminology.client.singular} messaging is a Pro feature</h2>
         <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
-          Send and receive email with clients right from their record, branded as your business,
-          with no client login required. Upgrade to Pro to unlock it.
+          Send and receive email with {terminology.client.plural.toLowerCase()} right from their record, branded as your business,
+          with no {terminology.client.singular.toLowerCase()} login required. Upgrade to Pro to unlock it.
         </p>
         <Link href="/dashboard/billing" className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 transition-colors">
           Upgrade to Pro
@@ -67,7 +69,7 @@ export default async function ClientMessagesPage({
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Messages</h1>
         <p className="text-sm text-gray-500 dark:text-slate-400">{client.name}</p>
       </div>
-      <ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} />
+      <ClientMessagesThread clientId={id} initialMessages={messages} hasEmail={!!client.email} clientLabel={terminology.client} />
     </div>
   )
 }

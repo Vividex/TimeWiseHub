@@ -10,9 +10,11 @@ type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
 export default function NewSessionModal({
   clientId,
   orgId,
+  clientLabel,
 }: {
   clientId: string
   orgId: string | null
+  clientLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -164,7 +166,7 @@ export default function NewSessionModal({
           </div>
           {templates.length > 0 && (
             <p className="rounded-xl bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700">
-              Checklist will be pre-filled from this client&apos;s saved template ({templates.length} items).
+              Checklist will be pre-filled from this {clientLabel.singular.toLowerCase()}&apos;s saved template ({templates.length} items).
             </p>
           )}
           <div className="flex gap-2 pt-2">

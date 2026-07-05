@@ -2,6 +2,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import NewClientProjectButton from '@/components/projects/NewClientProjectButton'
 
@@ -10,6 +11,7 @@ export default async function ClientProjectsPage({ params }: { params: Promise<{
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
@@ -45,7 +47,7 @@ export default async function ClientProjectsPage({ params }: { params: Promise<{
 
         <NewClientProjectButton clientId={id} orgId={orgId} />
 
-        <TileGrid empty="No projects yet for this client.">
+        <TileGrid empty={`No projects yet for this ${terminology.client.singular.toLowerCase()}.`}>
           {items.map(p => (
             <Tile
               key={p.id}
