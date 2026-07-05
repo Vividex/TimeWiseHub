@@ -56,7 +56,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Tutoring Subject Tagging) [current phase]
+## Notes (Tutoring Subject Tagging) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-subject-tagging-design.md
 - Source plan: docs/superpowers/plans/2026-07-05-tutoring-subject-tagging.md
 - Third deep-dive feature for the Tutoring workspace profile. Students already had a single
@@ -80,6 +80,12 @@
   with low real data volume, so a clean replace was chosen over a compatibility shim.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP.
+- **Open question raised post-ship, not yet decided:** user asked whether subjects should instead
+  be two structured dropdowns (year group × a curated subject list) rather than free-text tags.
+  Deferred — proceeded with the already-approved free-text design since it was the one path
+  already spec'd/planned/migrated, and it directly fixes the "re-typing every time" complaint via
+  the dropdown-of-existing-tags in booking. The structured-category idea would reopen the data
+  model (already migrated to `text[]`) and needs its own brainstorm if the user wants to pursue it.
 
 ## Notes (Tutoring Per-Lesson Billing) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-per-lesson-billing-design.md
