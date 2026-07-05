@@ -19,9 +19,16 @@ export default async function ClientNotesPage({ params }: { params: Promise<{ id
   const { data: client } = await supabase.from('clients').select('id, name').eq('id', id).maybeSingle()
   if (!client) notFound()
 
+  const { data: students } = await supabase
+    .from('students')
+    .select('id, name')
+    .eq('client_id', id)
+    .eq('archived', false)
+    .order('name')
+
   const { data: notes } = await supabase
     .from('progress_notes')
-    .select('id, body, created_at, created_by, profiles!progress_notes_created_by_fkey(full_name)')
+    .select('id, body, created_at, created_by, student_id, sent_to_parent_at, profiles!progress_notes_created_by_fkey(full_name)')
     .eq('client_id', id)
     .order('created_at', { ascending: false })
 
@@ -30,6 +37,8 @@ export default async function ClientNotesPage({ params }: { params: Promise<{ id
     body: note.body,
     created_at: note.created_at,
     created_by: note.created_by,
+    student_id: note.student_id,
+    sent_to_parent_at: note.sent_to_parent_at,
     author: (note.profiles as unknown as { full_name: string | null } | null)?.full_name ?? 'Unknown',
   }))
 
@@ -39,9 +48,9 @@ export default async function ClientNotesPage({ params }: { params: Promise<{ id
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Progress notes</h1>
 
-        <AddProgressNote clientId={id} orgId={orgId} />
+        <AddProgressNote clientId={id} orgId={orgId} students={students ?? []} />
 
-        <ProgressNotesList notes={notesData} currentUserId={user.id} canManage={canManageNotes} />
+        <ProgressNotesList notes={notesData} currentUserId={user.id} canManage={canManageNotes} students={students ?? []} clientId={id} />
       </div>
     </div>
   )

@@ -7,13 +7,16 @@ import { createClient } from '@/lib/supabase-browser'
 export default function AddProgressNote({
   clientId,
   orgId,
+  students,
 }: {
   clientId: string
   orgId: string | null
+  students: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [body, setBody] = useState('')
+  const [studentId, setStudentId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,6 +33,7 @@ export default function AddProgressNote({
       org_id: orgId,
       created_by: user.id,
       body: body.trim(),
+      student_id: studentId || null,
     })
 
     if (err) {
@@ -39,12 +43,23 @@ export default function AddProgressNote({
     }
 
     setBody('')
+    setStudentId('')
     router.refresh()
   }
 
   return (
     <div className="space-y-2">
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+      {students.length > 0 && (
+        <select
+          value={studentId}
+          onChange={e => setStudentId(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+        >
+          <option value="">— General note —</option>
+          {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      )}
       <textarea
         value={body}
         onChange={e => setBody(e.target.value)}

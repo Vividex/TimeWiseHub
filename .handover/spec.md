@@ -254,7 +254,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
 
 *Codex edits (all 3 files in one turn — deliberate, keeps the build green):*
 
-- [ ] Rewrite `src/components/clients/AddProgressNote.tsx`:
+- [x] Rewrite `src/components/clients/AddProgressNote.tsx`:
   ```typescript
   'use client'
 
@@ -337,7 +337,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
   }
   ```
 
-- [ ] Rewrite `src/components/clients/ProgressNotesList.tsx`:
+- [x] Rewrite `src/components/clients/ProgressNotesList.tsx`:
   ```typescript
   'use client'
 
@@ -560,7 +560,7 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
   }
   ```
 
-- [ ] Rewrite `src/app/dashboard/clients/[id]/notes/page.tsx`:
+- [x] Rewrite `src/app/dashboard/clients/[id]/notes/page.tsx`:
   ```typescript
   // src/app/dashboard/clients/[id]/notes/page.tsx
   import { redirect, notFound } from 'next/navigation'
@@ -621,10 +621,10 @@ than building a new report entity. Sixth deep-dive feature for the Tutoring work
   }
   ```
 
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual smoke test: on a session with a student set, use "Add to progress notes" (session
   notes or call summary), confirm the resulting note has the correct student_id; confirm the
   student filter on the Notes page shows/hides notes correctly; add a manual "General note" and
