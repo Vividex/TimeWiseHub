@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Video, Clock3, CheckSquare, Receipt } from 'lucide-react'
+import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
 export type UpcomingMeeting  = { id: string; title: string; starts_at: string }
@@ -10,6 +10,7 @@ export type UpcomingEvent    = { id: string; title: string; start_at: string; en
 export type UpcomingSession  = { id: string; title: string; scheduled_at: string; client_id: string; client_name: string; meeting_id: string | null }
 export type UpcomingTask     = { id: string; title: string; due_date: string; project_name: string | null }
 export type UpcomingApproval = { id: string; title: string; submitter_name: string; amount: string }
+export type UnreadClientMessage = { client_id: string; client_name: string; preview: string }
 
 function fmtTime(iso: string, allDay: boolean) {
   if (allDay) return 'All day'
@@ -34,12 +35,14 @@ export default function DashboardUpcoming({
   sessions,
   tasks,
   approvals,
+  unreadMessages,
 }: {
   meetings: UpcomingMeeting[]
   events: UpcomingEvent[]
   sessions: UpcomingSession[]
   tasks: UpcomingTask[]
   approvals: UpcomingApproval[]
+  unreadMessages: UnreadClientMessage[]
 }) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
 
@@ -59,7 +62,7 @@ export default function DashboardUpcoming({
     await supabase.from('tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', taskId)
   }
 
-  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0) return null
+  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0) return null
 
   return (
     <div className="space-y-3">
@@ -67,7 +70,7 @@ export default function DashboardUpcoming({
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {visibleTasks.map((task, i) => {
           const overdue = new Date(task.due_date) < todayStartOfDay
-          const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && timedItems.length === 0
+          const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
           return (
             <div
               key={`task-${task.id}`}
@@ -98,7 +101,7 @@ export default function DashboardUpcoming({
           <Link
             key={`approval-${approval.id}`}
             href={`/dashboard/invoices/${approval.id}`}
-            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || unreadMessages.length > 0 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
               <Receipt size={15} />
@@ -109,6 +112,24 @@ export default function DashboardUpcoming({
             </div>
             <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
               Approve
+            </span>
+          </Link>
+        ))}
+        {unreadMessages.map((msg, i) => (
+          <Link
+            key={`unread-${msg.client_id}`}
+            href={`/dashboard/clients/${msg.client_id}/messages`}
+            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${i < unreadMessages.length - 1 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+              <MessageCircle size={15} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{msg.client_name}</p>
+              <p className="truncate text-xs text-gray-500 dark:text-slate-500">{msg.preview}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+              Unread
             </span>
           </Link>
         ))}

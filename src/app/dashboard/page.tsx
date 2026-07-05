@@ -10,7 +10,7 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney } from '@/lib/today'
@@ -124,7 +124,7 @@ export default async function DashboardHome() {
   const todayEndIso   = todayEnd.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -168,6 +168,7 @@ export default async function DashboardHome() {
           .limit(10)
       : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; scheduled_calls: { id: string }[] | null }[], error: null }),
     getSubscription(user.id),
+    supabase.rpc('get_unread_client_messages'),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -223,6 +224,13 @@ export default async function DashboardHome() {
       due_date: t.due_date as string,
       project_name: t.projectName,
     }))
+  const unreadMessages: UnreadClientMessage[] = (
+    (unreadMessagesRes.data ?? []) as { client_id: string; client_name: string; preview: string; created_at: string }[]
+  ).map(m => ({
+    client_id: m.client_id,
+    client_name: m.client_name,
+    preview: m.preview.length > 80 ? m.preview.slice(0, 77) + '…' : m.preview,
+  }))
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   return (
@@ -255,7 +263,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} />
 
         {/* Personal to-dos */}
         <PersonalTodos />

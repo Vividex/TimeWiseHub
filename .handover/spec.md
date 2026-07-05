@@ -146,15 +146,15 @@ Messages tile, so staff don't have to check each client individually to discover
      `const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && timedItems.length === 0`
      to
      `const isLast = i === visibleTasks.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0`.
-- [ ] Report back — build WILL fail this turn (`dashboard/page.tsx` doesn't pass the new prop yet).
+- [x] Report back — build WILL fail this turn (`dashboard/page.tsx` doesn't pass the new prop yet).
   That's expected, not a blocker.
 
 *Conductor:*
-- [ ] `pnpm run build` — expect a type error (`unreadMessages` prop missing). Expected here,
+- [x] `pnpm run build` — expect a type error (`unreadMessages` prop missing). Expected here,
   resolved by the next Codex turn.
 
 *Codex edits (second half of C-3):*
-- [ ] Read `src/app/dashboard/page.tsx` first, then:
+- [x] Read `src/app/dashboard/page.tsx` first, then:
   1. Update the type-only import to add `UnreadClientMessage`:
      ```typescript
      import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
@@ -178,8 +178,8 @@ Messages tile, so staff don't have to check each client individually to discover
   4. Update the `DashboardUpcoming` render to add `unreadMessages={unreadMessages}`.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now.
-- [ ] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "feat: unread client messages — dashboard Today agenda block"`
+- [x] `pnpm run build` — must pass clean now.
+- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "feat: unread client messages — dashboard Today agenda block"`
 
 ---
 
@@ -243,7 +243,7 @@ Messages tile, so staff don't have to check each client individually to discover
 - [ ] C-1: `messages_last_viewed_at` column + `get_unread_client_messages()` RPC applied and
   verified, RPC takes no parameters
 - [ ] C-2: viewing a client's Messages page marks it read via service-role update
-- [ ] C-3: dashboard Today agenda shows an unread-messages block
+- [x] C-3: dashboard Today agenda shows an unread-messages block
 - [ ] C-4: client overview page's Messages tile shows a red "New" badge when unread
 - [ ] C-5: full manual smoke test passes (blocked on confirming the prior phase's inbound flow
   actually works)
