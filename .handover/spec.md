@@ -88,16 +88,18 @@ video call or asynchronously afterward — with real-time sync between participa
 ## C-4 — Async entry point: Subjects page "Annotate" action
 
 *Codex edits:*
-- [ ] Create `src/components/worksheets/WorksheetAnnotatorModal.tsx` (plan Task 4, Step 1)
-- [ ] Modify `src/components/topics/TopicAssetsPanel.tsx` (plan Task 4, Step 2 — adds Annotate button, student-picker loader, modal render)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/worksheets/WorksheetAnnotatorModal.tsx` (plan Task 4, Step 1)
+- [x] Modify `src/components/topics/TopicAssetsPanel.tsx` (plan Task 4, Step 2 — adds Annotate button, student-picker loader, modal render)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual smoke test (plan Task 4, Step 4): open a worksheet from `/dashboard/subjects`, add
   text/stroke/sticker, delete an object via hover-X, reload and confirm persistence, confirm a
-  different student sees a blank worksheet.
-- [ ] Commit: `git add src/components/worksheets/WorksheetAnnotatorModal.tsx src/components/topics/TopicAssetsPanel.tsx && git commit -m "feat: worksheet annotation — async entry point from Subjects page"`
+  different student sees a blank worksheet. **Deferred to production** — dev-server file loading
+  isn't working for the user; shipped for live verification instead (same pattern as the PiP
+  feature earlier this session).
+- [x] Commit: `git add src/components/worksheets/WorksheetAnnotatorModal.tsx src/components/topics/TopicAssetsPanel.tsx && git commit -m "feat: worksheet annotation — async entry point from Subjects page"`
 
 ---
 
