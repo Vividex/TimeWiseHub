@@ -55,18 +55,20 @@ video call or asynchronously afterward — with real-time sync between participa
 ## C-2 — Dependencies, shared types, and lib helpers
 
 *Conductor (shell/binary ops):*
-- [ ] `pnpm add react-pdf perfect-freehand`
-- [ ] `cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs`
+- [x] `pnpm add react-pdf perfect-freehand`
+- [x] Copy the pdf.js worker to `public/pdf.worker.min.mjs` (pnpm nests pdfjs-dist under
+  `node_modules/.pnpm/pdfjs-dist@5.4.296/node_modules/pdfjs-dist/build/pdf.worker.min.mjs`, not a
+  top-level `node_modules/pdfjs-dist` path, since it's a transitive dep of react-pdf).
 
 *Codex edits:*
-- [ ] Create `src/types/worksheets.ts` (plan Task 2, Step 3)
-- [ ] Create `src/lib/worksheets/annotations.ts` (plan Task 2, Step 4)
-- [ ] Create `src/lib/worksheets/stickers.ts` (plan Task 2, Step 5)
-- [ ] Report back — list files changed.
+- [x] Create `src/types/worksheets.ts` (plan Task 2, Step 3)
+- [x] Create `src/lib/worksheets/annotations.ts` (plan Task 2, Step 4)
+- [x] Create `src/lib/worksheets/stickers.ts` (plan Task 2, Step 5)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add package.json pnpm-lock.yaml public/pdf.worker.min.mjs src/types/worksheets.ts src/lib/worksheets/annotations.ts src/lib/worksheets/stickers.ts && git commit -m "feat: worksheet annotation — dependencies, types, and data helpers"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add package.json pnpm-lock.yaml public/pdf.worker.min.mjs src/types/worksheets.ts src/lib/worksheets/annotations.ts src/lib/worksheets/stickers.ts && git commit -m "feat: worksheet annotation — dependencies, types, and data helpers"`
 
 ---
 
