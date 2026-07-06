@@ -212,16 +212,18 @@ vs. video-call files) so there's no reason to block one on the other.
 ### C-9 — Add-content "From Subjects" tab
 
 *Codex edits:*
-- [ ] Modify `src/app/api/programs/[id]/assets/route.ts` (plan Task 3, Step 1 — includes a
+- [x] Modify `src/app/api/programs/[id]/assets/route.ts` (plan Task 3, Step 1 — includes a
   source-asset authorization check via `getTopicAccess`, not just the destination-program check)
-- [ ] Modify `src/components/programs/AssetUploadZone.tsx` (plan Task 3, Step 2)
-- [ ] Report back — list files changed.
+- [x] Modify `src/components/programs/AssetUploadZone.tsx` (plan Task 3, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. Both files verified diff-by-diff, exact match.
 - [ ] Manual smoke test (plan Task 3, Step 4): search and link an existing worksheet from a
   Program's Add Content modal, confirm it appears and opens the same file as Subjects.
-- [ ] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" src/components/programs/AssetUploadZone.tsx && git commit -m "feat: program-subjects linking — search and link from Add content"`
+  **Deferred to production** — same as C-4/C-4.5/C-5/C-6, dev-server testing isn't working for
+  the user.
+- [x] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" src/components/programs/AssetUploadZone.tsx && git commit -m "feat: program-subjects linking — search and link from Add content"`
 
 ### C-10 — Annotate from the standalone Program page
 

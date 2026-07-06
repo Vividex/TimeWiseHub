@@ -1,10 +1,21 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Upload, BookOpen, Link, X } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { Upload, BookOpen, Link, X, Search, FileText } from 'lucide-react'
 import type { ProgramAsset } from '@/types/programs'
 
-type Tab = 'file' | 'note' | 'link'
+type Tab = 'file' | 'note' | 'link' | 'subjects'
+
+type SubjectsSearchResult = {
+  id: string
+  name: string
+  asset_type: string
+  topic_id: string
+  year_group: string
+  subject_id: string
+  subject_name: string
+  topic_name: string
+}
 
 const ACCEPTED = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.m4a'
 
@@ -32,6 +43,9 @@ export default function AssetUploadZone({
   const [linkName, setLinkName] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [linkType, setLinkType] = useState<'link' | 'video'>('link')
+  const [subjectsQuery, setSubjectsQuery] = useState('')
+  const [subjectsResults, setSubjectsResults] = useState<SubjectsSearchResult[]>([])
+  const [subjectsLoading, setSubjectsLoading] = useState(false)
 
   function triggerSummarise(asset: ProgramAsset) {
     if (asset.asset_type === 'note' || asset.asset_type === 'image' || asset.asset_type === 'pdf') {
@@ -59,6 +73,32 @@ export default function AssetUploadZone({
     triggerSummarise(json as ProgramAsset)
     onClose()
   }, [programId, categoryId, onAssetAdded, onClose])
+
+  useEffect(() => {
+    if (!subjectsQuery.trim()) { setSubjectsResults([]); return }
+    setSubjectsLoading(true)
+    const t = setTimeout(() => {
+      fetch(`/api/topics/search?q=${encodeURIComponent(subjectsQuery.trim())}`)
+        .then(res => (res.ok ? (res.json() as Promise<SubjectsSearchResult[]>) : []))
+        .then(data => { setSubjectsResults(data); setSubjectsLoading(false) })
+    }, 300)
+    return () => clearTimeout(t)
+  }, [subjectsQuery])
+
+  async function handleLinkSubjectsAsset(result: SubjectsSearchResult) {
+    setUploading(true)
+    setError(null)
+    const res = await fetch(`/api/programs/${programId}/assets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ link_topic_asset_id: result.id, category_id: categoryId }),
+    })
+    const json = await res.json()
+    setUploading(false)
+    if (!res.ok) { setError(json.error ?? 'Failed to link'); return }
+    onAssetAdded(json as ProgramAsset)
+    onClose()
+  }
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
@@ -112,7 +152,7 @@ export default function AssetUploadZone({
         </div>
 
         <div className="flex gap-1 border-b border-gray-100 px-5 dark:border-slate-800">
-          {([['file', Upload, 'File'], ['note', BookOpen, 'Note'], ['link', Link, 'Link / Video']] as const).map(([key, Icon, label]) => (
+          {([['file', Upload, 'File'], ['note', BookOpen, 'Note'], ['link', Link, 'Link / Video'], ['subjects', Search, 'From Subjects']] as const).map(([key, Icon, label]) => (
             <button
               key={key}
               type="button"
@@ -249,6 +289,46 @@ export default function AssetUploadZone({
                   {uploading ? 'Saving…' : 'Save link'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {tab === 'subjects' && (
+            <div className="space-y-3">
+              <input
+                autoFocus
+                value={subjectsQuery}
+                onChange={e => setSubjectsQuery(e.target.value)}
+                placeholder="Search worksheets by name…"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              {subjectsQuery.trim() && (
+                <div className="max-h-64 overflow-y-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                  {subjectsLoading ? (
+                    <p className="p-3 text-xs text-gray-400">Searching…</p>
+                  ) : subjectsResults.length === 0 ? (
+                    <p className="p-3 text-xs text-gray-400">No worksheets match &quot;{subjectsQuery}&quot;.</p>
+                  ) : (
+                    <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                      {subjectsResults.map(r => (
+                        <li key={r.id}>
+                          <button
+                            type="button"
+                            disabled={uploading}
+                            onClick={() => handleLinkSubjectsAsset(r)}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 disabled:opacity-50 dark:hover:bg-slate-800"
+                          >
+                            <FileText size={14} className="shrink-0 text-cyan-600" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">{r.name}</span>
+                              <span className="block truncate text-xs text-gray-400">{r.year_group} · {r.subject_name} · {r.topic_name}</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

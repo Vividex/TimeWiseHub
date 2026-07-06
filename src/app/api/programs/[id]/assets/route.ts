@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { programStoragePath } from '@/lib/program-storage'
+import { getTopicAccess } from '@/lib/tutoring/topic-access'
 import type { ProgramAssetType } from '@/types/programs'
 
 const MAX_BYTES: Record<string, number> = {
@@ -84,7 +85,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // ── Note or Link type (JSON body) ───────────────────────────
   if (contentType.includes('application/json')) {
     const body = await req.json()
-    const { asset_type, name, note_content, external_url, category_id } = body
+    const { asset_type, name, note_content, external_url, category_id, link_topic_asset_id } = body
+
+    if (link_topic_asset_id) {
+      const service = createServiceClient()
+      const { data: topicAsset } = await service
+        .from('topic_assets').select('id, name, asset_type, topic_id').eq('id', link_topic_asset_id).maybeSingle()
+      if (!topicAsset) return NextResponse.json({ error: 'Worksheet not found' }, { status: 404 })
+
+      const access = await getTopicAccess(topicAsset.topic_id, user.id)
+      if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+      const { data, error } = await service.from('program_assets').insert({
+        program_id: id,
+        owner_id: user.id,
+        category_id: category_id ?? null,
+        asset_type: topicAsset.asset_type,
+        name: topicAsset.name,
+        linked_topic_asset_id: topicAsset.id,
+        ai_status: 'skipped',
+      }).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json(data)
+    }
 
     if (asset_type === 'note') {
       if (!name?.trim()) return NextResponse.json({ error: 'Name required' }, { status: 400 })
