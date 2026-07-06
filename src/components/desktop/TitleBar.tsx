@@ -44,12 +44,14 @@ export default function TitleBar() {
       <div
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
-        onDoubleClick={() => { getCurrentWindow().toggleMaximize() }}
-        data-tauri-drag-region
         className="fixed inset-x-0 top-0 z-[9999] flex h-9 items-center justify-between bg-slate-900 text-slate-200 transition-transform duration-150"
         style={{ transform: revealed ? 'translateY(0)' : 'translateY(-100%)' }}
       >
-        <div data-tauri-drag-region className="flex items-center gap-2 pl-3 text-xs font-semibold">
+        <div
+          data-tauri-drag-region
+          onDoubleClick={() => { getCurrentWindow().toggleMaximize() }}
+          className="flex h-full flex-1 items-center gap-2 pl-3 text-xs font-semibold"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icon-192.png" alt="" className="h-4 w-4" data-tauri-drag-region />
           TimeWiseHub
