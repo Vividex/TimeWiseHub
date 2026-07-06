@@ -147,9 +147,10 @@ explicit request ("fix it now... before we get too far down the track").
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test (plan Task 5, Step 4): upload a JPEG sticker, place it, reload and confirm
-  it still renders. **Deferred to production** — same as C-4/C-4.5, dev-server testing isn't
-  working for the user.
+- [x] Manual smoke test (plan Task 5, Step 4): confirmed live — initial "nothing appears" report
+  was a UX gap, not a bug (armed-tool state had no visual feedback beyond a crosshair cursor);
+  fixed directly with a hint banner ("Click the worksheet to place it" / pen equivalent) shown
+  while a tool is armed.
 - [x] Commit: `git add src/components/worksheets/StickerPalette.tsx src/components/worksheets/WorksheetAnnotator.tsx && git commit -m "feat: worksheet annotation — custom sticker upload"`
 
 ---
@@ -181,7 +182,7 @@ explicit request ("fix it now... before we get too far down the track").
 - [x] C-3: core annotator renders + supports text/stroke/builtin-sticker with live broadcast + persistence + delete
 - [x] C-4: async entry point works end to end, confirmed live (one bug found + fixed: dark textarea)
 - [x] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan), confirmed live
-- [ ] C-5: custom sticker upload works and persists
+- [x] C-5: custom sticker upload works and persists, confirmed live
 - [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants
 
 ## Verification

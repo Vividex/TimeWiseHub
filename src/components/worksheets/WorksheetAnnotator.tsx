@@ -219,6 +219,12 @@ export default function WorksheetAnnotator({
         )}
       </div>
 
+      {tool && (
+        <div className="bg-cyan-600/90 px-3 py-1.5 text-center text-xs font-semibold text-white">
+          {tool === 'pen' ? 'Draw on the worksheet to add your mark' : 'Click the worksheet to place it'}
+        </div>
+      )}
+
       <div className="relative flex-1 overflow-auto p-4">
         <div
           ref={pageRef}
