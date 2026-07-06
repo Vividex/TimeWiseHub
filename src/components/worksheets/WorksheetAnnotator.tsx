@@ -240,7 +240,7 @@ export default function WorksheetAnnotator({
                   <textarea
                     value={c.text}
                     onChange={e => handleTextChange(a, e.target.value)}
-                    className="h-full w-full resize-none border border-cyan-400 bg-white/90 p-1 text-sm text-slate-900 focus:outline-none"
+                    className="h-full w-full resize-none !border-cyan-400 !bg-white !text-slate-900 border p-1 text-sm focus:outline-none"
                   />
                   <button
                     type="button"
