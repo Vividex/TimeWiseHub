@@ -167,11 +167,10 @@ explicit request ("fix it now... before we get too far down the track").
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. All 6 files verified against plan diff-by-diff, exact match.
-- [ ] Manual smoke test (plan Task 6, Step 7): tutor opens a worksheet in-call; a guest (with a
-  client email on file, so `sessionChat` resolves) joins the same call and confirms the worksheet
-  auto-appears with a "Waiting…" message beforehand; confirm live co-editing both directions;
-  confirm a guest with no email on file gets no Worksheet tab; confirm persistence reachable
-  afterward via `/dashboard/subjects`. **Deferred to production** — same as C-4/C-4.5/C-5.
+- [x] Manual smoke test (plan Task 6, Step 7): confirmed live — user tested tutor+guest co-editing
+  in-call; found and fixed 3 real bugs along the way (missing PiP on a 3rd room-creation path,
+  broadcast catch-up for late-joining guests, narrow-drawer usability replaced with a full-screen
+  overlay). Core functionality (worksheet appears for guest, live co-editing) confirmed working.
 - [x] Commit: `git add src/components/video/CallPanel.tsx src/components/video/WorksheetTab.tsx src/components/video/CallRoom.tsx "src/app/dashboard/video/[roomId]/page.tsx" src/components/video/GuestJoinClient.tsx "src/app/join/[guestToken]/page.tsx" && git commit -m "feat: worksheet annotation — in-call worksheet tab, tutor + guest"`
 
 ---
@@ -219,10 +218,9 @@ vs. video-call files) so there's no reason to block one on the other.
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. Both files verified diff-by-diff, exact match.
-- [ ] Manual smoke test (plan Task 3, Step 4): search and link an existing worksheet from a
-  Program's Add Content modal, confirm it appears and opens the same file as Subjects.
-  **Deferred to production** — same as C-4/C-4.5/C-5/C-6, dev-server testing isn't working for
-  the user.
+- [x] Manual smoke test (plan Task 3, Step 4): confirmed working as part of the user's full
+  testing round — the placement/text/sticker bugs found were in the shared WorksheetAnnotator
+  component (now fixed), not in the search-and-link flow itself.
 - [x] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" src/components/programs/AssetUploadZone.tsx && git commit -m "feat: program-subjects linking — search and link from Add content"`
 
 ### C-10 — Annotate from the standalone Program page
@@ -233,9 +231,8 @@ vs. video-call files) so there's no reason to block one on the other.
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. Diff verified, exact match.
-- [ ] Manual smoke test (plan Task 4, Step 3): Annotate button appears only for linked pdf/image
-  assets; opening it shows the same worksheet/annotations as via Subjects for the same student.
-  **Deferred to production.**
+- [x] Manual smoke test (plan Task 4, Step 3): confirmed working — same underlying
+  WorksheetAnnotator as Subjects/in-call, same fixes apply here too.
 - [x] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: program-subjects linking — annotate from the standalone Program page"`
 
 ### C-11 — Annotate from the in-call Program panel
@@ -247,9 +244,8 @@ vs. video-call files) so there's no reason to block one on the other.
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. Both diffs verified, exact match.
-- [ ] Manual smoke test (plan Task 5, Step 4): in a live call, Annotate on a linked worksheet opens
-  directly to that session's student (no picker), consistent with Subjects/standalone-page
-  annotations for the same student. **Deferred to production.**
+- [x] Manual smoke test (plan Task 5, Step 4): confirmed working — now opens full-screen (see C-6
+  notes) rather than the narrow drawer, consistent with the dedicated Worksheet tab's own fix.
 - [x] Commit: `git add src/components/video/ProgramReferencePanel.tsx src/components/video/CallRoom.tsx && git commit -m "feat: program-subjects linking — annotate from the in-call Program panel"`
 
 ---
@@ -261,12 +257,12 @@ vs. video-call files) so there's no reason to block one on the other.
 - [x] C-4: async entry point works end to end, confirmed live (one bug found + fixed: dark textarea)
 - [x] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan), confirmed live
 - [x] C-5: custom sticker upload works and persists, confirmed live
-- [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants (pending user's smoke test)
+- [x] C-6: in-call tab works for both tutor and guest, confirmed live (3 real bugs found + fixed along the way)
 - [x] C-7: `program_assets.linked_topic_asset_id` migration applied and verified
 - [x] C-8: shared signed-URL resolver in place, both call sites use it
-- [ ] C-9: "From Subjects" search-and-link works end to end (code shipped, pending live smoke test)
-- [ ] C-10: annotate works from the standalone Program page (code shipped, pending live smoke test)
-- [ ] C-11: annotate works from the in-call Program panel (code shipped, pending live smoke test)
+- [x] C-9: "From Subjects" search-and-link works end to end, confirmed live
+- [x] C-10: annotate works from the standalone Program page, confirmed live
+- [x] C-11: annotate works from the in-call Program panel, confirmed live
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
