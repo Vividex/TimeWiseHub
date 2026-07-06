@@ -228,14 +228,15 @@ vs. video-call files) so there's no reason to block one on the other.
 ### C-10 — Annotate from the standalone Program page
 
 *Codex edits:*
-- [ ] Modify `src/components/programs/AssetCard.tsx` (plan Task 4, Step 1)
-- [ ] Report back — list files changed.
+- [x] Modify `src/components/programs/AssetCard.tsx` (plan Task 4, Step 1)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. Diff verified, exact match.
 - [ ] Manual smoke test (plan Task 4, Step 3): Annotate button appears only for linked pdf/image
   assets; opening it shows the same worksheet/annotations as via Subjects for the same student.
-- [ ] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: program-subjects linking — annotate from the standalone Program page"`
+  **Deferred to production.**
+- [x] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: program-subjects linking — annotate from the standalone Program page"`
 
 ### C-11 — Annotate from the in-call Program panel
 

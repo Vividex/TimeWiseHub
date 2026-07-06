@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   FileText, Image, Music, Link, BookOpen, FileSpreadsheet, File,
-  MoreVertical, Trash2, ExternalLink, Sparkles, X,
+  MoreVertical, Trash2, ExternalLink, Sparkles, X, PenSquare,
 } from 'lucide-react'
 import type { ProgramAsset, ProgramAssetType } from '@/types/programs'
+import WorksheetAnnotatorModal from '@/components/worksheets/WorksheetAnnotatorModal'
+import { createClient } from '@/lib/supabase-browser'
 
 const TYPE_ICON: Record<ProgramAssetType, React.ComponentType<{ size?: number; className?: string }>> = {
   pdf:   FileText,
@@ -54,6 +56,14 @@ export default function AssetCard({
   const [deleting, setDeleting] = useState(false)
   const Icon = TYPE_ICON[asset.asset_type] ?? File
   const colour = TYPE_COLOUR[asset.asset_type] ?? '#64748b'
+  const [annotating, setAnnotating] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState('')
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? ''))
+  }, [])
+
+  const canAnnotate = !!asset.linked_topic_asset_id && (asset.asset_type === 'pdf' || asset.asset_type === 'image') && !!asset.signed_url
 
   async function handleDelete() {
     if (!confirm(`Delete "${asset.name}"?`)) return
@@ -117,12 +127,32 @@ export default function AssetCard({
             Open
           </button>
         )}
+        {canAnnotate && (
+          <button
+            type="button"
+            onClick={() => setAnnotating(true)}
+            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            <PenSquare size={11} />
+            Annotate
+          </button>
+        )}
         {asset.asset_type === 'note' && asset.note_content && (
           <span className="flex-1 text-xs text-gray-400 line-clamp-1 dark:text-slate-500">
             {asset.note_content.slice(0, 60)}
           </span>
         )}
       </div>
+
+      {annotating && canAnnotate && currentUserId && (
+        <WorksheetAnnotatorModal
+          topicAssetId={asset.linked_topic_asset_id!}
+          assetType={asset.asset_type as 'pdf' | 'image'}
+          fileUrl={asset.signed_url!}
+          currentUserId={currentUserId}
+          onClose={() => setAnnotating(false)}
+        />
+      )}
 
       {showKebab && (
         <div className="absolute right-3 top-3">
