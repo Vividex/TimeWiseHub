@@ -37,6 +37,18 @@ export async function updateAnnotationContent(id: string, content: AnnotationCon
   if (error) throw error
 }
 
+export async function updateAnnotationPosition(
+  id: string,
+  position: { x: number; y: number; width: number; height: number },
+): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('worksheet_annotations')
+    .update({ ...position, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteAnnotation(id: string): Promise<void> {
   const supabase = createClient()
   const { error } = await supabase.from('worksheet_annotations').delete().eq('id', id)

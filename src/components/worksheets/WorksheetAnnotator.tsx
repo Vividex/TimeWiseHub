@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import getStroke from 'perfect-freehand'
-import { Type, Pencil } from 'lucide-react'
+import { Type, Pencil, Move } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { fetchAnnotations, insertAnnotation, updateAnnotationContent, deleteAnnotation, worksheetChannelName } from '@/lib/worksheets/annotations'
+import { fetchAnnotations, insertAnnotation, updateAnnotationContent, updateAnnotationPosition, deleteAnnotation, worksheetChannelName } from '@/lib/worksheets/annotations'
 import { findBuiltinSticker } from '@/lib/worksheets/stickers'
 import StickerPalette from './StickerPalette'
 import type { AnnotationContent, WorksheetAnnotation } from '@/types/worksheets'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+
+const PAGE_WIDTH = 800
 
 type Tool = 'text' | 'pen' | 'sticker' | null
 
@@ -38,7 +40,9 @@ export default function WorksheetAnnotator({
   const [customStickerUrls, setCustomStickerUrls] = useState<Record<string, string>>({})
   const [pageNumber, setPageNumber] = useState(1)
   const [numPages, setNumPages] = useState(1)
+  const [pageHeight, setPageHeight] = useState(PAGE_WIDTH)
   const [tool, setTool] = useState<Tool>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawingPoints, setDrawingPoints] = useState<[number, number][]>([])
   const pageRef = useRef<HTMLDivElement>(null)
   const textDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
@@ -99,6 +103,7 @@ export default function WorksheetAnnotator({
 
   async function handleDeleteAnnotation(id: string) {
     setAnnotations(prev => prev.filter(a => a.id !== id))
+    if (selectedId === id) setSelectedId(null)
     channelRef.current?.send({ type: 'broadcast', event: 'delete', payload: { id } })
     await deleteAnnotation(id)
   }
@@ -109,11 +114,19 @@ export default function WorksheetAnnotator({
     return { x: (clientX - rect.left) / rect.width, y: (clientY - rect.top) / rect.height }
   }
 
+  function measurePageHeight() {
+    const h = pageRef.current?.getBoundingClientRect().height
+    if (h) setPageHeight(h)
+  }
+
   const [pendingStickerId, setPendingStickerId] = useState<string | null>(null)
   const [pendingCustomSticker, setPendingCustomSticker] = useState<string | null>(null)
 
   const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-    if (tool !== 'text' && tool !== 'sticker') return
+    if (tool !== 'text' && tool !== 'sticker') {
+      setSelectedId(null)
+      return
+    }
     const { x, y } = relativePosition(e.clientX, e.clientY)
 
     const content: AnnotationContent = tool === 'text'
@@ -133,6 +146,7 @@ export default function WorksheetAnnotator({
     })
     setAnnotations(prev => [...prev, saved])
     broadcastUpsert(saved)
+    if (tool === 'text') setSelectedId(saved.id)
     setTool(null)
     setPendingStickerId(null)
     setPendingCustomSticker(null)
@@ -183,6 +197,47 @@ export default function WorksheetAnnotator({
     }, 500)
   }
 
+  // Dragging a text box (move or resize) is handled independently of the page's own
+  // pen/click handlers via window-level listeners, so it never conflicts with drawing.
+  function beginDrag(e: React.PointerEvent, annotation: WorksheetAnnotation, mode: 'move' | 'resize') {
+    e.stopPropagation()
+    e.preventDefault()
+    setSelectedId(annotation.id)
+    const rect = pageRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const startClientX = e.clientX
+    const startClientY = e.clientY
+    const start = { x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height }
+
+    function onMove(ev: PointerEvent) {
+      const dxFrac = (ev.clientX - startClientX) / rect!.width
+      const dyFrac = (ev.clientY - startClientY) / pageHeight
+      setAnnotations(prev => prev.map(a => {
+        if (a.id !== annotation.id) return a
+        if (mode === 'move') {
+          return { ...a, x: start.x + dxFrac, y: start.y + dyFrac }
+        }
+        return { ...a, width: Math.max(0.03, start.width + dxFrac), height: Math.max(0.02, start.height + dyFrac) }
+      }))
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      setAnnotations(prev => {
+        const updated = prev.find(a => a.id === annotation.id)
+        if (updated) {
+          broadcastUpsert(updated)
+          updateAnnotationPosition(updated.id, { x: updated.x, y: updated.y, width: updated.width, height: updated.height })
+        }
+        return prev
+      })
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+
   const pageAnnotations = annotations.filter(a => a.page_number === pageNumber)
 
   return (
@@ -229,7 +284,7 @@ export default function WorksheetAnnotator({
         <div
           ref={pageRef}
           className="relative mx-auto bg-white"
-          style={{ width: 800, cursor: tool ? 'crosshair' : 'default' }}
+          style={{ width: PAGE_WIDTH, cursor: tool ? 'crosshair' : 'default' }}
           onClick={handlePageClick}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -237,11 +292,11 @@ export default function WorksheetAnnotator({
         >
           {assetType === 'pdf' ? (
             <Document file={fileUrl} onLoadSuccess={({ numPages: n }) => setNumPages(n)}>
-              <Page pageNumber={pageNumber} width={800} />
+              <Page pageNumber={pageNumber} width={PAGE_WIDTH} onRenderSuccess={measurePageHeight} />
             </Document>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={fileUrl} alt="Worksheet" style={{ width: 800, display: 'block' }} />
+            <img src={fileUrl} alt="Worksheet" style={{ width: PAGE_WIDTH, display: 'block' }} onLoad={measurePageHeight} />
           )}
 
           <svg className="pointer-events-none absolute inset-0 h-full w-full">
@@ -250,13 +305,13 @@ export default function WorksheetAnnotator({
               .map(a => {
                 const c = a.content as { kind: 'stroke'; points: [number, number][]; color: string }
                 const scaled: [number, number][] = c.points.map(([x, y]) => [
-                  (a.x + x * a.width) * 800,
-                  (a.y + y * a.height) * 800,
+                  (a.x + x * a.width) * PAGE_WIDTH,
+                  (a.y + y * a.height) * pageHeight,
                 ])
                 return <path key={a.id} d={strokeToPath(scaled)} fill={c.color} />
               })}
             {drawingPoints.length > 1 && (
-              <path d={strokeToPath(drawingPoints.map(([x, y]) => [x * 800, y * 800]))} fill="#ef4444" />
+              <path d={strokeToPath(drawingPoints.map(([x, y]) => [x * PAGE_WIDTH, y * pageHeight]))} fill="#ef4444" />
             )}
           </svg>
 
@@ -264,25 +319,48 @@ export default function WorksheetAnnotator({
             .filter(a => a.object_type === 'text_box')
             .map(a => {
               const c = a.content as { kind: 'text_box'; text: string }
+              const isSelected = selectedId === a.id
               return (
                 <div
                   key={a.id}
                   className="group absolute"
-                  style={{ left: `${a.x * 800}px`, top: `${a.y * 800}px`, width: `${a.width * 800}px`, height: `${a.height * 800}px` }}
+                  style={{ left: `${a.x * PAGE_WIDTH}px`, top: `${a.y * pageHeight}px`, width: `${a.width * PAGE_WIDTH}px`, height: `${a.height * pageHeight}px` }}
+                  onClick={e => { e.stopPropagation(); setSelectedId(a.id) }}
                 >
-                  <textarea
-                    value={c.text}
-                    onChange={e => handleTextChange(a, e.target.value)}
-                    className="h-full w-full resize-none !border-cyan-400 !bg-white !text-slate-900 border p-1 text-sm focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteAnnotation(a.id)}
-                    className="absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white group-hover:flex"
-                    title="Delete"
-                  >
-                    ×
-                  </button>
+                  {isSelected ? (
+                    <>
+                      <textarea
+                        autoFocus
+                        value={c.text}
+                        onChange={e => handleTextChange(a, e.target.value)}
+                        className="h-full w-full resize-none !border-cyan-400 !bg-white !text-slate-900 border p-1 text-sm focus:outline-none"
+                      />
+                      <div
+                        onPointerDown={e => beginDrag(e, a, 'move')}
+                        className="absolute -top-3 left-1/2 flex h-5 w-8 -translate-x-1/2 cursor-move items-center justify-center rounded-full bg-cyan-600 text-white"
+                        title="Drag to move"
+                      >
+                        <Move size={12} />
+                      </div>
+                      <div
+                        onPointerDown={e => beginDrag(e, a, 'resize')}
+                        className="absolute -bottom-1 -right-1 h-4 w-4 cursor-nwse-resize rounded-full bg-cyan-600"
+                        title="Drag to resize"
+                      />
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); handleDeleteAnnotation(a.id) }}
+                        className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+                        title="Delete"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <p className="h-full w-full overflow-hidden whitespace-pre-wrap break-words p-1 text-sm text-slate-900">
+                      {c.text}
+                    </p>
+                  )}
                 </div>
               )
             })}
@@ -291,7 +369,7 @@ export default function WorksheetAnnotator({
             .filter(a => a.object_type === 'sticker')
             .map(a => {
               const c = a.content as { kind: 'sticker_builtin'; id: string } | { kind: 'sticker_custom'; storagePath: string }
-              const style = { left: `${a.x * 800}px`, top: `${a.y * 800}px`, width: `${a.width * 800}px`, height: `${a.height * 800}px` }
+              const style = { left: `${a.x * PAGE_WIDTH}px`, top: `${a.y * pageHeight}px`, width: `${a.width * PAGE_WIDTH}px`, height: `${a.height * pageHeight}px` }
               const deleteButton = (
                 <button
                   type="button"
