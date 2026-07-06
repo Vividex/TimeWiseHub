@@ -8,8 +8,10 @@ import CallPanel, { type CallPanelTabId } from './CallPanel'
 import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
 import RoomChatTab from './RoomChatTab'
 import WorksheetTab, { type LinkedTopicAsset } from './WorksheetTab'
+import WorksheetFullScreen from './WorksheetFullScreen'
+import WorksheetAnnotator from '@/components/worksheets/WorksheetAnnotator'
 import { createClient } from '@/lib/supabase-browser'
-import type { LinkedProgramBundle } from '@/types/programs'
+import type { LinkedProgramBundle, ProgramAsset } from '@/types/programs'
 
 type TranscriptLine = { speaker: string; text: string; ts: string }
 
@@ -39,6 +41,13 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
   const [panelOpen, setPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<CallPanelTabId>('transcript')
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([])
+  const [worksheetFullScreen, setWorksheetFullScreen] = useState(false)
+  const [programAnnotateAsset, setProgramAnnotateAsset] = useState<{
+    topicAssetId: string
+    studentId: string
+    fileUrl: string
+    assetType: 'pdf' | 'image'
+  } | null>(null)
 
   const canUseWorksheet = !!callId && !!currentUserId && ((linkedTopicAssets && linkedTopicAssets.length > 0) || isGuest)
 
@@ -46,7 +55,6 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
     'transcript',
     ...(linkedProgram ? (['program'] as const) : []),
     ...(sessionChat ? (['chat'] as const) : []),
-    ...(canUseWorksheet ? (['worksheet'] as const) : []),
   ]
 
   function openTab(tab: CallPanelTabId) {
@@ -206,13 +214,24 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
             linkedProgram={linkedProgram}
             sessionChat={sessionChat ?? null}
             sessionStudentId={sessionStudentId ?? null}
-            currentUserId={currentUserId ?? ''}
+            onAnnotate={(asset: ProgramAsset) => setProgramAnnotateAsset({
+              topicAssetId: asset.linked_topic_asset_id!,
+              studentId: sessionStudentId!,
+              fileUrl: asset.signed_url!,
+              assetType: asset.asset_type as 'pdf' | 'image',
+            })}
           />
         )}
         {activeTab === 'chat' && sessionChat && (
           <RoomChatTab conversationId={sessionChat.conversationId} userId={sessionChat.userId} />
         )}
-        {activeTab === 'worksheet' && canUseWorksheet && (
+      </CallPanel>
+
+      {/* Worksheet — full screen, not the narrow side drawer, since the annotator needs real
+          width; the video call keeps running behind it (use Daily's own PiP button first to
+          keep seeing each other while working here) */}
+      {worksheetFullScreen && canUseWorksheet && (
+        <WorksheetFullScreen onClose={() => setWorksheetFullScreen(false)}>
           <WorksheetTab
             callId={callId!}
             assets={linkedTopicAssets ?? []}
@@ -220,8 +239,19 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
             currentUserId={currentUserId!}
             canPick={!isGuest}
           />
-        )}
-      </CallPanel>
+        </WorksheetFullScreen>
+      )}
+      {programAnnotateAsset && (
+        <WorksheetFullScreen onClose={() => setProgramAnnotateAsset(null)}>
+          <WorksheetAnnotator
+            topicAssetId={programAnnotateAsset.topicAssetId}
+            studentId={programAnnotateAsset.studentId}
+            fileUrl={programAnnotateAsset.fileUrl}
+            assetType={programAnnotateAsset.assetType}
+            currentUserId={currentUserId ?? ''}
+          />
+        </WorksheetFullScreen>
+      )}
 
       {/* Controls bar */}
       <div
@@ -259,9 +289,9 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
 
         {canUseWorksheet && (
           <button
-            onClick={() => openTab('worksheet')}
+            onClick={() => setWorksheetFullScreen(true)}
             className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
-            title="Toggle worksheet panel"
+            title="Open worksheet"
           >
             <NotebookPen size={15} />
             Worksheet

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { FileText, Image, Music, Link as LinkIcon, BookOpen, FileSpreadsheet, File, Send, PenSquare } from 'lucide-react'
 import type { LinkedProgramBundle, ProgramAsset, ProgramAssetType } from '@/types/programs'
-import WorksheetAnnotator from '@/components/worksheets/WorksheetAnnotator'
 
 const TYPE_ICON: Record<ProgramAssetType, React.ComponentType<{ size?: number; className?: string }>> = {
   pdf:   FileText,
@@ -31,46 +30,22 @@ export default function ProgramReferencePanel({
   linkedProgram,
   sessionChat,
   sessionStudentId,
-  currentUserId,
+  onAnnotate,
 }: {
   linkedProgram: LinkedProgramBundle
   sessionChat: { conversationId: string } | null
   sessionStudentId: string | null
-  currentUserId: string
+  onAnnotate: (asset: ProgramAsset) => void
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null)
   const [sharingId, setSharingId] = useState<string | null>(null)
-  const [annotatingAsset, setAnnotatingAsset] = useState<ProgramAsset | null>(null)
 
   const { categories, assets } = linkedProgram
   const visibleAssets =
     selectedCategoryId === 'all'
       ? assets
       : assets.filter(a => a.category_id === selectedCategoryId)
-
-  if (annotatingAsset && sessionStudentId) {
-    return (
-      <div className="flex h-full flex-col">
-        <button
-          type="button"
-          onClick={() => setAnnotatingAsset(null)}
-          className="border-b border-slate-700 px-3 py-2 text-left text-xs font-semibold text-slate-400 hover:text-slate-200"
-        >
-          ← Back to program files
-        </button>
-        <div className="flex-1 overflow-hidden">
-          <WorksheetAnnotator
-            topicAssetId={annotatingAsset.linked_topic_asset_id!}
-            studentId={sessionStudentId}
-            fileUrl={annotatingAsset.signed_url!}
-            assetType={annotatingAsset.asset_type as 'pdf' | 'image'}
-            currentUserId={currentUserId}
-          />
-        </div>
-      </div>
-    )
-  }
 
   function handleAssetClick(asset: ProgramAsset) {
     if (asset.asset_type === 'note') {
@@ -144,7 +119,7 @@ export default function ProgramReferencePanel({
                   )}
                   {asset.linked_topic_asset_id && (asset.asset_type === 'pdf' || asset.asset_type === 'image') && asset.signed_url && sessionStudentId && (
                     <button
-                      onClick={() => setAnnotatingAsset(asset)}
+                      onClick={() => onAnnotate(asset)}
                       className="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-cyan-400"
                       title="Annotate"
                     >
