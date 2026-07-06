@@ -241,16 +241,16 @@ vs. video-call files) so there's no reason to block one on the other.
 ### C-11 — Annotate from the in-call Program panel
 
 *Codex edits:*
-- [ ] Modify `src/components/video/ProgramReferencePanel.tsx` (plan Task 5, Step 1)
-- [ ] Modify `src/components/video/CallRoom.tsx` (plan Task 5, Step 2)
-- [ ] Report back — list files changed.
+- [x] Modify `src/components/video/ProgramReferencePanel.tsx` (plan Task 5, Step 1)
+- [x] Modify `src/components/video/CallRoom.tsx` (plan Task 5, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. Both diffs verified, exact match.
 - [ ] Manual smoke test (plan Task 5, Step 4): in a live call, Annotate on a linked worksheet opens
   directly to that session's student (no picker), consistent with Subjects/standalone-page
-  annotations for the same student.
-- [ ] Commit: `git add src/components/video/ProgramReferencePanel.tsx src/components/video/CallRoom.tsx && git commit -m "feat: program-subjects linking — annotate from the in-call Program panel"`
+  annotations for the same student. **Deferred to production.**
+- [x] Commit: `git add src/components/video/ProgramReferencePanel.tsx src/components/video/CallRoom.tsx && git commit -m "feat: program-subjects linking — annotate from the in-call Program panel"`
 
 ---
 
@@ -262,11 +262,11 @@ vs. video-call files) so there's no reason to block one on the other.
 - [x] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan), confirmed live
 - [x] C-5: custom sticker upload works and persists, confirmed live
 - [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants (pending user's smoke test)
-- [ ] C-7: `program_assets.linked_topic_asset_id` migration applied and verified
-- [ ] C-8: shared signed-URL resolver in place, both call sites use it
-- [ ] C-9: "From Subjects" search-and-link works end to end
-- [ ] C-10: annotate works from the standalone Program page
-- [ ] C-11: annotate works from the in-call Program panel
+- [x] C-7: `program_assets.linked_topic_asset_id` migration applied and verified
+- [x] C-8: shared signed-URL resolver in place, both call sites use it
+- [ ] C-9: "From Subjects" search-and-link works end to end (code shipped, pending live smoke test)
+- [ ] C-10: annotate works from the standalone Program page (code shipped, pending live smoke test)
+- [ ] C-11: annotate works from the in-call Program panel (code shipped, pending live smoke test)
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in

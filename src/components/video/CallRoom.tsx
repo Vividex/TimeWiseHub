@@ -202,7 +202,12 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
           </div>
         )}
         {activeTab === 'program' && linkedProgram && (
-          <ProgramReferencePanel linkedProgram={linkedProgram} sessionChat={sessionChat ?? null} />
+          <ProgramReferencePanel
+            linkedProgram={linkedProgram}
+            sessionChat={sessionChat ?? null}
+            sessionStudentId={sessionStudentId ?? null}
+            currentUserId={currentUserId ?? ''}
+          />
         )}
         {activeTab === 'chat' && sessionChat && (
           <RoomChatTab conversationId={sessionChat.conversationId} userId={sessionChat.userId} />
