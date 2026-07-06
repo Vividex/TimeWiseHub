@@ -75,13 +75,13 @@ video call or asynchronously afterward — with real-time sync between participa
 ## C-3 — WorksheetAnnotator core component
 
 *Codex edits:*
-- [ ] Create `src/components/worksheets/StickerPalette.tsx` (plan Task 3, Step 1 — builtin-only version; Step upgraded further in C-5)
-- [ ] Create `src/components/worksheets/WorksheetAnnotator.tsx` (plan Task 3, Step 2 — includes the delete-object fix added during plan self-review)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/worksheets/StickerPalette.tsx` (plan Task 3, Step 1 — builtin-only version; Step upgraded further in C-5)
+- [x] Create `src/components/worksheets/WorksheetAnnotator.tsx` (plan Task 3, Step 2 — includes the delete-object fix added during plan self-review)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/worksheets/WorksheetAnnotator.tsx src/components/worksheets/StickerPalette.tsx && git commit -m "feat: worksheet annotation — core annotator component"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/worksheets/WorksheetAnnotator.tsx src/components/worksheets/StickerPalette.tsx && git commit -m "feat: worksheet annotation — core annotator component"`
 
 ---
 
