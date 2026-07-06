@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+import { createTopicAssetSignedUrl } from '@/lib/tutoring/topic-storage'
 import { ensureSessionChatParticipant } from '@/lib/session-chat'
 import CallRoom from '@/components/video/CallRoom'
+import type { LinkedTopicAsset } from '@/components/video/WorksheetTab'
 import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
 
 const DAILY_API = 'https://api.daily.co/v1'
@@ -66,6 +68,47 @@ async function fetchLinkedProgram(sessionId: string, userId: string): Promise<Li
   }
 }
 
+async function fetchLinkedTopicAssets(sessionId: string, userId: string): Promise<{ assets: LinkedTopicAsset[]; studentId: string | null }> {
+  const service = createServiceClient()
+
+  const { data: session } = await service
+    .from('sessions').select('topic_id, student_id').eq('id', sessionId).maybeSingle()
+  if (!session?.topic_id) return { assets: [], studentId: session?.student_id ?? null }
+
+  const { data: topic } = await service
+    .from('topics').select('subject_id').eq('id', session.topic_id).maybeSingle()
+  if (!topic) return { assets: [], studentId: session.student_id }
+
+  const { data: subject } = await service
+    .from('subjects').select('org_id, created_by').eq('id', topic.subject_id).maybeSingle()
+  if (!subject) return { assets: [], studentId: session.student_id }
+
+  if (subject.org_id) {
+    const { data: membership } = await service
+      .from('organisation_members').select('role').eq('user_id', userId).eq('org_id', subject.org_id).maybeSingle()
+    if (!membership) return { assets: [], studentId: session.student_id }
+  } else if (subject.created_by !== userId) {
+    return { assets: [], studentId: session.student_id }
+  }
+
+  const { data: assets } = await service
+    .from('topic_assets')
+    .select('id, name, asset_type, storage_path')
+    .eq('topic_id', session.topic_id)
+    .in('asset_type', ['pdf', 'image'])
+
+  const withUrls: LinkedTopicAsset[] = await Promise.all(
+    (assets ?? []).map(async a => ({
+      id: a.id,
+      name: a.name,
+      asset_type: a.asset_type as 'pdf' | 'image',
+      signed_url: (a.storage_path ? await createTopicAssetSignedUrl(a.storage_path) : null) ?? '',
+    })),
+  )
+
+  return { assets: withUrls.filter(a => a.signed_url), studentId: session.student_id }
+}
+
 export default async function CallRoomPage({
   params,
 }: {
@@ -107,6 +150,9 @@ export default async function CallRoomPage({
   const sessionChat = call.session_id
     ? { conversationId: await ensureSessionChatParticipant(call.session_id, user.id), userId: user.id }
     : null
+  const { assets: linkedTopicAssets, studentId: sessionStudentId } = call.session_id
+    ? await fetchLinkedTopicAssets(call.session_id, user.id)
+    : { assets: [], studentId: null }
 
   let token: string
   try {
@@ -124,6 +170,9 @@ export default async function CallRoomPage({
       callId={roomId}
       linkedProgram={linkedProgram}
       sessionChat={sessionChat}
+      linkedTopicAssets={linkedTopicAssets}
+      sessionStudentId={sessionStudentId}
+      currentUserId={user.id}
     />
   )
 }

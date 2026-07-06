@@ -33,6 +33,7 @@ export default async function GuestJoinPage({
 
   return (
     <GuestJoinClient
+      callId={call.id}
       callTitle={call.title}
       roomUrl={call.room_url}
       dailyRoomName={call.daily_room_name}

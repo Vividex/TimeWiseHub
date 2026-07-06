@@ -158,21 +158,21 @@ explicit request ("fix it now... before we get too far down the track").
 ## C-6 — In-call integration (tutor + guest)
 
 *Codex edits (all 5 files in one turn — deliberate, keeps the guest/tutor wiring internally consistent):*
-- [ ] Modify `src/components/video/CallPanel.tsx` (plan Task 6, Step 1 — add `'worksheet'` tab id)
-- [ ] Create `src/components/video/WorksheetTab.tsx` (plan Task 6, Step 2 — dual tutor/guest role component with `canPick` prop and broadcast-follow, per the plan's self-review fix)
-- [ ] Modify `src/components/video/CallRoom.tsx` (plan Task 6, Step 3 — `canUseWorksheet` gating, optional `currentUserId`)
-- [ ] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 6, Step 4 — `fetchLinkedTopicAssets`)
-- [ ] Modify `src/app/join/[guestToken]/page.tsx` and `src/components/video/GuestJoinClient.tsx` (plan Task 6, Step 5 — thread `callId` + guest `currentUserId`)
-- [ ] Report back — list files changed.
+- [x] Modify `src/components/video/CallPanel.tsx` (plan Task 6, Step 1 — add `'worksheet'` tab id)
+- [x] Create `src/components/video/WorksheetTab.tsx` (plan Task 6, Step 2 — dual tutor/guest role component with `canPick` prop and broadcast-follow, per the plan's self-review fix)
+- [x] Modify `src/components/video/CallRoom.tsx` (plan Task 6, Step 3 — `canUseWorksheet` gating, optional `currentUserId`)
+- [x] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 6, Step 4 — `fetchLinkedTopicAssets`)
+- [x] Modify `src/app/join/[guestToken]/page.tsx` and `src/components/video/GuestJoinClient.tsx` (plan Task 6, Step 5 — thread `callId` + guest `currentUserId`)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. All 6 files verified against plan diff-by-diff, exact match.
 - [ ] Manual smoke test (plan Task 6, Step 7): tutor opens a worksheet in-call; a guest (with a
   client email on file, so `sessionChat` resolves) joins the same call and confirms the worksheet
   auto-appears with a "Waiting…" message beforehand; confirm live co-editing both directions;
   confirm a guest with no email on file gets no Worksheet tab; confirm persistence reachable
-  afterward via `/dashboard/subjects`.
-- [ ] Commit: `git add src/components/video/CallPanel.tsx src/components/video/WorksheetTab.tsx src/components/video/CallRoom.tsx "src/app/dashboard/video/[roomId]/page.tsx" src/components/video/GuestJoinClient.tsx "src/app/join/[guestToken]/page.tsx" && git commit -m "feat: worksheet annotation — in-call worksheet tab, tutor + guest"`
+  afterward via `/dashboard/subjects`. **Deferred to production** — same as C-4/C-4.5/C-5.
+- [x] Commit: `git add src/components/video/CallPanel.tsx src/components/video/WorksheetTab.tsx src/components/video/CallRoom.tsx "src/app/dashboard/video/[roomId]/page.tsx" src/components/video/GuestJoinClient.tsx "src/app/join/[guestToken]/page.tsx" && git commit -m "feat: worksheet annotation — in-call worksheet tab, tutor + guest"`
 
 ---
 

@@ -2,12 +2,13 @@
 
 import { X } from 'lucide-react'
 
-export type CallPanelTabId = 'transcript' | 'program' | 'chat'
+export type CallPanelTabId = 'transcript' | 'program' | 'chat' | 'worksheet'
 
 const TAB_LABEL: Record<CallPanelTabId, string> = {
   transcript: 'Transcript',
   program: 'Program',
   chat: 'Chat',
+  worksheet: 'Worksheet',
 }
 
 export default function CallPanel({

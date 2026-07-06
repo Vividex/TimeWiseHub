@@ -5,6 +5,7 @@ import CallRoom from './CallRoom'
 import { createClient } from '@/lib/supabase-browser'
 
 type Props = {
+  callId: string
   callTitle: string
   roomUrl: string
   dailyRoomName: string
@@ -12,7 +13,7 @@ type Props = {
   defaultName: string
 }
 
-export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, guestToken, defaultName }: Props) {
+export default function GuestJoinClient({ callId, callTitle, roomUrl, dailyRoomName, guestToken, defaultName }: Props) {
   const [name, setName] = useState(defaultName)
   const [token, setToken] = useState<string | null>(null)
   const [sessionChat, setSessionChat] = useState<{ conversationId: string; userId: string } | null>(null)
@@ -62,7 +63,9 @@ export default function GuestJoinClient({ callTitle, roomUrl, dailyRoomName, gue
         dailyRoomName={dailyRoomName}
         isCreator={false}
         isGuest
+        callId={callId}
         sessionChat={sessionChat}
+        currentUserId={sessionChat?.userId}
       />
     )
   }

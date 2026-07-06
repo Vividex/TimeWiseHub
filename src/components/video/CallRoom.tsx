@@ -7,6 +7,7 @@ import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
 import CallPanel, { type CallPanelTabId } from './CallPanel'
 import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
 import RoomChatTab from './RoomChatTab'
+import WorksheetTab, { type LinkedTopicAsset } from './WorksheetTab'
 import { createClient } from '@/lib/supabase-browser'
 import type { LinkedProgramBundle } from '@/types/programs'
 
@@ -21,9 +22,12 @@ type Props = {
   callId?: string
   linkedProgram?: LinkedProgramBundle | null
   sessionChat?: { conversationId: string; userId: string } | null
+  linkedTopicAssets?: LinkedTopicAsset[]
+  sessionStudentId?: string | null
+  currentUserId?: string
 }
 
-export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isGuest = false, callId, linkedProgram, sessionChat }: Props) {
+export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isGuest = false, callId, linkedProgram, sessionChat, linkedTopicAssets, sessionStudentId, currentUserId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null)
   const chunkBufferRef = useRef<string>('')
@@ -36,10 +40,13 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
   const [activeTab, setActiveTab] = useState<CallPanelTabId>('transcript')
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([])
 
+  const canUseWorksheet = !!callId && !!currentUserId && ((linkedTopicAssets && linkedTopicAssets.length > 0) || isGuest)
+
   const availableTabs: CallPanelTabId[] = [
     'transcript',
     ...(linkedProgram ? (['program'] as const) : []),
     ...(sessionChat ? (['chat'] as const) : []),
+    ...(canUseWorksheet ? (['worksheet'] as const) : []),
   ]
 
   function openTab(tab: CallPanelTabId) {
@@ -200,6 +207,15 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
         {activeTab === 'chat' && sessionChat && (
           <RoomChatTab conversationId={sessionChat.conversationId} userId={sessionChat.userId} />
         )}
+        {activeTab === 'worksheet' && canUseWorksheet && (
+          <WorksheetTab
+            callId={callId!}
+            assets={linkedTopicAssets ?? []}
+            studentId={sessionStudentId ?? null}
+            currentUserId={currentUserId!}
+            canPick={!isGuest}
+          />
+        )}
       </CallPanel>
 
       {/* Controls bar */}
@@ -233,6 +249,17 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
           >
             <BookOpen size={15} />
             Program
+          </button>
+        )}
+
+        {canUseWorksheet && (
+          <button
+            onClick={() => openTab('worksheet')}
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
+            title="Toggle worksheet panel"
+          >
+            <NotebookPen size={15} />
+            Worksheet
           </button>
         )}
 
