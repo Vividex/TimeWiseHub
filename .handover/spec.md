@@ -176,6 +176,81 @@ explicit request ("fix it now... before we get too far down the track").
 
 ---
 
+## C-7 through C-11 — Program-Subjects Content Linking (inserted mid-loop)
+
+Raised by the user directly after C-6 shipped, before its smoke test was confirmed: Programs and
+Subjects/Topics are two parallel content systems with no bridge, which was genuinely confusing to
+work out even for the user. Scoped and approved via its own brainstorm/spec/plan cycle. C-6's
+smoke test remains open/pending in parallel — these items touch entirely different files (Programs
+vs. video-call files) so there's no reason to block one on the other.
+
+- Source spec: `docs/superpowers/specs/2026-07-06-program-subjects-content-linking-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-06-program-subjects-content-linking.md`
+  (full exact code for every step — read it before writing each turn's `inbox/to-codex.md`)
+
+### C-7 — Database migration
+
+*Conductor only (no Codex dispatch):*
+- [ ] Create `supabase/schema-093-program-topic-asset-link.sql` (plan Task 1, Step 1)
+- [ ] Apply via Supabase MCP `apply_migration` (name: `program_topic_asset_link`)
+- [ ] Verify via MCP `execute_sql` (plan Task 1, Step 3)
+- [ ] Commit: `git add supabase/schema-093-program-topic-asset-link.sql && git commit -m "feat: program-subjects linking — database migration"`
+
+### C-8 — Shared signed-URL resolver
+
+*Codex edits:*
+- [ ] Modify `src/types/programs.ts` (plan Task 2, Step 1 — add `linked_topic_asset_id`)
+- [ ] Modify `src/lib/program-storage.ts` (plan Task 2, Step 2 — add `resolveProgramAssetSignedUrl`)
+- [ ] Modify `src/app/dashboard/programs/[id]/page.tsx` (plan Task 2, Step 3)
+- [ ] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 2, Step 4)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/types/programs.ts src/lib/program-storage.ts "src/app/dashboard/programs/[id]/page.tsx" "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: program-subjects linking — shared signed-URL resolver"`
+
+### C-9 — Add-content "From Subjects" tab
+
+*Codex edits:*
+- [ ] Modify `src/app/api/programs/[id]/assets/route.ts` (plan Task 3, Step 1 — includes a
+  source-asset authorization check via `getTopicAccess`, not just the destination-program check)
+- [ ] Modify `src/components/programs/AssetUploadZone.tsx` (plan Task 3, Step 2)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test (plan Task 3, Step 4): search and link an existing worksheet from a
+  Program's Add Content modal, confirm it appears and opens the same file as Subjects.
+- [ ] Commit: `git add "src/app/api/programs/[id]/assets/route.ts" src/components/programs/AssetUploadZone.tsx && git commit -m "feat: program-subjects linking — search and link from Add content"`
+
+### C-10 — Annotate from the standalone Program page
+
+*Codex edits:*
+- [ ] Modify `src/components/programs/AssetCard.tsx` (plan Task 4, Step 1)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test (plan Task 4, Step 3): Annotate button appears only for linked pdf/image
+  assets; opening it shows the same worksheet/annotations as via Subjects for the same student.
+- [ ] Commit: `git add src/components/programs/AssetCard.tsx && git commit -m "feat: program-subjects linking — annotate from the standalone Program page"`
+
+### C-11 — Annotate from the in-call Program panel
+
+*Codex edits:*
+- [ ] Modify `src/components/video/ProgramReferencePanel.tsx` (plan Task 5, Step 1)
+- [ ] Modify `src/components/video/CallRoom.tsx` (plan Task 5, Step 2)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test (plan Task 5, Step 4): in a live call, Annotate on a linked worksheet opens
+  directly to that session's student (no picker), consistent with Subjects/standalone-page
+  annotations for the same student.
+- [ ] Commit: `git add src/components/video/ProgramReferencePanel.tsx src/components/video/CallRoom.tsx && git commit -m "feat: program-subjects linking — annotate from the in-call Program panel"`
+
+---
+
 ## Acceptance checklist
 - [x] C-1: `worksheet_annotations` table, `can_edit_worksheet()`, `worksheet-stickers` bucket applied and verified
 - [x] C-2: dependencies installed, worker self-hosted, shared types/lib compile
@@ -183,7 +258,12 @@ explicit request ("fix it now... before we get too far down the track").
 - [x] C-4: async entry point works end to end, confirmed live (one bug found + fixed: dark textarea)
 - [x] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan), confirmed live
 - [x] C-5: custom sticker upload works and persists, confirmed live
-- [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants
+- [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants (pending user's smoke test)
+- [ ] C-7: `program_assets.linked_topic_asset_id` migration applied and verified
+- [ ] C-8: shared signed-URL resolver in place, both call sites use it
+- [ ] C-9: "From Subjects" search-and-link works end to end
+- [ ] C-10: annotate works from the standalone Program page
+- [ ] C-11: annotate works from the in-call Program panel
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean after every task. No test runner in
