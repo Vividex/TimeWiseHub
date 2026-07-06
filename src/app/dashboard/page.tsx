@@ -12,6 +12,7 @@ import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
 import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
+import { isOverdue } from '@/lib/invoices'
 import { stripQuoteChain } from '@/lib/client-messages'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney } from '@/lib/today'
@@ -125,7 +126,7 @@ export default async function DashboardHome() {
   const todayEndIso   = todayEnd.toISOString()
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -170,6 +171,17 @@ export default async function DashboardHome() {
       : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; scheduled_calls: { id: string }[] | null }[], error: null }),
     getSubscription(user.id),
     supabase.rpc('get_unread_client_messages'),
+    orgId
+      ? supabase
+          .from('invoices')
+          .select('status, due_date, subtotal, currency')
+          .neq('status', 'quote')
+          .or(`owner_id.eq.${user.id},org_id.eq.${orgId}`)
+      : supabase
+          .from('invoices')
+          .select('status, due_date, subtotal, currency')
+          .neq('status', 'quote')
+          .eq('owner_id', user.id),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -237,6 +249,10 @@ export default async function DashboardHome() {
   })
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
+  const overdueInvoices = (invoicesRes.data ?? []).filter(isOverdue)
+  const overdueTotal = overdueInvoices.reduce((s, i) => s + Number(i.subtotal), 0)
+  const overdueCurrency = overdueInvoices[0]?.currency ?? 'AUD'
+
   return (
     <div className="px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-8">
@@ -261,6 +277,8 @@ export default async function DashboardHome() {
           tasksCompleted={tasksCompleted}
           tasksTotal={tasksTotal}
           activeClients={activeClients}
+          overdueTotal={overdueTotal}
+          overdueCurrency={overdueCurrency}
         />
 
         {/* Quick actions */}

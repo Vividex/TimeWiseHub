@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CalendarClock, FolderOpen, CheckSquare, Users } from 'lucide-react'
+import { CalendarClock, FolderOpen, CheckSquare, Users, AlertTriangle } from 'lucide-react'
 
 type Props = {
   sessionsThisWeek: number
@@ -9,6 +9,8 @@ type Props = {
   tasksCompleted: number
   tasksTotal: number
   activeClients: number
+  overdueTotal: number
+  overdueCurrency: string
 }
 
 type CardProps = {
@@ -47,9 +49,9 @@ function scrollTo(id: string) {
   window.scrollTo({ top, behavior: 'smooth' })
 }
 
-export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients }: Props) {
+export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       <MetricCard
         icon={CalendarClock}
         value={String(sessionsThisWeek)}
@@ -81,6 +83,14 @@ export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tas
         iconClass="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
         glowClass="bg-amber-500"
         href="/dashboard/clients"
+      />
+      <MetricCard
+        icon={AlertTriangle}
+        value={`${overdueCurrency} ${overdueTotal.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        label="Overdue invoices"
+        iconClass="bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400"
+        glowClass="bg-red-500"
+        href="/dashboard/invoices?overdue=1"
       />
     </div>
   )
