@@ -7,10 +7,12 @@
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
 - Subjects Folder Navigation + Search (inserted mid-loop, C-4.5, complete): zero cost — pure code,
   no schema change, no new dependencies, reuses existing RLS/access boundaries exactly.
-- Program-Subjects Content Linking (inserted mid-loop, current, C-7 through C-11): zero cost — pure
-  code + one additive DB migration (one nullable FK column), no new dependencies, reuses the
-  existing WorksheetAnnotator/WorksheetAnnotatorModal components and topic-access authorization
-  pattern exactly.
+- Program-Subjects Content Linking (complete, C-7 through C-11): zero cost — pure code + one
+  additive DB migration (one nullable FK column), no new dependencies, reuses the existing
+  WorksheetAnnotator/WorksheetAnnotatorModal components and topic-access authorization pattern
+  exactly.
+- Desktop App Auto-Hiding Title Bar (current phase, C-1): zero cost — pure code, no schema change,
+  no new dependencies (`@tauri-apps/api` already installed), Windows-only this pass.
 - Client email messaging (prior phase, code complete, C-8 not fully confirmed — see Notes): the
   "zero cost" assumption made during brainstorming turned out to be wrong. Resend's inbound
   receiving domain, as designed (`inbound.timewisehub.com.au`, a *second* domain), needs a Resend
