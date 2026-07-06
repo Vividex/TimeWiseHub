@@ -5,6 +5,12 @@
   "windows": [
     "main"
   ],
+  "remote": {
+    "urls": [
+      "https://timewisehub.com.au",
+      "https://www.timewisehub.com.au"
+    ]
+  },
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
