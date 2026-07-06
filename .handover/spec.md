@@ -33,18 +33,19 @@ button, grid view, etc., discovered while testing the worksheet-annotation featu
 ## C-1 — Custom title bar
 
 *Codex edits:*
-- [ ] Modify `src-tauri/tauri.conf.json` (plan Task 1, Step 1 — add `"decorations": false`)
-- [ ] Create `src/components/desktop/TitleBar.tsx` (plan Task 1, Step 2)
-- [ ] Modify `src/app/layout.tsx` (plan Task 1, Step 3 — mount `<TitleBar />`)
-- [ ] Report back — list files changed.
+- [x] Modify `src-tauri/tauri.conf.json` (plan Task 1, Step 1 — add `"decorations": false`)
+- [x] Create `src/components/desktop/TitleBar.tsx` (plan Task 1, Step 2)
+- [x] Modify `src/app/layout.tsx` (plan Task 1, Step 3 — mount `<TitleBar />`)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. All 3 diffs verified, exact match.
 - [ ] Manual smoke test (plan Task 1, Step 5): launch the actual Windows desktop app
   (`pnpm tauri:dev`/`pnpm tauri:build`), confirm no native title bar, bar fully hidden by default,
   reveals on hover, minimize/maximize/restore/close/drag/double-click all work, hides again after
-  the cursor leaves. Confirm the regular website is unaffected.
-- [ ] Commit: `git add src-tauri/tauri.conf.json src/components/desktop/TitleBar.tsx src/app/layout.tsx && git commit -m "feat: desktop app — auto-hiding custom title bar"`
+  the cursor leaves. Confirm the regular website is unaffected. **User's own step** — no live
+  deploy needed since this only applies to the desktop build.
+- [x] Commit: `git add src-tauri/tauri.conf.json src/components/desktop/TitleBar.tsx src/app/layout.tsx && git commit -m "feat: desktop app — auto-hiding custom title bar"`
 
 ---
 

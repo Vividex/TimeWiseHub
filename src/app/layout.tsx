@@ -6,6 +6,7 @@ import CookieBanner from "@/components/CookieBanner";
 import SplashGate from "@/components/SplashGate";
 import NavHistoryProvider from "@/components/NavHistoryProvider";
 import BackButton from "@/components/BackButton";
+import TitleBar from "@/components/desktop/TitleBar";
 
 export const metadata: Metadata = {
   title: "TimeWise Hub | Business Operations Platform for Teams",
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased" suppressHydrationWarning style={{ backgroundColor: '#020617' }}>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="twh-theme">
+          <TitleBar />
           <ServiceWorkerRegistration />
           <NavHistoryProvider>
             <BackButton />
