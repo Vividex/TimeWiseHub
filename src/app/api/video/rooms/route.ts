@@ -51,7 +51,7 @@ export async function POST(req: Request) {
   const exp = Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
 
   const room = await dailyFetch('/rooms', 'POST', {
-    properties: { exp, enable_transcription: true },
+    properties: { exp, enable_transcription: true, enable_pip_ui: true },
   }) as { name: string; url: string }
 
   const { data: call, error } = await supabase

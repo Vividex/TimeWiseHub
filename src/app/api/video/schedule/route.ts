@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ properties: { exp, enable_transcription: true } }),
+    body: JSON.stringify({ properties: { exp, enable_transcription: true, enable_pip_ui: true } }),
   })
   if (!roomRes.ok) {
     const text = await roomRes.text()
