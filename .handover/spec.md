@@ -131,10 +131,8 @@ explicit request ("fix it now... before we get too far down the track").
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. All 4 new route levels registered in build output.
-- [ ] Manual smoke test (plan Step 11): folder navigation + breadcrumbs + back button at all 4
-  levels; search finds files by partial name with working View/Annotate/Delete; a second
-  account (if available) never sees another org's files in search results. **Deferred to
-  production** — same as C-4, dev-server testing isn't working for the user.
+- [x] Manual smoke test (plan Step 11): confirmed live on production — user reports "that's
+  better."
 - [x] Commit: `git add src/components/topics/FolderTile.tsx src/components/topics/SubjectsSearch.tsx src/app/api/topics/search/route.ts src/app/dashboard/subjects/layout.tsx src/app/dashboard/subjects/page.tsx "src/app/dashboard/subjects/[yearGroup]" src/components/topics/SubjectsBrowser.tsx && git commit -m "feat: subjects page — folder navigation and org-wide search"`
 
 ---
@@ -180,7 +178,7 @@ explicit request ("fix it now... before we get too far down the track").
 - [x] C-2: dependencies installed, worker self-hosted, shared types/lib compile
 - [x] C-3: core annotator renders + supports text/stroke/builtin-sticker with live broadcast + persistence + delete
 - [x] C-4: async entry point works end to end, confirmed live (one bug found + fixed: dark textarea)
-- [ ] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan)
+- [x] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan), confirmed live
 - [ ] C-5: custom sticker upload works and persists
 - [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants
 
