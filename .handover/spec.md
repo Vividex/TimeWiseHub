@@ -118,23 +118,24 @@ explicit request ("fix it now... before we get too far down the track").
   `inbox/to-codex.md`, don't re-derive code from scratch)
 
 *Codex edits (all files in one turn — deliberate, see plan's own note on why splitting is risky):*
-- [ ] Create `src/components/topics/FolderTile.tsx` (plan Step 1)
-- [ ] Create `src/app/api/topics/search/route.ts` (plan Step 2)
-- [ ] Create `src/components/topics/SubjectsSearch.tsx` (plan Step 3)
-- [ ] Create `src/app/dashboard/subjects/layout.tsx` (plan Step 4)
-- [ ] Rewrite `src/app/dashboard/subjects/page.tsx` (plan Step 5)
-- [ ] Create `src/app/dashboard/subjects/[yearGroup]/page.tsx` (plan Step 6)
-- [ ] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/page.tsx` (plan Step 7)
-- [ ] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/[topicId]/page.tsx` (plan Step 8)
-- [ ] Delete `src/components/topics/SubjectsBrowser.tsx` (plan Step 9 — no longer referenced)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/topics/FolderTile.tsx` (plan Step 1)
+- [x] Create `src/app/api/topics/search/route.ts` (plan Step 2)
+- [x] Create `src/components/topics/SubjectsSearch.tsx` (plan Step 3)
+- [x] Create `src/app/dashboard/subjects/layout.tsx` (plan Step 4)
+- [x] Rewrite `src/app/dashboard/subjects/page.tsx` (plan Step 5)
+- [x] Create `src/app/dashboard/subjects/[yearGroup]/page.tsx` (plan Step 6)
+- [x] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/page.tsx` (plan Step 7)
+- [x] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/[topicId]/page.tsx` (plan Step 8)
+- [x] Delete `src/components/topics/SubjectsBrowser.tsx` (plan Step 9 — no longer referenced)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean. All 4 new route levels registered in build output.
 - [ ] Manual smoke test (plan Step 11): folder navigation + breadcrumbs + back button at all 4
   levels; search finds files by partial name with working View/Annotate/Delete; a second
-  account (if available) never sees another org's files in search results.
-- [ ] Commit: `git add src/components/topics/FolderTile.tsx src/components/topics/SubjectsSearch.tsx src/app/api/topics/search/route.ts src/app/dashboard/subjects/layout.tsx src/app/dashboard/subjects/page.tsx "src/app/dashboard/subjects/[yearGroup]" src/components/topics/SubjectsBrowser.tsx && git commit -m "feat: subjects page — folder navigation and org-wide search"`
+  account (if available) never sees another org's files in search results. **Deferred to
+  production** — same as C-4, dev-server testing isn't working for the user.
+- [x] Commit: `git add src/components/topics/FolderTile.tsx src/components/topics/SubjectsSearch.tsx src/app/api/topics/search/route.ts src/app/dashboard/subjects/layout.tsx src/app/dashboard/subjects/page.tsx "src/app/dashboard/subjects/[yearGroup]" src/components/topics/SubjectsBrowser.tsx && git commit -m "feat: subjects page — folder navigation and org-wide search"`
 
 ---
 
