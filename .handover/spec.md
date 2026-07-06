@@ -94,12 +94,47 @@ video call or asynchronously afterward — with real-time sync between participa
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test (plan Task 4, Step 4): open a worksheet from `/dashboard/subjects`, add
-  text/stroke/sticker, delete an object via hover-X, reload and confirm persistence, confirm a
-  different student sees a blank worksheet. **Deferred to production** — dev-server file loading
-  isn't working for the user; shipped for live verification instead (same pattern as the PiP
-  feature earlier this session).
+- [x] Manual smoke test (plan Task 4, Step 4): confirmed live on production after a hard refresh
+  (stale JS bundle in an already-open tab was the initial "no Annotate button" report). Found +
+  fixed one real bug during this test: the text box rendered as an opaque dark box, not
+  transparent/white, because a global `html.dark textarea {...}` rule in globals.css overrode the
+  component's own `bg-white/90` in dark mode (this app's default theme) — fixed with
+  `!important`-prefixed utilities, committed 8ab9b1e, pushed.
 - [x] Commit: `git add src/components/worksheets/WorksheetAnnotatorModal.tsx src/components/topics/TopicAssetsPanel.tsx && git commit -m "feat: worksheet annotation — async entry point from Subjects page"`
+
+---
+
+## C-4.5 — Subjects page folder navigation + search (inserted mid-loop)
+
+Raised by the user directly after C-4's smoke test: the year-group/subject/topic dropdown
+drill-down is clumsy for finding one document among potentially thousands. Scoped and approved via
+its own brainstorm/spec/plan cycle — **not part of the original Collaborative Worksheet Annotation
+plan**, but blocking further comfortable use of it, so inserted here before C-5/C-6 per the user's
+explicit request ("fix it now... before we get too far down the track").
+
+- Source spec: `docs/superpowers/specs/2026-07-06-subjects-folder-navigation-and-search-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-06-subjects-folder-navigation-and-search.md`
+  (single task, full exact code for every step — read it before writing this turn's
+  `inbox/to-codex.md`, don't re-derive code from scratch)
+
+*Codex edits (all files in one turn — deliberate, see plan's own note on why splitting is risky):*
+- [ ] Create `src/components/topics/FolderTile.tsx` (plan Step 1)
+- [ ] Create `src/app/api/topics/search/route.ts` (plan Step 2)
+- [ ] Create `src/components/topics/SubjectsSearch.tsx` (plan Step 3)
+- [ ] Create `src/app/dashboard/subjects/layout.tsx` (plan Step 4)
+- [ ] Rewrite `src/app/dashboard/subjects/page.tsx` (plan Step 5)
+- [ ] Create `src/app/dashboard/subjects/[yearGroup]/page.tsx` (plan Step 6)
+- [ ] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/page.tsx` (plan Step 7)
+- [ ] Create `src/app/dashboard/subjects/[yearGroup]/[subjectId]/[topicId]/page.tsx` (plan Step 8)
+- [ ] Delete `src/components/topics/SubjectsBrowser.tsx` (plan Step 9 — no longer referenced)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test (plan Step 11): folder navigation + breadcrumbs + back button at all 4
+  levels; search finds files by partial name with working View/Annotate/Delete; a second
+  account (if available) never sees another org's files in search results.
+- [ ] Commit: `git add src/components/topics/FolderTile.tsx src/components/topics/SubjectsSearch.tsx src/app/api/topics/search/route.ts src/app/dashboard/subjects/layout.tsx src/app/dashboard/subjects/page.tsx "src/app/dashboard/subjects/[yearGroup]" src/components/topics/SubjectsBrowser.tsx && git commit -m "feat: subjects page — folder navigation and org-wide search"`
 
 ---
 
@@ -140,10 +175,11 @@ video call or asynchronously afterward — with real-time sync between participa
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `worksheet_annotations` table, `can_edit_worksheet()`, `worksheet-stickers` bucket applied and verified
-- [ ] C-2: dependencies installed, worker self-hosted, shared types/lib compile
-- [ ] C-3: core annotator renders + supports text/stroke/builtin-sticker with live broadcast + persistence + delete
-- [ ] C-4: async entry point works end to end, cross-student isolation confirmed
+- [x] C-1: `worksheet_annotations` table, `can_edit_worksheet()`, `worksheet-stickers` bucket applied and verified
+- [x] C-2: dependencies installed, worker self-hosted, shared types/lib compile
+- [x] C-3: core annotator renders + supports text/stroke/builtin-sticker with live broadcast + persistence + delete
+- [x] C-4: async entry point works end to end, confirmed live (one bug found + fixed: dark textarea)
+- [ ] C-4.5: Subjects page folder navigation + search (inserted mid-loop, own spec/plan)
 - [ ] C-5: custom sticker upload works and persists
 - [ ] C-6: in-call tab works for both tutor and guest, confirmed live between two participants
 

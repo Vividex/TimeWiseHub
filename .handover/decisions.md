@@ -5,6 +5,8 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
+- Subjects Folder Navigation + Search (inserted mid-loop, current C-4.5): zero cost — pure code,
+  no schema change, no new dependencies, reuses existing RLS/access boundaries exactly.
 - Client email messaging (prior phase, code complete, C-8 not fully confirmed — see Notes): the
   "zero cost" assumption made during brainstorming turned out to be wrong. Resend's inbound
   receiving domain, as designed (`inbound.timewisehub.com.au`, a *second* domain), needs a Resend
