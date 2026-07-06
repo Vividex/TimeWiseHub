@@ -40,18 +40,23 @@ button, grid view, etc., discovered while testing the worksheet-annotation featu
 
 *Conductor:*
 - [x] `pnpm run build` — must pass clean. All 3 diffs verified, exact match.
-- [ ] Manual smoke test (plan Task 1, Step 5): launch the actual Windows desktop app
-  (`pnpm tauri:dev`/`pnpm tauri:build`), confirm no native title bar, bar fully hidden by default,
-  reveals on hover, minimize/maximize/restore/close/drag/double-click all work, hides again after
-  the cursor leaves. Confirm the regular website is unaffected. **User's own step** — no live
-  deploy needed since this only applies to the desktop build.
+- [x] Manual smoke test (plan Task 1, Step 5): confirmed live via `pnpm tauri:dev`. Two real bugs
+  found + fixed along the way: (1) `capabilities/default.json` only granted `core:default`, which
+  excludes window-management actions in Tauri v2 by design — minimize/maximize/close silently did
+  nothing until the specific permissions were added; (2) `data-tauri-drag-region` wrapped the
+  entire bar including the button row, competing with button clicks — moved to only the icon/text
+  area. Both fixed, rebuilt, and reconfirmed working (hide/reveal, all 3 buttons, drag,
+  double-click-to-maximize).
+- [x] Produced a real release build (`pnpm tauri:build` → v0.1.3 NSIS/MSI installers), published as
+  GitHub Release v0.1.3 (both assets), and updated `src/app/download/page.tsx`'s
+  `LATEST_VERSION` so the website's download button now points to this build.
 - [x] Commit: `git add src-tauri/tauri.conf.json src/components/desktop/TitleBar.tsx src/app/layout.tsx && git commit -m "feat: desktop app — auto-hiding custom title bar"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: native title bar replaced, hover-reveal works, all window controls work, confirmed live
-  on the Windows desktop build
+- [x] C-1: native title bar replaced, hover-reveal works, all window controls work, confirmed live
+  on the Windows desktop build; v0.1.3 release published and download page updated
 
 ## Verification
 `pnpm run build` (next build = tsc + eslint) must pass clean. No test runner in this project —
