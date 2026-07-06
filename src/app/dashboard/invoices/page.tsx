@@ -2,8 +2,12 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import InvoiceTable from '@/components/invoices/InvoiceTable'
+import { isOverdue } from '@/lib/invoices'
 
-export default async function InvoicesPage() {
+export default async function InvoicesPage({ searchParams }: { searchParams: Promise<{ overdue?: string }> }) {
+  const { overdue } = await searchParams
+  const showOverdueOnly = overdue === '1'
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -35,7 +39,7 @@ export default async function InvoicesPage() {
     .reduce((s, i) => s + Number(i.subtotal), 0)
 
   const draftCount = (invoices ?? []).filter(i => i.status === 'draft').length
-  const overdueCount = (invoices ?? []).filter(i => i.status === 'overdue').length
+  const overdueCount = (invoices ?? []).filter(isOverdue).length
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -70,7 +74,10 @@ export default async function InvoicesPage() {
 
         {/* Invoice list */}
         <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <InvoiceTable invoices={(invoices ?? []) as unknown as import('@/components/invoices/InvoiceTable').InvoiceRow[]} />
+          <InvoiceTable
+            invoices={(showOverdueOnly ? (invoices ?? []).filter(isOverdue) : (invoices ?? [])) as unknown as import('@/components/invoices/InvoiceTable').InvoiceRow[]}
+            emptyMessage={showOverdueOnly ? 'No overdue invoices.' : undefined}
+          />
         </div>
 
       </div>
