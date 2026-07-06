@@ -28,18 +28,34 @@ export default function WorksheetTab({
 }) {
   const [selected, setSelected] = useState<Selection | null>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
+  const selectedRef = useRef<Selection | null>(null)
+
+  useEffect(() => { selectedRef.current = selected }, [selected])
 
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel(callWorksheetChannelName(callId))
+    const channel = supabase.channel(callWorksheetChannelName(callId), {
+      config: { presence: { key: currentUserId } },
+    })
     channel
       .on('broadcast', { event: 'select' }, ({ payload }) => {
         setSelected(payload as Selection)
       })
-      .subscribe()
+      // Broadcast doesn't replay past messages to a client that subscribes late — if this
+      // client already knows the current selection when someone new joins the channel
+      // (e.g. a guest opening the tab after the tutor already picked a worksheet), re-send it
+      // so the late joiner catches up instead of being stuck on "Waiting…" forever.
+      .on('presence', { event: 'join' }, () => {
+        if (selectedRef.current) {
+          channel.send({ type: 'broadcast', event: 'select', payload: selectedRef.current })
+        }
+      })
+      .subscribe(async status => {
+        if (status === 'SUBSCRIBED') await channel.track({ online_at: new Date().toISOString() })
+      })
     channelRef.current = channel
     return () => { supabase.removeChannel(channel) }
-  }, [callId])
+  }, [callId, currentUserId])
 
   function pick(asset: LinkedTopicAsset) {
     if (!studentId) return
