@@ -191,10 +191,10 @@ vs. video-call files) so there's no reason to block one on the other.
 ### C-7 — Database migration
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-093-program-topic-asset-link.sql` (plan Task 1, Step 1)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `program_topic_asset_link`)
-- [ ] Verify via MCP `execute_sql` (plan Task 1, Step 3)
-- [ ] Commit: `git add supabase/schema-093-program-topic-asset-link.sql && git commit -m "feat: program-subjects linking — database migration"`
+- [x] Create `supabase/schema-093-program-topic-asset-link.sql` (plan Task 1, Step 1)
+- [x] Apply via Supabase MCP `apply_migration` (name: `program_topic_asset_link`)
+- [x] Verify via MCP `execute_sql` (plan Task 1, Step 3)
+- [x] Commit: `git add supabase/schema-093-program-topic-asset-link.sql && git commit -m "feat: program-subjects linking — database migration"`
 
 ### C-8 — Shared signed-URL resolver
 
