@@ -15,7 +15,12 @@
   further scaling risk is aggregate email volume exceeding Pro's 50,000/month allowance
   ($0.90/1,000 overage) — far from current usage. No SMS in this phase either way (explicitly
   deferred, its own future phase/cost approval).
-- Tutoring Progress Reports to Parents (current phase): zero cost — pure code + one additive DB
+- Collaborative Worksheet Annotation (current phase): zero direct cost — pure code + one additive
+  DB migration (one new table, one new function, one new storage bucket + policies). Two new npm
+  dependencies (`react-pdf`, `perfect-freehand`), both free/open-source (MIT), no ongoing cost —
+  confirmed with the user during planning. Supabase Realtime Broadcast and Storage usage are both
+  already-paid-for parts of the existing plan, same as other features. No external paid API calls.
+- Tutoring Progress Reports to Parents (prior phase, complete): zero cost — pure code + one additive DB
   migration (two new nullable columns on an existing table), reuses the existing Resend email
   infrastructure already paid for, no external API calls, no new npm dependencies.
 - Tutoring Topic File Uploads (prior phase, complete): zero direct cost — pure code + one additive
@@ -66,6 +71,39 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Collaborative Worksheet Annotation) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-06-collaborative-worksheet-annotation-design.md
+- Source plan: docs/superpowers/plans/2026-07-06-collaborative-worksheet-annotation.md
+- Raised directly from the video-call PiP work: a prospective tutoring customer (currently on
+  Google Meet, not yet a TimeWiseHub user) wants to co-annotate worksheets with young students
+  live during a call, plus async marking afterward. Reuses the existing topic_assets (PDF/image)
+  library rather than a new authoring system.
+- Discrete DB objects (text_box/stroke/sticker), not a CRDT — confirmed via research that CRDTs
+  solve concurrent character-level text merge, which doesn't apply to independently-owned objects.
+- Live sync via Supabase Realtime **Broadcast**, not `postgres_changes` (the mechanism this
+  codebase's existing chat feature uses) — Broadcast is Supabase's own documented fit for
+  high-frequency events like in-progress pen strokes; `postgres_changes` is too slow/DB-heavy.
+- Access control reuses the existing guest-identity pattern (`clients.guest_chat_user_id`,
+  `can_post_chat()`) rather than a new mechanism — new `can_edit_worksheet()` function.
+- **Real gap caught during the plan's own self-review, before any code was written:** the first
+  draft only wired up a worksheet picker for the authenticated org-member (tutor) side — the guest
+  (student) join path (`GuestJoinClient.tsx` / `/join/[guestToken]`) doesn't currently get the
+  in-call Program reference panel either (an existing, pre-this-phase limitation), so there was no
+  existing pattern to copy for "guest resolves their own linked content." Fixed by having the
+  tutor's worksheet selection broadcast over a call-scoped channel; the guest's screen auto-follows
+  whatever the tutor has open, using the guest's own existing chat identity (`sessionChat.userId`)
+  to co-edit — no independent picker on the guest side. This directly matters for whether the core
+  "both people editing at the same time" requirement is actually met — flag this specifically
+  during C-6's manual smoke test, not just "did it build."
+- Builtin stickers render as colored lucide-react icons (avoids sourcing/shipping bundled image
+  files); custom stickers are real uploaded images in a private `worksheet-stickers` bucket with
+  path-based storage RLS (`{topicAssetId}/{studentId}/{filename}`, parsed via
+  `storage.foldername()`).
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. C-6 is a 5-file bundled turn (not split) since the tutor/guest wiring is a single
+  coherent change — splitting it would risk an intermediate state where one side works and the
+  other silently doesn't compile against it.
 
 ## Notes (Tutoring Progress Reports to Parents) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-05-tutoring-progress-reports-design.md
