@@ -140,15 +140,17 @@ explicit request ("fix it now... before we get too far down the track").
 ## C-5 — Custom sticker upload
 
 *Codex edits:*
-- [ ] Modify `src/components/worksheets/StickerPalette.tsx` (plan Task 5, Step 1 — adds upload UI)
-- [ ] Modify `src/components/worksheets/WorksheetAnnotator.tsx` (plan Task 5, Step 2 — new
+- [x] Modify `src/components/worksheets/StickerPalette.tsx` (plan Task 5, Step 1 — adds upload UI)
+- [x] Modify `src/components/worksheets/WorksheetAnnotator.tsx` (plan Task 5, Step 2 — new
   `customStickerUrls` state/effect, `pendingCustomSticker` state, sticker content branch, signed-URL rendering)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Manual smoke test (plan Task 5, Step 4): upload a JPEG sticker, place it, reload and confirm it still renders.
-- [ ] Commit: `git add src/components/worksheets/StickerPalette.tsx src/components/worksheets/WorksheetAnnotator.tsx && git commit -m "feat: worksheet annotation — custom sticker upload"`
+- [x] `pnpm run build` — must pass clean.
+- [ ] Manual smoke test (plan Task 5, Step 4): upload a JPEG sticker, place it, reload and confirm
+  it still renders. **Deferred to production** — same as C-4/C-4.5, dev-server testing isn't
+  working for the user.
+- [x] Commit: `git add src/components/worksheets/StickerPalette.tsx src/components/worksheets/WorksheetAnnotator.tsx && git commit -m "feat: worksheet annotation — custom sticker upload"`
 
 ---
 

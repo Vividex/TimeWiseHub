@@ -35,6 +35,7 @@ export default function WorksheetAnnotator({
   currentUserId: string
 }) {
   const [annotations, setAnnotations] = useState<WorksheetAnnotation[]>([])
+  const [customStickerUrls, setCustomStickerUrls] = useState<Record<string, string>>({})
   const [pageNumber, setPageNumber] = useState(1)
   const [numPages, setNumPages] = useState(1)
   const [tool, setTool] = useState<Tool>(null)
@@ -51,6 +52,23 @@ export default function WorksheetAnnotator({
     })
     return () => { cancelled = true }
   }, [topicAssetId, studentId])
+
+  useEffect(() => {
+    const customPaths = annotations
+      .filter(a => a.object_type === 'sticker' && (a.content as { kind: string }).kind === 'sticker_custom')
+      .map(a => (a.content as { kind: 'sticker_custom'; storagePath: string }).storagePath)
+      .filter(p => !customStickerUrls[p])
+    if (customPaths.length === 0) return
+    const supabase = createClient()
+    Promise.all(customPaths.map(p => supabase.storage.from('worksheet-stickers').createSignedUrl(p, 3600)))
+      .then(results => {
+        setCustomStickerUrls(prev => {
+          const next = { ...prev }
+          results.forEach((r, i) => { if (r.data) next[customPaths[i]] = r.data.signedUrl })
+          return next
+        })
+      })
+  }, [annotations, customStickerUrls])
 
   useEffect(() => {
     const supabase = createClient()
@@ -92,6 +110,7 @@ export default function WorksheetAnnotator({
   }
 
   const [pendingStickerId, setPendingStickerId] = useState<string | null>(null)
+  const [pendingCustomSticker, setPendingCustomSticker] = useState<string | null>(null)
 
   const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     if (tool !== 'text' && tool !== 'sticker') return
@@ -99,7 +118,9 @@ export default function WorksheetAnnotator({
 
     const content: AnnotationContent = tool === 'text'
       ? { kind: 'text_box', text: '' }
-      : { kind: 'sticker_builtin', id: pendingStickerId ?? 'star' }
+      : pendingCustomSticker
+        ? { kind: 'sticker_custom', storagePath: pendingCustomSticker }
+        : { kind: 'sticker_builtin', id: pendingStickerId ?? 'star' }
 
     const saved = await insertAnnotation({
       topic_asset_id: topicAssetId,
@@ -114,7 +135,8 @@ export default function WorksheetAnnotator({
     broadcastUpsert(saved)
     setTool(null)
     setPendingStickerId(null)
-  }, [tool, pageNumber, topicAssetId, studentId, currentUserId, pendingStickerId])
+    setPendingCustomSticker(null)
+  }, [tool, pageNumber, topicAssetId, studentId, currentUserId, pendingStickerId, pendingCustomSticker])
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (tool !== 'pen') return
@@ -182,7 +204,12 @@ export default function WorksheetAnnotator({
         >
           <Pencil size={16} />
         </button>
-        <StickerPalette onPick={id => { setPendingStickerId(id); setTool('sticker') }} />
+        <StickerPalette
+          topicAssetId={topicAssetId}
+          studentId={studentId}
+          onPick={id => { setPendingStickerId(id); setTool('sticker') }}
+          onUploadCustom={storagePath => { setPendingCustomSticker(storagePath); setTool('sticker') }}
+        />
         {assetType === 'pdf' && numPages > 1 && (
           <div className="ml-auto flex items-center gap-2 text-xs text-slate-400">
             <button type="button" onClick={() => setPageNumber(p => Math.max(1, p - 1))} disabled={pageNumber <= 1}>‹</button>
@@ -258,25 +285,36 @@ export default function WorksheetAnnotator({
             .filter(a => a.object_type === 'sticker')
             .map(a => {
               const c = a.content as { kind: 'sticker_builtin'; id: string } | { kind: 'sticker_custom'; storagePath: string }
-              if (c.kind !== 'sticker_builtin') return null
+              const style = { left: `${a.x * 800}px`, top: `${a.y * 800}px`, width: `${a.width * 800}px`, height: `${a.height * 800}px` }
+              const deleteButton = (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteAnnotation(a.id)}
+                  className="absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white group-hover:flex"
+                  title="Delete"
+                >
+                  ×
+                </button>
+              )
+              if (c.kind === 'sticker_custom') {
+                const url = customStickerUrls[c.storagePath]
+                return (
+                  <div key={a.id} className="group absolute" style={style}>
+                    {url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={url} alt="Sticker" className="h-full w-full object-contain" />
+                    )}
+                    {deleteButton}
+                  </div>
+                )
+              }
               const sticker = findBuiltinSticker(c.id)
               if (!sticker) return null
               const Icon = sticker.icon
               return (
-                <div
-                  key={a.id}
-                  className="group absolute flex items-center justify-center"
-                  style={{ left: `${a.x * 800}px`, top: `${a.y * 800}px`, width: `${a.width * 800}px`, height: `${a.height * 800}px`, color: sticker.color }}
-                >
+                <div key={a.id} className="group absolute flex items-center justify-center" style={{ ...style, color: sticker.color }}>
                   <Icon size={28} />
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteAnnotation(a.id)}
-                    className="absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white group-hover:flex"
-                    title="Delete"
-                  >
-                    ×
-                  </button>
+                  {deleteButton}
                 </div>
               )
             })}
