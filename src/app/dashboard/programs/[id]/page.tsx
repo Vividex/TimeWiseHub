@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
-import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+import { resolveProgramAssetSignedUrl } from '@/lib/program-storage'
 import ProgramExplorer from '@/components/programs/ProgramExplorer'
 import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
 
@@ -38,13 +38,7 @@ export default async function ProgramDetailPage({
   ])
 
   const assetsWithUrls: ProgramAsset[] = await Promise.all(
-    (assets ?? []).map(async asset => {
-      if (asset.storage_path) {
-        const signed_url = await createProgramAssetSignedUrl(asset.storage_path)
-        return { ...asset, signed_url }
-      }
-      return { ...asset, signed_url: null }
-    }),
+    (assets ?? []).map(async asset => ({ ...asset, signed_url: await resolveProgramAssetSignedUrl(asset) })),
   )
 
   return (

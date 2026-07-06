@@ -199,15 +199,15 @@ vs. video-call files) so there's no reason to block one on the other.
 ### C-8 — Shared signed-URL resolver
 
 *Codex edits:*
-- [ ] Modify `src/types/programs.ts` (plan Task 2, Step 1 — add `linked_topic_asset_id`)
-- [ ] Modify `src/lib/program-storage.ts` (plan Task 2, Step 2 — add `resolveProgramAssetSignedUrl`)
-- [ ] Modify `src/app/dashboard/programs/[id]/page.tsx` (plan Task 2, Step 3)
-- [ ] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 2, Step 4)
-- [ ] Report back — list files changed.
+- [x] Modify `src/types/programs.ts` (plan Task 2, Step 1 — add `linked_topic_asset_id`)
+- [x] Modify `src/lib/program-storage.ts` (plan Task 2, Step 2 — add `resolveProgramAssetSignedUrl`)
+- [x] Modify `src/app/dashboard/programs/[id]/page.tsx` (plan Task 2, Step 3)
+- [x] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 2, Step 4)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/programs.ts src/lib/program-storage.ts "src/app/dashboard/programs/[id]/page.tsx" "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: program-subjects linking — shared signed-URL resolver"`
+- [x] `pnpm run build` — must pass clean. All 4 files verified diff-by-diff, exact match.
+- [x] Commit: `git add src/types/programs.ts src/lib/program-storage.ts "src/app/dashboard/programs/[id]/page.tsx" "src/app/dashboard/video/[roomId]/page.tsx" && git commit -m "feat: program-subjects linking — shared signed-URL resolver"`
 
 ### C-9 — Add-content "From Subjects" tab
 

@@ -1,4 +1,6 @@
 import { createServiceClient } from '@/lib/supabase-service'
+import { createTopicAssetSignedUrl } from '@/lib/tutoring/topic-storage'
+import type { ProgramAsset } from '@/types/programs'
 
 export function programStoragePath(opts: {
   orgId: string | null
@@ -20,6 +22,20 @@ export async function createProgramAssetSignedUrl(
     .from('program-assets')
     .createSignedUrl(storagePath, expiresIn)
   return data?.signedUrl ?? null
+}
+
+export async function resolveProgramAssetSignedUrl(asset: ProgramAsset): Promise<string | null> {
+  if (asset.linked_topic_asset_id) {
+    const service = createServiceClient()
+    const { data: topicAsset } = await service
+      .from('topic_assets').select('storage_path').eq('id', asset.linked_topic_asset_id).maybeSingle()
+    if (!topicAsset?.storage_path) return null
+    return createTopicAssetSignedUrl(topicAsset.storage_path)
+  }
+  if (asset.storage_path) {
+    return createProgramAssetSignedUrl(asset.storage_path)
+  }
+  return null
 }
 
 export async function deleteProgramAssetFile(storagePath: string): Promise<void> {

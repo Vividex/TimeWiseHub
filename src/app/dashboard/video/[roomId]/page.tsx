@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
-import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+import { resolveProgramAssetSignedUrl } from '@/lib/program-storage'
 import { createTopicAssetSignedUrl } from '@/lib/tutoring/topic-storage'
 import { ensureSessionChatParticipant } from '@/lib/session-chat'
 import CallRoom from '@/components/video/CallRoom'
@@ -52,13 +52,7 @@ async function fetchLinkedProgram(sessionId: string, userId: string): Promise<Li
   ])
 
   const assetsWithUrls: ProgramAsset[] = await Promise.all(
-    (assets ?? []).map(async asset => {
-      if (asset.storage_path) {
-        const signed_url = await createProgramAssetSignedUrl(asset.storage_path)
-        return { ...asset, signed_url }
-      }
-      return { ...asset, signed_url: null }
-    }),
+    (assets ?? []).map(async asset => ({ ...asset, signed_url: await resolveProgramAssetSignedUrl(asset) })),
   )
 
   return {

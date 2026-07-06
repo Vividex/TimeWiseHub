@@ -43,6 +43,7 @@ export type ProgramAsset = {
   mime_type: string | null
   external_url: string | null
   note_content: string | null
+  linked_topic_asset_id: string | null
   ai_status: AiProcessingStatus
   ai_summary: string | null
   ai_tags: string[]
