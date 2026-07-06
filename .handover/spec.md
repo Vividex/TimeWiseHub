@@ -45,10 +45,10 @@ video call or asynchronously afterward — with real-time sync between participa
 ## C-1 — Database migration: worksheet_annotations, can_edit_worksheet(), worksheet-stickers bucket
 
 *Conductor only (no Codex dispatch):*
-- [ ] Create `supabase/schema-092-worksheet-annotations.sql` (full SQL in plan Task 1, Step 1).
-- [ ] Apply via Supabase MCP `apply_migration` (name: `worksheet_annotations`).
-- [ ] Verify via MCP `execute_sql` (three checks in plan Task 1, Step 3).
-- [ ] Commit: `git add supabase/schema-092-worksheet-annotations.sql && git commit -m "feat: worksheet annotation — database migration"`
+- [x] Create `supabase/schema-092-worksheet-annotations.sql` (full SQL in plan Task 1, Step 1).
+- [x] Apply via Supabase MCP `apply_migration` (name: `worksheet_annotations`).
+- [x] Verify via MCP `execute_sql` (three checks in plan Task 1, Step 3).
+- [x] Commit: `git add supabase/schema-092-worksheet-annotations.sql && git commit -m "feat: worksheet annotation — database migration"`
 
 ---
 
