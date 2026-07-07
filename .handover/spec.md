@@ -143,26 +143,26 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-7 — Settings replay entry point
 
 *Codex edits:*
-- [ ] Create `src/components/tutorial/RestartTutorialButton.tsx` (plan Task 7, Step 1 — exact code in plan doc)
-- [ ] Modify `src/app/settings/page.tsx` (plan Task 7, Step 2 — add card to `profileTab`)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/tutorial/RestartTutorialButton.tsx` (plan Task 7, Step 1 — exact code in plan doc)
+- [x] Modify `src/app/settings/page.tsx` (plan Task 7, Step 2 — add card to `profileTab`)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/tutorial/RestartTutorialButton.tsx src/app/settings/page.tsx && git commit -m "handover: C-7 settings restart-tutorial entry point"`
+- [x] `pnpm run build` — passes clean.
+- [x] Commit: `git add src/components/tutorial/RestartTutorialButton.tsx src/app/settings/page.tsx && git commit -m "handover: C-7 settings restart-tutorial entry point"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: migration applied, existing users backfilled, verified live.
-- [ ] C-2: tutoring (6-step) and generic (3-step, terminology-driven) step definitions exist.
-- [ ] C-3: detection dispatcher + start/advance/check API routes exist and build clean.
-- [ ] C-4: TutorialProvider exposes the new phase/step/context model; WelcomeModal calls `start()`.
-- [ ] C-5: TutorialTracker (bottom-left, avoids the FAB cluster) and TutorialComplete exist; old
+- [x] C-1: migration applied, existing users backfilled, verified live.
+- [x] C-2: tutoring (6-step) and generic (3-step, terminology-driven) step definitions exist.
+- [x] C-3: detection dispatcher + start/advance/check API routes exist and build clean.
+- [x] C-4: TutorialProvider exposes the new phase/step/context model; WelcomeModal calls `start()`.
+- [x] C-5: TutorialTracker (bottom-left, avoids the FAB cluster) and TutorialComplete exist; old
   overlay/tips/steps files removed.
-- [ ] C-6: dashboard layout wires the new provider + components; nav spotlight plumbing removed.
-- [ ] C-7: Settings has a working "Restart tutorial" action.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] C-6: dashboard layout wires the new provider + components; nav spotlight plumbing removed.
+- [x] C-7: Settings has a working "Restart tutorial" action.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test (user's own verification — see plan Task 8, Step 2 checklist) confirms the
   live flow end-to-end for a tutoring signup, a generic-profile signup, skip behavior, and replay.
 

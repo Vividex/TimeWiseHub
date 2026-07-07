@@ -10,6 +10,7 @@ import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
 import PushPermission from '@/components/PushPermission'
 import SettingsTabs from '@/components/SettingsTabs'
+import RestartTutorialButton from '@/components/tutorial/RestartTutorialButton'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -84,6 +85,14 @@ export default async function SettingsPage() {
           Receive browser notifications even when TimeWiseHub is in the background.
         </p>
         <div className="mt-4"><PushPermission /></div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Getting-started walkthrough</h2>
+        <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
+          Replay the hands-on tutorial that walks you through setting up your first client, session, and more.
+        </p>
+        <div className="mt-4"><RestartTutorialButton /></div>
       </div>
 
       <AccountSettingsForm
