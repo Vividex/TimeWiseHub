@@ -95,15 +95,14 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-4 — TutorialProvider + WelcomeModal
 
 *Codex edits:*
-- [ ] Rewrite `src/components/tutorial/TutorialProvider.tsx` (plan Task 4, Step 2 — exact code in plan doc)
-- [ ] Update `src/components/tutorial/WelcomeModal.tsx` (plan Task 4, Step 3)
-- [ ] Report back — list files changed.
+- [x] Rewrite `src/components/tutorial/TutorialProvider.tsx` (plan Task 4, Step 2 — exact code in plan doc)
+- [x] Update `src/components/tutorial/WelcomeModal.tsx` (plan Task 4, Step 3)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — note this may still fail until Task 6 rewires `dashboard/layout.tsx`'s
-  props to match the new `TutorialProvider` signature; if so, confirm the *only* errors are in
-  `dashboard/layout.tsx` (expected, fixed in C-6) and not elsewhere.
-- [ ] Commit: `git add src/components/tutorial/TutorialProvider.tsx src/components/tutorial/WelcomeModal.tsx && git commit -m "handover: C-4 TutorialProvider rewrite"`
+- [x] `pnpm run build` — fails as expected, with the *only* error being `dashboard/layout.tsx`
+  passing old `initialDismissed`/`role` props to `TutorialProvider` (confirmed, fixed in C-6).
+- [x] Commit: `git add src/components/tutorial/TutorialProvider.tsx src/components/tutorial/WelcomeModal.tsx && git commit -m "handover: C-4 TutorialProvider rewrite"`
 
 ---
 

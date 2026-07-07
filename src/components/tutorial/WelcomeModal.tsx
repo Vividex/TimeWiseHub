@@ -2,7 +2,7 @@
 import { useTutorial } from './TutorialProvider'
 
 export default function WelcomeModal() {
-  const { phase, advance, skip } = useTutorial()
+  const { phase, start, skipTutorial } = useTutorial()
   if (phase !== 'welcome') return null
 
   return (
@@ -13,11 +13,11 @@ export default function WelcomeModal() {
           Let&apos;s show you around — takes about 2 minutes.
         </p>
         <div className="flex flex-col gap-3">
-          <button onClick={advance}
+          <button onClick={start}
             className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-semibold text-white hover:bg-cyan-600">
             Show me around
           </button>
-          <button onClick={skip}
+          <button onClick={skipTutorial}
             className="w-full rounded-xl border border-gray-200 dark:border-slate-700 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-800 dark:hover:text-white">
             Skip for now
           </button>
