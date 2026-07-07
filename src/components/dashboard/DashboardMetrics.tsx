@@ -64,32 +64,32 @@ export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tas
         icon={FolderOpen}
         value={String(activeProjects)}
         label="Active projects"
-        iconClass="bg-violet-500/10 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400"
-        glowClass="bg-violet-500"
+        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
+        glowClass="bg-cyan-500"
         href="/dashboard/projects"
       />
       <MetricCard
         icon={CheckSquare}
         value={`${tasksCompleted}/${tasksTotal}`}
         label="Tasks complete"
-        iconClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
-        glowClass="bg-emerald-500"
+        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
+        glowClass="bg-cyan-500"
         onClick={() => scrollTo('my-tasks')}
       />
       <MetricCard
         icon={Users}
         value={String(activeClients)}
         label="Active clients"
-        iconClass="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
-        glowClass="bg-amber-500"
+        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
+        glowClass="bg-cyan-500"
         href="/dashboard/clients"
       />
       <MetricCard
         icon={AlertTriangle}
         value={`${overdueCurrency} ${overdueTotal.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         label="Overdue invoices"
-        iconClass="bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400"
-        glowClass="bg-red-500"
+        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
+        glowClass="bg-cyan-500"
         href="/dashboard/invoices?overdue=1"
       />
     </div>
