@@ -109,16 +109,18 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-5 — TutorialTracker + TutorialComplete (replace TutorialOverlay + TipsScreen)
 
 *Codex edits:*
-- [ ] Create `src/components/tutorial/TutorialTracker.tsx` (plan Task 5, Step 1)
-- [ ] Create `src/components/tutorial/TutorialComplete.tsx` (plan Task 5, Step 2)
-- [ ] Delete `src/components/tutorial/TutorialOverlay.tsx`, `src/lib/tutorial-steps.ts`,
+- [x] Create `src/components/tutorial/TutorialTracker.tsx` (plan Task 5, Step 1) — required a
+  follow-up correction turn: initial version used named exports instead of this codebase's
+  default-export convention; fixed and reverified.
+- [x] Create `src/components/tutorial/TutorialComplete.tsx` (plan Task 5, Step 2) — same fix applied.
+- [x] Delete `src/components/tutorial/TutorialOverlay.tsx`, `src/lib/tutorial-steps.ts`,
   `src/components/tutorial/TipsScreen.tsx` (plan Task 5, Step 3)
-- [ ] Report back — list files changed/deleted.
+- [x] Report back — list files changed/deleted.
 
 *Conductor:*
-- [ ] `pnpm run build` — `dashboard/layout.tsx` will still reference the deleted components/old
-  props until C-6; confirm errors are confined there.
-- [ ] Commit: `git add -u src/components/tutorial src/lib/tutorial-steps.ts && git commit -m "handover: C-5 TutorialTracker + TutorialComplete, remove old overlay/tips"`
+- [x] `pnpm run build` — fails with exactly the two expected dangling imports in
+  `dashboard/layout.tsx` (`TipsScreen`, `TutorialOverlay`), nothing else broken.
+- [x] Commit: `git add -u src/components/tutorial src/lib/tutorial-steps.ts && git commit -m "handover: C-5 TutorialTracker + TutorialComplete, remove old overlay/tips"`
 
 ---
 
