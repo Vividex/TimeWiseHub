@@ -87,8 +87,8 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
         <section className="space-y-3">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-500">Progress notes</h2>
-          <AddProgressNote clientId={student.client_id} orgId={orgId} students={studentOption} defaultStudentId={student.id} />
-          <ProgressNotesList notes={notes} currentUserId={user.id} canManage={canManageNotes} students={studentOption} clientId={student.client_id} />
+          <AddProgressNote clientId={student.client_id} orgId={orgId} students={studentOption} defaultStudentId={student.id} hideStudentPicker />
+          <ProgressNotesList notes={notes} currentUserId={user.id} canManage={canManageNotes} students={studentOption} clientId={student.client_id} hideStudentFilter />
         </section>
 
         <section className="space-y-3">

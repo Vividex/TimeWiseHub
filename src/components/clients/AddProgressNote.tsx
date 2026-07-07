@@ -9,11 +9,13 @@ export default function AddProgressNote({
   orgId,
   students,
   defaultStudentId,
+  hideStudentPicker = false,
 }: {
   clientId: string
   orgId: string | null
   students: { id: string; name: string }[]
   defaultStudentId?: string
+  hideStudentPicker?: boolean
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -53,7 +55,7 @@ export default function AddProgressNote({
   return (
     <div className="space-y-2">
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
-      {students.length > 0 && (
+      {!hideStudentPicker && students.length > 0 && (
         <select
           value={studentId}
           onChange={e => setStudentId(e.target.value)}

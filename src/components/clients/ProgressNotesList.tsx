@@ -24,12 +24,14 @@ export default function ProgressNotesList({
   canManage,
   students,
   clientId,
+  hideStudentFilter = false,
 }: {
   notes: ProgressNoteRow[]
   currentUserId: string
   canManage: boolean
   students: { id: string; name: string }[]
   clientId: string
+  hideStudentFilter?: boolean
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -117,7 +119,7 @@ export default function ProgressNotesList({
 
   return (
     <div className="space-y-3">
-      {students.length > 0 && (
+      {!hideStudentFilter && students.length > 0 && (
         <select
           value={studentFilter}
           onChange={e => setStudentFilter(e.target.value)}
