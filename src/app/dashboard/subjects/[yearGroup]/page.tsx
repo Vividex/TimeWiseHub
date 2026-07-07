@@ -16,8 +16,8 @@ export default async function YearGroupSubjectsPage({ params }: { params: Promis
   const orgId = membership?.org_id ?? null
 
   const subjectsQuery = orgId
-    ? supabase.from('subjects').select('id, name').eq('org_id', orgId).eq('archived', false).order('name')
-    : supabase.from('subjects').select('id, name').is('org_id', null).eq('created_by', user.id).eq('archived', false).order('name')
+    ? supabase.from('subjects').select('id, name').eq('org_id', orgId).eq('archived', false).is('parent_subject_id', null).order('name')
+    : supabase.from('subjects').select('id, name').is('org_id', null).eq('created_by', user.id).eq('archived', false).is('parent_subject_id', null).order('name')
   const { data: subjects } = await subjectsQuery
 
   return (
