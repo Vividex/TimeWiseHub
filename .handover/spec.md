@@ -65,16 +65,15 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-2 — Tutorial step definitions (shared lib)
 
 *Codex edits:*
-- [ ] Create `src/lib/tutorial/types.ts` (plan Task 2, Step 1)
-- [ ] Create `src/lib/tutorial/steps/tutoring.ts` (plan Task 2, Step 2 — 6 steps, exact ids/order in plan)
-- [ ] Create `src/lib/tutorial/steps/generic.ts` (plan Task 2, Step 3 — 3 steps, terminology-driven)
-- [ ] Create `src/lib/tutorial/steps/index.ts` (plan Task 2, Step 4 — `getStepsForProfile`)
-- [ ] Report back — list files changed.
+- [x] Create `src/lib/tutorial/types.ts` (plan Task 2, Step 1)
+- [x] Create `src/lib/tutorial/steps/tutoring.ts` (plan Task 2, Step 2 — 6 steps, exact ids/order in plan)
+- [x] Create `src/lib/tutorial/steps/generic.ts` (plan Task 2, Step 3 — 3 steps, terminology-driven)
+- [x] Create `src/lib/tutorial/steps/index.ts` (plan Task 2, Step 4 — `getStepsForProfile`)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — passes clean (these are new, unimported files at this point, so this
-  mainly checks for syntax/type errors in isolation).
-- [ ] Commit: `git add src/lib/tutorial/types.ts src/lib/tutorial/steps && git commit -m "handover: C-2 tutorial step definitions"`
+- [x] `pnpm run build` — passes clean.
+- [x] Commit: `git add src/lib/tutorial/types.ts src/lib/tutorial/steps && git commit -m "handover: C-2 tutorial step definitions"`
 
 ---
 
