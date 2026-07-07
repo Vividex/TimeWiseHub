@@ -5,5 +5,5 @@ export const YEAR_GROUPS = [
 
 export const DEFAULT_SUBJECTS = [
   'English', 'Mathematics', 'Science', 'Humanities & Social Sciences',
-  'Languages', 'The Arts', 'Health & Physical Education', 'Technologies',
+  'Languages', 'Art', 'Music', 'Health & Physical Education', 'Technologies',
 ] as const
