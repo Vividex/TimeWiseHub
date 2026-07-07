@@ -287,12 +287,12 @@ export default async function DashboardHome() {
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
         <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} />
 
-        {/* Personal to-dos */}
-        <PersonalTodos />
-
-        {/* My tasks */}
-        <div id="my-tasks">
-          <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
+        {/* Personal to-dos & My tasks */}
+        <div className="grid gap-8 lg:grid-cols-2">
+          <PersonalTodos />
+          <div id="my-tasks">
+            <MyWork myTasks={myTasks} orgMembers={mappedMembers} />
+          </div>
         </div>
 
         {isManager && poolTasks.length > 0 && (
