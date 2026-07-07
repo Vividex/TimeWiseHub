@@ -134,11 +134,11 @@ export default async function DashboardHome() {
     orgId
       ? supabase
           .from('sessions')
-          .select('id', { count: 'exact', head: true })
+          .select('id, status')
           .eq('org_id', orgId)
           .gte('scheduled_at', weekStart.toISOString())
           .lt('scheduled_at', weekEnd.toISOString())
-      : Promise.resolve({ count: 0, data: null, error: null }),
+      : Promise.resolve({ data: [] as { id: string; status: string }[], error: null }),
     orgId
       ? supabase.from('projects').select('id', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active')
       : supabase.from('projects').select('id', { count: 'exact' }).eq('owner_id', user.id).eq('status', 'active'),
@@ -209,7 +209,8 @@ export default async function DashboardHome() {
       : Promise.resolve({ count: 0, data: null, error: null }),
   ])
 
-  const sessionsThisWeek = sessionsRes.count ?? 0
+  const sessionsThisWeekTotal = (sessionsRes.data ?? []).length
+  const sessionsThisWeekCompleted = (sessionsRes.data ?? []).filter(s => s.status === 'completed').length
   const activeProjects  = projectsRes.count ?? 0
   const activeClients   = clientsRes.count ?? 0
   const tasksCompleted  = tasksDoneRes.count ?? 0
@@ -276,7 +277,8 @@ export default async function DashboardHome() {
 
         {/* Metric cards — all clickable */}
         <DashboardMetrics
-          sessionsThisWeek={sessionsThisWeek}
+          sessionsCompleted={sessionsThisWeekCompleted}
+          sessionsTotal={sessionsThisWeekTotal}
           activeProjects={activeProjects}
           tasksCompleted={tasksCompleted}
           tasksTotal={tasksTotal}

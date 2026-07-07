@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { CalendarClock, FolderOpen, CheckSquare, Users, AlertTriangle } from 'lucide-react'
 
 type Props = {
-  sessionsThisWeek: number
+  sessionsCompleted: number
+  sessionsTotal: number
   activeProjects: number
   tasksCompleted: number
   tasksTotal: number
@@ -49,12 +50,12 @@ function scrollTo(id: string) {
   window.scrollTo({ top, behavior: 'smooth' })
 }
 
-export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency }: Props) {
+export default function DashboardMetrics({ sessionsCompleted, sessionsTotal, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency }: Props) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       <MetricCard
         icon={CalendarClock}
-        value={String(sessionsThisWeek)}
+        value={`${sessionsCompleted}/${sessionsTotal}`}
         label="Sessions this week"
         iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
         glowClass="bg-cyan-500"
