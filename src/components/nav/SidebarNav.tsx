@@ -11,10 +11,9 @@ import {
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
-import { useTutorial } from '@/components/tutorial/TutorialProvider'
 import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
-type NavItem = { label: string; href: string; icon: LucideIcon; tutorialId?: string }
+type NavItem = { label: string; href: string; icon: LucideIcon }
 type NavGroup = { title: string; items: NavItem[] }
 
 function reorderByKeys<T>(list: T[], order: string[] | undefined, keyOf: (item: T) => string): T[] {
@@ -50,21 +49,21 @@ function applyNavOverrides(groups: NavGroup[], overrides?: NavOverrides): NavGro
 
 export const NAV_GROUPS: NavGroup[] = [
   { title: 'Home', items: [
-    { label: 'Home', href: '/dashboard', icon: LayoutDashboard, tutorialId: 'home' },
+    { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
   ] },
   { title: 'Delivery', items: [
-    { label: 'Clients',   href: '/dashboard/clients',  icon: Users,    tutorialId: 'clients' },
+    { label: 'Clients',   href: '/dashboard/clients',  icon: Users },
     { label: 'Students',  href: '/dashboard/students', icon: GraduationCap },
     { label: 'Sessions',  href: '/dashboard/sessions', icon: CalendarClock },
     { label: 'Programs',  href: '/dashboard/programs', icon: Library },
     { label: 'Subjects',  href: '/dashboard/subjects', icon: BookOpen },
     { label: 'Calendar',  href: '/dashboard/calendar', icon: CalendarDays },
-    { label: 'Time',      href: '/dashboard/time',     icon: Clock,    tutorialId: 'time' },
+    { label: 'Time',      href: '/dashboard/time',     icon: Clock },
   ] },
   { title: 'Communication', items: [
-    { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare, tutorialId: 'chat' },
+    { label: 'Chat', href: '/dashboard/chat', icon: MessageSquare },
     { label: 'Video', href: '/dashboard/video', icon: Video },
-    { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles, tutorialId: 'assistant' },
+    { label: 'Assistant', href: '/dashboard/assistant', icon: Sparkles },
   ] },
   { title: 'Money', items: [
     { label: 'Quotes', href: '/dashboard/quotes', icon: ScrollText },
@@ -74,7 +73,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'People', items: [
     { label: 'Leave',   href: '/dashboard/leave',  icon: Palmtree },
-    { label: 'Roster',  href: '/dashboard/roster', icon: CalendarRange, tutorialId: 'roster' },
+    { label: 'Roster',  href: '/dashboard/roster', icon: CalendarRange },
     { label: 'Team',    href: '/dashboard/team',   icon: Users2 },
     { label: 'Crews',   href: '/dashboard/crews',  icon: Network },
   ] },
@@ -101,19 +100,13 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const Icon = item.icon
   const unread = useChatUnreadTotal()
   const badge = item.href === '/dashboard/chat' && unread > 0 ? (unread > 99 ? '99+' : unread) : null
-  const { activeTarget } = useTutorial()
-
-  const isBlocked = !!activeTarget && item.tutorialId !== activeTarget
-  const isSpotlit = !!activeTarget && item.tutorialId === activeTarget
 
   return (
     <Link
       href={item.href}
-      data-tutorial={item.tutorialId}
-      tabIndex={isBlocked ? -1 : undefined}
       className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
         active ? 'bg-cyan-500/10 text-cyan-400 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-      } ${isBlocked ? 'pointer-events-none opacity-30' : ''} ${isSpotlit ? 'relative' : ''}`}
+      }`}
     >
       <Icon size={16} className="shrink-0" />
       {item.label}

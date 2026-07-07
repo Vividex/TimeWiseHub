@@ -127,17 +127,16 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-6 — Wire into dashboard layout + clean up nav
 
 *Codex edits:*
-- [ ] Modify `src/app/dashboard/layout.tsx` (plan Task 6, Step 2 — replace `isNewMember` block,
+- [x] Modify `src/app/dashboard/layout.tsx` (plan Task 6, Step 2 — replace `isNewMember` block,
   new `initialState`/`profileKey` props, swap `TutorialOverlay`/`TipsScreen` for
   `TutorialTracker`/`TutorialComplete`)
-- [ ] Modify `src/components/nav/SidebarNav.tsx` (plan Task 6, Step 3 — remove `tutorialId`/
+- [x] Modify `src/components/nav/SidebarNav.tsx` (plan Task 6, Step 3 — remove `tutorialId`/
   `data-tutorial`/spotlight-dimming plumbing)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean now (this is the integration point where everything
-  should compile together).
-- [ ] Commit: `git add src/app/dashboard/layout.tsx src/components/nav/SidebarNav.tsx && git commit -m "handover: C-6 wire tutorial into dashboard layout"`
+- [x] `pnpm run build` — passes clean end-to-end.
+- [x] Commit: `git add src/app/dashboard/layout.tsx src/components/nav/SidebarNav.tsx && git commit -m "handover: C-6 wire tutorial into dashboard layout"`
 
 ---
 

@@ -6,10 +6,9 @@ import FloatingWidgets from '@/components/FloatingWidgets'
 import ChatRealtimeProvider from '@/components/chat/ChatRealtimeProvider'
 import TutorialProvider from '@/components/tutorial/TutorialProvider'
 import WelcomeModal from '@/components/tutorial/WelcomeModal'
-import TipsScreen from '@/components/tutorial/TipsScreen'
-import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
+import TutorialTracker from '@/components/tutorial/TutorialTracker'
+import TutorialComplete from '@/components/tutorial/TutorialComplete'
 import PushAutoPrompt from '@/components/PushAutoPrompt'
-import type { UserRole } from '@/lib/tutorial-steps'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function DashboardLayout({
@@ -25,10 +24,10 @@ export default async function DashboardLayout({
   // way staff do, but must never reach the internal dashboard — only the call itself.
   if (user.app_metadata?.is_client_guest) redirect('/call-ended')
 
-  // Fetch membership once — needed for org resolution, tutorial role, and created_at
+  // Fetch membership once — needed for org resolution and role
   const { data: membership } = await supabase
     .from('organisation_members')
-    .select('org_id, role, created_at')
+    .select('org_id, role')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -49,21 +48,22 @@ export default async function DashboardLayout({
     orgId = membership?.org_id ?? null
   }
 
-  // Tutorial: only show to members who joined in the last 30 days
-  const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  const isNewMember = membership?.created_at
-    ? new Date(membership.created_at) > thirtyDaysAgo
-    : false
+  const { data: tutorialRow } = await supabase
+    .from('user_onboarding_dismissed')
+    .select('dismissed_at, started_at, current_step_index, context')
+    .eq('user_id', user.id)
+    .maybeSingle()
 
-  let initialDismissed = true
-  if (isNewMember) {
-    const { data: dismissed } = await supabase
-      .from('user_onboarding_dismissed').select('user_id').eq('user_id', user.id).maybeSingle()
-    initialDismissed = !!dismissed
+  const initialState = {
+    dismissed: tutorialRow ? tutorialRow.dismissed_at !== null : false,
+    startedAt: tutorialRow?.started_at ?? null,
+    stepIndex: tutorialRow?.current_step_index ?? 0,
+    context: (tutorialRow?.context as Record<string, string>) ?? {},
   }
 
-  const role = (membership?.role ?? 'employee') as UserRole
-  const { terminology, navOverrides } = await getWorkspaceProfileForUser(supabase, user.id)
+  const role = (membership?.role ?? 'employee') as 'owner' | 'admin' | 'manager' | 'employee'
+  const workspaceProfile = await getWorkspaceProfileForUser(supabase, user.id)
+  const { terminology, navOverrides } = workspaceProfile
 
   if (orgId && ['owner', 'admin'].includes(role)) {
     const { data: org } = await supabase
@@ -76,7 +76,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <TutorialProvider initialDismissed={initialDismissed} role={role}>
+    <TutorialProvider initialState={initialState} profileKey={workspaceProfile.key} terminology={terminology}>
       <ChatRealtimeProvider userId={user.id} orgId={orgId ?? ''}>
         <DashboardShell email={user.email ?? ''} clientLabel={terminology.client} navOverrides={navOverrides}>
           {children}
@@ -84,8 +84,8 @@ export default async function DashboardLayout({
         </DashboardShell>
       </ChatRealtimeProvider>
       <WelcomeModal />
-      <TipsScreen />
-      <TutorialOverlay />
+      <TutorialTracker />
+      <TutorialComplete />
       <PushAutoPrompt />
     </TutorialProvider>
   )
