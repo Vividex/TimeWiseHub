@@ -711,3 +711,30 @@
   consistent with how Delete Session/todo edits already work in that file).
 - CategoryTree/AssetGrid are reused unmodified with canManage={false} for the read-only drawer.
 - Program picker filters GET /api/programs results client-side to org_id === session.org_id.
+
+## Notes (Hands-on Onboarding Tutorial)
+- Source spec: docs/superpowers/specs/2026-07-08-hands-on-onboarding-tutorial-design.md
+- Source plan: docs/superpowers/plans/2026-07-08-hands-on-onboarding-tutorial.md
+- Extends user_onboarding_dismissed (not a new table) into a fuller state row — started_at,
+  current_step_index, context jsonb, nullable dismissed_at, profile_key.
+- Detection scoped to created_at >= started_at (never "does this exist at all") so replaying an
+  account with existing data doesn't instantly auto-complete every step. Manual "Skip this step"
+  always available as an escape hatch/manual-advance.
+- Tutoring: Client -> Student -> Subjects upload -> Program -> Session -> Schedule a call (6
+  steps). Every other profile: Client -> Project -> Session (3 steps, terminology-driven). Bespoke
+  flows for the other 9 profiles explicitly deferred.
+- Steps chain real IDs forward (captured clientId reused to deep-link into that client's
+  Students/Sessions tab via the existing ?new=1 convention) rather than sending the user to a
+  generic list page every time.
+- Migration backfills every existing user with a dismissed row so nobody already using the app
+  gets an unsolicited Welcome popup. Fixes a real bug found during design: solo (non-org) users
+  never saw the old tutorial at all (isNewMember was hardcoded false without an org membership
+  row) — the new trigger ("no tutorial row yet") applies identically to org and solo accounts.
+- Settings gets a "Restart tutorial" action with no age gate.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only.
+- Manual click-through smoke test requires an authenticated browser session the conductor doesn't
+  have — that's the user's own final verification step, same precedent as prior desktop/video
+  smoke tests in this repo.
