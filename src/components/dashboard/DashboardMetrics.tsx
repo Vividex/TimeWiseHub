@@ -88,8 +88,8 @@ export default function DashboardMetrics({ sessionsThisWeek, activeProjects, tas
         icon={AlertTriangle}
         value={`${overdueCurrency} ${overdueTotal.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         label="Overdue invoices"
-        iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
-        glowClass="bg-cyan-500"
+        iconClass={overdueTotal > 0 ? 'bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400' : 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400'}
+        glowClass={overdueTotal > 0 ? 'bg-red-500' : 'bg-cyan-500'}
         href="/dashboard/invoices?overdue=1"
       />
     </div>
