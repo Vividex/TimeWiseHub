@@ -80,15 +80,15 @@ Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 pr
 ## C-3 — Detection + API routes
 
 *Codex edits:*
-- [ ] Create `src/lib/tutorial/detect.ts` (plan Task 3, Step 1 — exact code in plan doc)
-- [ ] Create `src/app/api/tutorial/start/route.ts` (plan Task 3, Step 2)
-- [ ] Create `src/app/api/tutorial/advance/route.ts` (plan Task 3, Step 3)
-- [ ] Create `src/app/api/tutorial/check/route.ts` (plan Task 3, Step 4)
-- [ ] Report back — list files changed.
+- [x] Create `src/lib/tutorial/detect.ts` (plan Task 3, Step 1 — exact code in plan doc)
+- [x] Create `src/app/api/tutorial/start/route.ts` (plan Task 3, Step 2)
+- [x] Create `src/app/api/tutorial/advance/route.ts` (plan Task 3, Step 3)
+- [x] Create `src/app/api/tutorial/check/route.ts` (plan Task 3, Step 4)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — passes clean.
-- [ ] Commit: `git add src/lib/tutorial/detect.ts src/app/api/tutorial && git commit -m "handover: C-3 tutorial detection + API routes"`
+- [x] `pnpm run build` — passes clean; all four `/api/tutorial/*` routes confirmed in route table.
+- [x] Commit: `git add src/lib/tutorial/detect.ts src/app/api/tutorial && git commit -m "handover: C-3 tutorial detection + API routes"`
 
 ---
 
