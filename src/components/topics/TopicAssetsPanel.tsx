@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { FileText, Link as LinkIcon, StickyNote, Trash2, PenSquare } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { FileText, Link as LinkIcon, StickyNote, Trash2, PenSquare, Upload } from 'lucide-react'
 import WorksheetAnnotatorModal from '@/components/worksheets/WorksheetAnnotatorModal'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -56,6 +56,8 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
   const [noteContent, setNoteContent] = useState('')
   const [annotatingAsset, setAnnotatingAsset] = useState<{ id: string; assetType: 'pdf' | 'image' } | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [dragging, setDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? ''))
@@ -71,9 +73,7 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
 
   useEffect(() => { load() }, [topicId])
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadFile(file: File) {
     setUploading(true)
     setError('')
     const formData = new FormData()
@@ -86,8 +86,22 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
       await load()
     }
     setUploading(false)
+  }
+
+  async function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) await uploadFile(file)
     e.target.value = ''
   }
+
+  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setDragging(false)
+    if (uploading) return
+    const file = e.dataTransfer.files?.[0]
+    if (file) await uploadFile(file)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploading, topicId])
 
   async function handleAddLink(e: React.FormEvent) {
     e.preventDefault()
@@ -179,16 +193,32 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
       <div className="mt-3 space-y-3 border-t border-gray-200 pt-3 dark:border-slate-800">
         <div>
           <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Upload a file</label>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-cyan-600 aria-disabled:cursor-not-allowed aria-disabled:opacity-50" aria-disabled={uploading}>
-            {uploading ? 'Uploading…' : 'Choose file'}
+          <div
+            onDragOver={e => { e.preventDefault(); if (!uploading) setDragging(true) }}
+            onDragLeave={e => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false)
+            }}
+            onDrop={handleDrop}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed py-5 text-center transition-colors ${
+              dragging
+                ? 'border-cyan-400 bg-cyan-50 dark:border-cyan-700 dark:bg-cyan-950/30'
+                : 'border-gray-200 hover:border-gray-300 dark:border-slate-700 dark:hover:border-slate-600'
+            } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
+          >
+            <Upload size={18} className={dragging ? 'text-cyan-500' : 'text-gray-300 dark:text-slate-600'} />
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+              {uploading ? 'Uploading…' : 'Drop a file here, or click to browse'}
+            </p>
             <input
+              ref={fileInputRef}
               type="file"
-              onChange={handleFileUpload}
+              onChange={handleFileInputChange}
               disabled={uploading}
               accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
               className="hidden"
             />
-          </label>
+          </div>
         </div>
 
         <form onSubmit={handleAddLink} className="flex gap-2">
