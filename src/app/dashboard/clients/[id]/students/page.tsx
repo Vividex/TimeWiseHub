@@ -6,8 +6,15 @@ import EditStudentButton from '@/components/students/EditStudentButton'
 import DeleteStudentButton from '@/components/students/DeleteStudentButton'
 import RestoreStudentButton from '@/components/students/RestoreStudentButton'
 
-export default async function ClientStudentsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientStudentsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ new?: string }>
+}) {
   const { id } = await params
+  const { new: openNew } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -64,7 +71,7 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Students</h1>
 
-        {canEdit && <StudentForm clientId={id} />}
+        {canEdit && <StudentForm clientId={id} defaultOpen={openNew === '1'} />}
 
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           {(students ?? []).length === 0 ? (

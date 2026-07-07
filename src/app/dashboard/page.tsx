@@ -17,6 +17,7 @@ import { stripQuoteChain } from '@/lib/client-messages'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 type PoolTask = {
   id: string
@@ -54,6 +55,9 @@ export default async function DashboardHome() {
   const { data: profile } = await supabase
     .from('profiles').select('full_name, nickname').eq('id', user.id).maybeSingle()
   const firstName = profile?.full_name?.split(' ')[0] ?? profile?.nickname ?? ''
+
+  const workspaceProfile = await getWorkspaceProfileForUser(supabase, user.id)
+  const isTutoring = workspaceProfile.key === 'tutoring'
 
   const { data: rawTasks } = await supabase
     .from('tasks')
@@ -282,7 +286,7 @@ export default async function DashboardHome() {
         />
 
         {/* Quick actions */}
-        <QuickActions rosterManaged={rosterManaged} />
+        <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
         <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} />

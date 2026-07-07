@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
+import AddStudentButton from '@/components/students/AddStudentButton'
 
 export default async function StudentsPage() {
   const supabase = await createClient()
@@ -12,10 +13,11 @@ export default async function StudentsPage() {
   const orgId = membership?.org_id ?? null
 
   const clientsQuery = orgId
-    ? supabase.from('clients').select('id').or(`owner_id.eq.${user.id},org_id.eq.${orgId}`).eq('archived', false)
-    : supabase.from('clients').select('id').eq('owner_id', user.id).eq('archived', false)
+    ? supabase.from('clients').select('id, name').or(`owner_id.eq.${user.id},org_id.eq.${orgId}`).eq('archived', false).order('name')
+    : supabase.from('clients').select('id, name').eq('owner_id', user.id).eq('archived', false).order('name')
   const { data: clientRows } = await clientsQuery
-  const clientIds = (clientRows ?? []).map(c => c.id)
+  const clients = clientRows ?? []
+  const clientIds = clients.map(c => c.id)
 
   const { data: studentsRaw } = clientIds.length > 0
     ? await supabase
@@ -35,11 +37,14 @@ export default async function StudentsPage() {
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Students</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {students.length} enrolled
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Students</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {students.length} enrolled
+            </p>
+          </div>
+          <AddStudentButton clients={clients} />
         </div>
 
         <TileGrid empty="No students enrolled yet.">

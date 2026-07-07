@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-export default function StudentForm({ clientId }: { clientId: string }) {
+export default function StudentForm({ clientId, defaultOpen = false }: { clientId: string; defaultOpen?: boolean }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
