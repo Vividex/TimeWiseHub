@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "TimeWiseHub",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "identifier": "com.vividex.timewisehub",
   "build": {
     "frontendDist": "../out",
@@ -22,7 +22,8 @@
         "resizable": true,
         "fullscreen": false,
         "center": true,
-        "decorations": false
+        "decorations": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {
