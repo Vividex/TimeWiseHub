@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import { getWeekBounds } from '@/lib/week'
+import AddSessionButton from '@/components/sessions/AddSessionButton'
 
 const STATUS_LABEL: Record<string, string> = {
   scheduled: 'Scheduled',
@@ -57,7 +58,11 @@ export default async function SessionsOverviewPage() {
 
   const { weekStart, weekEnd } = getWeekBounds()
 
-  const [{ data: thisWeekRaw }, { data: scheduledRaw }] = await Promise.all([
+  const clientsQuery = orgId
+    ? supabase.from('clients').select('id, name').or(`owner_id.eq.${user.id},org_id.eq.${orgId}`).eq('archived', false).order('name')
+    : supabase.from('clients').select('id, name').eq('owner_id', user.id).eq('archived', false).order('name')
+
+  const [{ data: thisWeekRaw }, { data: scheduledRaw }, { data: clientsRaw }] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -76,19 +81,24 @@ export default async function SessionsOverviewPage() {
           .gte('scheduled_at', weekEnd.toISOString())
           .order('scheduled_at')
       : Promise.resolve({ data: [], error: null }),
+    clientsQuery,
   ])
 
   const thisWeek = (thisWeekRaw ?? []).map(mapSession)
   const scheduled = (scheduledRaw ?? []).map(mapSession)
+  const clients = clientsRaw ?? []
 
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {thisWeek.length} this week
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {thisWeek.length} this week
+            </p>
+          </div>
+          <AddSessionButton clients={clients} />
         </div>
 
         <div className="space-y-4">

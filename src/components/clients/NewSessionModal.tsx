@@ -20,16 +20,18 @@ export default function NewSessionModal({
   clientLabel,
   students,
   subjects,
+  defaultOpen = false,
 }: {
   clientId: string
   orgId: string | null
   clientLabel: { singular: string; plural: string }
   students: StudentOption[]
   subjects: SubjectOption[]
+  defaultOpen?: boolean
 }) {
   const router = useRouter()
   const supabase = createClient()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [title, setTitle] = useState('')
   const [studentId, setStudentId] = useState('')
   const [yearGroup, setYearGroup] = useState('')

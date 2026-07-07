@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Clock, CalendarDays, Palmtree, Receipt, Users, FileText,
+  LayoutDashboard, Clock, CalendarDays, CalendarClock, Palmtree, Receipt, Users, FileText,
   TrendingUp, BarChart3, CreditCard, Download, HelpCircle, Settings,
   MessageSquare, Sparkles, CalendarRange, Users2, Video, ScrollText, Network, Library, BookOpen, type LucideIcon,
 } from 'lucide-react'
@@ -54,6 +54,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'Delivery', items: [
     { label: 'Clients',   href: '/dashboard/clients',  icon: Users,    tutorialId: 'clients' },
+    { label: 'Sessions',  href: '/dashboard/sessions', icon: CalendarClock },
     { label: 'Programs',  href: '/dashboard/programs', icon: Library },
     { label: 'Subjects',  href: '/dashboard/subjects', icon: BookOpen },
     { label: 'Calendar',  href: '/dashboard/calendar', icon: CalendarDays },

@@ -18,8 +18,15 @@ function sessionLabel(yearGroup: string | null, subjectName: string | null, topi
   return [yearGroup, subjectName, topicName].filter(Boolean).join(' · ')
 }
 
-export default async function ClientSessionsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientSessionsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ new?: string }>
+}) {
   const { id } = await params
+  const { new: openNew } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -98,7 +105,7 @@ export default async function ClientSessionsPage({ params }: { params: Promise<{
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
-          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} subjects={subjects ?? []} />
+          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} subjects={subjects ?? []} defaultOpen={openNew === '1'} />
         </div>
 
         <BillableSessionsPanel
