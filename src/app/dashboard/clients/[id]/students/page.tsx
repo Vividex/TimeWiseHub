@@ -73,7 +73,7 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
             <ul className="divide-y divide-gray-50 dark:divide-slate-800">
               {(students ?? []).map(s => (
                 <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
-                  <div className="min-w-0">
+                  <Link href={`/dashboard/students/${s.id}`} className="min-w-0 hover:opacity-80">
                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.name}</p>
                     {(subjectPills.get(s.id) ?? []).length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -84,7 +84,7 @@ export default async function ClientStudentsPage({ params }: { params: Promise<{
                         ))}
                       </div>
                     )}
-                  </div>
+                  </Link>
                   {canEdit && (
                     <div className="flex shrink-0 items-center gap-2">
                       <EditStudentButton student={s} />

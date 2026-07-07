@@ -7,7 +7,7 @@ const GENERIC_TERMINOLOGY: Terminology = {
   project: { singular: 'Project', plural: 'Projects' },
 }
 
-const HIDE_SUBJECTS_NAV = { hiddenHrefs: ['/dashboard/subjects'] }
+const HIDE_SUBJECTS_NAV = { hiddenHrefs: ['/dashboard/subjects', '/dashboard/students'] }
 
 export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
   generic: {

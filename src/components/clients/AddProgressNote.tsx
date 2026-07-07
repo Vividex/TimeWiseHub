@@ -8,15 +8,17 @@ export default function AddProgressNote({
   clientId,
   orgId,
   students,
+  defaultStudentId,
 }: {
   clientId: string
   orgId: string | null
   students: { id: string; name: string }[]
+  defaultStudentId?: string
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [body, setBody] = useState('')
-  const [studentId, setStudentId] = useState('')
+  const [studentId, setStudentId] = useState(defaultStudentId ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,7 +45,7 @@ export default function AddProgressNote({
     }
 
     setBody('')
-    setStudentId('')
+    setStudentId(defaultStudentId ?? '')
     setSaving(false)
     router.refresh()
   }
