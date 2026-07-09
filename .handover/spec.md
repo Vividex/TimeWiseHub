@@ -73,14 +73,14 @@ series (not per generated occurrence).
 ## C-3 — Wire the one-off booking modal
 
 *Codex edits:*
-- [ ] Modify `src/components/clients/NewSessionModal.tsx:176-193` (plan Task 3, Step 1 — add the
+- [x] Modify `src/components/clients/NewSessionModal.tsx:176-193` (plan Task 3, Step 1 — add the
   non-blocking `fetch(...).catch(() => {})` call right after the `session_todos` insert block,
   before `router.push`. Exact before/after code is in the plan doc.)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "handover: C-3 email client when a one-off session is booked"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "handover: C-3 email client when a one-off session is booked"`
 
 ---
 

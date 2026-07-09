@@ -190,6 +190,8 @@ export default function NewSessionModal({
       )
     }
 
+    fetch(`/api/clients/${clientId}/sessions/${session.id}/notify-scheduled`, { method: 'POST' }).catch(() => {})
+
     router.push(`/dashboard/clients/${clientId}/sessions/${session.id}`)
   }
 
