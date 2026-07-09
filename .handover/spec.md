@@ -1,173 +1,116 @@
-# Hands-on Onboarding Tutorial
+# Session-scheduled client email
 
 ## Goal
-Replace the outdated spotlight-tour tutorial with a hands-on walkthrough that sends the user
-through real pages, auto-detects step completion (scoped to the current run so replaying never
-false-positives off old data), lets the user skip any step or the whole tutorial, and gives
-Tutoring a bespoke 6-step flow with a 3-step generic fallback for the other 9 profiles.
+Automatically send a business-branded confirmation email to a client when staff schedule a
+Programs-in-Sessions session for them — one email per one-off booking, one email per recurring
+series (not per generated occurrence).
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-08-hands-on-onboarding-tutorial-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-08-hands-on-onboarding-tutorial.md`
-- Extends `user_onboarding_dismissed` (not a new table) into a fuller state row: `started_at`,
-  `current_step_index`, `context` jsonb, nullable `dismissed_at`, `profile_key`.
-- Detection is scoped to `created_at >= started_at` — never "does this exist at all" — so
-  replaying an account with a week of existing data doesn't instantly auto-complete every step.
-  Manual "Skip this step" (which doubles as manual-advance) is always available as an escape hatch.
-- Tutoring: Client → Student → Subjects upload → Program → Session → Schedule a call (6 steps, in
-  this order, ids: `client`, `student`, `subjects`, `program`, `session`, `video_call`). Every
-  other profile gets Client → Project → Session (3 steps, ids: `client`, `project`, `session`),
-  copy driven by that profile's `terminology`.
-- Steps 2/5 (tutoring) and step 3 (generic) reuse the `?new=1` deep-link convention already built
-  this session (`NewSessionModal`/`StudentForm`'s `defaultOpen` prop) — chained using the
-  `clientId` captured from the Client step's completion.
-- Migration backfills every existing user with a dismissed row so nobody who's already using the
-  app gets an unsolicited "Welcome" popup after this ships. New signups naturally have no row and
-  are eligible for the automatic trigger.
-- Fixes a real pre-existing bug found during design: solo (non-org) users never saw the old
-  tutorial at all (the old `isNewMember` check was hardcoded false without an org). The new trigger
-  condition ("no tutorial row yet") applies identically to org and solo accounts.
-- Settings gets a "Restart tutorial" action with no age gate — always available.
+- Source spec: `docs/superpowers/specs/2026-07-09-session-scheduled-client-email-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-09-session-scheduled-client-email.md`
+- Two new functions in `src/lib/session-email.ts`: `sendSessionScheduledEmail(sessionId)` for
+  one-off bookings, `sendSeriesScheduledEmail(seriesId)` for recurring series — both best-effort,
+  never throw, gate on paid plan (`isPaidPlan`) and the client having an email on file.
+- Reuses the exact branded/reply-to machinery `src/app/api/clients/[id]/messages/route.ts`
+  already uses (`invoiceLetterhead`/`invoiceLogo`, `buildReplyToAddress`, `sendEmail`) — no new
+  email infrastructure.
+- Recurring series get exactly **one** email at series-creation time (describing the day/time +
+  cadence pattern), never one per occurrence — `topUpSeries` generates up to 8 occurrences at
+  once, so per-occurrence emailing would spam the client.
+- One-off booking: browser-side insert in `NewSessionModal.tsx` fires a non-blocking `fetch` to a
+  new API route (`POST /api/clients/[id]/sessions/[sessionId]/notify-scheduled`) after the insert
+  succeeds. Recurring series: the existing server-side series route calls the helper directly, no
+  HTTP hop needed.
+- No per-client opt-out toggle this phase (no such flag exists for clients today) — always sends
+  if the client has an email and the business is on a paid plan.
 
 ## Rules for Codex
-- Text edits only. Do NOT run shell commands (pnpm, git, node, tauri, supabase) — the conductor
-  handles those, including applying the database migration via Supabase MCP.
-- Read a file before editing it if its structure is unknown (especially `SidebarNav.tsx` and
-  `dashboard/layout.tsx`, both being surgically modified, not rewritten wholesale).
-- After each task, list the files changed/created/deleted.
+- Text edits only. Do NOT run shell commands (pnpm, git, node) — the conductor handles those.
+- Read a file before editing it if its structure is unknown (especially
+  `src/components/clients/NewSessionModal.tsx` and
+  `src/app/api/clients/[id]/sessions/series/route.ts`, both being surgically modified, not
+  rewritten wholesale).
+- After each task, list the files changed/created.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before ticking the box and committing.
-- Apply `supabase/schema-095-tutorial-state.sql` via Supabase MCP `apply_migration` (project id
-  `sdwwlnnsijcadkdwsvud`) — Codex cannot do this.
-- Manual click-through smoke test requires an authenticated browser session the conductor doesn't
-  have — that final acceptance step is the user's own verification, same precedent as this
-  project's desktop/video-call smoke tests.
-- Commit each verified item separately (per the handover loop's own protocol) rather than holding
-  everything for one giant commit at the end.
+- No DB migration this phase — no Supabase MCP calls needed.
+- Manual smoke test (paid-plan email arrival, single-email-per-series, no-email-on-file, free-plan
+  gate) requires an authenticated browser session the conductor doesn't have — that final
+  acceptance step is the user's own verification, same precedent as every prior phase.
+- Commit each verified item separately rather than holding everything for one giant commit.
 
 ---
 
-## C-1 — Database migration
+## C-1 — Session-email helper functions
 
 *Codex edits:*
-- [x] Create `supabase/schema-095-tutorial-state.sql` (plan Task 1, Step 1 — exact SQL is in the plan doc)
-- [x] Report back — list files changed.
+- [ ] Export `paragraph` from `src/lib/email-notifications.ts` (plan Task 1, Step 1 — add
+  `export` to the existing function on line 48)
+- [ ] Create `src/lib/session-email.ts` (plan Task 1, Step 2 — exact code is in the plan doc:
+  `sendSessionScheduledEmail(sessionId)` and `sendSeriesScheduledEmail(seriesId)`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] Apply via Supabase MCP `apply_migration` (name `tutorial_state`).
-- [x] Verify: `select` confirms new columns exist and every current `profiles` row now has a
-  matching `user_onboarding_dismissed` row with `dismissed_at` set. (7 profiles, 7 backfilled rows.)
-- [x] Commit: `git add supabase/schema-095-tutorial-state.sql && git commit -m "handover: C-1 tutorial state migration"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/lib/email-notifications.ts src/lib/session-email.ts && git commit -m "handover: C-1 session-scheduled email helpers"`
 
 ---
 
-## C-2 — Tutorial step definitions (shared lib)
+## C-2 — Notify-scheduled API route
 
 *Codex edits:*
-- [x] Create `src/lib/tutorial/types.ts` (plan Task 2, Step 1)
-- [x] Create `src/lib/tutorial/steps/tutoring.ts` (plan Task 2, Step 2 — 6 steps, exact ids/order in plan)
-- [x] Create `src/lib/tutorial/steps/generic.ts` (plan Task 2, Step 3 — 3 steps, terminology-driven)
-- [x] Create `src/lib/tutorial/steps/index.ts` (plan Task 2, Step 4 — `getStepsForProfile`)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts` (plan
+  Task 2, Step 1 — exact code in the plan doc)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — passes clean.
-- [x] Commit: `git add src/lib/tutorial/types.ts src/lib/tutorial/steps && git commit -m "handover: C-2 tutorial step definitions"`
+- [ ] `pnpm run build` — must pass clean; confirm the new route appears in the route table.
+- [ ] Commit: `git add src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts && git commit -m "handover: C-2 notify-scheduled route for one-off session bookings"`
 
 ---
 
-## C-3 — Detection + API routes
+## C-3 — Wire the one-off booking modal
 
 *Codex edits:*
-- [x] Create `src/lib/tutorial/detect.ts` (plan Task 3, Step 1 — exact code in plan doc)
-- [x] Create `src/app/api/tutorial/start/route.ts` (plan Task 3, Step 2)
-- [x] Create `src/app/api/tutorial/advance/route.ts` (plan Task 3, Step 3)
-- [x] Create `src/app/api/tutorial/check/route.ts` (plan Task 3, Step 4)
-- [x] Report back — list files changed.
+- [ ] Modify `src/components/clients/NewSessionModal.tsx:176-193` (plan Task 3, Step 1 — add the
+  non-blocking `fetch(...).catch(() => {})` call right after the `session_todos` insert block,
+  before `router.push`. Exact before/after code is in the plan doc.)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — passes clean; all four `/api/tutorial/*` routes confirmed in route table.
-- [x] Commit: `git add src/lib/tutorial/detect.ts src/app/api/tutorial && git commit -m "handover: C-3 tutorial detection + API routes"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx && git commit -m "handover: C-3 email client when a one-off session is booked"`
 
 ---
 
-## C-4 — TutorialProvider + WelcomeModal
+## C-4 — Wire the recurring-series route
 
 *Codex edits:*
-- [x] Rewrite `src/components/tutorial/TutorialProvider.tsx` (plan Task 4, Step 2 — exact code in plan doc)
-- [x] Update `src/components/tutorial/WelcomeModal.tsx` (plan Task 4, Step 3)
-- [x] Report back — list files changed.
+- [ ] Modify `src/app/api/clients/[id]/sessions/series/route.ts` (plan Task 4, Step 1 — add the
+  `sendSeriesScheduledEmail` import and call it right after `topUpSeries(...)`. Exact
+  before/after code is in the plan doc.)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — fails as expected, with the *only* error being `dashboard/layout.tsx`
-  passing old `initialDismissed`/`role` props to `TutorialProvider` (confirmed, fixed in C-6).
-- [x] Commit: `git add src/components/tutorial/TutorialProvider.tsx src/components/tutorial/WelcomeModal.tsx && git commit -m "handover: C-4 TutorialProvider rewrite"`
-
----
-
-## C-5 — TutorialTracker + TutorialComplete (replace TutorialOverlay + TipsScreen)
-
-*Codex edits:*
-- [x] Create `src/components/tutorial/TutorialTracker.tsx` (plan Task 5, Step 1) — required a
-  follow-up correction turn: initial version used named exports instead of this codebase's
-  default-export convention; fixed and reverified.
-- [x] Create `src/components/tutorial/TutorialComplete.tsx` (plan Task 5, Step 2) — same fix applied.
-- [x] Delete `src/components/tutorial/TutorialOverlay.tsx`, `src/lib/tutorial-steps.ts`,
-  `src/components/tutorial/TipsScreen.tsx` (plan Task 5, Step 3)
-- [x] Report back — list files changed/deleted.
-
-*Conductor:*
-- [x] `pnpm run build` — fails with exactly the two expected dangling imports in
-  `dashboard/layout.tsx` (`TipsScreen`, `TutorialOverlay`), nothing else broken.
-- [x] Commit: `git add -u src/components/tutorial src/lib/tutorial-steps.ts && git commit -m "handover: C-5 TutorialTracker + TutorialComplete, remove old overlay/tips"`
-
----
-
-## C-6 — Wire into dashboard layout + clean up nav
-
-*Codex edits:*
-- [x] Modify `src/app/dashboard/layout.tsx` (plan Task 6, Step 2 — replace `isNewMember` block,
-  new `initialState`/`profileKey` props, swap `TutorialOverlay`/`TipsScreen` for
-  `TutorialTracker`/`TutorialComplete`)
-- [x] Modify `src/components/nav/SidebarNav.tsx` (plan Task 6, Step 3 — remove `tutorialId`/
-  `data-tutorial`/spotlight-dimming plumbing)
-- [x] Report back — list files changed.
-
-*Conductor:*
-- [x] `pnpm run build` — passes clean end-to-end.
-- [x] Commit: `git add src/app/dashboard/layout.tsx src/components/nav/SidebarNav.tsx && git commit -m "handover: C-6 wire tutorial into dashboard layout"`
-
----
-
-## C-7 — Settings replay entry point
-
-*Codex edits:*
-- [x] Create `src/components/tutorial/RestartTutorialButton.tsx` (plan Task 7, Step 1 — exact code in plan doc)
-- [x] Modify `src/app/settings/page.tsx` (plan Task 7, Step 2 — add card to `profileTab`)
-- [x] Report back — list files changed.
-
-*Conductor:*
-- [x] `pnpm run build` — passes clean.
-- [x] Commit: `git add src/components/tutorial/RestartTutorialButton.tsx src/app/settings/page.tsx && git commit -m "handover: C-7 settings restart-tutorial entry point"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/api/clients/[id]/sessions/series/route.ts && git commit -m "handover: C-4 email client once when a recurring session series is booked"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: migration applied, existing users backfilled, verified live.
-- [x] C-2: tutoring (6-step) and generic (3-step, terminology-driven) step definitions exist.
-- [x] C-3: detection dispatcher + start/advance/check API routes exist and build clean.
-- [x] C-4: TutorialProvider exposes the new phase/step/context model; WelcomeModal calls `start()`.
-- [x] C-5: TutorialTracker (bottom-left, avoids the FAB cluster) and TutorialComplete exist; old
-  overlay/tips/steps files removed.
-- [x] C-6: dashboard layout wires the new provider + components; nav spotlight plumbing removed.
-- [x] C-7: Settings has a working "Restart tutorial" action.
-- [x] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke test (user's own verification — see plan Task 8, Step 2 checklist) confirms the
-  live flow end-to-end for a tutoring signup, a generic-profile signup, skip behavior, and replay.
+- [ ] C-1: `sendSessionScheduledEmail`/`sendSeriesScheduledEmail` exist, both best-effort/never-throw.
+- [ ] C-2: `notify-scheduled` route exists, builds clean, enforces access via existing `sessions` RLS.
+- [ ] C-3: One-off booking flow fires the notification request after insert succeeds.
+- [ ] C-4: Recurring series route sends exactly one confirmation email per series.
+- [ ] Full `pnpm run build` passes clean end-to-end.
+- [ ] Manual smoke test (user's own verification — see plan Task 5 checklist) confirms: branded
+  email arrives for a paid-plan one-off booking with correct content and working reply-to; a
+  recurring series produces exactly one email with correct cadence wording; a client with no
+  email doesn't error; a free-plan account doesn't send.
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint) after every
-turn, full clean build after C-7, plus the manual smoke checklist in
-`docs/superpowers/plans/2026-07-08-hands-on-onboarding-tutorial.md` (Task 8, Step 2), which
-requires the user's own authenticated browser session.
+turn, full clean build after C-4, plus the manual smoke checklist in
+`docs/superpowers/plans/2026-07-09-session-scheduled-client-email.md` (Task 5), which requires
+the user's own authenticated browser session.

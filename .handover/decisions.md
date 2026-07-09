@@ -5,6 +5,9 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
+- Session-Scheduled Client Email (current phase): zero cost — pure code, no schema change, no new
+  npm dependencies, reuses the existing Resend/Client-Email-Messaging infrastructure and branding
+  helpers already paid for.
 - Subjects Folder Navigation + Search (inserted mid-loop, C-4.5, complete): zero cost — pure code,
   no schema change, no new dependencies, reuses existing RLS/access boundaries exactly.
 - Program-Subjects Content Linking (complete, C-7 through C-11): zero cost — pure code + one
@@ -79,6 +82,28 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Session-Scheduled Client Email) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-09-session-scheduled-client-email-design.md
+- Source plan: docs/superpowers/plans/2026-07-09-session-scheduled-client-email.md
+- Direct feature request: clients should get an email when staff schedule a Programs-in-Sessions
+  session for them. Scoped during brainstorming to Programs-in-Sessions only (roster shifts
+  explicitly out of scope), staff-triggered only (clients don't self-book today).
+- Reuses the exact branded/reply-to email machinery from Client Email Messaging
+  (`invoiceLetterhead`/`invoiceLogo`, `buildReplyToAddress`, `sendEmail`) rather than inventing a
+  new send path — and inherits that feature's existing paid-plan gate (`isPaidPlan`), a deliberate
+  consistency choice, not an oversight.
+- **Real gap caught during brainstorming, before any code was written:** recurring series don't
+  create occurrences one at a time — `topUpSeries` generates the next 8 occurrences in one go at
+  series-creation time, then a cron tops up more later. A naive "email on every session insert"
+  hook would have sent a client 8 emails at once the moment any weekly series was booked. Fixed by
+  hooking the email into the series-creation event (one email describing the day/time + cadence
+  pattern) rather than the per-row session insert.
+- No per-client opt-out toggle this phase — no such flag exists for clients today (only staff have
+  `notification_preferences`); always sends if the client has an email and the plan is paid.
+  Explicitly deferred as a future follow-up if it becomes a real need, not built speculatively.
+- Codex handles text edits only; conductor runs all shell/build/git. No Supabase MCP calls needed
+  this phase (no migration).
 
 ## Notes (Collaborative Worksheet Annotation) [current phase]
 - Source spec: docs/superpowers/specs/2026-07-06-collaborative-worksheet-annotation-design.md
