@@ -83,7 +83,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Session-Scheduled Client Email) [current phase]
+## Notes (Session-Scheduled Client Email) [code complete, manual smoke test pending]
 - Source spec: docs/superpowers/specs/2026-07-09-session-scheduled-client-email-design.md
 - Source plan: docs/superpowers/plans/2026-07-09-session-scheduled-client-email.md
 - Direct feature request: clients should get an email when staff schedule a Programs-in-Sessions
