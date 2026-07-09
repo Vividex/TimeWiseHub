@@ -60,13 +60,13 @@ series (not per generated occurrence).
 ## C-2 — Notify-scheduled API route
 
 *Codex edits:*
-- [ ] Create `src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts` (plan
+- [x] Create `src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts` (plan
   Task 2, Step 1 — exact code in the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm the new route appears in the route table.
-- [ ] Commit: `git add src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts && git commit -m "handover: C-2 notify-scheduled route for one-off session bookings"`
+- [x] `pnpm run build` — must pass clean; confirm the new route appears in the route table.
+- [x] Commit: `git add src/app/api/clients/[id]/sessions/[sessionId]/notify-scheduled/route.ts && git commit -m "handover: C-2 notify-scheduled route for one-off session bookings"`
 
 ---
 
