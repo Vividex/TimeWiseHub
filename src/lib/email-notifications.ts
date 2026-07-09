@@ -45,7 +45,7 @@ function escapeHtml(value: string) {
     .replaceAll("'", '&#039;')
 }
 
-function paragraph(lines: string[]) {
+export function paragraph(lines: string[]) {
   return lines.map(line => `<p>${escapeHtml(line)}</p>`).join('')
 }
 

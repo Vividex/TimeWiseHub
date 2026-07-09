@@ -45,15 +45,15 @@ series (not per generated occurrence).
 ## C-1 — Session-email helper functions
 
 *Codex edits:*
-- [ ] Export `paragraph` from `src/lib/email-notifications.ts` (plan Task 1, Step 1 — add
+- [x] Export `paragraph` from `src/lib/email-notifications.ts` (plan Task 1, Step 1 — add
   `export` to the existing function on line 48)
-- [ ] Create `src/lib/session-email.ts` (plan Task 1, Step 2 — exact code is in the plan doc:
+- [x] Create `src/lib/session-email.ts` (plan Task 1, Step 2 — exact code is in the plan doc:
   `sendSessionScheduledEmail(sessionId)` and `sendSeriesScheduledEmail(seriesId)`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/lib/email-notifications.ts src/lib/session-email.ts && git commit -m "handover: C-1 session-scheduled email helpers"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/lib/email-notifications.ts src/lib/session-email.ts && git commit -m "handover: C-1 session-scheduled email helpers"`
 
 ---
 
