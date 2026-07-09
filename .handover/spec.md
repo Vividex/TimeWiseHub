@@ -87,23 +87,23 @@ series (not per generated occurrence).
 ## C-4 — Wire the recurring-series route
 
 *Codex edits:*
-- [ ] Modify `src/app/api/clients/[id]/sessions/series/route.ts` (plan Task 4, Step 1 — add the
+- [x] Modify `src/app/api/clients/[id]/sessions/series/route.ts` (plan Task 4, Step 1 — add the
   `sendSeriesScheduledEmail` import and call it right after `topUpSeries(...)`. Exact
   before/after code is in the plan doc.)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/clients/[id]/sessions/series/route.ts && git commit -m "handover: C-4 email client once when a recurring session series is booked"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/api/clients/[id]/sessions/series/route.ts && git commit -m "handover: C-4 email client once when a recurring session series is booked"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `sendSessionScheduledEmail`/`sendSeriesScheduledEmail` exist, both best-effort/never-throw.
-- [ ] C-2: `notify-scheduled` route exists, builds clean, enforces access via existing `sessions` RLS.
-- [ ] C-3: One-off booking flow fires the notification request after insert succeeds.
-- [ ] C-4: Recurring series route sends exactly one confirmation email per series.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] C-1: `sendSessionScheduledEmail`/`sendSeriesScheduledEmail` exist, both best-effort/never-throw.
+- [x] C-2: `notify-scheduled` route exists, builds clean, enforces access via existing `sessions` RLS.
+- [x] C-3: One-off booking flow fires the notification request after insert succeeds.
+- [x] C-4: Recurring series route sends exactly one confirmation email per series.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test (user's own verification — see plan Task 5 checklist) confirms: branded
   email arrives for a paid-plan one-off booking with correct content and working reply-to; a
   recurring series produces exactly one email with correct cadence wording; a client with no

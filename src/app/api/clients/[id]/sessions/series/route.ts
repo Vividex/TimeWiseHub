@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { topUpSeries } from '@/lib/sessions/series'
+import { sendSeriesScheduledEmail } from '@/lib/session-email'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -40,6 +41,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   await topUpSeries(service, series.id, 8)
+
+  await sendSeriesScheduledEmail(series.id)
 
   const { data: firstSession } = await service
     .from('sessions').select('id')
