@@ -197,6 +197,16 @@ button.bg-cyan-600, a.bg-cyan-600 {
 /* Slightly brighter card border outlines in light mode */
 .border-gray-100 { border-color: #e2e8f0; }
 
+/* Hides the native scrollbar on an otherwise-scrollable element. Pair with an
+   edge-fade overlay (see SidebarNav usage) so scrollability stays discoverable. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Android edge-to-edge: push content clear of status bar and navigation bar.
    env() vars are 0 on desktop/web — no effect outside the Android Tauri app. */
 @supports (padding-top: env(safe-area-inset-top)) {
