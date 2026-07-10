@@ -199,7 +199,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
         >
           <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-5 dark:border-slate-800">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-violet-600">Scheduled call</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">Scheduled call</p>
               <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">{selectedCall.title}</h2>
             </div>
             <button onClick={closeModal} className="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
@@ -210,7 +210,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
           <div className="space-y-4 p-5">
             {selectedCall.starts_at && (
               <div className="flex items-start gap-3">
-                <Clock size={16} className="mt-0.5 shrink-0 text-violet-500" />
+                <Clock size={16} className="mt-0.5 shrink-0 text-cyan-500" />
                 <div>
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {formatDateTime(selectedCall.starts_at)}
@@ -225,7 +225,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             )}
 
             <div className="flex items-start gap-3">
-              <Users size={16} className="mt-0.5 shrink-0 text-violet-500" />
+              <Users size={16} className="mt-0.5 shrink-0 text-cyan-500" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Participants {!loadingDetails && `(${invitees.length})`}
@@ -247,7 +247,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             </div>
 
             <div className="flex items-start gap-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 shrink-0 text-violet-500"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 shrink-0 text-cyan-500"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Project</p>
                 <select
@@ -264,7 +264,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                     }).catch(() => {})
                     setSavingProject(false)
                   }}
-                  className="w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:opacity-50"
+                  className="w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
                 >
                   <option value="">No project</option>
                   {projects.map(p => (
@@ -283,11 +283,11 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                   <div className="flex gap-1 mb-2">
                     <button
                       onClick={() => setNotesTab('summary')}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'summary' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'summary' ? 'bg-cyan-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                     >Key Notes</button>
                     <button
                       onClick={() => setNotesTab('transcript')}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'transcript' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${notesTab === 'transcript' ? 'bg-cyan-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                     >Full Transcript</button>
                   </div>
                   {notesTab === 'summary' ? (
@@ -303,7 +303,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                               a.download = `${selectedCall?.title ?? 'call'}-notes.txt`
                               a.click()
                             }}
-                            className="mt-2 text-xs text-violet-600 hover:underline"
+                            className="mt-2 text-xs text-cyan-600 hover:underline"
                           >Download</button>
                         </>
                       ) : (
@@ -321,7 +321,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                           a.download = `${selectedCall?.title ?? 'call'}-transcript.txt`
                           a.click()
                         }}
-                        className="mt-2 text-xs text-violet-600 hover:underline"
+                        className="mt-2 text-xs text-cyan-600 hover:underline"
                       >Download</button>
                     </div>
                   )}
@@ -347,19 +347,19 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                     value={addEmail}
                     onChange={e => setAddEmail(e.target.value)}
                     placeholder="email@example.com"
-                    className="flex-1 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                    className="flex-1 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   />
                   <input
                     type="text"
                     value={addName}
                     onChange={e => setAddName(e.target.value)}
                     placeholder="Name (optional)"
-                    className="w-28 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                    className="w-28 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   />
                   <button
                     type="submit"
                     disabled={addingInvitee || !addEmail.trim()}
-                    className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+                    className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-700 disabled:opacity-50 transition-colors"
                   >
                     {addingInvitee ? '…' : 'Invite'}
                   </button>
@@ -400,7 +400,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             <button
               onClick={() => router.push(`/dashboard/video/${selectedCall.id}`)}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white transition-colors ${
-                live ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-violet-600 hover:bg-violet-700'
+                live ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-cyan-600 hover:bg-cyan-700'
               }`}
             >
               <Video size={14} />
@@ -440,7 +440,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
         {groups.map(group => (
           <div key={group.date.toISOString()}>
             <p className={`mb-2 text-xs font-bold uppercase tracking-wide ${
-              sameDay(group.date, now) ? 'text-violet-600' : 'text-slate-400 dark:text-slate-500'
+              sameDay(group.date, now) ? 'text-cyan-600' : 'text-slate-400 dark:text-slate-500'
             }`}>
               {agendaDateLabel(group.date, now)}
             </p>
@@ -454,7 +454,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                     className={`w-full text-left rounded-2xl border px-4 py-3 transition-colors ${
                       live
                         ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
-                        : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-violet-200 dark:hover:border-violet-800'
+                        : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-cyan-200 dark:hover:border-cyan-800'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -500,7 +500,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
           className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${
             live
               ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
-              : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-violet-200 dark:hover:border-violet-800'
+              : 'border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900 hover:border-cyan-200 dark:hover:border-cyan-800'
           }`}
         >
           <div className="flex items-center justify-between gap-3">
@@ -511,7 +511,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                 </p>
                 {live && <span className="shrink-0 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">LIVE</span>}
                 {call.summary !== null && (
-                  <span className="shrink-0 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 px-2 py-0.5 text-xs font-semibold">
+                  <span className="shrink-0 rounded-full bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 text-xs font-semibold">
                     Session Notes
                   </span>
                 )}
@@ -549,7 +549,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
       <div className="space-y-6">
         {todayCalls.length > 0 && (
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-violet-600 mb-2">Today</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-cyan-600 mb-2">Today</p>
             <div className="space-y-2">{todayCalls.map(c => <CallRow key={c.id} call={c} />)}</div>
           </div>
         )}
@@ -588,7 +588,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
               <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{weekLabel}</span>
               <button onClick={() => setAnchor(a => addDays(a, 7))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
             </div>
-            <button onClick={() => setView('month')} className="text-xs text-violet-600 hover:underline">Month view</button>
+            <button onClick={() => setView('month')} className="text-xs text-cyan-600 hover:underline">Month view</button>
           </div>
           <div className="grid grid-cols-7 gap-1">
             {DAYS.map(d => (
@@ -598,8 +598,8 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
               const dayCalls = callsForDay(day)
               const isToday = sameDay(day, now)
               return (
-                <div key={i} className={`min-h-24 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
-                  <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
+                <div key={i} className={`min-h-24 rounded-lg p-1.5 border ${isToday ? 'border-cyan-400 bg-cyan-50 dark:bg-cyan-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+                  <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-cyan-600' : 'text-slate-400'}`}>{day.getDate()}</p>
                   {dayCalls.map(call => (
                     <button
                       key={call.id}
@@ -607,7 +607,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                       className={`w-full text-left text-xs rounded px-1.5 py-1 mb-1 truncate font-medium transition-colors ${
                         isLive(call)
                           ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                          : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900'
+                          : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300 hover:bg-cyan-200 dark:hover:bg-cyan-900'
                       }`}
                     >
                       {call.starts_at && formatTime(call.starts_at)} {call.title}
@@ -648,7 +648,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{monthLabel}</span>
             <button onClick={() => setAnchor(a => new Date(a.getFullYear(), a.getMonth() + 1, 1))} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight size={18} /></button>
           </div>
-          <button onClick={() => setView('week')} className="text-xs text-violet-600 hover:underline">Week view</button>
+          <button onClick={() => setView('week')} className="text-xs text-cyan-600 hover:underline">Week view</button>
         </div>
         <div className="grid grid-cols-7 gap-1">
           {DAYS.map(d => (
@@ -659,14 +659,14 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             const dayCalls = callsForDay(day)
             const isToday = sameDay(day, now)
             return (
-              <div key={i} className={`min-h-16 rounded-lg p-1.5 border ${isToday ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
-                <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{day.getDate()}</p>
+              <div key={i} className={`min-h-16 rounded-lg p-1.5 border ${isToday ? 'border-cyan-400 bg-cyan-50 dark:bg-cyan-950/30' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+                <p className={`text-xs font-semibold mb-1 ${isToday ? 'text-cyan-600' : 'text-slate-400'}`}>{day.getDate()}</p>
                 {dayCalls.slice(0, 2).map(call => (
                   <button
                     key={call.id}
                     onClick={() => openCall(call)}
                     className={`w-full text-left text-xs rounded px-1 py-0.5 mb-0.5 truncate ${
-                      isLive(call) ? 'bg-emerald-500 text-white' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
+                      isLive(call) ? 'bg-emerald-500 text-white' : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300'
                     }`}
                   >
                     {call.title}
