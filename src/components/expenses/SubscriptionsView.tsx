@@ -4,10 +4,9 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { addInterval, daysUntil, type RecurrenceInterval } from '@/lib/expenses'
+import { addInterval, daysUntil, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
 
 type Category = { id: string; name: string }
-type ReviewStatus = 'submitted' | 'approved' | 'rejected'
 
 type Subscription = {
   id: string
@@ -19,17 +18,6 @@ type Subscription = {
   next_billing_date: string
   status: ReviewStatus
   expense_categories: { name: string } | null
-}
-
-const STATUS_LABEL: Record<ReviewStatus, string> = {
-  submitted: 'Pending review',
-  approved: 'Approved',
-  rejected: 'Rejected',
-}
-const STATUS_COLOUR: Record<ReviewStatus, string> = {
-  submitted: 'bg-amber-50 text-amber-600',
-  approved: 'bg-green-50 text-green-600',
-  rejected: 'bg-red-50 text-red-600',
 }
 
 const CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR', 'NZD', 'CAD', 'SGD']
@@ -283,8 +271,8 @@ export default function SubscriptionsView({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-bold text-gray-900">{sub.description || 'Unnamed recurring expense'}</p>
-                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_COLOUR[sub.status]}`}>
-                        {STATUS_LABEL[sub.status]}
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${REVIEW_STATUS_COLOUR[sub.status]}`}>
+                        {REVIEW_STATUS_LABEL[sub.status]}
                       </span>
                     </div>
                     <p className="text-xs font-semibold text-gray-500">

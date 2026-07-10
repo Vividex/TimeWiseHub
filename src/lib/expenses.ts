@@ -1,4 +1,16 @@
 export type RecurrenceInterval = 'weekly' | 'fortnightly' | 'monthly' | 'annually'
+export type ReviewStatus = 'submitted' | 'approved' | 'rejected'
+
+export const REVIEW_STATUS_LABEL: Record<ReviewStatus, string> = {
+  submitted: 'Pending review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+}
+export const REVIEW_STATUS_COLOUR: Record<ReviewStatus, string> = {
+  submitted: 'bg-amber-50 text-amber-600',
+  approved: 'bg-green-50 text-green-600',
+  rejected: 'bg-red-50 text-red-600',
+}
 
 export function addInterval(dateStr: string, interval: RecurrenceInterval): string {
   const date = new Date(`${dateStr}T00:00:00`)
