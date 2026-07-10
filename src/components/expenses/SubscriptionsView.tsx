@@ -4,12 +4,14 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { addInterval, daysUntil, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
+import { addInterval, daysUntil, markExpenseCyclePaid, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
 
 type Category = { id: string; name: string }
 
 type Subscription = {
   id: string
+  org_id: string | null
+  user_id: string
   category_id: string | null
   description: string | null
   amount: number
@@ -70,7 +72,7 @@ export default function SubscriptionsView({
     const supabase = createClient()
     const { data } = await supabase
       .from('expenses')
-      .select('id, category_id, description, amount, currency, recurrence_interval, next_billing_date, status, expense_categories(name)')
+      .select('id, org_id, user_id, category_id, description, amount, currency, recurrence_interval, next_billing_date, status, expense_categories(name)')
       .eq('user_id', userId)
       .eq('is_recurring', true)
       .order('next_billing_date', { ascending: true })
@@ -162,14 +164,11 @@ export default function SubscriptionsView({
   }
 
   async function advanceBilling(sub: Subscription) {
-    const nextDate = addInterval(sub.next_billing_date, sub.recurrence_interval)
     const supabase = createClient()
-    const { error } = await supabase
-      .from('expenses')
-      .update({ next_billing_date: nextDate, expense_date: nextDate })
-      .eq('id', sub.id)
+    const { error } = await markExpenseCyclePaid(supabase, { ...sub, is_business: false }, userId)
 
     if (!error) {
+      const nextDate = addInterval(sub.next_billing_date, sub.recurrence_interval)
       setSubs(current => current.map(item => item.id === sub.id ? { ...item, next_billing_date: nextDate } : item))
       router.refresh()
     }

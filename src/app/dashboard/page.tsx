@@ -41,6 +41,18 @@ type AssignedTask = {
   projects: { id: string; name: string; colour: string } | null
 }
 
+type DueExpenseRow = {
+  id: string
+  org_id: string | null
+  user_id: string
+  category_id: string | null
+  description: string | null
+  amount: number
+  currency: string
+  recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'
+  next_billing_date: string
+}
+
 export default async function DashboardHome() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -193,8 +205,9 @@ export default async function DashboardHome() {
           .eq('owner_id', user.id),
     supabase
       .from('expenses')
-      .select('id, description, amount, currency, recurrence_interval, next_billing_date')
+      .select('id, org_id, user_id, category_id, description, amount, currency, recurrence_interval, next_billing_date')
       .eq('user_id', user.id)
+      .eq('is_business', false)
       .eq('is_recurring', true)
       .eq('status', 'approved')
       .lte('next_billing_date', dueThresholdStr)
@@ -202,14 +215,14 @@ export default async function DashboardHome() {
     orgId && isAdminOrOwner
       ? supabase
           .from('expenses')
-          .select('id, description, amount, currency, recurrence_interval, next_billing_date')
+          .select('id, org_id, user_id, category_id, description, amount, currency, recurrence_interval, next_billing_date')
           .eq('org_id', orgId)
           .eq('is_business', true)
           .eq('is_recurring', true)
           .eq('status', 'approved')
           .lte('next_billing_date', dueThresholdStr)
           .order('next_billing_date', { ascending: true })
-      : Promise.resolve({ data: [] as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[], error: null }),
+      : Promise.resolve({ data: [] as DueExpenseRow[], error: null }),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -280,25 +293,29 @@ export default async function DashboardHome() {
     }
   })
 
-  const dueExpenses: UpcomingDueExpense[] = (
-    (dueExpensesRes.data ?? []) as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[]
-  ).map(e => ({
+  const dueExpenses: UpcomingDueExpense[] = ((dueExpensesRes.data ?? []) as DueExpenseRow[]).map(e => ({
     id: e.id,
+    org_id: e.org_id,
+    user_id: e.user_id,
+    category_id: e.category_id,
     description: e.description,
     amount: e.amount,
     currency: e.currency,
     recurrence_interval: e.recurrence_interval,
     next_billing_date: e.next_billing_date,
+    is_business: false,
   }))
-  const dueBusinessExpenses: UpcomingDueExpense[] = (
-    (dueBusinessExpensesRes.data ?? []) as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[]
-  ).map(e => ({
+  const dueBusinessExpenses: UpcomingDueExpense[] = ((dueBusinessExpensesRes.data ?? []) as DueExpenseRow[]).map(e => ({
     id: e.id,
+    org_id: e.org_id,
+    user_id: e.user_id,
+    category_id: e.category_id,
     description: e.description,
     amount: e.amount,
     currency: e.currency,
     recurrence_interval: e.recurrence_interval,
     next_billing_date: e.next_billing_date,
+    is_business: true,
   }))
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
@@ -339,7 +356,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} currentUserId={user.id} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">

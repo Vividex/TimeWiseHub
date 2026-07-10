@@ -2,13 +2,15 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { addInterval, daysUntil, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
+import { addInterval, daysUntil, markExpenseCyclePaid, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
 
 type Category = { id: string; name: string }
 type Filter = 'all' | 'pending'
 
 type BusinessExpense = {
   id: string
+  org_id: string
+  user_id: string
   description: string | null
   amount: number
   currency: string
@@ -75,7 +77,7 @@ export default function BusinessExpensesView({
     const supabase = createClient()
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, currency, category_id, is_recurring, recurrence_interval, next_billing_date, expense_date, status, profiles!expenses_user_id_fkey(email), expense_categories(name)')
+      .select('id, org_id, user_id, description, amount, currency, category_id, is_recurring, recurrence_interval, next_billing_date, expense_date, status, profiles!expenses_user_id_fkey(email), expense_categories(name)')
       .eq('org_id', orgId)
       .eq('is_business', true)
       .order('created_at', { ascending: false })
@@ -158,15 +160,16 @@ export default function BusinessExpensesView({
   async function markPaid(expense: BusinessExpense) {
     if (!expense.next_billing_date || !expense.recurrence_interval) return
     setPayingId(expense.id)
-    const nextDate = addInterval(expense.next_billing_date, expense.recurrence_interval)
     const supabase = createClient()
-    const { error: payError } = await supabase
-      .from('expenses')
-      .update({ next_billing_date: nextDate, expense_date: nextDate })
-      .eq('id', expense.id)
+    const { error: payError } = await markExpenseCyclePaid(
+      supabase,
+      { ...expense, next_billing_date: expense.next_billing_date, recurrence_interval: expense.recurrence_interval, is_business: true },
+      userId,
+    )
     setPayingId(null)
     if (!payError) {
-      setExpenses(prev => prev.map(e => e.id === expense.id ? { ...e, next_billing_date: nextDate, expense_date: nextDate } : e))
+      const nextDate = addInterval(expense.next_billing_date, expense.recurrence_interval)
+      setExpenses(prev => prev.map(e => e.id === expense.id ? { ...e, next_billing_date: nextDate } : e))
     }
   }
 

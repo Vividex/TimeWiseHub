@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
-import { addInterval, daysUntil, type RecurrenceInterval } from '@/lib/expenses'
+import { daysUntil, markExpenseCyclePaid, type RecurrenceInterval } from '@/lib/expenses'
 
 export type UpcomingMeeting  = { id: string; title: string; starts_at: string }
 export type UpcomingEvent    = { id: string; title: string; start_at: string; end_at: string | null; all_day: boolean }
@@ -14,11 +14,15 @@ export type UpcomingApproval = { id: string; title: string; submitter_name: stri
 export type UnreadClientMessage = { client_id: string; client_name: string; preview: string }
 export type UpcomingDueExpense = {
   id: string
+  org_id: string | null
+  user_id: string
+  category_id: string | null
   description: string | null
   amount: number
   currency: string
   recurrence_interval: RecurrenceInterval
   next_billing_date: string
+  is_business: boolean
 }
 
 function fmtTime(iso: string, allDay: boolean) {
@@ -47,6 +51,7 @@ export default function DashboardUpcoming({
   unreadMessages,
   dueExpenses,
   dueBusinessExpenses,
+  currentUserId,
 }: {
   meetings: UpcomingMeeting[]
   events: UpcomingEvent[]
@@ -56,6 +61,7 @@ export default function DashboardUpcoming({
   unreadMessages: UnreadClientMessage[]
   dueExpenses: UpcomingDueExpense[]
   dueBusinessExpenses: UpcomingDueExpense[]
+  currentUserId: string
 }) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
   const [paidIds, setPaidIds] = useState<Set<string>>(new Set())
@@ -81,12 +87,8 @@ export default function DashboardUpcoming({
 
   async function markExpensePaid(expense: UpcomingDueExpense) {
     setPayingId(expense.id)
-    const nextDate = addInterval(expense.next_billing_date, expense.recurrence_interval)
     const supabase = createClient()
-    const { error } = await supabase
-      .from('expenses')
-      .update({ next_billing_date: nextDate, expense_date: nextDate })
-      .eq('id', expense.id)
+    const { error } = await markExpenseCyclePaid(supabase, expense, currentUserId)
     setPayingId(null)
     if (!error) setPaidIds(prev => new Set(prev).add(expense.id))
   }
