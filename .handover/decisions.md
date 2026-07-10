@@ -83,7 +83,20 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Session-Scheduled Client Email) [code complete, manual smoke test pending]
+## Notes (Session-Scheduled Client Email) [complete, kept for reference]
+- **Post-ship debugging (2026-07-10):** first live test showed no email arriving for a recurring
+  series booking, even though the one-off booking's email arrived fine seconds earlier for the
+  same client. Root-caused via `systematic-debugging`: confirmed via direct SQL
+  (`session_series`/`sessions` joined to `clients`) that both sends used the identical client and
+  identical recipient email — ruled out a wrong-recipient bug. Confirmed via the user's Resend
+  dashboard that the API call was accepted for both sends. The actual status (once it updated)
+  was `delivery_delayed`, not a silent failure — Microsoft/Outlook.com deferred the message
+  (reputation-based soft defer, common for a sending domain without deep history with a specific
+  recipient, especially after several test sends to the same address in quick succession). No
+  code change was made — this is confirmed external/environmental, not an application bug. Worth
+  remembering for any future outbound-email feature: an `outlook.com`/`hotmail.com` recipient
+  during testing may show inconsistent delivery even when the code path is verified correct: check
+  Resend's per-email status field (not just the list view, which may lag) before assuming a bug.
 - Source spec: docs/superpowers/specs/2026-07-09-session-scheduled-client-email-design.md
 - Source plan: docs/superpowers/plans/2026-07-09-session-scheduled-client-email.md
 - Direct feature request: clients should get an email when staff schedule a Programs-in-Sessions

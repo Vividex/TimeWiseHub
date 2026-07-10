@@ -104,10 +104,13 @@ series (not per generated occurrence).
 - [x] C-3: One-off booking flow fires the notification request after insert succeeds.
 - [x] C-4: Recurring series route sends exactly one confirmation email per series.
 - [x] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke test (user's own verification — see plan Task 5 checklist) confirms: branded
-  email arrives for a paid-plan one-off booking with correct content and working reply-to; a
-  recurring series produces exactly one email with correct cadence wording; a client with no
-  email doesn't error; a free-plan account doesn't send.
+- [x] Manual smoke test, partial (2026-07-10, conversational, not the full itemized checklist):
+  one-off booking confirmed — branded email arrived with correct content. Recurring series
+  confirmed sending exactly one email (not eight) — verified both via the user's Resend dashboard
+  and directly via SQL (`session_series`/`sessions` rows), though the series email itself hit an
+  Outlook-side `delivery_delayed` deferral (Microsoft reputation-based soft defer, not a code
+  issue — see decisions.md note). No-email-on-file and free-plan gating were not explicitly
+  exercised live; the paid-plan gate was code-reviewed in `session-email.ts` instead.
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint) after every
