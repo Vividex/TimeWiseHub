@@ -546,10 +546,14 @@ export async function executeReadTool(
     }
 
     case 'get_expenses': {
+      // Scoped to the caller's own personal expenses — business expenses (company costs an
+      // owner/admin may have logged under their own user_id) are excluded, same reasoning as the
+      // personal Finance/Insights views and reports.
       let q = supabase
         .from('expenses')
         .select('id, amount, currency, description, expense_date, status, expense_categories(name)')
         .eq('user_id', userId)
+        .eq('is_business', false)
         .order('expense_date', { ascending: false })
         .limit(Number(input.limit ?? 20))
       if (input.status) q = q.eq('status', input.status as string)

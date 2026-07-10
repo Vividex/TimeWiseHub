@@ -226,10 +226,15 @@ export default function ReportsClient({ userId, orgId, isManager }: {
   // ── Individual: expenses ──────────────────────────────────────
   async function downloadExpenses() {
     setLoading('exp')
+    // is_business excluded — this is "my" personal expense report, not company spend an
+    // owner/admin happened to log under their own user_id (see the Business Expenses section for
+    // that). All statuses are still listed as rows (useful to see what's pending/rejected too),
+    // but the TOTAL only counts approved spend — draft/rejected was never actually paid.
     const { data } = await supabase
       .from('expenses')
       .select('expense_date, amount, currency, description, status, expense_categories(name), review_note')
       .eq('user_id', userId)
+      .eq('is_business', false)
       .gte('expense_date', expFrom)
       .lte('expense_date', expTo)
       .order('expense_date')
@@ -248,9 +253,9 @@ export default function ReportsClient({ userId, orgId, isManager }: {
         (e as any).review_note ?? '',
       ])
     })
-    const total = (data ?? []).reduce((s, e) => s + Number(e.amount), 0)
+    const total = (data ?? []).filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount), 0)
     rows.push([])
-    rows.push(['TOTAL', '', '', total.toFixed(2), '', '', ''])
+    rows.push(['TOTAL (approved only)', '', '', total.toFixed(2), '', '', ''])
 
     downloadCSV(rows, `expenses-${expFrom}-to-${expTo}.csv`)
     setLoading(null)
@@ -451,16 +456,18 @@ export default function ReportsClient({ userId, orgId, isManager }: {
   // ── Org: expense summary ──────────────────────────────────────
   async function downloadOrgExpenses() {
     setLoading('orgexp')
+    // Both personal reimbursements and business expenses are real company spend, so both stay
+    // in this team-wide export — but each row is labeled so a manager can tell them apart.
     const { data } = await supabase
       .from('expenses')
-      .select('user_id, expense_date, amount, currency, description, status, expense_categories(name), profiles!expenses_user_id_fkey(full_name, email)')
+      .select('user_id, expense_date, amount, currency, description, status, is_business, expense_categories(name), profiles!expenses_user_id_fkey(full_name, email)')
       .eq('org_id', orgId)
       .gte('expense_date', orgExpFrom)
       .lte('expense_date', orgExpTo)
       .order('expense_date')
 
     const rows: (string | number | null)[][] = [
-      ['Employee', 'Email', 'Date', 'Category', 'Description', 'Amount', 'Currency', 'Status'],
+      ['Employee', 'Email', 'Date', 'Type', 'Category', 'Description', 'Amount', 'Currency', 'Status'],
     ]
     ;(data ?? []).forEach(e => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -469,14 +476,18 @@ export default function ReportsClient({ userId, orgId, isManager }: {
       const cat = (e as any).expense_categories as { name: string } | null
       rows.push([
         p?.full_name || p?.email || e.user_id, p?.email ?? '',
-        fmtDate(e.expense_date), cat?.name ?? '',
+        fmtDate(e.expense_date), e.is_business ? 'Business' : 'Personal', cat?.name ?? '',
         e.description ?? '', Number(e.amount).toFixed(2),
         e.currency, e.status,
       ])
     })
     const total = (data ?? []).filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount), 0)
+    const businessTotal = (data ?? []).filter(e => e.status === 'approved' && e.is_business).reduce((s, e) => s + Number(e.amount), 0)
+    const personalTotal = total - businessTotal
     rows.push([])
-    rows.push(['TOTAL APPROVED', '', '', '', '', total.toFixed(2), '', ''])
+    rows.push(['TOTAL APPROVED', '', '', '', '', '', total.toFixed(2), '', ''])
+    rows.push(['  of which Business', '', '', '', '', '', businessTotal.toFixed(2), '', ''])
+    rows.push(['  of which Personal', '', '', '', '', '', personalTotal.toFixed(2), '', ''])
 
     downloadCSV(rows, `team-expenses-${orgExpFrom}-to-${orgExpTo}.csv`)
     setLoading(null)

@@ -390,7 +390,7 @@ export async function sendScheduledReportEmail(
         .lt('started_at', `${toDate}T23:59:59`),
       service
         .from('expenses')
-        .select('amount, currency')
+        .select('amount, currency, is_business')
         .in('user_id', userIds)
         .eq('status', 'approved')
         .gte('expense_date', fromDate)
@@ -413,6 +413,7 @@ export async function sendScheduledReportEmail(
 
     const totalSeconds = (timeEntries ?? []).reduce((sum, entry) => sum + (entry.duration_seconds ?? 0), 0)
     const expenseTotal = (expenses ?? []).reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0)
+    const businessExpenseTotal = (expenses ?? []).filter(e => e.is_business).reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0)
     const currency = expenses?.[0]?.currency ?? 'AUD'
     const orgName = (membership?.organisations as { name?: string } | null)?.name ?? 'your team'
 
@@ -420,7 +421,7 @@ export async function sendScheduledReportEmail(
       `Team: ${orgName}`,
       `Tracked time: ${formatDuration(totalSeconds)}`,
       `Completed tasks: ${completedTasks?.length ?? 0}`,
-      `Approved expenses: ${money(expenseTotal, currency)}`,
+      `Approved expenses: ${money(expenseTotal, currency)} (of which business: ${money(businessExpenseTotal, currency)})`,
       `Approved leave bookings overlapping the week: ${leaveRequests?.length ?? 0}`,
       `Open team reports: ${APP_URL}/dashboard/reports`
     )
@@ -436,6 +437,8 @@ export async function sendScheduledReportEmail(
         .from('expenses')
         .select('amount, currency')
         .eq('user_id', profile.id)
+        .eq('is_business', false)
+        .eq('status', 'approved')
         .gte('expense_date', fromDate)
         .lte('expense_date', toDate),
       service
@@ -459,7 +462,7 @@ export async function sendScheduledReportEmail(
     lines.push(
       `Tracked time: ${formatDuration(totalSeconds)}`,
       `Completed tasks: ${completedTasks?.length ?? 0}`,
-      `Expenses logged: ${money(expenseTotal, currency)}`,
+      `Approved expenses: ${money(expenseTotal, currency)}`,
       `Active projects: ${activeProjects?.length ?? 0}`,
       `Open reports: ${APP_URL}/dashboard/reports`
     )

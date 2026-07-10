@@ -69,6 +69,8 @@ export async function OverviewPanel() {
       .from('expenses')
       .select('amount')
       .eq('user_id', user.id)
+      .eq('is_business', false)
+      .eq('status', 'approved')
       .gte('expense_date', monthStartStr),
 
     orgId
@@ -80,8 +82,8 @@ export async function OverviewPanel() {
       : supabase.from('income_entries').select('date, amount').eq('user_id', user.id).gte('date', sixMonthsAgoStr),
 
     orgId
-      ? supabase.from('expenses').select('expense_date, amount').eq('org_id', orgId).gte('expense_date', sixMonthsAgoStr)
-      : supabase.from('expenses').select('expense_date, amount').eq('user_id', user.id).gte('expense_date', sixMonthsAgoStr),
+      ? supabase.from('expenses').select('expense_date, amount').eq('org_id', orgId).eq('status', 'approved').gte('expense_date', sixMonthsAgoStr)
+      : supabase.from('expenses').select('expense_date, amount').eq('user_id', user.id).eq('is_business', false).eq('status', 'approved').gte('expense_date', sixMonthsAgoStr),
 
     supabase
       .from('roster_shifts')
@@ -202,7 +204,7 @@ export async function OverviewPanel() {
     if (memberIds.length > 0) {
       const [orgTimeRes, orgExpRes, orgTasksRes] = await Promise.all([
         supabase.from('time_entries').select('user_id, duration_seconds').in('user_id', memberIds).not('ended_at', 'is', null).gte('started_at', monthStart.toISOString()),
-        supabase.from('expenses').select('user_id, amount').in('user_id', memberIds).gte('expense_date', monthStartStr),
+        supabase.from('expenses').select('user_id, amount').in('user_id', memberIds).eq('is_business', false).eq('status', 'approved').gte('expense_date', monthStartStr),
         supabase.from('tasks').select('assignee_id').in('assignee_id', memberIds).eq('status', 'done').gte('completed_at', monthStart.toISOString()),
       ])
 

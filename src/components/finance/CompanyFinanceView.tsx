@@ -106,11 +106,24 @@ export default async function CompanyFinanceView({
     .eq(scopeColumn, scopeValue)
     .order('date', { ascending: false })
 
+  // Only approved expenses are real, confirmed spend — draft/submitted/rejected rows must never
+  // count toward a financial total. A personal ("My Finance") view also excludes business
+  // expenses: those are company costs an owner/admin logged on the business's behalf, not their
+  // own personal spend, even though the row's user_id happens to be theirs.
   let expenseQuery = supabase
     .from('expenses')
     .select('amount, expense_date, category_id, description')
     .eq(scopeColumn, scopeValue)
+    .eq('status', 'approved')
     .order('expense_date', { ascending: false })
+  if (scope.type === 'user') expenseQuery = expenseQuery.eq('is_business', false)
+
+  let allExpenseQuery = supabase
+    .from('expenses')
+    .select('amount, expense_date')
+    .eq(scopeColumn, scopeValue)
+    .eq('status', 'approved')
+  if (scope.type === 'user') allExpenseQuery = allExpenseQuery.eq('is_business', false)
 
   if (from) {
     incomeQuery = incomeQuery.gte('date', from)
@@ -126,7 +139,7 @@ export default async function CompanyFinanceView({
     incomeQuery,
     expenseQuery,
     supabase.from('income_entries').select('amount, date').eq(scopeColumn, scopeValue),
-    supabase.from('expenses').select('amount, expense_date').eq(scopeColumn, scopeValue),
+    allExpenseQuery,
     supabase.from('expense_categories').select('id, name'),
   ])
 
