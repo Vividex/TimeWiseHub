@@ -166,13 +166,13 @@ export default async function DashboardHome() {
     orgId
       ? supabase
           .from('sessions')
-          .select('id, title, scheduled_at, client_id, clients(name), scheduled_calls(id)')
+          .select('id, title, scheduled_at, client_id, clients(name), students(name), scheduled_calls(id)')
           .eq('org_id', orgId)
           .gte('scheduled_at', todayStartIso)
           .lt('scheduled_at', todayEndIso)
           .order('scheduled_at')
           .limit(10)
-      : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; scheduled_calls: { id: string }[] | null }[], error: null }),
+      : Promise.resolve({ data: [] as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; students: { name: string } | null; scheduled_calls: { id: string }[] | null }[], error: null }),
     getSubscription(user.id),
     supabase.rpc('get_unread_client_messages'),
     orgId
@@ -218,15 +218,18 @@ export default async function DashboardHome() {
 
   const events = (calendarRes.data ?? []) as UpcomingEvent[]
   const todaySessions: UpcomingSession[] = (
-    (sessionsListRes.data ?? []) as unknown as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; scheduled_calls: { id: string }[] | null }[]
-  ).map(s => ({
-    id: s.id,
-    title: s.title,
-    scheduled_at: s.scheduled_at,
-    client_id: s.client_id,
-    client_name: s.clients?.name ?? 'Client',
-    meeting_id: s.scheduled_calls?.[0]?.id ?? null,
-  }))
+    (sessionsListRes.data ?? []) as unknown as { id: string; title: string; scheduled_at: string; client_id: string; clients: { name: string } | null; students: { name: string } | null; scheduled_calls: { id: string }[] | null }[]
+  ).map(s => {
+    const studentFirstName = isTutoring ? s.students?.name?.split(' ')[0] ?? null : null
+    return {
+      id: s.id,
+      title: s.title,
+      scheduled_at: s.scheduled_at,
+      client_id: s.client_id,
+      client_name: studentFirstName ?? s.clients?.name ?? 'Client',
+      meeting_id: s.scheduled_calls?.[0]?.id ?? null,
+    }
+  })
 
   // A session with its own linked video call already appears as a session item (with a Join
   // button) — don't also list it separately as a standalone meeting.

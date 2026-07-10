@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import { getWeekBounds } from '@/lib/week'
 import AddSessionButton from '@/components/sessions/AddSessionButton'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 const STATUS_LABEL: Record<string, string> = {
   scheduled: 'Scheduled',
@@ -10,7 +11,7 @@ const STATUS_LABEL: Record<string, string> = {
   completed: 'Completed',
 }
 
-const SESSION_COLUMNS = 'id, title, scheduled_at, duration_minutes, status, client_id, series_id, clients(name)'
+const SESSION_COLUMNS = 'id, title, scheduled_at, duration_minutes, status, client_id, series_id, clients(name), students(name)'
 
 function fmtDateTime(iso: string) {
   return new Date(iso).toLocaleString('en-AU', {
@@ -35,14 +36,18 @@ function mapSession(s: {
   client_id: string
   series_id: string | null
   clients: unknown
-}): SessionTileData {
+  students: unknown
+}, isTutoring: boolean): SessionTileData {
   const clientName = (s.clients as unknown as { name: string } | null)?.name ?? 'Unknown client'
+  const studentFirstName = isTutoring
+    ? (s.students as unknown as { name: string } | null)?.name?.split(' ')[0] ?? null
+    : null
   const statusLabel = STATUS_LABEL[s.status] ?? s.status
   return {
     id: s.id,
     title: s.title,
     clientId: s.client_id,
-    meta: `${clientName} · ${fmtDateTime(s.scheduled_at)} · ${s.duration_minutes} min · ${statusLabel}`,
+    meta: `${studentFirstName ?? clientName} · ${fmtDateTime(s.scheduled_at)} · ${s.duration_minutes} min · ${statusLabel}`,
     recurring: !!s.series_id,
   }
 }
@@ -55,6 +60,9 @@ export default async function SessionsOverviewPage() {
   const { data: membership } = await supabase
     .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
   const orgId = membership?.org_id ?? null
+
+  const workspaceProfile = await getWorkspaceProfileForUser(supabase, user.id)
+  const isTutoring = workspaceProfile.key === 'tutoring'
 
   const { weekStart, weekEnd } = getWeekBounds()
 
@@ -84,8 +92,8 @@ export default async function SessionsOverviewPage() {
     clientsQuery,
   ])
 
-  const thisWeek = (thisWeekRaw ?? []).map(mapSession)
-  const scheduled = (scheduledRaw ?? []).map(mapSession)
+  const thisWeek = (thisWeekRaw ?? []).map(s => mapSession(s, isTutoring))
+  const scheduled = (scheduledRaw ?? []).map(s => mapSession(s, isTutoring))
   const clients = clientsRaw ?? []
 
   return (
