@@ -19,10 +19,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/insights': 'Insights',
   '/dashboard/billing': 'Billing',
   '/dashboard/finance': 'Finance',
-  '/dashboard/programs': 'Programs',
 }
 
-function getTitle(pathname: string, clientLabel: { singular: string; plural: string }) {
+function getTitle(
+  pathname: string,
+  clientLabel: { singular: string; plural: string },
+  programLabel: { singular: string; plural: string },
+) {
   if (pathname.includes('/projects/')) return 'Project'
   if (pathname.includes('/sessions/')) return 'Session'
   if (pathname.endsWith('/projects')) return 'Projects'
@@ -30,7 +33,8 @@ function getTitle(pathname: string, clientLabel: { singular: string; plural: str
   if (pathname.endsWith('/notes')) return 'Progress notes'
   if (pathname === '/dashboard/clients') return clientLabel.plural
   if (pathname.startsWith('/dashboard/clients/')) return clientLabel.singular
-  if (pathname.startsWith('/dashboard/programs/')) return 'Program'
+  if (pathname === '/dashboard/programs') return programLabel.plural
+  if (pathname.startsWith('/dashboard/programs/')) return programLabel.singular
   return PAGE_TITLES[pathname] ?? 'TimeWiseHub'
 }
 
@@ -42,15 +46,17 @@ export default function DashboardShell({
   children,
   email,
   clientLabel,
+  programLabel,
   navOverrides,
 }: {
   children: React.ReactNode
   email: string
   clientLabel: { singular: string; plural: string }
+  programLabel: { singular: string; plural: string }
   navOverrides?: NavOverrides
 }) {
   const pathname = usePathname()
-  const title = getTitle(pathname, clientLabel)
+  const title = getTitle(pathname, clientLabel, programLabel)
   const isInvoicePrint = pathname.startsWith('/dashboard/invoices/') && pathname.endsWith('/print')
   const isVideoRoom = /^\/dashboard\/video\/[^/]+/.test(pathname)
 
@@ -66,7 +72,7 @@ export default function DashboardShell({
     <div className="h-screen overflow-hidden bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
         <ScrollFade wrapperClassName="flex-1" className="px-4 py-6" fadeFrom="from-slate-900">
-          <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
+          <SidebarNav email={email} clientLabel={clientLabel} programLabel={programLabel} navOverrides={navOverrides} />
         </ScrollFade>
       </aside>
 
@@ -77,7 +83,7 @@ export default function DashboardShell({
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <MobileSidebar email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
+              <MobileSidebar email={email} clientLabel={clientLabel} programLabel={programLabel} navOverrides={navOverrides} />
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-cyan-500">TimeWiseHub</p>
                 <h1 className="font-['Poppins'] text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>

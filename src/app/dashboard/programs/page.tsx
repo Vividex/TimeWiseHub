@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import ProgramsDashboardClient from '@/components/programs/ProgramsDashboardClient'
 import type { Program } from '@/types/programs'
 
@@ -8,6 +9,7 @@ export default async function ProgramsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const service = createServiceClient()
   const { data: membership } = await service
@@ -35,6 +37,7 @@ export default async function ProgramsPage() {
       programs={(programs ?? []) as Program[]}
       templates={(templates ?? []) as Program[]}
       orgId={orgId}
+      programLabel={terminology.program}
     />
   )
 }

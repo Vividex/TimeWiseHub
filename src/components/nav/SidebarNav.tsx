@@ -122,10 +122,12 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export default function SidebarNav({
   email,
   clientLabel,
+  programLabel,
   navOverrides,
 }: {
   email: string
   clientLabel: { singular: string; plural: string }
+  programLabel: { singular: string; plural: string }
   navOverrides?: NavOverrides
 }) {
   const pathname = usePathname()
@@ -145,13 +147,19 @@ export default function SidebarNav({
         {applyNavOverrides(NAV_GROUPS, navOverrides).map(group => (
           <div key={group.title}>
             <p className="mt-6 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">{group.title}</p>
-            {group.items.map(item => (
-              <NavLink
-                key={item.href}
-                item={item.href === '/dashboard/clients' ? { ...item, label: clientLabel.plural } : item}
-                pathname={pathname}
-              />
-            ))}
+            {group.items.map(item => {
+              const label =
+                item.href === '/dashboard/clients' ? clientLabel.plural
+                : item.href === '/dashboard/programs' ? programLabel.plural
+                : item.label
+              return (
+                <NavLink
+                  key={item.href}
+                  item={{ ...item, label }}
+                  pathname={pathname}
+                />
+              )
+            })}
           </div>
         ))}
         <div className="my-3 border-t border-slate-800" />

@@ -11,10 +11,12 @@ export default function ProgramsDashboardClient({
   programs,
   templates,
   orgId,
+  programLabel,
 }: {
   programs: Program[]
   templates: Program[]
   orgId: string | null
+  programLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<'programs' | 'templates'>('programs')
@@ -54,7 +56,7 @@ export default function ProgramsDashboardClient({
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="font-['Poppins'] text-2xl font-black tracking-tight text-gray-900 dark:text-white">
-              Programs
+              {programLabel.plural}
             </h1>
             <p className="mt-1 text-sm font-medium text-gray-500 dark:text-slate-400">
               Reusable knowledge containers for your work
@@ -65,7 +67,7 @@ export default function ProgramsDashboardClient({
             className="flex items-center gap-2 rounded-2xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
           >
             <Plus size={16} />
-            {tab === 'programs' ? 'New program' : 'New template'}
+            {tab === 'programs' ? `New ${programLabel.singular.toLowerCase()}` : 'New template'}
           </button>
         </div>
 
@@ -75,7 +77,7 @@ export default function ProgramsDashboardClient({
             onClick={() => setTab('programs')}
             className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${tab === 'programs' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}
           >
-            Programs
+            {programLabel.plural}
           </button>
           <button
             type="button"
@@ -90,18 +92,18 @@ export default function ProgramsDashboardClient({
           <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center dark:border-slate-700">
             <Library size={40} className="mx-auto mb-3 text-gray-300 dark:text-slate-600" />
             <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
-              {tab === 'programs' ? 'No programs yet' : 'No templates yet'}
+              {tab === 'programs' ? `No ${programLabel.plural.toLowerCase()} yet` : 'No templates yet'}
             </p>
             <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
               {tab === 'programs'
-                ? 'Create your first program to start organising your content.'
-                : 'Save a program as a template, or create one from scratch.'}
+                ? `Create your first ${programLabel.singular.toLowerCase()} to start organising your content.`
+                : `Save a ${programLabel.singular.toLowerCase()} as a template, or create one from scratch.`}
             </p>
             <button
               onClick={() => setShowForm(true)}
               className="mt-4 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
             >
-              {tab === 'programs' ? 'Create program' : 'Create template'}
+              {tab === 'programs' ? `Create ${programLabel.singular.toLowerCase()}` : 'Create template'}
             </button>
           </div>
         ) : (
@@ -149,7 +151,7 @@ export default function ProgramsDashboardClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Create program from template</h2>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Create {programLabel.singular.toLowerCase()} from template</h2>
               <button
                 type="button"
                 onClick={() => setUseTemplateTarget(null)}
@@ -158,7 +160,7 @@ export default function ProgramsDashboardClient({
                 <X size={16} />
               </button>
             </div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Program name</label>
+            <label className="mb-1 block text-xs font-medium text-gray-500">{programLabel.singular} name</label>
             <input
               autoFocus
               type="text"

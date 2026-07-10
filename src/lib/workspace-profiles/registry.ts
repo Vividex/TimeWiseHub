@@ -22,7 +22,7 @@ export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileCon
     terminology: {
       client: { singular: 'Client', plural: 'Clients' },
       session: { singular: 'Lesson', plural: 'Lessons' },
-      program: { singular: 'Course', plural: 'Courses' },
+      program: { singular: 'Lesson Plan', plural: 'Lesson Plans' },
       project: { singular: 'Learning Plan', plural: 'Learning Plans' },
     },
   },

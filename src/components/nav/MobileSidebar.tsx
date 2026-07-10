@@ -8,7 +8,7 @@ import SidebarNav from '@/components/nav/SidebarNav'
 import ScrollFade from '@/components/ui/ScrollFade'
 import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
-export default function MobileSidebar({ email, clientLabel, navOverrides }: { email: string; clientLabel: { singular: string; plural: string }; navOverrides?: NavOverrides }) {
+export default function MobileSidebar({ email, clientLabel, programLabel, navOverrides }: { email: string; clientLabel: { singular: string; plural: string }; programLabel: { singular: string; plural: string }; navOverrides?: NavOverrides }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -51,7 +51,7 @@ export default function MobileSidebar({ email, clientLabel, navOverrides }: { em
                   <X size={18} />
                 </button>
               </div>
-              <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
+              <SidebarNav email={email} clientLabel={clientLabel} programLabel={programLabel} navOverrides={navOverrides} />
             </ScrollFade>
           </aside>
         </div>

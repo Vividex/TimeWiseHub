@@ -78,7 +78,7 @@ export default async function DashboardLayout({
   return (
     <TutorialProvider initialState={initialState} profileKey={workspaceProfile.key} terminology={terminology}>
       <ChatRealtimeProvider userId={user.id} orgId={orgId ?? ''}>
-        <DashboardShell email={user.email ?? ''} clientLabel={terminology.client} navOverrides={navOverrides}>
+        <DashboardShell email={user.email ?? ''} clientLabel={terminology.client} programLabel={terminology.program} navOverrides={navOverrides}>
           {children}
           <FloatingWidgets userEmail={user.email ?? ''} />
         </DashboardShell>
