@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type ReviewStatus } from '@/lib/expenses'
 
@@ -33,8 +34,18 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [expandedEmployees, setExpandedEmployees] = useState<Set<string>>(new Set())
   const [reviewing, setReviewing] = useState<string | null>(null)
   const [note, setNote] = useState('')
+
+  function toggleEmployee(userId: string) {
+    setExpandedEmployees(prev => {
+      const next = new Set(prev)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      return next
+    })
+  }
 
   const loadExpenses = useCallback(async function loadExpenses() {
     const supabase = createClient()
@@ -93,10 +104,10 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
 
   const groupsByEmployee = visibleExpenses.reduce((groups, expense) => {
     const key = expense.user_id
-    if (!groups.has(key)) groups.set(key, { email: expense.profiles?.email ?? 'Unknown', expenses: [] as Expense[] })
+    if (!groups.has(key)) groups.set(key, { userId: key, email: expense.profiles?.email ?? 'Unknown', expenses: [] as Expense[] })
     groups.get(key)!.expenses.push(expense)
     return groups
-  }, new Map<string, { email: string; expenses: Expense[] }>())
+  }, new Map<string, { userId: string; email: string; expenses: Expense[] }>())
 
   const employeeGroups = Array.from(groupsByEmployee.values())
     .sort((a, b) => a.email.localeCompare(b.email))
@@ -131,16 +142,26 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
         <div className="space-y-6">
           {employeeGroups.map(group => {
             const groupPending = group.expenses.filter(e => e.status === 'submitted').length
+            const expanded = expandedEmployees.has(group.userId)
             return (
-              <div key={group.email}>
-                <div className="mb-2 flex items-center gap-2">
+              <div key={group.userId}>
+                <button
+                  type="button"
+                  onClick={() => toggleEmployee(group.userId)}
+                  className="mb-2 flex w-full items-center gap-2 text-left"
+                >
+                  <ChevronDown size={14} className={`text-gray-400 transition-transform ${expanded ? '' : '-rotate-90'}`} />
                   <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500">{group.email}</h3>
                   {groupPending > 0 && (
                     <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
                       {groupPending} pending
                     </span>
                   )}
-                </div>
+                  <span className="text-xs font-semibold text-gray-400">
+                    {group.expenses.length} {group.expenses.length === 1 ? 'expense' : 'expenses'}
+                  </span>
+                </button>
+                {expanded && (
                 <ul className="space-y-4">
                   {group.expenses.map(expense => (
                     <li key={expense.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
@@ -193,6 +214,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
                     </li>
                   ))}
                 </ul>
+                )}
               </div>
             )
           })}
