@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { createProgramAssetSignedUrl } from '@/lib/program-storage'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import SessionDetailClient from '@/components/clients/SessionDetailClient'
 import type { SessionSeriesInfo } from '@/lib/sessions/series'
 import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
@@ -15,6 +16,7 @@ export default async function SessionDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: session }, { data: client }] = await Promise.all([
     supabase
@@ -122,6 +124,7 @@ export default async function SessionDetailPage({
       clientEmail={client.email}
       orgId={session.org_id}
       linkedProgram={linkedProgram}
+      programLabel={terminology.program}
       series={series}
       call={call}
       sessionChatConversationId={sessionChatConversationId}

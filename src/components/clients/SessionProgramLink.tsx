@@ -12,10 +12,12 @@ export default function SessionProgramLink({
   sessionId,
   orgId,
   linkedProgram,
+  programLabel,
 }: {
   sessionId: string
   orgId: string | null
   linkedProgram: LinkedProgramBundle | null
+  programLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -84,7 +86,7 @@ export default function SessionProgramLink({
                     onClick={openPicker}
                     className="flex w-full items-center px-3 py-2 text-left text-xs font-medium text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800"
                   >
-                    Change program
+                    Change {programLabel.singular.toLowerCase()}
                   </button>
                   <button
                     type="button"
@@ -105,7 +107,7 @@ export default function SessionProgramLink({
           className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
         >
           <Library size={12} />
-          Link program
+          Link {programLabel.singular.toLowerCase()}
         </button>
       )}
 
@@ -113,7 +115,7 @@ export default function SessionProgramLink({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Link a program</h2>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Link a {programLabel.singular.toLowerCase()}</h2>
               <button
                 type="button"
                 onClick={() => setShowPicker(false)}
@@ -129,7 +131,7 @@ export default function SessionProgramLink({
 
             {!loadingOptions && options !== null && options.length === 0 && (
               <p className="py-6 text-center text-sm text-gray-400 dark:text-slate-500">
-                No programs available for this organisation yet.
+                No {programLabel.plural.toLowerCase()} available for this organisation yet.
               </p>
             )}
 

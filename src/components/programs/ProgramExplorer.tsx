@@ -15,11 +15,13 @@ export default function ProgramExplorer({
   categories,
   assets,
   canManage,
+  programLabel,
 }: {
   program: Program
   categories: ProgramCategory[]
   assets: ProgramAsset[]
   canManage: boolean
+  programLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
@@ -83,7 +85,7 @@ export default function ProgramExplorer({
             className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
           >
             <ArrowLeft size={14} />
-            Programs
+            {programLabel.plural}
           </Link>
           <span className="text-gray-300 dark:text-slate-700">/</span>
           <div className="flex items-center gap-2">

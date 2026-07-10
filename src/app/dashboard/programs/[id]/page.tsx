@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { resolveProgramAssetSignedUrl } from '@/lib/program-storage'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import ProgramExplorer from '@/components/programs/ProgramExplorer'
 import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
 
@@ -14,6 +15,7 @@ export default async function ProgramDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const service = createServiceClient()
 
@@ -47,6 +49,7 @@ export default async function ProgramDetailPage({
       categories={(categories ?? []) as ProgramCategory[]}
       assets={assetsWithUrls}
       canManage={isOwner || isAdmin}
+      programLabel={terminology.program}
     />
   )
 }

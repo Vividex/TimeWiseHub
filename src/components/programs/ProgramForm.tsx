@@ -12,10 +12,12 @@ export default function ProgramForm({
   orgId,
   onClose,
   isTemplate = false,
+  programLabel,
 }: {
   orgId: string | null
   onClose: () => void
   isTemplate?: boolean
+  programLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [name, setName] = useState('')
@@ -44,7 +46,7 @@ export default function ProgramForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
-        <h2 className="mb-5 text-base font-bold text-gray-900 dark:text-white">{isTemplate ? 'New template' : 'New program'}</h2>
+        <h2 className="mb-5 text-base font-bold text-gray-900 dark:text-white">{isTemplate ? 'New template' : `New ${programLabel.singular.toLowerCase()}`}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-500">Name</label>

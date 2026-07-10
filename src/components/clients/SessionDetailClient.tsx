@@ -43,6 +43,7 @@ export default function SessionDetailClient({
   clientEmail,
   orgId,
   linkedProgram,
+  programLabel,
   series,
   call,
   sessionChatConversationId,
@@ -54,6 +55,7 @@ export default function SessionDetailClient({
   clientEmail: string | null
   orgId: string | null
   linkedProgram: LinkedProgramBundle | null
+  programLabel: { singular: string; plural: string }
   series: SessionSeriesInfo | null
   call: { id: string; startsAt: string; summary: string | null } | null
   sessionChatConversationId: string | null
@@ -324,7 +326,7 @@ export default function SessionDetailClient({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} />
+              <SessionProgramLink sessionId={initial.id} orgId={orgId} linkedProgram={linkedProgram} programLabel={programLabel} />
               <SessionRecurrence sessionId={initial.id} series={series} clientId={clientId} />
               <SessionVideoCall clientId={clientId} sessionId={initial.id} clientEmail={clientEmail} call={call} />
               <span className={`rounded-xl px-3 py-1 text-xs font-bold ${STATUS_STYLE[status]}`}>

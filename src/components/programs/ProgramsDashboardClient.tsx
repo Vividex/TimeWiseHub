@@ -144,7 +144,7 @@ export default function ProgramsDashboardClient({
       </div>
 
       {showForm && (
-        <ProgramForm orgId={orgId} onClose={() => setShowForm(false)} isTemplate={tab === 'templates'} />
+        <ProgramForm orgId={orgId} onClose={() => setShowForm(false)} isTemplate={tab === 'templates'} programLabel={programLabel} />
       )}
 
       {useTemplateTarget && (
