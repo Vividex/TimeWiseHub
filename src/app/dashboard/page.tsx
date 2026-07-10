@@ -10,12 +10,12 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { isOverdue } from '@/lib/invoices'
 import { stripQuoteChain } from '@/lib/client-messages'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
-import { getTodayBoundsSydney } from '@/lib/today'
+import { getTodayBoundsSydney, getTodaySydneyDateString } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
@@ -129,8 +129,12 @@ export default async function DashboardHome() {
   const todayStartIso = todayStart.toISOString()
   const todayEndIso   = todayEnd.toISOString()
 
+  const dueThreshold = new Date(`${getTodaySydneyDateString(now)}T00:00:00Z`)
+  dueThreshold.setUTCDate(dueThreshold.getUTCDate() + 3)
+  const dueThresholdStr = dueThreshold.toISOString().slice(0, 10)
+
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -186,6 +190,14 @@ export default async function DashboardHome() {
           .select('status, due_date, subtotal, currency')
           .neq('status', 'quote')
           .eq('owner_id', user.id),
+    supabase
+      .from('expenses')
+      .select('id, description, amount, currency, recurrence_interval, next_billing_date')
+      .eq('user_id', user.id)
+      .eq('is_recurring', true)
+      .eq('status', 'approved')
+      .lte('next_billing_date', dueThresholdStr)
+      .order('next_billing_date', { ascending: true }),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -255,6 +267,17 @@ export default async function DashboardHome() {
       preview: preview.length > 80 ? preview.slice(0, 77) + '…' : preview,
     }
   })
+
+  const dueExpenses: UpcomingDueExpense[] = (
+    (dueExpensesRes.data ?? []) as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[]
+  ).map(e => ({
+    id: e.id,
+    description: e.description,
+    amount: e.amount,
+    currency: e.currency,
+    recurrence_interval: e.recurrence_interval,
+    next_billing_date: e.next_billing_date,
+  }))
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   const overdueInvoices = (invoicesRes.data ?? []).filter(isOverdue)
@@ -294,7 +317,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">

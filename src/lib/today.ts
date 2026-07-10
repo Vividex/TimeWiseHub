@@ -24,3 +24,12 @@ export function getTodayBoundsSydney(now = new Date()): { todayStart: Date; toda
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
   return { todayStart, todayEnd }
 }
+
+/** The Australia/Sydney calendar date containing `now`, as a plain YYYY-MM-DD string —
+ *  for comparing against date (not timestamptz) columns like `next_billing_date`. */
+export function getTodaySydneyDateString(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: SYDNEY_TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(now)
+}

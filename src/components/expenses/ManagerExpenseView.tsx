@@ -11,6 +11,8 @@ type Expense = {
   expense_date: string
   receipt_path: string | null
   status: string
+  is_recurring: boolean
+  recurrence_interval: string | null
   profiles: { email: string }
   expense_categories: { name: string } | null
 }
@@ -83,7 +85,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-bold text-gray-900">Pending approvals</h2>
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Team expenses — pending approval</h2>
 
       {loading ? (
         <p className="text-sm font-semibold text-gray-500">Loading...</p>
@@ -98,6 +100,11 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
                   <p className="text-sm font-bold text-gray-900">
                     {expense.currency} {expense.amount.toFixed(2)}
                     {expense.expense_categories && <span className="ml-2 text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>}
+                    {expense.is_recurring && (
+                      <span className="ml-2 rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-bold text-cyan-600">
+                        Recurring — {expense.recurrence_interval}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs font-semibold text-gray-500">{expense.profiles?.email} · {new Date(expense.expense_date).toLocaleDateString()}</p>
                   {expense.description && <p className="mt-1 text-sm font-medium text-gray-500">{expense.description}</p>}

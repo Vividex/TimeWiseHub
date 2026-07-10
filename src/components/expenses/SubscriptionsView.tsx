@@ -4,9 +4,10 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { addInterval, daysUntil, type RecurrenceInterval } from '@/lib/expenses'
 
 type Category = { id: string; name: string }
-type RecurrenceInterval = 'weekly' | 'fortnightly' | 'monthly' | 'annually'
+type ReviewStatus = 'submitted' | 'approved' | 'rejected'
 
 type Subscription = {
   id: string
@@ -16,7 +17,19 @@ type Subscription = {
   currency: string
   recurrence_interval: RecurrenceInterval
   next_billing_date: string
+  status: ReviewStatus
   expense_categories: { name: string } | null
+}
+
+const STATUS_LABEL: Record<ReviewStatus, string> = {
+  submitted: 'Pending review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+}
+const STATUS_COLOUR: Record<ReviewStatus, string> = {
+  submitted: 'bg-amber-50 text-amber-600',
+  approved: 'bg-green-50 text-green-600',
+  rejected: 'bg-red-50 text-red-600',
 }
 
 const CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR', 'NZD', 'CAD', 'SGD']
@@ -34,24 +47,6 @@ function monthlyEquivalent(amount: number, interval: RecurrenceInterval): number
     case 'monthly': return amount
     case 'annually': return amount / 12
   }
-}
-
-function addInterval(dateStr: string, interval: RecurrenceInterval): string {
-  const date = new Date(`${dateStr}T00:00:00`)
-  switch (interval) {
-    case 'weekly': date.setDate(date.getDate() + 7); break
-    case 'fortnightly': date.setDate(date.getDate() + 14); break
-    case 'monthly': date.setMonth(date.getMonth() + 1); break
-    case 'annually': date.setFullYear(date.getFullYear() + 1); break
-  }
-  return date.toISOString().slice(0, 10)
-}
-
-function daysUntil(dateStr: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(`${dateStr}T00:00:00`)
-  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 function today() {
@@ -87,7 +82,7 @@ export default function SubscriptionsView({
     const supabase = createClient()
     const { data } = await supabase
       .from('expenses')
-      .select('id, category_id, description, amount, currency, recurrence_interval, next_billing_date, expense_categories(name)')
+      .select('id, category_id, description, amount, currency, recurrence_interval, next_billing_date, status, expense_categories(name)')
       .eq('user_id', userId)
       .eq('is_recurring', true)
       .order('next_billing_date', { ascending: true })
@@ -142,16 +137,18 @@ export default function SubscriptionsView({
       currency,
       description: description || null,
       expense_date: nextBillingDate,
-      status: 'draft',
       is_recurring: true,
       recurrence_interval: interval,
       next_billing_date: nextBillingDate,
     }
 
     const supabase = createClient()
+    // New recurring expenses go to admin/owner for approval, same as one-off expenses.
+    // Editing an already-reviewed one doesn't reset its status — only first-time creation
+    // requires sign-off.
     const result = editingId
       ? await supabase.from('expenses').update(payload).eq('id', editingId)
-      : await supabase.from('expenses').insert(payload)
+      : await supabase.from('expenses').insert({ ...payload, status: 'submitted' })
 
     if (result.error) {
       setError(result.error.message)
@@ -284,22 +281,31 @@ export default function SubscriptionsView({
               <li key={sub.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-gray-900">{sub.description || 'Unnamed recurring expense'}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-bold text-gray-900">{sub.description || 'Unnamed recurring expense'}</p>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_COLOUR[sub.status]}`}>
+                        {STATUS_LABEL[sub.status]}
+                      </span>
+                    </div>
                     <p className="text-xs font-semibold text-gray-500">
                       {sub.expense_categories?.name ?? 'Uncategorised'} · {sub.recurrence_interval}
                     </p>
-                    <p className={`mt-1 text-xs font-bold ${urgency}`}>
-                      {days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`}
-                    </p>
+                    {sub.status === 'approved' && (
+                      <p className={`mt-1 text-xs font-bold ${urgency}`}>
+                        {days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`}
+                      </p>
+                    )}
                   </div>
                   <div className="shrink-0 sm:text-right">
                     <p className="text-sm font-bold text-gray-900">{sub.currency} {sub.amount.toFixed(2)}</p>
                     <p className="text-xs font-medium text-gray-500">Next: {sub.next_billing_date}</p>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
-                    <button onClick={() => setPendingMarkPaid(sub)} className="rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700">
-                      Mark paid
-                    </button>
+                    {sub.status === 'approved' && (
+                      <button onClick={() => setPendingMarkPaid(sub)} className="rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700">
+                        Mark paid
+                      </button>
+                    )}
                     <button onClick={() => startEdit(sub)} className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
                       Edit
                     </button>
