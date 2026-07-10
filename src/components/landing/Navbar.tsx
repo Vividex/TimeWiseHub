@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Navbar() {
@@ -5,9 +6,7 @@ export default function Navbar() {
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-3" aria-label="TimeWiseHub home">
-          <span className="grid h-9 w-9 place-items-center rounded-lg border border-cyan-300/40 bg-cyan-400/10 text-sm font-black text-cyan-200 shadow-lg shadow-cyan-500/20">
-            T
-          </span>
+          <Image src="/logo.png" alt="TimeWiseHub" width={36} height={36} className="h-9 w-9 object-contain" />
           <span className="font-bold text-lg text-white">TimeWiseHub</span>
         </Link>
         <div className="hidden items-center gap-7 text-sm font-medium text-slate-300 md:flex">
