@@ -113,7 +113,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
               onChange={e => setTitle(e.target.value)}
               required
               placeholder="Weekly team standup"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 required
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
             <div>
@@ -135,7 +135,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
                 required
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
             <select
               value={durationMins}
               onChange={e => setDurationMins(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               {[30, 45, 60, 90, 120].map(m => (
                 <option key={m} value={m}>{m < 60 ? `${m}m` : `${m / 60}h`}</option>
@@ -159,7 +159,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
               <select
                 value={projectId}
                 onChange={e => setProjectId(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="">No project</option>
                 {projects.map(p => (
@@ -178,7 +178,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
                     type="checkbox"
                     checked={selectedMemberIds.includes(m.userId)}
                     onChange={() => toggleMember(m.userId)}
-                    className="rounded accent-violet-600"
+                    className="rounded accent-cyan-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">{m.fullName ?? m.email}</span>
                 </label>
@@ -200,19 +200,19 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
                 value={guestEmail}
                 onChange={e => setGuestEmail(e.target.value)}
                 placeholder="guest@example.com"
-                className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
               <input
                 type="text"
                 value={guestName}
                 onChange={e => setGuestName(e.target.value)}
                 placeholder="Name (optional)"
-                className="w-32 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-32 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
               <button
                 type="button"
                 onClick={addGuest}
-                className="p-2 rounded-lg bg-violet-100 text-violet-600 hover:bg-violet-200 dark:bg-violet-900/50 dark:text-violet-300"
+                className="p-2 rounded-lg bg-cyan-100 text-cyan-600 hover:bg-cyan-200 dark:bg-cyan-900/50 dark:text-cyan-300"
               >
                 <Plus size={16} />
               </button>
@@ -226,7 +226,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
             <button
               type="submit"
               disabled={saving || !title || !date || !startTime}
-              className="px-5 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors"
+              className="px-5 py-2 rounded-lg bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Scheduling…' : 'Schedule call'}
             </button>

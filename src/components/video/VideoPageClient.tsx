@@ -58,7 +58,7 @@ export default function VideoPageClient({ orgId, members, canSchedule, projects 
         {canSchedule && (
           <button
             onClick={() => setShowSchedule(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 transition-colors"
           >
             <CalendarPlus size={16} />
             Schedule a call
