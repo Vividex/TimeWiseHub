@@ -11,7 +11,7 @@ export async function POST() {
 
   const { error } = await supabase
     .from('user_onboarding_dismissed')
-    .upsert({ user_id: user.id, org_id: membership?.org_id ?? null })
+    .upsert({ user_id: user.id, org_id: membership?.org_id ?? null, dismissed_at: new Date().toISOString() })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ ok: true })
