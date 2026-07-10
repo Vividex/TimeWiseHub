@@ -81,7 +81,7 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-slate-900 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
         <div className="relative min-h-0 flex-1">
           <div
             ref={navScrollRef}
