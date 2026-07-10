@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import ExpenseList from '@/components/expenses/ExpenseList'
 import ExpenseForm from '@/components/expenses/ExpenseForm'
 import ManagerExpenseView from '@/components/expenses/ManagerExpenseView'
+import BusinessExpensesView from '@/components/expenses/BusinessExpensesView'
 import SubscriptionsView from '@/components/expenses/SubscriptionsView'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 
@@ -19,6 +20,7 @@ export default async function ExpensesPage() {
   ])
 
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const isAdminOrOwner = ['owner', 'admin'].includes(membership?.role ?? '')
 
   return (
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 min-h-full">
@@ -26,6 +28,9 @@ export default async function ExpensesPage() {
         <ExpenseForm categories={categories ?? []} userId={user.id} orgId={membership?.org_id ?? null} />
         <SubscriptionsView userId={user.id} orgId={membership?.org_id ?? null} categories={categories ?? []} />
         <ExpenseList initialExpenses={expenses ?? []} categories={categories ?? []} userId={user.id} />
+        {isManager && membership?.org_id && (
+          <BusinessExpensesView userId={user.id} orgId={membership.org_id} categories={categories ?? []} canApprove={isAdminOrOwner} />
+        )}
         {isManager && membership?.org_id && <ManagerExpenseView orgId={membership.org_id} />}
 
       </div>

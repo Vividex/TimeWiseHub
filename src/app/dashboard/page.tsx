@@ -51,6 +51,7 @@ export default async function DashboardHome() {
   const orgId = membership?.org_id ?? null
   const role = membership?.role ?? 'employee'
   const isManager = ['owner', 'admin', 'manager'].includes(role)
+  const isAdminOrOwner = ['owner', 'admin'].includes(role)
 
   const { data: profile } = await supabase
     .from('profiles').select('full_name, nickname').eq('id', user.id).maybeSingle()
@@ -134,7 +135,7 @@ export default async function DashboardHome() {
   const dueThresholdStr = dueThreshold.toISOString().slice(0, 10)
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes, dueBusinessExpensesRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -198,6 +199,17 @@ export default async function DashboardHome() {
       .eq('status', 'approved')
       .lte('next_billing_date', dueThresholdStr)
       .order('next_billing_date', { ascending: true }),
+    orgId && isAdminOrOwner
+      ? supabase
+          .from('expenses')
+          .select('id, description, amount, currency, recurrence_interval, next_billing_date')
+          .eq('org_id', orgId)
+          .eq('is_business', true)
+          .eq('is_recurring', true)
+          .eq('status', 'approved')
+          .lte('next_billing_date', dueThresholdStr)
+          .order('next_billing_date', { ascending: true })
+      : Promise.resolve({ data: [] as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[], error: null }),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -278,6 +290,16 @@ export default async function DashboardHome() {
     recurrence_interval: e.recurrence_interval,
     next_billing_date: e.next_billing_date,
   }))
+  const dueBusinessExpenses: UpcomingDueExpense[] = (
+    (dueBusinessExpensesRes.data ?? []) as { id: string; description: string | null; amount: number; currency: string; recurrence_interval: 'weekly' | 'fortnightly' | 'monthly' | 'annually'; next_billing_date: string }[]
+  ).map(e => ({
+    id: e.id,
+    description: e.description,
+    amount: e.amount,
+    currency: e.currency,
+    recurrence_interval: e.recurrence_interval,
+    next_billing_date: e.next_billing_date,
+  }))
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   const overdueInvoices = (invoicesRes.data ?? []).filter(isOverdue)
@@ -317,7 +339,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">
