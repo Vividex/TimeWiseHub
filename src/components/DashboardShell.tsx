@@ -78,8 +78,6 @@ export default function DashboardShell({
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <MobileSidebar email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/app-icon.png" alt="" className="h-9 w-9 shrink-0" />
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-cyan-500">TimeWiseHub</p>
                 <h1 className="font-['Poppins'] text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>
