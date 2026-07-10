@@ -6,6 +6,7 @@ import { REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type ReviewStatus } from '@/
 
 type Expense = {
   id: string
+  user_id: string
   amount: number
   currency: string
   description: string | null
@@ -90,6 +91,16 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
   const pendingCount = expenses.filter(e => e.status === 'submitted').length
   const visibleExpenses = filter === 'pending' ? expenses.filter(e => e.status === 'submitted') : expenses
 
+  const groupsByEmployee = visibleExpenses.reduce((groups, expense) => {
+    const key = expense.user_id
+    if (!groups.has(key)) groups.set(key, { email: expense.profiles?.email ?? 'Unknown', expenses: [] as Expense[] })
+    groups.get(key)!.expenses.push(expense)
+    return groups
+  }, new Map<string, { email: string; expenses: Expense[] }>())
+
+  const employeeGroups = Array.from(groupsByEmployee.values())
+    .sort((a, b) => a.email.localeCompare(b.email))
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -117,58 +128,75 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
           {filter === 'pending' ? 'No expenses pending review.' : 'No team expenses yet.'}
         </p>
       ) : (
-        <ul className="space-y-4">
-          {visibleExpenses.map(expense => (
-            <li key={expense.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-900">
-                    {expense.currency} {expense.amount.toFixed(2)}
-                    {expense.expense_categories && <span className="text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>}
-                    {expense.is_recurring && (
-                      <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-bold text-cyan-600">
-                        Recurring — {expense.recurrence_interval}
-                      </span>
-                    )}
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${REVIEW_STATUS_COLOUR[expense.status]}`}>
-                      {REVIEW_STATUS_LABEL[expense.status]}
+        <div className="space-y-6">
+          {employeeGroups.map(group => {
+            const groupPending = group.expenses.filter(e => e.status === 'submitted').length
+            return (
+              <div key={group.email}>
+                <div className="mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500">{group.email}</h3>
+                  {groupPending > 0 && (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
+                      {groupPending} pending
                     </span>
-                  </p>
-                  <p className="text-xs font-semibold text-gray-500">{expense.profiles?.email} · {new Date(expense.expense_date).toLocaleDateString()}</p>
-                  {expense.description && <p className="mt-1 text-sm font-medium text-gray-500">{expense.description}</p>}
-                  {expense.receipt_path && (
-                    <button onClick={() => viewReceipt(expense.receipt_path!)} className="mt-1 text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View receipt</button>
                   )}
                 </div>
-                {expense.status === 'submitted' && (
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => setReviewing(reviewing === expense.id ? null : expense.id)}
-                      className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
-                      Review
-                    </button>
-                  </div>
-                )}
-              </div>
+                <ul className="space-y-4">
+                  {group.expenses.map(expense => (
+                    <li key={expense.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-900">
+                            {expense.currency} {expense.amount.toFixed(2)}
+                            {expense.expense_categories && <span className="text-xs font-semibold text-gray-500">{expense.expense_categories.name}</span>}
+                            {expense.is_recurring && (
+                              <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-bold text-cyan-600">
+                                Recurring — {expense.recurrence_interval}
+                              </span>
+                            )}
+                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${REVIEW_STATUS_COLOUR[expense.status]}`}>
+                              {REVIEW_STATUS_LABEL[expense.status]}
+                            </span>
+                          </p>
+                          <p className="text-xs font-semibold text-gray-500">{new Date(expense.expense_date).toLocaleDateString()}</p>
+                          {expense.description && <p className="mt-1 text-sm font-medium text-gray-500">{expense.description}</p>}
+                          {expense.receipt_path && (
+                            <button onClick={() => viewReceipt(expense.receipt_path!)} className="mt-1 text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700">View receipt</button>
+                          )}
+                        </div>
+                        {expense.status === 'submitted' && (
+                          <div className="flex gap-2 shrink-0">
+                            <button onClick={() => setReviewing(reviewing === expense.id ? null : expense.id)}
+                              className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
+                              Review
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-              {reviewing === expense.id && (
-                <div className="mt-3 space-y-2">
-                  <input type="text" placeholder="Add a note (optional)" value={note} onChange={e => setNote(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-                  <div className="flex gap-2">
-                    <button onClick={() => handleReview(expense.id, 'approved')}
-                      className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
-                      Approve
-                    </button>
-                    <button onClick={() => handleReview(expense.id, 'rejected')}
-                      className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                      {reviewing === expense.id && (
+                        <div className="mt-3 space-y-2">
+                          <input type="text" placeholder="Add a note (optional)" value={note} onChange={e => setNote(e.target.value)}
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+                          <div className="flex gap-2">
+                            <button onClick={() => handleReview(expense.id, 'approved')}
+                              className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
+                              Approve
+                            </button>
+                            <button onClick={() => handleReview(expense.id, 'rejected')}
+                              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
