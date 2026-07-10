@@ -49,8 +49,8 @@ export default function SplashScreen({
             aria-hidden
             style={{
               position: 'absolute',
-              width: 460,
-              height: 460,
+              width: 414,
+              height: 414,
               borderRadius: '50%',
               background:
                 'radial-gradient(circle, rgba(56,189,248,0.85) 0%, rgba(37,99,235,0.55) 42%, rgba(2,6,23,0) 72%)',
@@ -62,7 +62,7 @@ export default function SplashScreen({
           <div style={{ perspective: '1400px', position: 'relative', zIndex: 1 }}>
             <div
               className="tw-coin"
-              style={{ position: 'relative', width: 285, height: 285, transformStyle: 'preserve-3d' }}
+              style={{ position: 'relative', width: 257, height: 257, transformStyle: 'preserve-3d' }}
             >
               <img
                 src="/logo.png"
