@@ -77,6 +77,8 @@ export default function SessionDetailClient({
   const [showNotes, setShowNotes] = useState(false)
   const [savingCallSummaryNote, setSavingCallSummaryNote] = useState(false)
   const [callSummaryNoteSaved, setCallSummaryNoteSaved] = useState(false)
+  const [savingCallSummaryToSessionNotes, setSavingCallSummaryToSessionNotes] = useState(false)
+  const [callSummaryToSessionNotesSaved, setCallSummaryToSessionNotesSaved] = useState(false)
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false)
   const [deletingSession, setDeletingSession] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -211,6 +213,26 @@ export default function SessionDetailClient({
 
     setProgressNoteSaved(true)
     setTimeout(() => setProgressNoteSaved(false), 2500)
+  }
+
+  async function addCallSummaryToSessionNotes() {
+    if (!call?.summary) return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSavingCallSummaryToSessionNotes(true)
+    setCallSummaryToSessionNotesSaved(false)
+
+    const block = [`Call summary — ${fmtDateTime(call.startsAt)}`, '', call.summary].join('\n')
+    const updated = notes.trim() ? `${notes.trim()}\n\n${block}` : block
+
+    const { error } = await supabase.from('sessions').update({ notes: updated }).eq('id', initial.id)
+
+    setSavingCallSummaryToSessionNotes(false)
+    if (error) return
+
+    setNotes(updated)
+    setShowNotes(true)
+    setCallSummaryToSessionNotesSaved(true)
+    setTimeout(() => setCallSummaryToSessionNotesSaved(false), 2500)
   }
 
   async function addCallSummaryToProgressNotes() {
@@ -425,14 +447,24 @@ export default function SessionDetailClient({
                     <ChevronDown size={14} className={`transition-transform ${showCallSummary ? '' : '-rotate-90'}`} />
                     Call Summary
                   </button>
-                  <button
-                    type="button"
-                    onClick={addCallSummaryToProgressNotes}
-                    disabled={savingCallSummaryNote}
-                    className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-                  >
-                    {savingCallSummaryNote ? 'Adding...' : callSummaryNoteSaved ? 'Added!' : 'Add to progress notes'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={addCallSummaryToSessionNotes}
+                      disabled={savingCallSummaryToSessionNotes}
+                      className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    >
+                      {savingCallSummaryToSessionNotes ? 'Adding...' : callSummaryToSessionNotesSaved ? 'Added!' : 'Add to session notes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addCallSummaryToProgressNotes}
+                      disabled={savingCallSummaryNote}
+                      className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    >
+                      {savingCallSummaryNote ? 'Adding...' : callSummaryNoteSaved ? 'Added!' : 'Add to progress notes'}
+                    </button>
+                  </div>
                 </div>
                 {showCallSummary && (
                   <div className="whitespace-pre-line rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
