@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react'
 
 const STATUS_STYLE: Record<string, string> = {
   pending_approval: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
-  quote:     'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400',
+  quote:     'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400',
   draft:     'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
   sent:      'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400',
   paid:      'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',

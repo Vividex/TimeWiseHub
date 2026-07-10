@@ -7,7 +7,7 @@ import DeleteQuoteButton from '@/components/quotes/DeleteQuoteButton'
 
 const STATUS_STYLE: Record<string, string> = {
   pending_approval: 'bg-amber-100 text-amber-700',
-  quote:            'bg-violet-100 text-violet-700',
+  quote:            'bg-yellow-100 text-yellow-700',
   draft:            'bg-gray-100 text-gray-600',
 }
 

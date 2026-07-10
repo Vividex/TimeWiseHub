@@ -6,7 +6,7 @@ import SearchInput from '@/components/ui/SearchInput'
 
 const STATUS_STYLE: Record<string, string> = {
   pending_approval: 'bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:text-amber-400',
-  quote:     'bg-violet-500/15 text-violet-600 border border-violet-500/30 dark:text-violet-400',
+  quote:     'bg-yellow-500/15 text-yellow-600 border border-yellow-500/30 dark:text-yellow-400',
   draft:     'bg-slate-500/15 text-slate-600 border border-slate-500/30 dark:text-slate-400',
   sent:      'bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:text-amber-400',
   paid:      'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 dark:text-emerald-400',
