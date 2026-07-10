@@ -12,6 +12,9 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex gap-5">
+          <Link href="/solutions/tutors" className="transition-colors hover:text-white">
+            For tutors
+          </Link>
           <Link href="/terms" className="transition-colors hover:text-white">
             Terms
           </Link>
