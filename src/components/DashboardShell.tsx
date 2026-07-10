@@ -63,16 +63,16 @@ export default function DashboardShell({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="h-screen overflow-hidden bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
         <ScrollFade wrapperClassName="flex-1" className="px-4 py-6" fadeFrom="from-slate-900">
           <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
         </ScrollFade>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="flex h-screen flex-col lg:pl-64">
         <header
-          className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-8 dark:border-slate-800 dark:bg-slate-900/95"
+          className="z-10 shrink-0 border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-8 dark:border-slate-800 dark:bg-slate-900/95"
           style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))', paddingBottom: '1rem' }}
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
@@ -96,7 +96,9 @@ export default function DashboardShell({
           </div>
         </header>
 
-        <main>{children}</main>
+        <ScrollFade as="main" wrapperClassName="flex-1" fadeFrom="from-gray-50 dark:from-slate-950">
+          {children}
+        </ScrollFade>
       </div>
     </div>
   )

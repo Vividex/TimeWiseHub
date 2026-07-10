@@ -42,12 +42,9 @@ function MetricCard({ icon: Icon, value, label, iconClass, glowClass, href, onCl
 }
 
 function scrollTo(id: string) {
-  const el = document.getElementById(id)
-  if (!el) return
-  const header = document.querySelector('header')
-  const offset = (header?.offsetHeight ?? 72) + 16
-  const top = el.getBoundingClientRect().top + window.scrollY - offset
-  window.scrollTo({ top, behavior: 'smooth' })
+  // <main> is its own scroll container (see DashboardShell/ScrollFade), not the window — and the
+  // header sits above it rather than overlapping scrolled content, so no offset math is needed.
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 export default function DashboardMetrics({ sessionsCompleted, sessionsTotal, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency }: Props) {
