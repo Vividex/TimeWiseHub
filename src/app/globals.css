@@ -142,6 +142,46 @@ html.dark textarea::placeholder {
   color: #64748b;
 }
 
+/* The shim above only covers base (non-hover) gray/white utilities — hover: variants
+   fall through to their light-mode color, which reads as "turns white on hover". */
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #1e293b;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #334155;
+}
+
+/* Light pastel badge/pill backgrounds (status badges, receipt/delete buttons, the
+   recurring-expenses total pill, etc.) — same "predates dark: utilities" gap as above. */
+html.dark .bg-cyan-50 {
+  background-color: #083344;
+}
+html.dark .hover\:bg-cyan-100:hover {
+  background-color: #164e63;
+}
+
+html.dark .bg-amber-50 {
+  background-color: #451a03;
+}
+html.dark .hover\:bg-amber-100:hover {
+  background-color: #78350f;
+}
+
+html.dark .bg-green-50 {
+  background-color: #052e16;
+}
+html.dark .hover\:bg-green-100:hover {
+  background-color: #14532d;
+}
+
+html.dark .bg-red-50 {
+  background-color: #450a0a;
+}
+html.dark .hover\:bg-red-100:hover {
+  background-color: #7f1d1d;
+}
+
 /* === Design polish === */
 
 /* ~10% more breathing room between stacked cards */
