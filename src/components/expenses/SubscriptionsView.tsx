@@ -297,7 +297,7 @@ export default function SubscriptionsView({
                     <p className="text-xs font-medium text-gray-500">Next: {sub.next_billing_date}</p>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
-                    <button onClick={() => setPendingMarkPaid(sub)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800">
+                    <button onClick={() => setPendingMarkPaid(sub)} className="rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700">
                       Mark paid
                     </button>
                     <button onClick={() => startEdit(sub)} className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
