@@ -392,7 +392,7 @@ export default function SessionDetailClient({
               </div>
             )}
 
-            <div className="divide-y divide-gray-50 rounded-2xl border border-gray-100 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+            <div className="divide-y divide-gray-50 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
               {todos.map((todo, i) => (
                 <div key={todo.id} className="flex items-center gap-3 px-4 py-3">
                   <input
