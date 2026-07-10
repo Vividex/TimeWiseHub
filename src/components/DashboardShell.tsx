@@ -86,7 +86,7 @@ export default function DashboardShell({
           <div
             ref={navScrollRef}
             onScroll={updateNavFade}
-            className="no-scrollbar h-full overflow-y-auto px-4 py-6"
+            className="no-scrollbar h-full overflow-x-hidden overflow-y-auto px-4 py-6"
           >
             <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
           </div>

@@ -51,7 +51,7 @@ export default function MobileSidebar({ email, clientLabel, navOverrides }: { em
             <div
               ref={navScrollRef}
               onScroll={updateNavFade}
-              className="no-scrollbar h-full overflow-y-auto overscroll-contain px-4 pb-6"
+              className="no-scrollbar h-full overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-6"
               style={{ paddingTop: 'calc(1.5rem + env(safe-area-inset-top, 0px))' }}
             >
               <div className="mb-2 flex justify-end">
