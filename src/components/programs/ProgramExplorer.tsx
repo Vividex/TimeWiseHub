@@ -7,6 +7,7 @@ import { ArrowLeft, FolderOpen, Copy, X } from 'lucide-react'
 import CategoryTree from '@/components/programs/CategoryTree'
 import AssetGrid from '@/components/programs/AssetGrid'
 import { buildCategoryTree } from '@/lib/programs/build-tree'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { Program, ProgramCategory, ProgramAsset } from '@/types/programs'
 
 export default function ProgramExplorer({
@@ -108,7 +109,12 @@ export default function ProgramExplorer({
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-56 shrink-0 overflow-y-auto border-r border-gray-100 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-900">
+        <ScrollFade
+          as="aside"
+          wrapperClassName="w-56 shrink-0 border-r border-gray-100 bg-white dark:border-slate-800 dark:bg-slate-900"
+          className="px-3 py-4"
+          fadeFrom="from-white dark:from-slate-900"
+        >
           <CategoryTree
             programId={program.id}
             tree={tree}
@@ -118,9 +124,14 @@ export default function ProgramExplorer({
             onCategoryAdded={handleCategoryAdded}
             onCategoryDeleted={handleCategoryDeleted}
           />
-        </aside>
+        </ScrollFade>
 
-        <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50 dark:bg-slate-950">
+        <ScrollFade
+          as="section"
+          wrapperClassName="flex-1 bg-gray-50 dark:bg-slate-950"
+          className="flex flex-col"
+          fadeFrom="from-gray-50 dark:from-slate-950"
+        >
           <AssetGrid
             programId={program.id}
             assets={visibleAssets}
@@ -130,7 +141,7 @@ export default function ProgramExplorer({
             onAssetDeleted={handleAssetDeleted}
             onAssetUpdated={handleAssetUpdated}
           />
-        </main>
+        </ScrollFade>
       </div>
 
       {showSaveTemplate && (

@@ -5,6 +5,7 @@ import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import AttachmentChip from '@/components/chat/AttachmentChip'
+import ScrollFade from '@/components/ui/ScrollFade'
 import { displayName } from '@/lib/chat/types'
 import type { ChatMessage } from '@/lib/chat/types'
 import UserAvatar from '@/components/UserAvatar'
@@ -181,7 +182,7 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
   const typingNames = [...typingIds].map(id => senderName(members, id))
 
   return (
-    <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">
+    <ScrollFade wrapperClassName="flex-1" className="space-y-4 px-4 py-6">
       {messages.length === 0 && (
         <p className="text-center text-sm font-medium text-gray-400">No messages yet.</p>
       )}
@@ -250,6 +251,6 @@ export default function MessageThread({ conversationId, isChannel }: { conversat
       )}
 
       <div ref={bottomRef} />
-    </div>
+    </ScrollFade>
   )
 }

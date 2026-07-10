@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import UserAvatar from '@/components/UserAvatar'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 export default function NewGroupDialog({
   onClose,
@@ -66,7 +67,7 @@ export default function NewGroupDialog({
           className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-gray-400 focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Add members</p>
-        <div className="max-h-64 space-y-1 overflow-y-auto">
+        <ScrollFade wrapperClassName="max-h-64" className="space-y-1">
           {others.length === 0 && (
             <p className="text-sm font-medium text-gray-400">No other members in your organisation yet.</p>
           )}
@@ -98,7 +99,7 @@ export default function NewGroupDialog({
               </button>
             )
           })}
-        </div>
+        </ScrollFade>
         <button
           onClick={createGroup}
           disabled={!canCreate}

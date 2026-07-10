@@ -8,6 +8,7 @@ import { displayName } from '@/lib/chat/types'
 import type { ChatConversation } from '@/lib/chat/types'
 import UserAvatar from '@/components/UserAvatar'
 import { createClient } from '@/lib/supabase-browser'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type ScheduledCall = {
   id: string
@@ -114,7 +115,7 @@ export default function ConversationList({
       <div className="px-4 py-4">
         <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">Messages</h2>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 pb-4">
+      <ScrollFade wrapperClassName="flex-1" className="px-2 pb-4">
 
         {/* Upcoming Meetings */}
         {meetings.length > 0 && (
@@ -210,7 +211,7 @@ export default function ConversationList({
           )}
         </div>
 
-      </div>
+      </ScrollFade>
     </div>
   )
 }

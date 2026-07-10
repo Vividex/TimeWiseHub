@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type RosterShift = { id: string; date: string; start_time: string; end_time: string; notes: string | null; published: boolean }
 type AdditionalEntry = { id: string; started_at: string; ended_at: string; duration_seconds: number | null; description: string | null; projects: { name: string } | null }
@@ -57,7 +58,7 @@ export default function TimesheetDetailModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+      <ScrollFade wrapperClassName="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white dark:bg-slate-900 shadow-2xl" fadeFrom="from-white dark:from-slate-900">
         <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4">
           <div>
             <p className="font-bold text-gray-900 dark:text-slate-100">{name}</p>
@@ -183,7 +184,7 @@ export default function TimesheetDetailModal({
             )}
           </div>
         </div>
-      </div>
+      </ScrollFade>
     </div>
   )
 }

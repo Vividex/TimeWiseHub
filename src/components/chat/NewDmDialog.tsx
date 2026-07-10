@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import UserAvatar from '@/components/UserAvatar'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 export default function NewDmDialog({
   onClose,
@@ -39,7 +40,7 @@ export default function NewDmDialog({
             <X size={18} />
           </button>
         </div>
-        <div className="max-h-80 space-y-1 overflow-y-auto">
+        <ScrollFade wrapperClassName="max-h-80" className="space-y-1">
           {others.length === 0 && (
             <p className="text-sm font-medium text-gray-400">No other members in your organisation yet.</p>
           )}
@@ -59,7 +60,7 @@ export default function NewDmDialog({
               </span>
             </button>
           ))}
-        </div>
+        </ScrollFade>
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import { ArrowLeft, GripVertical } from 'lucide-react'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import MessageThread from '@/components/chat/MessageThread'
 import MessageComposer from '@/components/chat/MessageComposer'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { ChatConversation } from '@/lib/chat/types'
 
 function dmPeerId(conv: ChatConversation, userId: string): string | null {
@@ -85,7 +86,7 @@ export default function TeamChatWidget({
 
       {/* Body */}
       {!localActive ? (
-        <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+        <ScrollFade wrapperClassName="flex-1" className="px-2 py-2 space-y-0.5">
           {loading && <p className="px-3 py-2 text-sm text-gray-400">Loading…</p>}
           {[...channels, ...dms].map(conv => {
             const unread = unreadByConversation[conv.id] ?? 0
@@ -114,7 +115,7 @@ export default function TeamChatWidget({
           {!loading && conversations.length === 0 && (
             <p className="px-3 py-2 text-sm text-gray-400">No conversations yet.</p>
           )}
-        </div>
+        </ScrollFade>
       ) : (
         <div className="flex flex-1 flex-col min-h-0">
           <MessageThread conversationId={active!.id} isChannel={isChannel} />

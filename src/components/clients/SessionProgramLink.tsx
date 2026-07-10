@@ -6,6 +6,7 @@ import { Library, Pencil, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import LinkedProgramDrawer from '@/components/programs/LinkedProgramDrawer'
 import type { LinkedProgramBundle, Program } from '@/types/programs'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 export default function SessionProgramLink({
   sessionId,
@@ -133,7 +134,7 @@ export default function SessionProgramLink({
             )}
 
             {!loadingOptions && options !== null && options.length > 0 && (
-              <div className="max-h-80 space-y-1 overflow-y-auto">
+              <ScrollFade wrapperClassName="max-h-80" className="space-y-1" fadeFrom="from-white dark:from-slate-900">
                 {options.map(p => (
                   <button
                     key={p.id}
@@ -146,7 +147,7 @@ export default function SessionProgramLink({
                     {p.name}
                   </button>
                 ))}
-              </div>
+              </ScrollFade>
             )}
           </div>
         </div>

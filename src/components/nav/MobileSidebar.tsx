@@ -1,25 +1,16 @@
 // src/components/nav/MobileSidebar.tsx
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import SidebarNav from '@/components/nav/SidebarNav'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
 export default function MobileSidebar({ email, clientLabel, navOverrides }: { email: string; clientLabel: { singular: string; plural: string }; navOverrides?: NavOverrides }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-  const navScrollRef = useRef<HTMLDivElement>(null)
-  const [navAtTop, setNavAtTop] = useState(true)
-  const [navAtBottom, setNavAtBottom] = useState(true)
-
-  const updateNavFade = useCallback(() => {
-    const el = navScrollRef.current
-    if (!el) return
-    setNavAtTop(el.scrollTop <= 2)
-    setNavAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 2)
-  }, [])
 
   useEffect(() => { setOpen(false) }, [pathname])
 
@@ -28,10 +19,6 @@ export default function MobileSidebar({ email, clientLabel, navOverrides }: { em
     else document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
   }, [open])
-
-  useEffect(() => {
-    if (open) updateNavFade()
-  }, [open, updateNavFade])
 
   return (
     <>
@@ -48,11 +35,11 @@ export default function MobileSidebar({ email, clientLabel, navOverrides }: { em
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative z-10 h-screen w-72 max-w-[80vw] bg-slate-900">
-            <div
-              ref={navScrollRef}
-              onScroll={updateNavFade}
-              className="no-scrollbar h-full overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-6"
+            <ScrollFade
+              wrapperClassName="h-full"
+              className="overscroll-contain px-4 pb-6"
               style={{ paddingTop: 'calc(1.5rem + env(safe-area-inset-top, 0px))' }}
+              fadeFrom="from-slate-900"
             >
               <div className="mb-2 flex justify-end">
                 <button
@@ -65,15 +52,7 @@ export default function MobileSidebar({ email, clientLabel, navOverrides }: { em
                 </button>
               </div>
               <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
-            </div>
-            <div
-              aria-hidden
-              className={`pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-slate-900 to-transparent transition-opacity duration-150 ${navAtTop ? 'opacity-0' : 'opacity-100'}`}
-            />
-            <div
-              aria-hidden
-              className={`pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-900 to-transparent transition-opacity duration-150 ${navAtBottom ? 'opacity-0' : 'opacity-100'}`}
-            />
+            </ScrollFade>
           </aside>
         </div>
       )}

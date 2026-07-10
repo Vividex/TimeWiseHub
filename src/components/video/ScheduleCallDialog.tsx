@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Plus, Trash2 } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type OrgMember = {
   userId: string
@@ -98,7 +99,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-y-auto max-h-[90vh]">
+      <ScrollFade wrapperClassName="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl max-h-[90vh]">
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Schedule a call</h2>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>
@@ -171,7 +172,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Invite team members</label>
-            <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-slate-200 dark:border-slate-700 p-2">
+            <ScrollFade wrapperClassName="max-h-36 rounded-lg border border-slate-200 dark:border-slate-700" className="space-y-1 p-2">
               {members.map(m => (
                 <label key={m.userId} className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
                   <input
@@ -183,7 +184,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
                   <span className="text-sm text-slate-700 dark:text-slate-300">{m.fullName ?? m.email}</span>
                 </label>
               ))}
-            </div>
+            </ScrollFade>
           </div>
 
           <div>
@@ -232,7 +233,7 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
             </button>
           </div>
         </form>
-      </div>
+      </ScrollFade>
     </div>
   )
 }

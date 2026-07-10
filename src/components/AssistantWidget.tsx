@@ -5,6 +5,7 @@ import { FormEvent, useRef, useState } from 'react'
 import { Send, Mic, MicOff, Volume2, VolumeX, GripVertical, Sparkles } from 'lucide-react'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type Message = {
   role: 'user' | 'assistant' | 'notice'
@@ -328,7 +329,7 @@ export default function AssistantWidget({
 
       {view === 'chat' && (
         <>
-          <div className="flex-1 space-y-3 overflow-y-auto bg-slate-950 p-4">
+          <ScrollFade wrapperClassName="flex-1 bg-slate-950" className="space-y-3 p-4" fadeFrom="from-slate-950">
             {messages.map((msg, i) => {
               if (msg.role === 'notice') {
                 return (
@@ -376,7 +377,7 @@ export default function AssistantWidget({
                 </div>
               )
             })}
-          </div>
+          </ScrollFade>
 
           {messages.length === 1 && (
             <div className="border-t border-slate-800 bg-slate-900/50 px-4 py-3">

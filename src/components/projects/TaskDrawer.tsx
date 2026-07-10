@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 export type DrawerTask = {
   id: string
@@ -85,7 +86,7 @@ export default function TaskDrawer({
   return (
     <div className="fixed inset-0 z-40 flex justify-end" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative z-10 flex h-full w-full max-w-md flex-col overflow-y-auto bg-white p-6 shadow-2xl dark:bg-slate-900">
+      <ScrollFade wrapperClassName="relative z-10 h-full w-full max-w-md bg-white shadow-2xl dark:bg-slate-900" className="flex flex-col p-6" fadeFrom="from-white dark:from-slate-900">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-black text-gray-900 dark:text-slate-100">Edit task</h2>
           <button onClick={onClose} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800">
@@ -158,7 +159,7 @@ export default function TaskDrawer({
             </div>
           )}
         </div>
-      </div>
+      </ScrollFade>
     </div>
   )
 }

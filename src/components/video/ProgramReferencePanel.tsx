@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FileText, Image, Music, Link as LinkIcon, BookOpen, FileSpreadsheet, File, Send, PenSquare } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { LinkedProgramBundle, ProgramAsset, ProgramAssetType } from '@/types/programs'
 
 const TYPE_ICON: Record<ProgramAssetType, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -84,7 +85,7 @@ export default function ProgramReferencePanel({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <ScrollFade wrapperClassName="flex-1" className="p-2 space-y-1" fadeFrom="from-slate-900">
         {visibleAssets.length === 0 ? (
           <p className="text-xs text-slate-500 px-1 py-2">No files in this program yet.</p>
         ) : (
@@ -136,7 +137,7 @@ export default function ProgramReferencePanel({
             )
           })
         )}
-      </div>
+      </ScrollFade>
     </>
   )
 }

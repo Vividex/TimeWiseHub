@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import DailyIframe from '@daily-co/daily-js'
 import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
 import CallPanel, { type CallPanelTabId } from './CallPanel'
+import ScrollFade from '@/components/ui/ScrollFade'
 import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
 import RoomChatTab from './RoomChatTab'
 import WorksheetTab, { type LinkedTopicAsset } from './WorksheetTab'
@@ -194,7 +195,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
         onClose={() => setPanelOpen(false)}
       >
         {activeTab === 'transcript' && (
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <ScrollFade wrapperClassName="flex-1" className="p-3 space-y-2" fadeFrom="from-slate-900">
             {transcriptLines.length === 0 ? (
               <p className="text-xs text-slate-500">Transcript will appear here as people speak…</p>
             ) : (
@@ -207,7 +208,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
               ))
             )}
             <div ref={transcriptEndRef} />
-          </div>
+          </ScrollFade>
         )}
         {activeTab === 'program' && linkedProgram && (
           <ProgramReferencePanel

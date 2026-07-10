@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type Profile = { job_title: string | null; start_date: string | null; emergency_contact_name: string | null; emergency_contact_phone: string | null }
 type Cert = { id: string; name: string; issued_date: string | null; expiry_date: string | null }
@@ -111,7 +112,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto px-6 py-5">
+      <ScrollFade wrapperClassName="flex-1" className="px-6 py-5" fadeFrom="from-white dark:from-slate-900">
         {loading && <p className="text-sm text-gray-400">Loading…</p>}
         {!loading && tab === 'profile' && (
           <div className="space-y-4">
@@ -213,7 +214,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
             })}
           </div>
         )}
-      </div>
+      </ScrollFade>
     </div>
   )
 }

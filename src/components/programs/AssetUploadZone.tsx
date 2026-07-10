@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Upload, BookOpen, Link, X, Search, FileText } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { ProgramAsset } from '@/types/programs'
 
 type Tab = 'file' | 'note' | 'link' | 'subjects'
@@ -302,7 +303,10 @@ export default function AssetUploadZone({
                 className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
               {subjectsQuery.trim() && (
-                <div className="max-h-64 overflow-y-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                <ScrollFade
+                  wrapperClassName="max-h-64 rounded-xl border border-gray-100 dark:border-slate-800"
+                  fadeFrom="from-white dark:from-slate-900"
+                >
                   {subjectsLoading ? (
                     <p className="p-3 text-xs text-gray-400">Searching…</p>
                   ) : subjectsResults.length === 0 ? (
@@ -327,7 +331,7 @@ export default function AssetUploadZone({
                       ))}
                     </ul>
                   )}
-                </div>
+                </ScrollFade>
               )}
             </div>
           )}

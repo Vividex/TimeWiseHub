@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { useChat } from '@/components/chat/ChatRealtimeProvider'
 import { displayName } from '@/lib/chat/types'
 import UserAvatar from '@/components/UserAvatar'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 export default function GroupSettingsPanel({
   conversationId,
@@ -96,7 +97,7 @@ export default function GroupSettingsPanel({
         </button>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto p-4">
+      <ScrollFade wrapperClassName="flex-1" className="space-y-5 p-4">
         <div>
           <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-400">
             Group name
@@ -173,7 +174,7 @@ export default function GroupSettingsPanel({
             ))}
           </div>
         </div>
-      </div>
+      </ScrollFade>
 
       <div className="border-t border-gray-100 p-4 dark:border-slate-800">
         <button

@@ -9,6 +9,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { fetchAnnotations, insertAnnotation, updateAnnotationContent, updateAnnotationPosition, deleteAnnotation, worksheetChannelName } from '@/lib/worksheets/annotations'
 import { findBuiltinSticker } from '@/lib/worksheets/stickers'
 import StickerPalette from './StickerPalette'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { AnnotationContent, WorksheetAnnotation } from '@/types/worksheets'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
@@ -280,7 +281,7 @@ export default function WorksheetAnnotator({
         </div>
       )}
 
-      <div className="relative flex-1 overflow-auto p-4">
+      <ScrollFade wrapperClassName="flex-1" className="p-4" fadeFrom="from-slate-950">
         <div
           ref={pageRef}
           className="relative mx-auto bg-white"
@@ -403,7 +404,7 @@ export default function WorksheetAnnotator({
               )
             })}
         </div>
-      </div>
+      </ScrollFade>
     </div>
   )
 }

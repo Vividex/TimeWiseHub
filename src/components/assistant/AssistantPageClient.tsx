@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase-browser'
 import ActionCard, { type ActionProposal } from '@/components/assistant/ActionCard'
 import { useVoice } from '@/hooks/useVoice'
 import { resizeImageToBase64 } from '@/lib/imageUtils'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type ImageBlock = { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
 type TextBlock = { type: 'text'; text: string }
@@ -431,7 +432,7 @@ export default function AssistantPageClient({
             <Plus size={16} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5">
+        <ScrollFade wrapperClassName="flex-1" className="px-2 pb-4 space-y-0.5" fadeFrom="from-white dark:from-slate-900">
           {sessions.map(s => (
             <button
               key={s.id}
@@ -449,7 +450,7 @@ export default function AssistantPageClient({
           {sessions.length === 0 && (
             <p className="px-3 py-2 text-xs text-gray-400">No conversations yet.</p>
           )}
-        </div>
+        </ScrollFade>
       </div>
 
       {/* Mobile history overlay */}
@@ -469,7 +470,7 @@ export default function AssistantPageClient({
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+            <ScrollFade wrapperClassName="flex-1" className="px-2 pb-2 space-y-0.5" fadeFrom="from-white dark:from-slate-900">
               {sessions.map(s => (
                 <button
                   key={s.id}
@@ -487,7 +488,7 @@ export default function AssistantPageClient({
               {sessions.length === 0 && (
                 <p className="px-3 py-2 text-xs text-gray-400">No conversations yet.</p>
               )}
-            </div>
+            </ScrollFade>
             <div className="border-t border-gray-100 p-3 dark:border-slate-800">
               <button
                 onClick={() => { setMessages([]); setActiveSessionId(null); setMobileHistoryOpen(false) }}
@@ -522,7 +523,7 @@ export default function AssistantPageClient({
             <Plus size={16} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+        <ScrollFade wrapperClassName="flex-1" className="p-4 md:p-6 space-y-4" fadeFrom="from-gray-50 dark:from-slate-950">
           {messages.length === 0 && (
             <div className="flex h-full flex-col items-center justify-center text-center text-gray-400">
               <p className="text-lg font-black text-slate-900 dark:text-slate-100">What can I help with?</p>
@@ -581,7 +582,7 @@ export default function AssistantPageClient({
             )
           })}
           <div ref={bottomRef} />
-        </div>
+        </ScrollFade>
 
         <div
           className="relative border-t border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"

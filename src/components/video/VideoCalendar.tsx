@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Clock, Users, Video, X } from 'lucide-react'
+import ScrollFade from '@/components/ui/ScrollFade'
 
 type ScheduledCall = {
   id: string
@@ -294,7 +295,9 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                     <div>
                       {notesData.summary ? (
                         <>
-                          <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 max-h-48 overflow-y-auto">{notesData.summary}</pre>
+                          <ScrollFade wrapperClassName="max-h-48 rounded-lg bg-slate-50 dark:bg-slate-800" fadeFrom="from-slate-50 dark:from-slate-800">
+                            <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300 p-3">{notesData.summary}</pre>
+                          </ScrollFade>
                           <button
                             onClick={() => {
                               const blob = new Blob([notesData.summary ?? ''], { type: 'text/plain' })
@@ -312,7 +315,9 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                     </div>
                   ) : (
                     <div>
-                      <pre className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">{notesData.transcript}</pre>
+                      <ScrollFade wrapperClassName="max-h-48 rounded-lg bg-slate-50 dark:bg-slate-800" fadeFrom="from-slate-50 dark:from-slate-800">
+                        <pre className="font-mono text-xs text-slate-700 dark:text-slate-300 p-3 whitespace-pre-wrap">{notesData.transcript}</pre>
+                      </ScrollFade>
                       <button
                         onClick={() => {
                           const blob = new Blob([notesData?.transcript ?? ''], { type: 'text/plain' })

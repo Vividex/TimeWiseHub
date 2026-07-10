@@ -1,10 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import ThemeToggle from '@/components/ThemeToggle'
 import SidebarNav from '@/components/nav/SidebarNav'
 import MobileSidebar from '@/components/nav/MobileSidebar'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { NavOverrides } from '@/lib/workspace-profiles/types'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -54,23 +54,6 @@ export default function DashboardShell({
   const isInvoicePrint = pathname.startsWith('/dashboard/invoices/') && pathname.endsWith('/print')
   const isVideoRoom = /^\/dashboard\/video\/[^/]+/.test(pathname)
 
-  const navScrollRef = useRef<HTMLDivElement>(null)
-  const [navAtTop, setNavAtTop] = useState(true)
-  const [navAtBottom, setNavAtBottom] = useState(true)
-
-  const updateNavFade = useCallback(() => {
-    const el = navScrollRef.current
-    if (!el) return
-    setNavAtTop(el.scrollTop <= 2)
-    setNavAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 2)
-  }, [])
-
-  useEffect(() => {
-    updateNavFade()
-    window.addEventListener('resize', updateNavFade)
-    return () => window.removeEventListener('resize', updateNavFade)
-  }, [updateNavFade])
-
   if (isInvoicePrint) {
     return <div className="invoice-print-shell min-h-screen bg-white text-slate-900">{children}</div>
   }
@@ -82,23 +65,9 @@ export default function DashboardShell({
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
-        <div className="relative min-h-0 flex-1">
-          <div
-            ref={navScrollRef}
-            onScroll={updateNavFade}
-            className="no-scrollbar h-full overflow-x-hidden overflow-y-auto px-4 py-6"
-          >
-            <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
-          </div>
-          <div
-            aria-hidden
-            className={`pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-slate-900 to-transparent transition-opacity duration-150 ${navAtTop ? 'opacity-0' : 'opacity-100'}`}
-          />
-          <div
-            aria-hidden
-            className={`pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-900 to-transparent transition-opacity duration-150 ${navAtBottom ? 'opacity-0' : 'opacity-100'}`}
-          />
-        </div>
+        <ScrollFade wrapperClassName="flex-1" className="px-4 py-6" fadeFrom="from-slate-900">
+          <SidebarNav email={email} clientLabel={clientLabel} navOverrides={navOverrides} />
+        </ScrollFade>
       </aside>
 
       <div className="lg:pl-64">

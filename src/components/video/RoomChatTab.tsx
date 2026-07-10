@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import AttachmentChip from '@/components/chat/AttachmentChip'
 import MessageComposer from '@/components/chat/MessageComposer'
+import ScrollFade from '@/components/ui/ScrollFade'
 import type { ChatMessage } from '@/lib/chat/types'
 
 const MESSAGE_SELECT = 'id, conversation_id, sender_id, body, deleted_at, created_at, chat_attachments(*)'
@@ -71,7 +72,7 @@ export default function RoomChatTab({ conversationId, userId }: { conversationId
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+      <ScrollFade wrapperClassName="flex-1" className="p-2 space-y-2" fadeFrom="from-slate-900">
         {messages.length === 0 ? (
           <p className="text-xs text-slate-500 px-1 py-2">No messages yet.</p>
         ) : (
@@ -103,7 +104,7 @@ export default function RoomChatTab({ conversationId, userId }: { conversationId
             )
           })
         )}
-      </div>
+      </ScrollFade>
       <MessageComposer conversationId={conversationId} canPost userId={userId} />
     </>
   )
