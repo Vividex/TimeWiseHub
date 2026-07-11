@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
         '/reset-password',
       ],
     },
-    sitemap: 'https://timewisehub.com.au/sitemap.xml',
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.timewisehub.com.au'}/sitemap.xml`,
   }
 }
