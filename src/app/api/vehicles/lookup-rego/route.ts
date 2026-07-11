@@ -12,13 +12,42 @@ type LookupResult = {
 }
 
 /**
- * Field names below are a best-effort match against regcheck.org.uk's public JSON
- * pattern (the underlying broker behind CarRegistrationAPI.com's AU service) —
- * verify against the real docs once real credentials exist (info@carregistrationapi.com),
- * see the plan doc's "Important caveat on Task 4" note. Parsed defensively so a field
- * being named slightly differently doesn't crash the route, just returns nulls for
- * that field.
+ * CheckAustralia (regcheck.org.uk / carregistrationapi.com) is a .NET ASMX
+ * webservice. A plain HTTP GET returns an XML <Vehicle> document whose useful
+ * data is duplicated as a JSON string inside a <vehicleJson> element — there is
+ * no separate pure-JSON endpoint. Field names below are confirmed against the
+ * vendor's own API reference PDF (not a guess): CarMake/MakeDescription,
+ * ModelDescription, RegistrationYear, Expiry, State. Expiry is DD/MM/YYYY (or ""
+ * when a state doesn't expose it — NSW's own sample never includes it at all).
+ * Parsed defensively so a field named slightly differently for a given state
+ * doesn't crash the route, just returns null for that field.
  */
+function decodeXmlEntities(text: string): string {
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+}
+
+function extractVehicleJson(xml: string): unknown {
+  const match = xml.match(/<vehicleJson>([\s\S]*?)<\/vehicleJson>/)
+  if (!match) return null
+  try {
+    return JSON.parse(decodeXmlEntities(match[1]))
+  } catch {
+    return null
+  }
+}
+
+function toIsoDate(value: string): string | null {
+  const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (!match) return null
+  const [, day, month, year] = match
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+}
+
 function parseLookupResponse(raw: unknown): LookupResult {
   const data = (raw ?? {}) as Record<string, unknown>
 
@@ -36,12 +65,13 @@ function parseLookupResponse(raw: unknown): LookupResult {
 
   const yearText = textField('RegistrationYear', 'Year', 'year')
   const year = yearText ? parseInt(yearText, 10) : null
+  const expiryText = textField('Expiry', 'RegistrationExpiry', 'ExpiryDate', 'expiryDate')
 
   return {
-    make: textField('CarMake', 'Make', 'make'),
-    model: textField('CarModel', 'Model', 'model'),
+    make: textField('CarMake', 'MakeDescription', 'Make', 'make'),
+    model: textField('ModelDescription', 'CarModel', 'Model', 'model'),
     year: Number.isFinite(year) ? year : null,
-    regoExpiryDate: textField('RegistrationExpiry', 'ExpiryDate', 'expiryDate') ?? null,
+    regoExpiryDate: expiryText ? toIsoDate(expiryText) : null,
   }
 }
 
@@ -63,8 +93,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Rego lookup is not configured yet.' }, { status: 503 })
   }
 
-  const url = new URL('https://www.regcheck.org.uk/api/json.aspx')
+  const url = new URL('https://www.regcheck.org.uk/api/reg.asmx/CheckAustralia')
   url.searchParams.set('RegistrationNumber', registrationNumber)
+  url.searchParams.set('State', state)
   url.searchParams.set('username', apiKey)
 
   let response: Response
@@ -78,7 +109,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Rego lookup failed (${response.status}).` }, { status: 502 })
   }
 
-  const raw = await response.json().catch(() => null)
+  const xml = await response.text()
+  const raw = extractVehicleJson(xml)
   if (!raw) {
     return NextResponse.json({ error: 'Rego lookup returned an unreadable response.' }, { status: 502 })
   }
