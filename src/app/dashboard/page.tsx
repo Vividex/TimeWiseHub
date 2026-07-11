@@ -10,14 +10,17 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { isOverdue } from '@/lib/invoices'
 import { stripQuoteChain } from '@/lib/client-messages'
+import { daysUntil } from '@/lib/expenses'
+import { regoStatus, serviceStatus } from '@/lib/vehicles'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
 import { getTodayBoundsSydney, getTodaySydneyDateString } from '@/lib/today'
 import { getWeekBounds } from '@/lib/week'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
+import type { Vehicle } from '@/types/vehicles'
 
 type PoolTask = {
   id: string
@@ -147,7 +150,7 @@ export default async function DashboardHome() {
   const dueThresholdStr = dueThreshold.toISOString().slice(0, 10)
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes, dueBusinessExpensesRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes, dueBusinessExpensesRes, vehiclesRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -223,6 +226,7 @@ export default async function DashboardHome() {
           .lte('next_billing_date', dueThresholdStr)
           .order('next_billing_date', { ascending: true })
       : Promise.resolve({ data: [] as DueExpenseRow[], error: null }),
+    supabase.from('vehicles').select('id, registration_number, rego_expiry_date, next_service_due_date, next_service_due_km, current_odometer_km').eq('is_archived', false),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -317,6 +321,20 @@ export default async function DashboardHome() {
     next_billing_date: e.next_billing_date,
     is_business: true,
   }))
+  const vehiclesDue: UpcomingVehicleDue[] = []
+  for (const v of (vehiclesRes.data ?? []) as Pick<Vehicle, 'id' | 'registration_number' | 'rego_expiry_date' | 'next_service_due_date' | 'next_service_due_km' | 'current_odometer_km'>[]) {
+    const rego = regoStatus(v)
+    if (rego !== 'ok' && v.rego_expiry_date) {
+      vehiclesDue.push({ id: v.id, registration_number: v.registration_number, kind: 'rego', daysUntilDue: daysUntil(v.rego_expiry_date) })
+    }
+    const service = serviceStatus(v)
+    if (service !== 'ok' && v.next_service_due_date) {
+      vehiclesDue.push({ id: v.id, registration_number: v.registration_number, kind: 'service', daysUntilDue: daysUntil(v.next_service_due_date) })
+    } else if (service !== 'ok' && v.next_service_due_km != null && v.current_odometer_km != null) {
+      // km-only due trigger (no date set) — daysUntilDue isn't meaningful here, show as due now.
+      vehiclesDue.push({ id: v.id, registration_number: v.registration_number, kind: 'service', daysUntilDue: 0 })
+    }
+  }
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   const overdueInvoices = (invoicesRes.data ?? []).filter(isOverdue)
@@ -356,7 +374,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} currentUserId={user.id} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} currentUserId={user.id} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">

@@ -138,40 +138,48 @@ assigned employee can view/log km/log expenses for their own vehicle only. Dashb
 ## C-4 — Dashboard "Today" vehicle due-items
 
 *Codex edits:*
-- [ ] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 5, Steps 1-4
-  — add `Car`/`Wrench` icon imports, new exported `UpcomingVehicleDue` type, new
-  `vehiclesDue` prop, include it in the empty-state check, render the due-item rows.
-  Exact before/after code in the plan doc.)
-- [ ] Modify `src/app/dashboard/page.tsx` (plan Task 5, Step 6 — add the vehicles
-  query, compute `vehiclesDue` using `regoStatus`/`serviceStatus` from
-  `@/lib/vehicles`, pass `vehiclesDue={vehiclesDue}` to the existing
-  `<DashboardUpcoming ... />` call site — read the file first to match its exact
-  current prop list, the plan doc flags this explicitly).
-- [ ] Report back — list files changed.
+- [x] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 5, Steps 1-4
+  — `Car`/`Wrench` icons, `UpcomingVehicleDue` type, `vehiclesDue` prop, empty-state
+  check, due-item rows — all present, clean run, no sandbox issues this turn)
+- [x] Modify `src/app/dashboard/page.tsx` (plan Task 5, Step 6 — vehicles query
+  correctly inserted as the 12th item in the existing `Promise.all` destructuring,
+  `vehiclesDue` computed with the date-or-km "whichever first" logic exactly as
+  designed, wired into the existing `<DashboardUpcoming ... />` call site precisely)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-4 vehicle registration/service due items on dashboard Today"`
+- [x] **Deviation found + fixed during verification:** neither `isLast` border check
+  for the `visibleDueExpenses`/`visibleDueBusinessExpenses` blocks accounted for
+  `vehiclesDue.length` — so the row immediately before the new vehicle rows would
+  wrongly render without a bottom divider whenever vehicles-due items exist but
+  approvals/unread-messages/timed-items are all empty (a real, reachable case, e.g. a
+  solo user with an overdue rego and nothing else that day). My own dispatch
+  instruction only flagged the *approvals* block's border logic as unaffected — it
+  should also have flagged these two. Fixed directly (added `vehiclesDue.length === 0`
+  to both conditions), not a full Codex turn.
+- [x] `pnpm run build` — passes clean after the fix.
+- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-4 vehicle registration/service due items on dashboard Today"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `vehicles`/`vehicle_odometer_logs` tables, `expenses.vehicle_id`,
+- [x] C-1: `vehicles`/`vehicle_odometer_logs` tables, `expenses.vehicle_id`,
   `can_access_vehicle()`, all RLS policies, and `log_vehicle_odometer()` exist and
   apply cleanly.
-- [ ] C-2: Vehicles section appears on the Expenses page for manager+ (full
+- [x] C-2: Vehicles section appears on the Expenses page for manager+ (full
   crew-scoped list) and for a plain employee with an assigned vehicle (their vehicle
   only); search-by-rego works; `BusinessExpensesView` can optionally tag a vehicle.
-- [ ] C-3: Vehicle detail page shows rego/year/make/model, status badges, assignment
+- [x] C-3: Vehicle detail page shows rego/year/make/model, status badges, assignment
   (editable for manager+), odometer log + quick-add, linked expenses + log-expense
   form — both correctly gated to manager+ / the assigned employee.
-- [ ] C-4: Dashboard "Today" shows rego/service due-soon items, scoped automatically
+- [x] C-4: Dashboard "Today" shows rego/service due-soon items, scoped automatically
   by RLS per viewer, using the shared 30-day/500km thresholds.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test (crew isolation both directions, assigned-employee-only
   visibility, dashboard Today due-items appearing/disappearing correctly) — requires
   the user's own authenticated sessions for real team members, same precedent as every
-  prior phase.
+  prior phase. **Not yet done — this is the one remaining item, and it needs the
+  user.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint)

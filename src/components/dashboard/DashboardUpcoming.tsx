@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2 } from 'lucide-react'
+import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2, Car, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { daysUntil, markExpenseCyclePaid, type RecurrenceInterval } from '@/lib/expenses'
 
@@ -23,6 +23,12 @@ export type UpcomingDueExpense = {
   recurrence_interval: RecurrenceInterval
   next_billing_date: string
   is_business: boolean
+}
+export type UpcomingVehicleDue = {
+  id: string
+  registration_number: string
+  kind: 'rego' | 'service'
+  daysUntilDue: number
 }
 
 function fmtTime(iso: string, allDay: boolean) {
@@ -51,6 +57,7 @@ export default function DashboardUpcoming({
   unreadMessages,
   dueExpenses,
   dueBusinessExpenses,
+  vehiclesDue,
   currentUserId,
 }: {
   meetings: UpcomingMeeting[]
@@ -61,6 +68,7 @@ export default function DashboardUpcoming({
   unreadMessages: UnreadClientMessage[]
   dueExpenses: UpcomingDueExpense[]
   dueBusinessExpenses: UpcomingDueExpense[]
+  vehiclesDue: UpcomingVehicleDue[]
   currentUserId: string
 }) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
@@ -93,7 +101,7 @@ export default function DashboardUpcoming({
     if (!error) setPaidIds(prev => new Set(prev).add(expense.id))
   }
 
-  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0) return null
+  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0) return null
 
   return (
     <div className="space-y-3">
@@ -132,7 +140,7 @@ export default function DashboardUpcoming({
           const days = daysUntil(expense.next_billing_date)
           const dueLabel = days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`
           const urgency = days <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === visibleDueExpenses.length - 1 && visibleDueBusinessExpenses.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === visibleDueExpenses.length - 1 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
           return (
             <div
               key={`expense-${expense.id}`}
@@ -163,7 +171,7 @@ export default function DashboardUpcoming({
           const days = daysUntil(expense.next_billing_date)
           const dueLabel = days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`
           const urgency = days <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === visibleDueBusinessExpenses.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === visibleDueBusinessExpenses.length - 1 && vehiclesDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
           return (
             <div
               key={`business-expense-${expense.id}`}
@@ -188,6 +196,28 @@ export default function DashboardUpcoming({
                 {payingId === expense.id ? 'Saving…' : 'Mark paid'}
               </button>
             </div>
+          )
+        })}
+        {vehiclesDue.map((item, i) => {
+          const dueLabel = item.daysUntilDue <= 0 ? 'Overdue' : `Due in ${item.daysUntilDue}d`
+          const urgency = item.daysUntilDue <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+          const isLast = i === vehiclesDue.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          return (
+            <Link
+              key={`vehicle-${item.kind}-${item.id}`}
+              href={`/dashboard/expenses/vehicles/${item.id}`}
+              className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${!isLast ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+                {item.kind === 'rego' ? <Car size={15} /> : <Wrench size={15} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                  {item.registration_number} — {item.kind === 'rego' ? 'Registration renewal' : 'Service due'}
+                </p>
+                <p className={`text-xs font-bold ${urgency}`}>{dueLabel}</p>
+              </div>
+            </Link>
           )
         })}
         {approvals.map((approval, i) => (
