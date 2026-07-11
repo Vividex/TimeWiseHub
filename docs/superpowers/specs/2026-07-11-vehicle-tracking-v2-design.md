@@ -1,7 +1,12 @@
 # Vehicle Tracking v2 — Notes, Standalone Nav, Rego Lookup — Design
 
 Follow-up to `2026-07-11-vehicle-tracking-design.md` (shipped, code complete). Three
-changes to the just-shipped Vehicle Tracking feature.
+changes to the just-shipped Vehicle Tracking feature, plus two small additions (§4)
+made after researching how established fleet-management products (Fleetio, Samsara,
+Motive, Simply Fleet, AUTOsist) handle vehicle expense approval and shared vehicles —
+research confirmed the existing approval model (any manager+, crew-scoped) and
+single-assignee model are both already appropriate for this business's scale, so no
+rework there; only two cheap, consistently-observed patterns were worth adopting.
 
 ## 1. Standalone nav page
 
@@ -83,6 +88,46 @@ present in the edit form) — exactly like the Add form's fill behaviour, not a 
 the saved record. Nothing is persisted until the user reviews the (now-filled) form
 and clicks the existing "Save vehicle details" button, same as every other edit on
 this page.
+
+## 4. Professionalization polish (from research)
+
+**Required receipt on the vehicle detail page's own expense form.** Every fleet
+product checked treats a receipt as non-negotiable for vehicle spend specifically.
+Scoped narrowly: the `<input type="file">` on `VehicleDetailClient`'s own
+"Log vehicle expense" form (the primary, intended path — an assigned employee never
+sees `BusinessExpensesView` at all, per the original v1 design) gains a `required`
+attribute, matching how every other required field in this codebase relies on native
+HTML validation alone (no redundant JS check). `BusinessExpensesView`'s general
+form — used for any business expense, vehicle-tagged or not, and currently has no
+receipt field at all for any expense type — is explicitly **not** touched; adding
+conditional-required receipt upload there is a bigger, separate change than what was
+asked for, and would risk blocking unrelated non-vehicle expense submissions.
+
+Explicitly **not** adopted: a dollar-threshold auto-approval tier (research's
+strongest pattern, but the user chose to defer it — picking a sensible threshold now
+would be a guess without real spend data yet).
+
+**Optional "driven by" field on odometer log entries.** The user confirmed some
+vehicles genuinely are shared. Research's recommendation was narrow and explicit: a
+lightweight optional field on odometer/usage records, not a reservation/booking
+system (real fleet products keep those as a distinct, separate module aimed at much
+larger fleets than this business has).
+
+Scoped to the odometer log only, **not** the `expenses` table — `expenses.user_id`
+already has an established meaning across the whole app ("who submitted/logged this
+expense"), which can legitimately differ from who was driving (e.g. an admin
+batch-entering several receipts after the fact); overloading that column for a
+narrow vehicle-only concept would pollute a shared table's semantics for every other
+expense type. The odometer log is the natural "usage record" instead.
+
+New nullable column: `vehicle_odometer_logs.driven_by` (uuid, references
+`auth.users(id)`) — set by picking from the same org-member list already used for the
+vehicle's assignment dropdown. The existing `log_vehicle_odometer()` RPC (from the
+shipped v1 schema) gains a new `p_driven_by uuid default null` parameter, appended
+after the existing three — safe to add via `create or replace function` since
+existing callers that omit it get the default and keep working unmodified. Displayed
+in the odometer log list alongside the existing date/notes when set; omitted from the
+row entirely when not (most vehicles will never use this field).
 
 ## Verification
 
