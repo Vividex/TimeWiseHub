@@ -5,9 +5,18 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Vehicle Tracking (current phase): zero cost — pure code + one additive DB migration (two new
-  tables, one new nullable FK column, one new function, one new SECURITY DEFINER RPC), no new npm
-  dependencies, no external API calls.
+- Vehicle Tracking v2 (current phase): real ongoing cost, approved 2026-07-11 —
+  CarRegistrationAPI.com rego lookup, ~$0.30 AUD/lookup, purchased in prepaid blocks of
+  ≥100 (~$30 AUD minimum spend), user-signup + user-purchased, not drawn from the
+  spend-budget-usd figure above (that covers per-turn API/build costs, not user-facing
+  paid third-party services). Code ships and builds regardless of whether the key is
+  live — the lookup button just returns a graceful error until `CAR_REGO_API_KEY` is
+  set. Everything else this phase (notes table, nav move, driven-by column, required
+  receipts) is zero cost — pure code + additive/destructive DB migrations, no new npm
+  dependencies.
+- Vehicle Tracking v1 (prior phase, complete): zero cost — pure code + one additive DB
+  migration (two new tables, one new nullable FK column, one new function, one new
+  SECURITY DEFINER RPC), no new npm dependencies, no external API calls.
 - Session-Scheduled Client Email (prior phase, complete): zero cost — pure code, no schema change,
   no new npm dependencies, reuses the existing Resend/Client-Email-Messaging infrastructure and
   branding helpers already paid for.
@@ -86,7 +95,67 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Vehicle Tracking) [code complete, manual smoke pending]
+## Notes (Vehicle Tracking v2) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-11-vehicle-tracking-v2-design.md
+- Source plan: docs/superpowers/plans/2026-07-11-vehicle-tracking-v2.md
+- Direct follow-up request right after v1 shipped: notes should be independently
+  saved (not one overwritable field), Vehicles should move to its own nav page under
+  Money instead of living inside Expenses, and rego lookup should auto-fill vehicle
+  details from just the registration number "like insurance companies/Service NSW/
+  Repco do it."
+- Researched the rego-lookup feasibility question directly (WebSearch/WebFetch)
+  before committing to a design — real AU vehicle data is regulated (state road
+  authorities, accessed only through licensed resellers), so there's no free public
+  endpoint at any provider, but CarRegistrationAPI.com (white-labelling regcheck.org.uk)
+  is a genuine, cheap, small-business-appropriate option: ~$0.30 AUD/lookup, all 8
+  states/territories, no enterprise sales process — unlike the NEVDIS-broker tier
+  (InfoAgent/MotorWeb/VehicleID, opaque "contact us" pricing) or PPSR searches ($6/each,
+  a different product — finance/write-off/stolen checks, not vehicle details).
+  **Correction surfaced mid-conversation, before the user approved spend:** initial
+  framing was "30c/lookup" — actual pricing is prepaid blocks of ≥100 lookups
+  (~$30 AUD minimum), not true pay-as-you-go from the first use. Flagged explicitly
+  before the user's go-ahead, not glossed over.
+- Exact request/response field names for the AU-specific service couldn't be fully
+  confirmed even after fetching the provider's own PDF doc (partially unreadable
+  extraction) — implemented against the well-documented general regcheck.org.uk JSON
+  pattern with defensive field-name parsing, explicitly flagged in both the plan and
+  the route's own code comment as needing verification once the user has real
+  credentials (not a stub — real, working best-effort code).
+- User requested "professional" fleet-page polish after the design was already
+  approved but before the plan was finalized — dispatched two parallel research
+  agents (Fleetio/Samsara/Motive/Simply Fleet/AUTOsist docs) on vehicle expense
+  approval patterns and single-driver-vs-shared-vehicle patterns specifically, per
+  explicit user instruction to "send out sub agents." Both came back validating the
+  already-approved design (crew-scoped any-manager-approves; single current assignee,
+  no reservation system) as appropriate for this business's scale — real fleet
+  products' more elaborate patterns (per-vehicle designated approvers, dollar-tiered
+  approval limits, pool-vehicle reservation/kiosk systems) are consistently aimed at
+  large fleets/government/university scale, not a trades business with a handful to
+  dozens of vehicles. Two cheap, consistently-observed patterns were adopted as a
+  result — required receipts on vehicle expenses, optional driver-on-the-day
+  attribution on odometer logs — deliberately scoped narrowly (see the spec's §4 and
+  the plan's Task 5) to avoid the two most obvious ways to over-generalize this: (1)
+  extending "required receipt" to `BusinessExpensesView`'s general form, which has no
+  receipt UI at all for any expense type and would need separate work; (2) adding
+  "driven by" to the shared `expenses` table, where `user_id` already has an
+  established, different meaning ("who submitted this") used across the whole app.
+  A dollar-threshold auto-approval tier — the single strongest pattern in the
+  approval research — was explicitly declined by the user (no real spend data yet to
+  pick a sensible number), correctly left out rather than guessed at.
+- **Real bugs caught during the plan's own self-review, before any code was
+  written:** (1) the already-shipped `VehicleDetailClient.tsx` has its own
+  `notes`/`setNotes` state bound to the old single-text `vehicles.notes` column
+  (textarea, read-only display, save payload) — the new notes-log feature would have
+  silently collided with it under the same variable name; the plan now explicitly
+  requires removing the old code first. (2) the `Vehicle` TypeScript type was never
+  updated for the `state`/`notes` column changes at all — would have been a real
+  compile break. (3) a draft of the rego-lookup Refresh handler referenced a
+  nonexistent `next_service_due_km` field from the lookup API response — self-caught
+  and removed before the plan was finalized.
+- Codex handles text edits only; conductor runs all shell/build/git, the `git mv`
+  route relocation, and both DB migrations via Supabase MCP.
+
+## Notes (Vehicle Tracking v1) [complete, kept for reference]
 - Source spec: docs/superpowers/specs/2026-07-11-vehicle-tracking-design.md
 - Source plan: docs/superpowers/plans/2026-07-11-vehicle-tracking.md
 - Direct feature request: track company vehicles (rego, servicing, receipts, km,

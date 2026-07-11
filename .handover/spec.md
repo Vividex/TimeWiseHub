@@ -1,188 +1,200 @@
-# Vehicle tracking
+# Vehicle tracking v2
 
 ## Goal
-Track company vehicles (registration, year/make/model, servicing schedule, odometer
-history, employee assignment). Vehicle-related costs feed directly into the existing
-Business Expenses system — no separate ledger. Manager+ get crew-scoped visibility; an
-assigned employee can view/log km/log expenses for their own vehicle only. Dashboard
-"Today" surfaces rego/service items about to be due.
+Three follow-ups to the shipped Vehicle Tracking feature (append-only notes log,
+standalone `/dashboard/vehicles` nav page, paid rego-lookup that auto-fills
+make/model/year/expiry), plus two small research-backed polish items: required
+receipts on vehicle expenses and optional driver attribution on odometer readings
+for shared vehicles.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-11-vehicle-tracking-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-11-vehicle-tracking.md`
-- Vehicle costs are just normal `is_business` expense rows tagged with a new nullable
-  `expenses.vehicle_id` — the entire "feeds business expenses" mechanism, no separate
-  approval flow or reconciliation step.
-- New crew-scoped RLS pattern (`can_access_vehicle()`): owner/admin always see
-  everything; a manager sees a vehicle if it's unassigned, the assignee isn't in any
-  crew, or the manager runs a crew the assignee belongs to; anyone can see/log km/log
-  expenses for a vehicle assigned to *themselves*, regardless of role, but cannot edit
-  it (editing stays manager+-gated by role, separately from `can_access_vehicle`).
-  Nothing else in this codebase currently scopes visibility by crew — this is new.
-- Odometer logging goes through a SECURITY DEFINER RPC (`log_vehicle_odometer`), not a
-  raw table insert+update, because the assigned employee needs to update the vehicle's
-  denormalized `current_odometer_km` but is deliberately NOT granted `vehicles` UPDATE
-  by the RLS policies — the RPC is their one narrow, purpose-built write path.
-- **Correction made during planning, not a design change:** the spec said
-  "`ExpenseForm` gains a vehicle picker." That was a naming slip — `ExpenseForm.tsx`
-  only creates personal (non-business) expenses. The real business-expense form is
-  inline inside `BusinessExpensesView.tsx`; that's the one that gets the vehicle
-  dropdown. The vehicle detail page also gets its own small, separate expense-logging
-  form since an assigned employee is never shown `BusinessExpensesView` at all.
-- 30-day date windows / 500km window are the "due soon" thresholds for both rego and
-  servicing (spec default, not derived from an existing business rule) — named
-  constants in `src/lib/vehicles.ts`, not magic numbers, shared by the vehicle detail
-  badges and the dashboard "Today" widget so they can never disagree.
-- Archive (`is_archived`, soft-delete) is the only retirement UI built this pass — the
-  DB has an admin/owner hard-delete RLS policy for completeness, but no UI button calls
-  it (rare action, deliberately trimmed, not an oversight).
-- No assignment history, no per-km reimbursement rate, no re-scoping of the *existing*
-  Business Expenses list by crew — all explicit out-of-scope decisions in the spec.
+- Source spec: `docs/superpowers/specs/2026-07-11-vehicle-tracking-v2-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-11-vehicle-tracking-v2.md`
+- `VehiclesView` moves from an embedded section on `/dashboard/expenses` to its own
+  route, `/dashboard/vehicles`, with a new sidebar item in the Money group. The
+  vehicle detail route moves with it (`/dashboard/expenses/vehicles/[id]` →
+  `/dashboard/vehicles/[id]`, a `git mv`-preserved rename). `BusinessExpensesView`'s
+  vehicle-tagging dropdown on the Expenses page is untouched.
+- New `vehicle_notes` table, structurally identical to `vehicle_odometer_logs`
+  (append-only, same `can_access_vehicle()` RLS, no update/delete). The old
+  single-text `vehicles.notes` column is dropped — no real vehicle data exists in
+  production yet, so this is a clean removal, not a migration. **Real naming
+  collision resolved during planning:** the already-shipped `VehicleDetailClient.tsx`
+  had its own `notes`/`setNotes` state bound to the old column (textarea in the edit
+  form, read-only display, save payload) — all of that must be removed before adding
+  the new notes-log state of the same name, or there'd be two conflicting
+  declarations. `Vehicle` type also needed updating (drop `notes`, add `state`) — not
+  originally in the source spec, caught during the plan's own self-review.
+- Rego lookup: new `vehicles.state` column, new server-only `CAR_REGO_API_KEY` env
+  var, new `POST /api/vehicles/lookup-rego` route (auth-gated — this is a paid call,
+  ~$0.30/lookup, purchased in blocks of ≥100). Explicit "Look up" button only — no
+  auto-search-as-you-type anywhere, confirmed in design specifically because every
+  call costs real money. Exact response field names are a best-effort guess (parsed
+  defensively) — **must be verified against real API docs once the user has real
+  credentials**, flagged explicitly in the plan, not silently assumed correct.
+- Two additions made after dispatching research agents mid-session (how Fleetio/
+  Samsara/Motive/Simply Fleet/AUTOsist handle vehicle expense approval and shared
+  vehicles): research confirmed the existing crew-scoped approval model and
+  single-assignee model are both already appropriate for this business's scale — no
+  rework there. Two small, narrowly-scoped things adopted: (1) required (not
+  optional) receipt on `VehicleDetailClient`'s own vehicle-expense form only —
+  deliberately not touched on `BusinessExpensesView`'s general form, which has no
+  receipt field for any expense type and would need separate, larger work; (2)
+  optional `driven_by` column on `vehicle_odometer_logs` only, not on the shared
+  `expenses` table (whose `user_id` already means "who submitted this," which can
+  legitimately differ from who was driving — overloading it would pollute a shared
+  table's semantics for every other expense type app-wide). A dollar-threshold
+  auto-approval tier was researched but explicitly declined by the user (no real
+  spend data yet to pick a sensible number).
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP) — the
   conductor handles those.
-- Read a file before editing it if its structure is unknown — especially
-  `src/components/expenses/BusinessExpensesView.tsx` (surgically modified, not
-  rewritten) and `src/app/dashboard/page.tsx` / `src/components/dashboard/
-  DashboardUpcoming.tsx` (C-4: match against their actual current content, the plan's
-  own note admits it wasn't verified against every existing prop at that call site).
+- Read every target file first — three of the four Codex turns (C-2, C-3, C-4, and
+  parts of C-6) modify files that earlier turns in *this same phase* already changed,
+  so "read first" means reading the current state, not the original shipped v1 code.
 - After each turn, list the files changed/created.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before ticking the box and
   committing.
-- C-1 is conductor-only (pure SQL) — apply via Supabase MCP `apply_migration`
-  (project id `sdwwlnnsijcadkdwsvud`, name `vehicle_tracking`), no Codex dispatch for
-  this item.
-- C-2 bundles the plan's Task 2 + Task 4 into one turn/commit — the plan explicitly
-  calls out that splitting them leaves an intermediate broken build (`expenses/page.tsx`
-  passes a `vehicles` prop that `BusinessExpensesView` doesn't accept until both land).
-- Manual smoke test (crew isolation, assigned-employee-only visibility, dashboard Today
-  due-items) requires an authenticated browser session the conductor doesn't have for
-  the real org's actual team members — that final acceptance step is the user's own
-  verification, same precedent as every prior phase.
+- C-1 and C-5 are conductor-only (pure SQL) — apply via Supabase MCP
+  `apply_migration`, no Codex dispatch for those items.
+- C-2 requires a `git mv` (conductor, before dispatching the rest of that turn to
+  Codex) to relocate the vehicle detail route — do this first, then dispatch only the
+  content edits.
+- Manual smoke test (crew isolation, rego lookup with real credentials, receipt
+  requirement, driven-by field) requires an authenticated browser session and real
+  `CAR_REGO_API_KEY` the conductor doesn't have — that final acceptance step is the
+  user's own verification, same precedent as every prior phase.
 - Commit each verified item separately.
 
 ---
 
-## C-1 — Database migration
+## C-1 — Database migration (notes table, state column, drop old notes)
 
 *Conductor (no Codex turn — pure SQL):*
-- [x] Write `supabase/schema-098-vehicle-tracking.sql` (plan Task 1, Step 1 — exact SQL
-  in the plan doc: `vehicles`, `vehicle_odometer_logs` tables, `expenses.vehicle_id`
-  column, `can_access_vehicle()` function, all RLS policies, `log_vehicle_odometer()`
-  RPC).
-- [x] Apply via Supabase MCP `apply_migration` (name: `vehicle_tracking`).
-- [x] Verify via `list_migrations` + the sanity-check query in the plan (Step 3).
-- [x] Commit: `git add supabase/schema-098-vehicle-tracking.sql && git commit -m "handover: C-1 vehicle tracking schema + RLS + odometer RPC"`
+- [ ] Write `supabase/schema-099-vehicle-notes-and-rego-lookup.sql` (plan Task 1,
+  Step 1 — exact SQL in the plan doc)
+- [ ] Apply via Supabase MCP `apply_migration` (name: `vehicle_notes_and_rego_lookup`)
+- [ ] Verify via `list_migrations` + the sanity-check query in the plan (Step 3)
+- [ ] Commit: `git add supabase/schema-099-vehicle-notes-and-rego-lookup.sql && git commit -m "handover: C-1 vehicle notes table + state column + drop old notes column"`
 
 ---
 
-## C-2 — Vehicles list on Expenses page + vehicle-tag business expenses
+## C-2 — Standalone `/dashboard/vehicles` nav page
+
+*Conductor (before dispatching):*
+- [ ] `git mv "src/app/dashboard/expenses/vehicles" "src/app/dashboard/vehicles"`
+  (plan Task 2, Step 1)
 
 *Codex edits:*
-- [x] Create `src/types/vehicles.ts` (plan Task 2, Step 1 — exact code in the plan doc)
-- [x] Create `src/lib/vehicles.ts` (plan Task 2, Step 2 — exact code in the plan doc)
-- [x] Create `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 3 — matches
-  in substance, not verbatim — Codex hit the Windows sandbox subprocess limitation
-  mid-turn and re-implemented from memory rather than transcribing the plan exactly;
-  cosmetic differences only, e.g. list-row layout instead of card grid, "Create
-  vehicle" instead of "Add vehicle" button text)
-- [x] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 4 — one real
-  behavioral deviation found + fixed by the conductor, see below)
-- [x] Modify `src/components/expenses/BusinessExpensesView.tsx` (plan Task 4, Steps
-  1-5 — matches the plan exactly, including the dropdown's placement)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/dashboard/vehicles/page.tsx` (plan Task 2, Step 2)
+- [ ] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 3)
+- [ ] Modify `src/components/nav/SidebarNav.tsx` (plan Task 2, Step 4)
+- [ ] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 5 — href
+  change only)
+- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 2, Step 6 —
+  back-link text/href only)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — passes clean.
-- [x] **Deviation found + fixed during verification:** Codex's `expenses/page.tsx`
-  showed the Vehicles section to any team-plan org member (`membership?.org_id &&
-  isTeamPlan(subscription)`), not just manager+ or someone with a visible vehicle —
-  meaning a plain employee with no assigned vehicle saw an empty "Vehicles" card
-  instead of nothing, contradicting the approved spec ("An employee with no assigned
-  vehicle sees nothing in the Vehicles section"). RLS itself was never wrong (the
-  fetched `vehicleList` was already correctly empty for that user) — this was a
-  display-condition bug only. Fixed directly by the conductor (small, well-understood
-  correction, not a full Codex turn): split the fetch-gate (`canSeeVehicles`, still
-  org+team-plan) from the render-gate (`showVehicles = isManager ||
-  vehicleList.length > 0`), matching the plan's original Step 4 logic. Rebuilt clean
-  after the fix.
-- [x] Commit: `git add src/types/vehicles.ts src/lib/vehicles.ts src/components/vehicles/VehiclesView.tsx src/app/dashboard/expenses/page.tsx src/components/expenses/BusinessExpensesView.tsx && git commit -m "handover: C-2 vehicles list on Expenses page + vehicle-tag business expenses"`
+- [ ] `pnpm run build` — must pass clean; confirm `/dashboard/vehicles` and
+  `/dashboard/vehicles/[id]` appear in the route table, and
+  `/dashboard/expenses/vehicles/[id]` no longer does.
+- [ ] Commit: `git add src/app/dashboard/vehicles src/app/dashboard/expenses/page.tsx src/components/nav/SidebarNav.tsx src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-2 move Vehicles to its own nav page"`
 
 ---
 
-## C-3 — Vehicle detail page
+## C-3 — Vehicle notes log
 
 *Codex edits:*
-- [x] Create `src/app/dashboard/expenses/vehicles/[id]/page.tsx` (plan Task 3, Step 1
-  — matches in substance: fetches RLS-scoped vehicle (also filters `is_archived =
-  false`, a sensible addition not in the plan), 404s via `notFound()`, computes
-  `canEdit`/`canDelete`/`canLog` exactly as specified)
-- [x] Create `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
-  matches in substance, arguably more polished than the plan draft: read-only `<dl>`
-  view of servicing/rego when `!canEdit` instead of just hiding the form, optimistic
-  local state updates on save. Header/badges/assignment, odometer log + quick-add via
-  `log_vehicle_odometer` RPC, linked expenses + its own log-expense form with receipt
-  upload, archive — all present and correctly gated.)
-- [x] Report back — list files changed.
+- [ ] Modify `src/types/vehicles.ts` (plan Task 3, Step 0 — drop `notes`, add `state`
+  on the `Vehicle` type)
+- [ ] Modify `src/app/dashboard/vehicles/[id]/page.tsx` (plan Task 3, Step 1 — add the
+  `vehicle_notes` fetch, exact before/after `Promise.all` in the plan doc)
+- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
+  **first remove** the old single-text notes state/textarea/display/save-payload
+  entry tied to the now-dropped column, **then add** the new notes-log state/handler/
+  section — see the plan doc's explicit "naming collision" note, this order matters)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — passes clean, no fixes needed this turn.
-- [x] Confirmed `/dashboard/expenses/vehicles/[id]` in the build route table.
-- [x] Commit: `git add src/app/dashboard/expenses/vehicles src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 vehicle detail page (odometer log + linked expenses)"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/types/vehicles.ts src/app/dashboard/vehicles/[id]/page.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 append-only vehicle notes log"`
 
 ---
 
-## C-4 — Dashboard "Today" vehicle due-items
+## C-4 — Rego lookup
 
 *Codex edits:*
-- [x] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 5, Steps 1-4
-  — `Car`/`Wrench` icons, `UpcomingVehicleDue` type, `vehiclesDue` prop, empty-state
-  check, due-item rows — all present, clean run, no sandbox issues this turn)
-- [x] Modify `src/app/dashboard/page.tsx` (plan Task 5, Step 6 — vehicles query
-  correctly inserted as the 12th item in the existing `Promise.all` destructuring,
-  `vehiclesDue` computed with the date-or-km "whichever first" logic exactly as
-  designed, wired into the existing `<DashboardUpcoming ... />` call site precisely)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/api/vehicles/lookup-rego/route.ts` (plan Task 4, Step 1 — exact
+  code in the plan doc; see the plan's "Important caveat" note about field-name
+  uncertainty, that's expected, not a mistake to fix)
+- [ ] Modify `.env.example` (plan Task 4, Step 2)
+- [ ] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 4, Step 3 — state
+  selector, Look up button, form field reshuffle — exact before/after in the plan doc)
+- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 4, Step 4 —
+  "Refresh rego details" button)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] **Deviation found + fixed during verification:** neither `isLast` border check
-  for the `visibleDueExpenses`/`visibleDueBusinessExpenses` blocks accounted for
-  `vehiclesDue.length` — so the row immediately before the new vehicle rows would
-  wrongly render without a bottom divider whenever vehicles-due items exist but
-  approvals/unread-messages/timed-items are all empty (a real, reachable case, e.g. a
-  solo user with an overdue rego and nothing else that day). My own dispatch
-  instruction only flagged the *approvals* block's border logic as unaffected — it
-  should also have flagged these two. Fixed directly (added `vehiclesDue.length === 0`
-  to both conditions), not a full Codex turn.
-- [x] `pnpm run build` — passes clean after the fix.
-- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-4 vehicle registration/service due items on dashboard Today"`
+- [ ] `pnpm run build` — must pass clean; confirm `/api/vehicles/lookup-rego` appears
+  in the route table.
+- [ ] Commit: `git add src/app/api/vehicles/lookup-rego src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx .env.example && git commit -m "handover: C-4 rego lookup (CarRegistrationAPI) for auto-filling vehicle details"`
+
+---
+
+## C-5 — Odometer driven-by migration
+
+*Conductor (no Codex turn — pure SQL):*
+- [ ] Write `supabase/schema-100-vehicle-odometer-driven-by.sql` (plan Task 5, Step 1
+  — exact SQL in the plan doc; note this `create or replace function` appends a new
+  defaulted parameter to the existing `log_vehicle_odometer` RPC, backward-compatible
+  with the unmodified call already used in the shipped v1 code until C-6 lands)
+- [ ] Apply via Supabase MCP `apply_migration` (name: `vehicle_odometer_driven_by`)
+- [ ] Verify via `list_migrations` + the sanity-check query in the plan
+- [ ] Commit: `git add supabase/schema-100-vehicle-odometer-driven-by.sql && git commit -m "handover: C-5 optional driven_by column on odometer log RPC"`
+
+---
+
+## C-6 — Required receipts + driver attribution UI
+
+*Codex edits:*
+- [ ] Modify `src/types/vehicles.ts` (plan Task 5, Step 2 — add `driven_by` to
+  `VehicleOdometerLog`)
+- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 5, Step 3 —
+  two independent changes: (a) required receipt on the vehicle-expense form, (b)
+  "Driven by" select on the odometer form + RPC call + list display. Exact
+  before/after code in the plan doc.)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/types/vehicles.ts src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-6 required vehicle-expense receipts + optional driven-by on odometer log"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `vehicles`/`vehicle_odometer_logs` tables, `expenses.vehicle_id`,
-  `can_access_vehicle()`, all RLS policies, and `log_vehicle_odometer()` exist and
-  apply cleanly.
-- [x] C-2: Vehicles section appears on the Expenses page for manager+ (full
-  crew-scoped list) and for a plain employee with an assigned vehicle (their vehicle
-  only); search-by-rego works; `BusinessExpensesView` can optionally tag a vehicle.
-- [x] C-3: Vehicle detail page shows rego/year/make/model, status badges, assignment
-  (editable for manager+), odometer log + quick-add, linked expenses + log-expense
-  form — both correctly gated to manager+ / the assigned employee.
-- [x] C-4: Dashboard "Today" shows rego/service due-soon items, scoped automatically
-  by RLS per viewer, using the shared 30-day/500km thresholds.
-- [x] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke test (crew isolation both directions, assigned-employee-only
-  visibility, dashboard Today due-items appearing/disappearing correctly) — requires
-  the user's own authenticated sessions for real team members, same precedent as every
-  prior phase. **Not yet done — this is the one remaining item, and it needs the
-  user.**
+- [ ] C-1: `vehicle_notes` table + RLS, `vehicles.state` column, `vehicles.notes`
+  column dropped, all apply cleanly.
+- [ ] C-2: "Vehicles" nav item routes to `/dashboard/vehicles`; the old embedded
+  section is gone from Expenses; vehicle detail lives at `/dashboard/vehicles/[id]`.
+- [ ] C-3: Notes log works (add/view, append-only), no leftover reference to the
+  dropped `vehicles.notes` column anywhere.
+- [ ] C-4: Add-vehicle and vehicle-detail "Look up"/"Refresh" both call the rego
+  lookup API and fill fields on success, degrade gracefully on failure/missing key.
+- [ ] C-5/C-6: vehicle-expense receipt is required; odometer log can optionally
+  record who was driving and displays it when set.
+- [ ] Full `pnpm run build` passes clean end-to-end.
+- [ ] Manual smoke test (crew isolation, real rego lookup once `CAR_REGO_API_KEY`
+  exists, receipt requirement, driven-by display) — requires the user's own
+  authenticated sessions and real API credentials, same precedent as every prior
+  phase.
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint)
-after every turn, full clean build after C-4, plus the manual smoke checklist in
-`docs/superpowers/plans/2026-07-11-vehicle-tracking.md` ("Manual verification"
-section), which requires the user's own authenticated browser sessions.
+after every turn, full clean build after C-6, plus the manual smoke checklist in
+`docs/superpowers/plans/2026-07-11-vehicle-tracking-v2.md` ("Manual verification"
+section), which requires the user's own authenticated browser session and real
+`CAR_REGO_API_KEY`.
