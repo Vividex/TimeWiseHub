@@ -164,13 +164,13 @@ state. Build passed, `/api/vehicles/lookup-rego` present in the route table.
 ## C-5 — Odometer driven-by migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-100-vehicle-odometer-driven-by.sql` (plan Task 5, Step 1
+- [x] Write `supabase/schema-100-vehicle-odometer-driven-by.sql` (plan Task 5, Step 1
   — exact SQL in the plan doc; note this `create or replace function` appends a new
   defaulted parameter to the existing `log_vehicle_odometer` RPC, backward-compatible
   with the unmodified call already used in the shipped v1 code until C-6 lands)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `vehicle_odometer_driven_by`)
-- [ ] Verify via `list_migrations` + the sanity-check query in the plan
-- [ ] Commit: `git add supabase/schema-100-vehicle-odometer-driven-by.sql && git commit -m "handover: C-5 optional driven_by column on odometer log RPC"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `vehicle_odometer_driven_by`)
+- [x] Verify via `list_migrations` + the sanity-check query in the plan
+- [x] Commit: `git add supabase/schema-100-vehicle-odometer-driven-by.sql && git commit -m "handover: C-5 optional driven_by column on odometer log RPC"`
 
 ---
 
