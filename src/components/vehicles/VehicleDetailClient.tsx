@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Archive, Car, Gauge, NotebookText, ReceiptText, Wrench } from 'lucide-react'
+import { Archive, Car, Gauge, NotebookText, ReceiptText, Trash2, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { REVIEW_STATUS_COLOUR, REVIEW_STATUS_LABEL, type ReviewStatus } from '@/lib/expenses'
 import { regoStatus, serviceStatus, STATUS_COLOUR, STATUS_LABEL } from '@/lib/vehicles'
@@ -333,6 +333,27 @@ export default function VehicleDetailClient({
     router.refresh()
   }
 
+  async function deleteVehicle() {
+    if (!canDelete) return
+    if (!window.confirm(
+      `Permanently delete ${vehicle.registration_number}? This cannot be undone — its notes and odometer history will be deleted too. Linked expenses are kept but unlinked from this vehicle. For a vehicle that's just no longer in use, Archive instead.`
+    )) return
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('vehicles')
+      .delete()
+      .eq('id', vehicle.id)
+
+    if (error) {
+      setVehicleError(error.message)
+      return
+    }
+
+    router.push('/dashboard/vehicles')
+    router.refresh()
+  }
+
   return (
     <div className="space-y-6">
       <Link href="/dashboard/vehicles" className="text-sm font-bold text-cyan-600 hover:underline dark:text-cyan-400">
@@ -628,11 +649,31 @@ export default function VehicleDetailClient({
                 Archive vehicle
               </h2>
               <p className="mt-1 text-sm font-medium text-red-600 dark:text-red-300">
-                Archiving hides this vehicle from active lists while preserving odometer and expense history.
+                Use this for a vehicle that's no longer in use — it hides the vehicle from active
+                lists while keeping its odometer, notes, and expense history.
               </p>
             </div>
             <button onClick={archiveVehicle} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
               Archive
+            </button>
+          </div>
+
+          <div className="my-4 border-t border-red-200 dark:border-red-500/20" />
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-bold text-red-700 dark:text-red-300">
+                <Trash2 size={18} />
+                Delete vehicle
+              </h2>
+              <p className="mt-1 text-sm font-medium text-red-600 dark:text-red-300">
+                Permanently removes this vehicle along with its notes and odometer history. Linked
+                expenses are kept but unlinked. This cannot be undone — use for mistakes (e.g. a
+                test entry), not for vehicles that were genuinely in use.
+              </p>
+            </div>
+            <button onClick={deleteVehicle} className="rounded-xl border-2 border-red-600 bg-transparent px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-600 hover:text-white dark:text-red-400 dark:hover:text-white">
+              Delete permanently
             </button>
           </div>
         </div>
