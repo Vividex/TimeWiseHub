@@ -95,7 +95,21 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Vehicle Tracking v2) [current phase]
+## Notes (Vehicle Tracking v2) [complete, kept for reference]
+- **All 6 implementation items (C-1 through C-6) complete and verified (2026-07-12).**
+  Every turn was verified directly by the conductor (Read the actual files +
+  `pnpm run build`), not taken on Codex's report alone — one real, small deviation
+  was found and fixed this way: C-2's plan only specified changing the vehicle
+  detail back-link, but missed that `archiveVehicle()` in the same file still
+  `router.push('/dashboard/expenses')`d after archiving — a stale redirect now that
+  Vehicles has its own route (a plan-authoring gap, not a Codex mistake). Fixed
+  directly by the conductor. No other discrepancies found across the remaining 5
+  items. Full `pnpm run build` passes clean end-to-end. Remaining: the manual smoke
+  test (crew isolation, real rego lookup once the user adds `CAR_REGO_API_KEY`,
+  receipt requirement, driven-by display) requires the user's own authenticated
+  sessions and real API credentials the conductor doesn't have — same precedent as
+  every prior phase — plus the user still needs to sign up for CarRegistrationAPI.com,
+  purchase the initial ≥100-lookup credit block (~$30 AUD), and add the key to Vercel.
 - Source spec: docs/superpowers/specs/2026-07-11-vehicle-tracking-v2-design.md
 - Source plan: docs/superpowers/plans/2026-07-11-vehicle-tracking-v2.md
 - Direct follow-up request right after v1 shipped: notes should be independently
