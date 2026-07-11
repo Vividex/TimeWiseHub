@@ -116,17 +116,22 @@ assigned employee can view/log km/log expenses for their own vehicle only. Dashb
 ## C-3 — Vehicle detail page
 
 *Codex edits:*
-- [ ] Create `src/app/dashboard/expenses/vehicles/[id]/page.tsx` (plan Task 3, Step 1
-  — exact code in the plan doc)
-- [ ] Create `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
-  exact code in the plan doc: header/badges/assignment, odometer log + quick-add via
-  the `log_vehicle_odometer` RPC, linked expenses + its own log-expense form, archive)
-- [ ] Report back — list files changed.
+- [x] Create `src/app/dashboard/expenses/vehicles/[id]/page.tsx` (plan Task 3, Step 1
+  — matches in substance: fetches RLS-scoped vehicle (also filters `is_archived =
+  false`, a sensible addition not in the plan), 404s via `notFound()`, computes
+  `canEdit`/`canDelete`/`canLog` exactly as specified)
+- [x] Create `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
+  matches in substance, arguably more polished than the plan draft: read-only `<dl>`
+  view of servicing/rego when `!canEdit` instead of just hiding the form, optimistic
+  local state updates on save. Header/badges/assignment, odometer log + quick-add via
+  `log_vehicle_odometer` RPC, linked expenses + its own log-expense form with receipt
+  upload, archive — all present and correctly gated.)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm the new dynamic route appears in the
-  route table.
-- [ ] Commit: `git add src/app/dashboard/expenses/vehicles src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 vehicle detail page (odometer log + linked expenses)"`
+- [x] `pnpm run build` — passes clean, no fixes needed this turn.
+- [x] Confirmed `/dashboard/expenses/vehicles/[id]` in the build route table.
+- [x] Commit: `git add src/app/dashboard/expenses/vehicles src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 vehicle detail page (odometer log + linked expenses)"`
 
 ---
 
