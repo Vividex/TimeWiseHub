@@ -74,11 +74,11 @@ for shared vehicles.
 ## C-1 — Database migration (notes table, state column, drop old notes)
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-099-vehicle-notes-and-rego-lookup.sql` (plan Task 1,
+- [x] Write `supabase/schema-099-vehicle-notes-and-rego-lookup.sql` (plan Task 1,
   Step 1 — exact SQL in the plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `vehicle_notes_and_rego_lookup`)
-- [ ] Verify via `list_migrations` + the sanity-check query in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-099-vehicle-notes-and-rego-lookup.sql && git commit -m "handover: C-1 vehicle notes table + state column + drop old notes column"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `vehicle_notes_and_rego_lookup`)
+- [x] Verify via `list_migrations` + the sanity-check query in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-099-vehicle-notes-and-rego-lookup.sql && git commit -m "handover: C-1 vehicle notes table + state column + drop old notes column"`
 
 ---
 
