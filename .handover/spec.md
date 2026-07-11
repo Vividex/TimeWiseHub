@@ -69,13 +69,13 @@ assigned employee can view/log km/log expenses for their own vehicle only. Dashb
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-098-vehicle-tracking.sql` (plan Task 1, Step 1 — exact SQL
+- [x] Write `supabase/schema-098-vehicle-tracking.sql` (plan Task 1, Step 1 — exact SQL
   in the plan doc: `vehicles`, `vehicle_odometer_logs` tables, `expenses.vehicle_id`
   column, `can_access_vehicle()` function, all RLS policies, `log_vehicle_odometer()`
   RPC).
-- [ ] Apply via Supabase MCP `apply_migration` (name: `vehicle_tracking`).
-- [ ] Verify via `list_migrations` + the sanity-check query in the plan (Step 3).
-- [ ] Commit: `git add supabase/schema-098-vehicle-tracking.sql && git commit -m "handover: C-1 vehicle tracking schema + RLS + odometer RPC"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `vehicle_tracking`).
+- [x] Verify via `list_migrations` + the sanity-check query in the plan (Step 3).
+- [x] Commit: `git add supabase/schema-098-vehicle-tracking.sql && git commit -m "handover: C-1 vehicle tracking schema + RLS + odometer RPC"`
 
 ---
 
