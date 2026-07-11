@@ -85,24 +85,30 @@ for shared vehicles.
 ## C-2 — Standalone `/dashboard/vehicles` nav page
 
 *Conductor (before dispatching):*
-- [ ] `git mv "src/app/dashboard/expenses/vehicles" "src/app/dashboard/vehicles"`
+- [x] `git mv "src/app/dashboard/expenses/vehicles" "src/app/dashboard/vehicles"`
   (plan Task 2, Step 1)
 
 *Codex edits:*
-- [ ] Create `src/app/dashboard/vehicles/page.tsx` (plan Task 2, Step 2)
-- [ ] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 3)
-- [ ] Modify `src/components/nav/SidebarNav.tsx` (plan Task 2, Step 4)
-- [ ] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 5 — href
+- [x] Create `src/app/dashboard/vehicles/page.tsx` (plan Task 2, Step 2)
+- [x] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 3)
+- [x] Modify `src/components/nav/SidebarNav.tsx` (plan Task 2, Step 4)
+- [x] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 5 — href
   change only)
-- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 2, Step 6 —
+- [x] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 2, Step 6 —
   back-link text/href only)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm `/dashboard/vehicles` and
+- [x] `pnpm run build` — must pass clean; confirm `/dashboard/vehicles` and
   `/dashboard/vehicles/[id]` appear in the route table, and
   `/dashboard/expenses/vehicles/[id]` no longer does.
-- [ ] Commit: `git add src/app/dashboard/vehicles src/app/dashboard/expenses/page.tsx src/components/nav/SidebarNav.tsx src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-2 move Vehicles to its own nav page"`
+- [x] Commit: `git add src/app/dashboard/vehicles src/app/dashboard/expenses/page.tsx src/components/nav/SidebarNav.tsx src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-2 move Vehicles to its own nav page"`
+
+**Conductor correction (found during verify, not in Codex's diff):** the plan's Step 6
+only covered the back-link, but missed that `archiveVehicle()` in the same file still
+`router.push('/dashboard/expenses')`d after archiving — a stale redirect target now
+that Vehicles has moved off Expenses. Fixed directly: now pushes
+`/dashboard/vehicles`.
 
 ---
 

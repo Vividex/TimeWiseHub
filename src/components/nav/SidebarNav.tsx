@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Clock, CalendarDays, CalendarClock, Palmtree, Receipt, Users, FileText,
   TrendingUp, BarChart3, CreditCard, Download, HelpCircle, Settings,
-  MessageSquare, Sparkles, CalendarRange, Users2, Video, ScrollText, Network, Library, BookOpen, GraduationCap, type LucideIcon,
+  MessageSquare, Sparkles, CalendarRange, Users2, Video, ScrollText, Network, Library, BookOpen, GraduationCap, Car, type LucideIcon,
 } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import { useChatUnreadTotal } from '@/components/chat/ChatRealtimeProvider'
@@ -70,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { label: 'Invoices', href: '/dashboard/invoices', icon: FileText },
     { label: 'Expenses', href: '/dashboard/expenses', icon: Receipt },
     { label: 'Finance', href: '/dashboard/finance', icon: TrendingUp },
+    { label: 'Vehicles', href: '/dashboard/vehicles', icon: Car },
   ] },
   { title: 'People', items: [
     { label: 'Leave',   href: '/dashboard/leave',  icon: Palmtree },

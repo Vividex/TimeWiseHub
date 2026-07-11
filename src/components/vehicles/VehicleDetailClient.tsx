@@ -251,14 +251,14 @@ export default function VehicleDetailClient({
       return
     }
 
-    router.push('/dashboard/expenses')
+    router.push('/dashboard/vehicles')
     router.refresh()
   }
 
   return (
     <div className="space-y-6">
-      <Link href="/dashboard/expenses" className="text-sm font-bold text-cyan-600 hover:underline dark:text-cyan-400">
-        Back to expenses
+      <Link href="/dashboard/vehicles" className="text-sm font-bold text-cyan-600 hover:underline dark:text-cyan-400">
+        Back to vehicles
       </Link>
 
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">

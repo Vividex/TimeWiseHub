@@ -135,7 +135,7 @@ export default function VehiclesView({
             return (
               <Link
                 key={vehicle.id}
-                href={`/dashboard/expenses/vehicles/${vehicle.id}`}
+                href={`/dashboard/vehicles/${vehicle.id}`}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition-colors hover:border-cyan-200 hover:bg-cyan-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-cyan-500/40 dark:hover:bg-cyan-500/10"
               >
                 <div className="flex min-w-0 items-center gap-3">
