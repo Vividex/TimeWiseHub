@@ -10,7 +10,7 @@ export type Vehicle = {
   next_service_due_date: string | null
   next_service_due_km: number | null
   rego_expiry_date: string | null
-  notes: string | null
+  state: string | null
   is_archived: boolean
   created_by: string | null
   created_at: string

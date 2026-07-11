@@ -115,19 +115,24 @@ that Vehicles has moved off Expenses. Fixed directly: now pushes
 ## C-3 — Vehicle notes log
 
 *Codex edits:*
-- [ ] Modify `src/types/vehicles.ts` (plan Task 3, Step 0 — drop `notes`, add `state`
+- [x] Modify `src/types/vehicles.ts` (plan Task 3, Step 0 — drop `notes`, add `state`
   on the `Vehicle` type)
-- [ ] Modify `src/app/dashboard/vehicles/[id]/page.tsx` (plan Task 3, Step 1 — add the
+- [x] Modify `src/app/dashboard/vehicles/[id]/page.tsx` (plan Task 3, Step 1 — add the
   `vehicle_notes` fetch, exact before/after `Promise.all` in the plan doc)
-- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
+- [x] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 3, Step 2 —
   **first remove** the old single-text notes state/textarea/display/save-payload
   entry tied to the now-dropped column, **then add** the new notes-log state/handler/
   section — see the plan doc's explicit "naming collision" note, this order matters)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/vehicles.ts src/app/dashboard/vehicles/[id]/page.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 append-only vehicle notes log"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/vehicles.ts src/app/dashboard/vehicles/[id]/page.tsx src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-3 append-only vehicle notes log"`
+
+Verified clean: old notes state/textarea/display/save-payload fully removed before
+the new notes-log code was added, no naming collision. `VehicleNote` type gained a
+`vehicle_id` field beyond the plan's spec (harmless — matches the actual `select('*')`
+row shape, unused elsewhere). Build passed, route table unchanged from C-2.
 
 ---
 

@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Archive, Car, Gauge, ReceiptText, Wrench } from 'lucide-react'
+import { Archive, Car, Gauge, NotebookText, ReceiptText, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { REVIEW_STATUS_COLOUR, REVIEW_STATUS_LABEL, type ReviewStatus } from '@/lib/expenses'
 import { regoStatus, serviceStatus, STATUS_COLOUR, STATUS_LABEL } from '@/lib/vehicles'
@@ -11,6 +11,14 @@ import type { Vehicle, VehicleOdometerLog } from '@/types/vehicles'
 
 export type OrgMemberOption = { user_id: string; name: string }
 export type ExpenseCategoryOption = { id: string; name: string }
+
+export type VehicleNote = {
+  id: string
+  vehicle_id: string
+  note: string
+  created_by: string | null
+  created_at: string
+}
 
 export type VehicleExpense = {
   id: string
@@ -48,6 +56,7 @@ function vehicleTitle(vehicle: Vehicle) {
 export default function VehicleDetailClient({
   vehicle: initialVehicle,
   odometerLogs: initialOdometerLogs,
+  notes: initialNotes,
   expenses,
   members,
   categories,
@@ -58,6 +67,7 @@ export default function VehicleDetailClient({
 }: {
   vehicle: Vehicle
   odometerLogs: VehicleOdometerLog[]
+  notes: VehicleNote[]
   expenses: VehicleExpense[]
   members: OrgMemberOption[]
   categories: ExpenseCategoryOption[]
@@ -69,14 +79,18 @@ export default function VehicleDetailClient({
   const router = useRouter()
   const [vehicle, setVehicle] = useState(initialVehicle)
   const [odometerLogs, setOdometerLogs] = useState(initialOdometerLogs)
+  const [notes, setNotes] = useState(initialNotes)
 
   const [assignedUserId, setAssignedUserId] = useState(vehicle.assigned_user_id ?? '')
   const [nextServiceDueDate, setNextServiceDueDate] = useState(vehicle.next_service_due_date ?? '')
   const [nextServiceDueKm, setNextServiceDueKm] = useState(vehicle.next_service_due_km?.toString() ?? '')
   const [regoExpiryDate, setRegoExpiryDate] = useState(vehicle.rego_expiry_date ?? '')
-  const [notes, setNotes] = useState(vehicle.notes ?? '')
   const [savingVehicle, setSavingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
+
+  const [noteText, setNoteText] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
+  const [noteError, setNoteError] = useState<string | null>(null)
 
   const [odometerKm, setOdometerKm] = useState('')
   const [odometerNotes, setOdometerNotes] = useState('')
@@ -96,6 +110,12 @@ export default function VehicleDetailClient({
   const currentRegoStatus = regoStatus(vehicle)
   const currentServiceStatus = serviceStatus(vehicle)
   const assignedMember = members.find(member => member.user_id === vehicle.assigned_user_id)
+
+  function authorName(createdBy: string | null) {
+    if (!createdBy) return 'Unknown'
+    if (createdBy === userId) return 'You'
+    return members.find(member => member.user_id === createdBy)?.name ?? 'Team member'
+  }
 
   async function saveAssignment(nextAssignedUserId: string) {
     setAssignedUserId(nextAssignedUserId)
@@ -133,7 +153,6 @@ export default function VehicleDetailClient({
       next_service_due_date: nextServiceDueDate || null,
       next_service_due_km: nextServiceDueKm ? parseInt(nextServiceDueKm, 10) : null,
       rego_expiry_date: regoExpiryDate || null,
-      notes: notes.trim() || null,
     }
 
     const supabase = createClient()
@@ -147,6 +166,39 @@ export default function VehicleDetailClient({
 
     setVehicle(prev => ({ ...prev, ...updates }))
     setSavingVehicle(false)
+    router.refresh()
+  }
+
+  async function addNote(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!canLog) return
+
+    const note = noteText.trim()
+    if (!note) return
+
+    setSavingNote(true)
+    setNoteError(null)
+
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('vehicle_notes')
+      .insert({
+        vehicle_id: vehicle.id,
+        note,
+        created_by: userId,
+      })
+      .select('*')
+      .single()
+
+    if (error) {
+      setNoteError(error.message)
+      setSavingNote(false)
+      return
+    }
+
+    setNotes(prev => [data as VehicleNote, ...prev])
+    setNoteText('')
+    setSavingNote(false)
     router.refresh()
   }
 
@@ -337,11 +389,6 @@ export default function VehicleDetailClient({
                 <input type="number" min="0" value={nextServiceDueKm} onChange={event => setNextServiceDueKm(event.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Notes</label>
-                <textarea value={notes} onChange={event => setNotes(event.target.value)} rows={4}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
-              </div>
               <button type="submit" disabled={savingVehicle} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
                 {savingVehicle ? 'Saving...' : 'Save vehicle details'}
               </button>
@@ -360,12 +407,6 @@ export default function VehicleDetailClient({
                 <dt className="text-xs font-semibold text-gray-500 dark:text-slate-400">Next service km</dt>
                 <dd className="font-bold text-gray-900 dark:text-slate-100">{vehicle.next_service_due_km?.toLocaleString() ?? 'Not set'}</dd>
               </div>
-              {vehicle.notes && (
-                <div className="rounded-xl bg-gray-50 p-3 dark:bg-slate-800 sm:col-span-2">
-                  <dt className="text-xs font-semibold text-gray-500 dark:text-slate-400">Notes</dt>
-                  <dd className="whitespace-pre-wrap font-semibold text-gray-700 dark:text-slate-200">{vehicle.notes}</dd>
-                </div>
-              )}
             </dl>
           )}
         </div>
@@ -409,6 +450,48 @@ export default function VehicleDetailClient({
             </ul>
           )}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4 flex items-center gap-2">
+          <NotebookText size={18} className="text-cyan-600 dark:text-cyan-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Notes</h2>
+        </div>
+
+        {canLog && (
+          <form onSubmit={addNote} className="mb-5 space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Add note</label>
+              <textarea required value={noteText} onChange={event => setNoteText(event.target.value)} rows={3}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+            </div>
+            {noteError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{noteError}</p>}
+            <button type="submit" disabled={savingNote || !noteText.trim()} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+              {savingNote ? 'Saving...' : 'Add note'}
+            </button>
+          </form>
+        )}
+
+        {notes.length === 0 ? (
+          <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">No notes yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {notes.map(note => (
+              <li key={note.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
+                <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-slate-200">{note.note}</p>
+                <p className="mt-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                  {authorName(note.created_by)} · {new Date(note.created_at).toLocaleString('en-AU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">

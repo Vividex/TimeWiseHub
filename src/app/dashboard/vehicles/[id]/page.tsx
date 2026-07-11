@@ -4,6 +4,7 @@ import VehicleDetailClient, {
   type ExpenseCategoryOption,
   type OrgMemberOption,
   type VehicleExpense,
+  type VehicleNote,
 } from '@/components/vehicles/VehicleDetailClient'
 import type { Vehicle, VehicleOdometerLog } from '@/types/vehicles'
 
@@ -34,6 +35,7 @@ export default async function VehicleDetailPage({
     { data: membership },
     { data: members },
     { data: categories },
+    { data: vehicleNotes },
   ] = await Promise.all([
     supabase
       .from('vehicle_odometer_logs')
@@ -61,6 +63,11 @@ export default async function VehicleDetailPage({
       .from('expense_categories')
       .select('id, name')
       .order('name'),
+    supabase
+      .from('vehicle_notes')
+      .select('*')
+      .eq('vehicle_id', currentVehicle.id)
+      .order('created_at', { ascending: false }),
   ])
 
   const canEdit = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
@@ -81,6 +88,7 @@ export default async function VehicleDetailPage({
         <VehicleDetailClient
           vehicle={currentVehicle}
           odometerLogs={(odometerLogs ?? []) as VehicleOdometerLog[]}
+          notes={(vehicleNotes ?? []) as VehicleNote[]}
           expenses={(linkedExpenses ?? []) as unknown as VehicleExpense[]}
           members={memberOptions}
           categories={(categories ?? []) as ExpenseCategoryOption[]}
