@@ -31,8 +31,8 @@ export default function HeroSection() {
               Everything your team needs, in one place.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
-              Manage projects, time, invoices, rosters, expenses, team communication and
-              AI-powered workflows from one platform.
+              Manage projects, time, invoices, rosters, vehicles, expenses, team
+              communication and AI-powered workflows from one platform.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">

@@ -49,6 +49,11 @@ const FEATURES = [
     href: '#showcase',
   },
   {
+    title: 'Vehicle tracking',
+    body: 'Track rego, servicing and odometer readings for every company vehicle, with costs feeding straight into expenses.',
+    href: '#showcase',
+  },
+  {
     title: 'Team chat and video',
     body: 'Keep team conversations, direct messages, groups and scheduled calls in the same workspace.',
     href: '#showcase',

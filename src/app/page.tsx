@@ -10,7 +10,7 @@ import Footer from '@/components/landing/Footer'
 export const metadata: Metadata = {
   title: 'TimeWise Hub | All-in-One Business Management Platform',
   description:
-    'TimeWise Hub helps businesses manage projects, time tracking, invoices, rosters, expenses, team communication and AI-powered workflows in one platform.',
+    'TimeWise Hub helps businesses manage projects, time tracking, invoices, rosters, vehicles, expenses, team communication and AI-powered workflows in one platform.',
 }
 
 export default async function Home() {
