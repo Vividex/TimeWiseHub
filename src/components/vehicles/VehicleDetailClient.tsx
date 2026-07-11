@@ -85,6 +85,8 @@ export default function VehicleDetailClient({
   const [nextServiceDueDate, setNextServiceDueDate] = useState(vehicle.next_service_due_date ?? '')
   const [nextServiceDueKm, setNextServiceDueKm] = useState(vehicle.next_service_due_km?.toString() ?? '')
   const [regoExpiryDate, setRegoExpiryDate] = useState(vehicle.rego_expiry_date ?? '')
+  const [refreshingRego, setRefreshingRego] = useState(false)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
   const [savingVehicle, setSavingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
 
@@ -167,6 +169,27 @@ export default function VehicleDetailClient({
     setVehicle(prev => ({ ...prev, ...updates }))
     setSavingVehicle(false)
     router.refresh()
+  }
+
+  async function refreshRegoDetails() {
+    if (!vehicle.state) {
+      setRefreshError('Set a state on this vehicle before refreshing rego details.')
+      return
+    }
+    setRefreshingRego(true)
+    setRefreshError(null)
+
+    const res = await fetch('/api/vehicles/lookup-rego', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationNumber: vehicle.registration_number, state: vehicle.state }),
+    })
+    const json = await res.json()
+
+    setRefreshingRego(false)
+    if (!res.ok) { setRefreshError(json.error ?? 'Lookup failed.'); return }
+
+    if (json.regoExpiryDate) setRegoExpiryDate(json.regoExpiryDate)
   }
 
   async function addNote(event: FormEvent<HTMLFormElement>) {
@@ -377,6 +400,11 @@ export default function VehicleDetailClient({
                   <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Rego expiry</label>
                   <input type="date" value={regoExpiryDate} onChange={event => setRegoExpiryDate(event.target.value)}
                     className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+                  <button type="button" onClick={refreshRegoDetails} disabled={refreshingRego}
+                    className="mt-1.5 text-xs font-semibold text-cyan-600 hover:underline disabled:opacity-50 dark:text-cyan-400">
+                    {refreshingRego ? 'Refreshing…' : 'Refresh rego details'}
+                  </button>
+                  {refreshError && <p className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">{refreshError}</p>}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Next service date</label>

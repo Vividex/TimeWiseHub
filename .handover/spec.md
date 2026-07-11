@@ -139,20 +139,25 @@ row shape, unused elsewhere). Build passed, route table unchanged from C-2.
 ## C-4 — Rego lookup
 
 *Codex edits:*
-- [ ] Create `src/app/api/vehicles/lookup-rego/route.ts` (plan Task 4, Step 1 — exact
+- [x] Create `src/app/api/vehicles/lookup-rego/route.ts` (plan Task 4, Step 1 — exact
   code in the plan doc; see the plan's "Important caveat" note about field-name
   uncertainty, that's expected, not a mistake to fix)
-- [ ] Modify `.env.example` (plan Task 4, Step 2)
-- [ ] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 4, Step 3 — state
+- [x] Modify `.env.example` (plan Task 4, Step 2)
+- [x] Modify `src/components/vehicles/VehiclesView.tsx` (plan Task 4, Step 3 — state
   selector, Look up button, form field reshuffle — exact before/after in the plan doc)
-- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 4, Step 4 —
+- [x] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 4, Step 4 —
   "Refresh rego details" button)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm `/api/vehicles/lookup-rego` appears
+- [x] `pnpm run build` — must pass clean; confirm `/api/vehicles/lookup-rego` appears
   in the route table.
-- [ ] Commit: `git add src/app/api/vehicles/lookup-rego src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx .env.example && git commit -m "handover: C-4 rego lookup (CarRegistrationAPI) for auto-filling vehicle details"`
+- [x] Commit: `git add src/app/api/vehicles/lookup-rego src/components/vehicles/VehiclesView.tsx src/components/vehicles/VehicleDetailClient.tsx .env.example && git commit -m "handover: C-4 rego lookup (CarRegistrationAPI) for auto-filling vehicle details"`
+
+Verified clean against all 4 files: route/env exactly match the plan; VehiclesView's
+state selector, Look-up button, and field reshuffle match exactly; VehicleDetailClient's
+`refreshingRego`/`refreshError` state correctly avoids colliding with C-3's `notes`
+state. Build passed, `/api/vehicles/lookup-rego` present in the route table.
 
 ---
 

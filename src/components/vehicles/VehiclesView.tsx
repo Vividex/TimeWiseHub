@@ -12,6 +12,8 @@ import type { Vehicle } from '@/types/vehicles'
 
 export type OrgMemberOption = { user_id: string; name: string }
 
+const AU_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'ACT', 'NT', 'WA', 'TAS']
+
 export default function VehiclesView({
   vehicles,
   orgId,
@@ -33,10 +35,36 @@ export default function VehiclesView({
   const [year, setYear] = useState('')
   const [make, setMake] = useState('')
   const [model, setModel] = useState('')
+  const [state, setState] = useState('')
+  const [lookingUp, setLookingUp] = useState(false)
+  const [lookupError, setLookupError] = useState<string | null>(null)
+  const [regoExpiryDate, setRegoExpiryDate] = useState('')
   const [assignedUserId, setAssignedUserId] = useState('')
 
   function resetForm() {
-    setRego(''); setYear(''); setMake(''); setModel(''); setAssignedUserId(''); setError(null)
+    setRego(''); setYear(''); setMake(''); setModel(''); setAssignedUserId('')
+    setState(''); setRegoExpiryDate(''); setLookupError(null); setError(null)
+  }
+
+  async function lookupRego() {
+    if (!rego.trim() || !state) return
+    setLookingUp(true)
+    setLookupError(null)
+
+    const res = await fetch('/api/vehicles/lookup-rego', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationNumber: rego, state }),
+    })
+    const json = await res.json()
+
+    setLookingUp(false)
+    if (!res.ok) { setLookupError(json.error ?? 'Lookup failed.'); return }
+
+    if (json.make) setMake(json.make)
+    if (json.model) setModel(json.model)
+    if (json.year) setYear(String(json.year))
+    if (json.regoExpiryDate) setRegoExpiryDate(json.regoExpiryDate)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,6 +80,8 @@ export default function VehiclesView({
       make: make.trim() || null,
       model: model.trim() || null,
       assigned_user_id: assignedUserId || null,
+      state: state || null,
+      rego_expiry_date: regoExpiryDate || null,
     })
 
     if (insertError) { setError(insertError.message); setSaving(false); return }
@@ -83,19 +113,36 @@ export default function VehiclesView({
 
       {open && canManage && (
         <form onSubmit={handleSubmit} className="mb-5 space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Registration *</label>
               <input required value={rego} onChange={e => setRego(e.target.value)} placeholder="ABC123"
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Year</label>
-              <input type="number" value={year} onChange={e => setYear(e.target.value)} placeholder="2022"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">State</label>
+              <select value={state} onChange={e => setState(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                <option value="">Select state</option>
+                {AU_STATES.map(code => <option key={code} value={code}>{code}</option>)}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button type="button" onClick={lookupRego} disabled={lookingUp || !rego.trim() || !state}
+                className="w-full rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-100 disabled:opacity-50 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-300">
+                {lookingUp ? 'Looking up…' : 'Look up'}
+              </button>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Rego expiry</label>
+              <input type="date" value={regoExpiryDate} onChange={e => setRegoExpiryDate(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+            </div>
+          </div>
+          {lookupError && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">{lookupError}</p>}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Make</label>
               <input value={make} onChange={e => setMake(e.target.value)} placeholder="Toyota"
@@ -104,6 +151,11 @@ export default function VehiclesView({
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Model</label>
               <input value={model} onChange={e => setModel(e.target.value)} placeholder="Hilux"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Year</label>
+              <input type="number" value={year} onChange={e => setYear(e.target.value)} placeholder="2022"
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
             </div>
           </div>
