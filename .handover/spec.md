@@ -82,21 +82,34 @@ assigned employee can view/log km/log expenses for their own vehicle only. Dashb
 ## C-2 — Vehicles list on Expenses page + vehicle-tag business expenses
 
 *Codex edits:*
-- [ ] Create `src/types/vehicles.ts` (plan Task 2, Step 1 — exact code in the plan doc)
-- [ ] Create `src/lib/vehicles.ts` (plan Task 2, Step 2 — exact code in the plan doc)
-- [ ] Create `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 3 — exact
-  code in the plan doc)
-- [ ] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 4 — exact
-  replacement file in the plan doc)
-- [ ] Modify `src/components/expenses/BusinessExpensesView.tsx` (plan Task 4, Steps
-  1-5 — add `vehicles` prop, vehicle-select state, include `vehicle_id` in the insert
-  payload and form reset, add the dropdown to the form. Exact before/after code in the
-  plan doc.)
-- [ ] Report back — list files changed.
+- [x] Create `src/types/vehicles.ts` (plan Task 2, Step 1 — exact code in the plan doc)
+- [x] Create `src/lib/vehicles.ts` (plan Task 2, Step 2 — exact code in the plan doc)
+- [x] Create `src/components/vehicles/VehiclesView.tsx` (plan Task 2, Step 3 — matches
+  in substance, not verbatim — Codex hit the Windows sandbox subprocess limitation
+  mid-turn and re-implemented from memory rather than transcribing the plan exactly;
+  cosmetic differences only, e.g. list-row layout instead of card grid, "Create
+  vehicle" instead of "Add vehicle" button text)
+- [x] Replace `src/app/dashboard/expenses/page.tsx` (plan Task 2, Step 4 — one real
+  behavioral deviation found + fixed by the conductor, see below)
+- [x] Modify `src/components/expenses/BusinessExpensesView.tsx` (plan Task 4, Steps
+  1-5 — matches the plan exactly, including the dropdown's placement)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/vehicles.ts src/lib/vehicles.ts src/components/vehicles/VehiclesView.tsx src/app/dashboard/expenses/page.tsx src/components/expenses/BusinessExpensesView.tsx && git commit -m "handover: C-2 vehicles list on Expenses page + vehicle-tag business expenses"`
+- [x] `pnpm run build` — passes clean.
+- [x] **Deviation found + fixed during verification:** Codex's `expenses/page.tsx`
+  showed the Vehicles section to any team-plan org member (`membership?.org_id &&
+  isTeamPlan(subscription)`), not just manager+ or someone with a visible vehicle —
+  meaning a plain employee with no assigned vehicle saw an empty "Vehicles" card
+  instead of nothing, contradicting the approved spec ("An employee with no assigned
+  vehicle sees nothing in the Vehicles section"). RLS itself was never wrong (the
+  fetched `vehicleList` was already correctly empty for that user) — this was a
+  display-condition bug only. Fixed directly by the conductor (small, well-understood
+  correction, not a full Codex turn): split the fetch-gate (`canSeeVehicles`, still
+  org+team-plan) from the render-gate (`showVehicles = isManager ||
+  vehicleList.length > 0`), matching the plan's original Step 4 logic. Rebuilt clean
+  after the fix.
+- [x] Commit: `git add src/types/vehicles.ts src/lib/vehicles.ts src/components/vehicles/VehiclesView.tsx src/app/dashboard/expenses/page.tsx src/components/expenses/BusinessExpensesView.tsx && git commit -m "handover: C-2 vehicles list on Expenses page + vehicle-tag business expenses"`
 
 ---
 

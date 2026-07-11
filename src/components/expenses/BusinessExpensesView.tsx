@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { addInterval, daysUntil, markExpenseCyclePaid, REVIEW_STATUS_LABEL, REVIEW_STATUS_COLOUR, type RecurrenceInterval, type ReviewStatus } from '@/lib/expenses'
+import type { Vehicle } from '@/types/vehicles'
 
 type Category = { id: string; name: string }
 type Filter = 'all' | 'pending'
@@ -49,11 +50,13 @@ export default function BusinessExpensesView({
   orgId,
   categories,
   canApprove,
+  vehicles,
 }: {
   userId: string
   orgId: string
   categories: Category[]
   canApprove: boolean
+  vehicles: Vehicle[]
 }) {
   const [expenses, setExpenses] = useState<BusinessExpense[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,6 +75,7 @@ export default function BusinessExpensesView({
   const [recurring, setRecurring] = useState(false)
   const [interval, setInterval] = useState<RecurrenceInterval>('monthly')
   const [nextBillingDate, setNextBillingDate] = useState(today())
+  const [vehicleId, setVehicleId] = useState('')
 
   const loadExpenses = useCallback(async function loadExpenses() {
     const supabase = createClient()
@@ -99,6 +103,7 @@ export default function BusinessExpensesView({
     setRecurring(false)
     setInterval('monthly')
     setNextBillingDate(today())
+    setVehicleId('')
     setError(null)
   }
 
@@ -120,6 +125,7 @@ export default function BusinessExpensesView({
       recurrence_interval: recurring ? interval : null,
       next_billing_date: recurring ? nextBillingDate : null,
       expense_date: recurring ? nextBillingDate : today(),
+      vehicle_id: vehicleId || null,
     }
 
     const supabase = createClient()
@@ -219,6 +225,17 @@ export default function BusinessExpensesView({
               </select>
             </div>
           </div>
+
+          {vehicles.length > 0 && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Vehicle (optional)</label>
+              <select value={vehicleId} onChange={e => setVehicleId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <option value="">Not vehicle-related</option>
+                {vehicles.map(v => <option key={v.id} value={v.id}>{v.registration_number}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
