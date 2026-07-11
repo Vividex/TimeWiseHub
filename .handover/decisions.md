@@ -86,7 +86,7 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Vehicle Tracking) [current phase]
+## Notes (Vehicle Tracking) [code complete, manual smoke pending]
 - Source spec: docs/superpowers/specs/2026-07-11-vehicle-tracking-design.md
 - Source plan: docs/superpowers/plans/2026-07-11-vehicle-tracking.md
 - Direct feature request: track company vehicles (rego, servicing, receipts, km,
@@ -131,6 +131,30 @@
   migration via Supabase MCP. Plan Task 2 (Expenses page) and Task 4 (Business
   Expenses vehicle picker) are bundled into one handover item (C-2) since splitting
   them leaves an intermediate broken build.
+- **All 4 implementation items (C-1 through C-4) complete and verified (2026-07-11).**
+  Codex hit the known Windows `workspace-write` sandbox subprocess limitation
+  (`CreateProcessAsUserW failed: 5`) partway through C-2 and briefly during C-4's
+  setup — its own shell-based re-verification reads failed both times, but its file
+  edits (internal editor, not shell) went through regardless and it reported the
+  limitation honestly rather than claiming full verification. C-3 and the rest of C-4
+  ran clean with no sandbox issues. Every turn was verified directly by the conductor
+  (Read the actual files + `pnpm run build`), not taken on Codex's report alone — two
+  real, small deviations were found and fixed this way:
+  (1) C-2: `expenses/page.tsx` showed the Vehicles section to any team-plan org member
+  instead of gating it to manager+ or someone with a visible vehicle, contradicting
+  the approved spec's "employee with no assigned vehicle sees nothing" — RLS itself
+  was always correct, this was a display-condition bug only.
+  (2) C-4: neither expense-block's `isLast` border check accounted for
+  `vehiclesDue.length`, so the row before the new vehicle rows would render without a
+  divider whenever vehicle-due items exist but approvals/unread/timed items are all
+  empty — my own C-4 dispatch instruction only flagged the *approvals* block as
+  needing no border change, not these two, which is the actual root cause of the miss.
+  Both fixed directly by the conductor as small, well-understood corrections, not full
+  Codex turns. Full `pnpm run build` passes clean end-to-end. Remaining: the manual
+  smoke test (crew isolation both directions, assigned-employee-only visibility,
+  dashboard Today due-items) requires the user's own authenticated sessions for real
+  team members — same precedent as every prior phase, the conductor has no
+  credentials for the real `admin@vividex.au` account.
 
 ## Notes (Session-Scheduled Client Email) [complete, kept for reference]
 - **Post-ship debugging (2026-07-10):** first live test showed no email arriving for a recurring
