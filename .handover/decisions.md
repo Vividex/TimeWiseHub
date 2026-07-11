@@ -5,9 +5,12 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Session-Scheduled Client Email (current phase): zero cost — pure code, no schema change, no new
-  npm dependencies, reuses the existing Resend/Client-Email-Messaging infrastructure and branding
-  helpers already paid for.
+- Vehicle Tracking (current phase): zero cost — pure code + one additive DB migration (two new
+  tables, one new nullable FK column, one new function, one new SECURITY DEFINER RPC), no new npm
+  dependencies, no external API calls.
+- Session-Scheduled Client Email (prior phase, complete): zero cost — pure code, no schema change,
+  no new npm dependencies, reuses the existing Resend/Client-Email-Messaging infrastructure and
+  branding helpers already paid for.
 - Subjects Folder Navigation + Search (inserted mid-loop, C-4.5, complete): zero cost — pure code,
   no schema change, no new dependencies, reuses existing RLS/access boundaries exactly.
 - Program-Subjects Content Linking (complete, C-7 through C-11): zero cost — pure code + one
@@ -82,6 +85,52 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Vehicle Tracking) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-11-vehicle-tracking-design.md
+- Source plan: docs/superpowers/plans/2026-07-11-vehicle-tracking.md
+- Direct feature request: track company vehicles (rego, servicing, receipts, km,
+  employee assignment) feeding into Business Expenses; raised alongside "should
+  paychecks feed business expenses too" — investigated and resolved without new code:
+  payroll already summed into the Finance page's P&L/pie chart via a separate
+  `pay_statements` join, it was just showing $0 because no team member had an hourly
+  rate set. User set everyone to $50/hr mid-session; backdated 3 real weekly pay runs
+  from actually-logged (previously unapproved/submitted) timesheet hours at that rate
+  — not synthetic numbers — confirmed by direct SQL, not through the app UI (no
+  credentials for the real admin account in this session).
+- New crew-scoped visibility model (`can_access_vehicle()`): owner/admin always;
+  manager scoped to their own crew's members (falls back to org-wide for
+  unassigned/non-crew vehicles); anyone can view/log km/log expenses for a vehicle
+  assigned to themselves regardless of role, but never edit it. First time this
+  codebase scopes anything by crew — `crew_members`/`crews.manager_id` previously had
+  no visibility restriction anywhere (any org member could already view any crew).
+- Vehicle costs are literally `is_business` expense rows with a `vehicle_id` tag — no
+  separate ledger, so they automatically show up in the existing Business Expenses
+  list, approval flow, and the Finance page's category pie chart with zero extra code.
+- **Real correction caught during plan-writing, before any code was written:** the
+  approved spec said "`ExpenseForm` gains a vehicle picker" — checking the actual
+  component revealed `ExpenseForm.tsx` never sets `is_business` at all (personal
+  expenses only); the real business-expense creation form is inline inside
+  `BusinessExpensesView.tsx`. Fixed by targeting the correct component in the plan: a
+  vehicle dropdown on `BusinessExpensesView`'s form, plus the vehicle detail page gets
+  its own separate, small expense-logging form (since an assigned employee — who needs
+  to log vehicle expenses per the approved design — is never shown
+  `BusinessExpensesView` at all, that component is manager+-gated).
+- Odometer readings update the vehicle's denormalized `current_odometer_km` through a
+  SECURITY DEFINER RPC (`log_vehicle_odometer`), not a raw table UPDATE — the assigned
+  employee is deliberately not granted `vehicles` UPDATE by RLS (editing stays
+  manager+-only), so the RPC is their one narrow, purpose-built write path found while
+  translating the approved design into concrete RLS policies.
+- Archive (soft-delete) is the only retirement UI this pass; a DB-level admin/owner
+  hard-delete RLS policy exists for completeness but no UI button calls it yet
+  (deliberate trim, noted in both the plan and this file, not a silent omission).
+- 30-day / 500km "due soon" thresholds are shared constants (`src/lib/vehicles.ts`)
+  used by both the vehicle detail badges and the dashboard "Today" widget extension, so
+  the two can never disagree.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB
+  migration via Supabase MCP. Plan Task 2 (Expenses page) and Task 4 (Business
+  Expenses vehicle picker) are bundled into one handover item (C-2) since splitting
+  them leaves an intermediate broken build.
 
 ## Notes (Session-Scheduled Client Email) [complete, kept for reference]
 - **Post-ship debugging (2026-07-10):** first live test showed no email arriving for a recurring
