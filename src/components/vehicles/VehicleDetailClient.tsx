@@ -96,6 +96,7 @@ export default function VehicleDetailClient({
 
   const [odometerKm, setOdometerKm] = useState('')
   const [odometerNotes, setOdometerNotes] = useState('')
+  const [drivenBy, setDrivenBy] = useState('')
   const [savingOdometer, setSavingOdometer] = useState(false)
   const [odometerError, setOdometerError] = useState<string | null>(null)
 
@@ -238,6 +239,7 @@ export default function VehicleDetailClient({
       p_vehicle_id: vehicle.id,
       p_odometer_km: reading,
       p_notes: odometerNotes.trim() || null,
+      p_driven_by: drivenBy || null,
     })
 
     if (error) {
@@ -251,6 +253,7 @@ export default function VehicleDetailClient({
     setVehicle(prev => ({ ...prev, current_odometer_km: reading }))
     setOdometerKm('')
     setOdometerNotes('')
+    setDrivenBy('')
     setSavingOdometer(false)
     router.refresh()
   }
@@ -457,6 +460,14 @@ export default function VehicleDetailClient({
                 <input value={odometerNotes} onChange={event => setOdometerNotes(event.target.value)} placeholder="Optional"
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
               </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Driven by (optional)</label>
+                <select value={drivenBy} onChange={event => setDrivenBy(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">Not specified</option>
+                  {members.map(member => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}
+                </select>
+              </div>
               {odometerError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{odometerError}</p>}
               <button type="submit" disabled={savingOdometer} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
                 {savingOdometer ? 'Saving...' : 'Log odometer'}
@@ -471,7 +482,9 @@ export default function VehicleDetailClient({
               {odometerLogs.map(log => (
                 <li key={log.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
                   <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{log.odometer_km.toLocaleString()} km</p>
-                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">{displayDate(log.logged_at)}</p>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                    {displayDate(log.logged_at)}{log.driven_by ? ` — driven by ${authorName(log.driven_by)}` : ''}
+                  </p>
                   {log.notes && <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">{log.notes}</p>}
                 </li>
               ))}
@@ -572,8 +585,8 @@ export default function VehicleDetailClient({
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Receipt (optional)</label>
-              <input type="file" accept="image/*,.pdf" onChange={event => setExpenseReceipt(event.target.files?.[0] ?? null)}
+              <label className="mb-1 block text-xs font-semibold text-gray-500 dark:text-slate-400">Receipt *</label>
+              <input type="file" required accept="image/*,.pdf" onChange={event => setExpenseReceipt(event.target.files?.[0] ?? null)}
                 className="w-full text-sm font-medium text-gray-500 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-cyan-600 hover:file:bg-cyan-100" />
             </div>
             {expenseError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{expenseError}</p>}

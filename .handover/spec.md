@@ -177,36 +177,41 @@ state. Build passed, `/api/vehicles/lookup-rego` present in the route table.
 ## C-6 — Required receipts + driver attribution UI
 
 *Codex edits:*
-- [ ] Modify `src/types/vehicles.ts` (plan Task 5, Step 2 — add `driven_by` to
+- [x] Modify `src/types/vehicles.ts` (plan Task 5, Step 2 — add `driven_by` to
   `VehicleOdometerLog`)
-- [ ] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 5, Step 3 —
+- [x] Modify `src/components/vehicles/VehicleDetailClient.tsx` (plan Task 5, Step 3 —
   two independent changes: (a) required receipt on the vehicle-expense form, (b)
   "Driven by" select on the odometer form + RPC call + list display. Exact
   before/after code in the plan doc.)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/vehicles.ts src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-6 required vehicle-expense receipts + optional driven-by on odometer log"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/vehicles.ts src/components/vehicles/VehicleDetailClient.tsx && git commit -m "handover: C-6 required vehicle-expense receipts + optional driven-by on odometer log"`
+
+Verified clean: `driven_by` on the type, required receipt (`Receipt *` + `required`),
+`drivenBy` state/RPC param/reset/select/list display all match the plan exactly (one
+cosmetic wording difference: placeholder reads "Not specified" vs. the plan's "Not
+recorded" — harmless). Full `pnpm run build` passed clean end-to-end.
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `vehicle_notes` table + RLS, `vehicles.state` column, `vehicles.notes`
+- [x] C-1: `vehicle_notes` table + RLS, `vehicles.state` column, `vehicles.notes`
   column dropped, all apply cleanly.
-- [ ] C-2: "Vehicles" nav item routes to `/dashboard/vehicles`; the old embedded
+- [x] C-2: "Vehicles" nav item routes to `/dashboard/vehicles`; the old embedded
   section is gone from Expenses; vehicle detail lives at `/dashboard/vehicles/[id]`.
-- [ ] C-3: Notes log works (add/view, append-only), no leftover reference to the
+- [x] C-3: Notes log works (add/view, append-only), no leftover reference to the
   dropped `vehicles.notes` column anywhere.
-- [ ] C-4: Add-vehicle and vehicle-detail "Look up"/"Refresh" both call the rego
+- [x] C-4: Add-vehicle and vehicle-detail "Look up"/"Refresh" both call the rego
   lookup API and fill fields on success, degrade gracefully on failure/missing key.
-- [ ] C-5/C-6: vehicle-expense receipt is required; odometer log can optionally
+- [x] C-5/C-6: vehicle-expense receipt is required; odometer log can optionally
   record who was driving and displays it when set.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test (crew isolation, real rego lookup once `CAR_REGO_API_KEY`
   exists, receipt requirement, driven-by display) — requires the user's own
   authenticated sessions and real API credentials, same precedent as every prior
-  phase.
+  phase. **User follow-up, not the conductor's to complete.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint)

@@ -22,6 +22,7 @@ export type VehicleOdometerLog = {
   odometer_km: number
   logged_at: string
   logged_by: string | null
+  driven_by: string | null
   notes: string | null
   created_at: string
 }
