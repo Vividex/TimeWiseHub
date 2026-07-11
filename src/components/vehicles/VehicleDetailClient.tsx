@@ -100,10 +100,12 @@ export default function VehicleDetailClient({
   const [savingOdometer, setSavingOdometer] = useState(false)
   const [odometerError, setOdometerError] = useState<string | null>(null)
 
+  const defaultExpenseCategoryId = categories.find(category => category.name === 'Vehicle Maintenance')?.id ?? ''
+
   const [expenseOpen, setExpenseOpen] = useState(false)
   const [expenseAmount, setExpenseAmount] = useState('')
   const [expenseCurrency, setExpenseCurrency] = useState('AUD')
-  const [expenseCategoryId, setExpenseCategoryId] = useState('')
+  const [expenseCategoryId, setExpenseCategoryId] = useState(defaultExpenseCategoryId)
   const [expenseDate, setExpenseDate] = useState(today())
   const [expenseDescription, setExpenseDescription] = useState('')
   const [expenseReceipt, setExpenseReceipt] = useState<File | null>(null)
@@ -305,7 +307,7 @@ export default function VehicleDetailClient({
 
     setExpenseAmount('')
     setExpenseCurrency('AUD')
-    setExpenseCategoryId('')
+    setExpenseCategoryId(defaultExpenseCategoryId)
     setExpenseDate(today())
     setExpenseDescription('')
     setExpenseReceipt(null)
