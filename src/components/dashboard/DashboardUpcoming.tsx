@@ -205,7 +205,7 @@ export default function DashboardUpcoming({
           return (
             <Link
               key={`vehicle-${item.kind}-${item.id}`}
-              href={`/dashboard/expenses/vehicles/${item.id}`}
+              href={`/dashboard/vehicles/${item.id}`}
               className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${!isLast ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
