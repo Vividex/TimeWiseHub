@@ -5,6 +5,7 @@ import invoices from '../../../promo/pc invoices.png'
 import rostering from '../../../promo/pc rostering.png'
 import client from '../../../promo/pc client.png'
 import vehicles from '../../../promo/pc vehicles.png'
+import finance from '../../../promo/pc finance.png'
 import assistant from '../../../promo/pc ai.png'
 import chat from '../../../promo/pc team chat.png'
 import hrProfiles from '../../../promo/pc hr profiles.png'
@@ -23,6 +24,7 @@ export const SHOWCASE_IMAGES: ShowcaseItem[] = [
   { label: 'Roster', image: rostering, alt: 'TimeWiseHub rostering screen' },
   { label: 'Clients', image: client, alt: 'TimeWiseHub client management screen' },
   { label: 'Vehicles', image: vehicles, alt: 'TimeWiseHub vehicle tracking screen' },
+  { label: 'Finance', image: finance, alt: 'TimeWiseHub company finance screen' },
   { label: 'Assistant', image: assistant, alt: 'TimeWiseHub AI assistant screen' },
   { label: 'Chat', image: chat, alt: 'TimeWiseHub team chat screen' },
   { label: 'Team', image: hrProfiles, alt: 'TimeWiseHub HR profiles screen' },

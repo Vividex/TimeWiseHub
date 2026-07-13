@@ -4,6 +4,7 @@ import students from '../../../promo/tutoring-students.png'
 import subjects from '../../../promo/tutoring-subjects.png'
 import sessions from '../../../promo/tutoring-sessions.png'
 import invoices from '../../../promo/tutoring-invoices.png'
+import finance from '../../../promo/tutoring-finance.png'
 
 type ShowcaseItem = {
   label: string
@@ -17,6 +18,7 @@ export const SHOWCASE_IMAGES: ShowcaseItem[] = [
   { label: 'Subjects', image: subjects, alt: 'TimeWiseHub subjects and topics screen' },
   { label: 'Sessions', image: sessions, alt: 'TimeWiseHub lesson scheduling screen' },
   { label: 'Invoices', image: invoices, alt: 'TimeWiseHub tutoring invoices screen' },
+  { label: 'Finance', image: finance, alt: 'TimeWiseHub tutoring company finance screen' },
 ]
 
 const FEATURES = [
