@@ -117,19 +117,25 @@ reports and non-manager viewers. No discrepancies found.
 ## C-5 — Print view
 
 *Codex edits:*
-- [ ] Modify `src/components/DashboardShell.tsx` (plan Task 5, Step 1 —
+- [x] Modify `src/components/DashboardShell.tsx` (plan Task 5, Step 1 —
   rename `isInvoicePrint` to `isPrintRoute` and generalize the path check;
   exact before/after in the plan doc)
-- [ ] Create `src/app/dashboard/incident-reports/[id]/print/page.tsx` (plan
+- [x] Create `src/app/dashboard/incident-reports/[id]/print/page.tsx` (plan
   Task 5, Step 2)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm
+- [x] `pnpm run build` — must pass clean; confirm
   `/dashboard/incident-reports/[id]/print` appears in the route table.
-- [ ] Manual check: visit an existing invoice's print page, confirm it still
+- [x] Manual check: visit an existing invoice's print page, confirm it still
   renders without the sidebar (the `isPrintRoute` rename must not regress it).
-- [ ] Commit: `git add src/app/dashboard/incident-reports/[id]/print/page.tsx src/components/DashboardShell.tsx && git commit -m "handover: C-5 incident report print view"`
+- [x] Commit: `git add src/app/dashboard/incident-reports/[id]/print/page.tsx src/components/DashboardShell.tsx && git commit -m "handover: C-5 incident report print view"`
+
+Verified clean: `DashboardShell.tsx`'s rename is a pure mechanical change
+(both the definition and its one use-site updated, `invoice-print-shell` CSS
+class left untouched) — build confirms both `/dashboard/invoices/[id]/print`
+and `/dashboard/incident-reports/[id]/print` exist side by side in the route
+table, no regression risk. New print page matches the plan exactly.
 
 ---
 
