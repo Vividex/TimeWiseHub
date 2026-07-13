@@ -66,18 +66,28 @@ Dashboard "Today" surface for open reports.
 ## C-3 — List page + new-report form + nav entry
 
 *Codex edits:*
-- [ ] Create `src/lib/incident-reports.ts` (plan Task 3, Step 1)
-- [ ] Create `src/app/dashboard/incident-reports/page.tsx` (plan Task 3, Step 2)
-- [ ] Create `src/components/incident-reports/IncidentReportsView.tsx` (plan
+- [x] Create `src/lib/incident-reports.ts` (plan Task 3, Step 1)
+- [x] Create `src/app/dashboard/incident-reports/page.tsx` (plan Task 3, Step 2)
+- [x] Create `src/components/incident-reports/IncidentReportsView.tsx` (plan
   Task 3, Step 3)
-- [ ] Modify `src/components/nav/SidebarNav.tsx` (plan Task 3, Step 4 — nav
+- [x] Modify `src/components/nav/SidebarNav.tsx` (plan Task 3, Step 4 — nav
   and the list page ship together deliberately, see the plan's note on why)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm `/dashboard/incident-reports`
+- [x] `pnpm run build` — must pass clean; confirm `/dashboard/incident-reports`
   appears in the route table.
-- [ ] Commit: `git add src/app/dashboard/incident-reports/page.tsx src/components/incident-reports/IncidentReportsView.tsx src/lib/incident-reports.ts src/components/nav/SidebarNav.tsx && git commit -m "handover: C-3 incident reports list page + new-report form + nav entry"`
+- [x] Commit: `git add src/app/dashboard/incident-reports/page.tsx src/components/incident-reports/IncidentReportsView.tsx src/lib/incident-reports.ts src/components/nav/SidebarNav.tsx && git commit -m "handover: C-3 incident reports list page + new-report form + nav entry"`
+
+**Conductor correction (found during verify):** `IncidentReportsView.tsx`'s
+`handleSubmit` inserted the raw `datetime-local` input string (no timezone,
+e.g. `"2026-07-13T14:30"`) directly into the `timestamptz` `occurred_at`
+column instead of converting it to a real ISO timestamp first — for a
+compliance record where exact incident timing matters, this would have
+silently stored the wrong time depending on how Postgres interpreted the
+bare string. Fixed: `occurred_at: new Date(occurredAt).toISOString()`.
+UI/markup otherwise differs cosmetically from the plan's exact code but is
+functionally equivalent — not worth a rewrite.
 
 ---
 
