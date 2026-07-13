@@ -94,16 +94,23 @@ functionally equivalent — not worth a rewrite.
 ## C-4 — Detail page: view, edit, close, photos
 
 *Codex edits:*
-- [ ] Create `src/app/dashboard/incident-reports/[id]/page.tsx` (plan Task 4,
+- [x] Create `src/app/dashboard/incident-reports/[id]/page.tsx` (plan Task 4,
   Step 1)
-- [ ] Create `src/components/incident-reports/IncidentReportDetailClient.tsx`
+- [x] Create `src/components/incident-reports/IncidentReportDetailClient.tsx`
   (plan Task 4, Step 2)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm
+- [x] `pnpm run build` — must pass clean; confirm
   `/dashboard/incident-reports/[id]` appears in the route table.
-- [ ] Commit: `git add src/app/dashboard/incident-reports/[id]/page.tsx src/components/incident-reports/IncidentReportDetailClient.tsx && git commit -m "handover: C-4 incident report detail page — view, edit, close, photos"`
+- [x] Commit: `git add src/app/dashboard/incident-reports/[id]/page.tsx src/components/incident-reports/IncidentReportDetailClient.tsx && git commit -m "handover: C-4 incident report detail page — view, edit, close, photos"`
+
+Verified clean: timezone conversion correctly applied both ways
+(`toDateTimeLocal` for display, `new Date(...).toISOString()` on save — the
+lesson from C-3's bug was correctly carried forward). Open/closed and
+canManage gating correct throughout; injury-only fields conditional; no
+delete capability anywhere; read-only path correctly covers both closed
+reports and non-manager viewers. No discrepancies found.
 
 ---
 
