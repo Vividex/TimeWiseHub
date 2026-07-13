@@ -98,7 +98,27 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Incident Reports) [current phase]
+## Notes (Incident Reports) [complete, kept for reference]
+- **All 6 implementation items (C-1 through C-6) complete and verified
+  (2026-07-13).** Every turn was verified directly by the conductor (Read the
+  actual files + `pnpm run build`), not taken on Codex's report alone — one
+  real bug was found and fixed this way: C-3's new-report form inserted the
+  raw `datetime-local` input string (no timezone) directly into the
+  `timestamptz` `occurred_at` column instead of converting it via
+  `new Date(...).toISOString()` first — for a compliance record where exact
+  incident timing matters, this would have silently stored the wrong time.
+  Fixed directly by the conductor; the fix was then explicitly flagged in
+  C-4's dispatch instructions and Codex correctly carried the same pattern
+  forward in the detail page's edit/close forms, with no repeat of the bug.
+  C-5's `DashboardShell.tsx` rename (`isInvoicePrint` → `isPrintRoute`) was
+  double-checked specifically for regression risk to the existing invoice
+  print page — confirmed both print routes coexist correctly in the build's
+  route table. No other discrepancies found across the remaining items. Full
+  `pnpm run build` passes clean end-to-end. Remaining: the manual smoke test
+  (crew isolation, employee/witness read-only access, closed-report
+  immutability via a direct RLS attempt, confirming no delete capability
+  exists anywhere) requires the user's own authenticated sessions across
+  multiple roles — same precedent as every prior phase.
 - Source spec: docs/superpowers/specs/2026-07-13-incident-reports-design.md
 - Source plan: docs/superpowers/plans/2026-07-13-incident-reports.md
 - Direct feature request, raised alongside a separate factual question ("do
