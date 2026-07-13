@@ -42,11 +42,11 @@ Dashboard "Today" surface for open reports.
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-101-incident-reports.sql` (plan Task 1, Step 1 —
+- [x] Write `supabase/schema-101-incident-reports.sql` (plan Task 1, Step 1 —
   exact SQL in the plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `incident_reports`)
-- [ ] Verify via the sanity-check queries in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-101-incident-reports.sql && git commit -m "handover: C-1 incident reports schema + RLS + photo storage"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `incident_reports`)
+- [x] Verify via the sanity-check queries in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-101-incident-reports.sql && git commit -m "handover: C-1 incident reports schema + RLS + photo storage"`
 
 ---
 
