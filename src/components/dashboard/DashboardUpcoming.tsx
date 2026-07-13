@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2, Car, Wrench } from 'lucide-react'
+import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2, Car, Wrench, ShieldAlert } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { daysUntil, markExpenseCyclePaid, type RecurrenceInterval } from '@/lib/expenses'
 
@@ -29,6 +29,12 @@ export type UpcomingVehicleDue = {
   registration_number: string
   kind: 'rego' | 'service'
   daysUntilDue: number
+}
+export type UpcomingIncidentReport = {
+  id: string
+  type: 'injury' | 'near_miss' | 'hazard'
+  severity: 'minor' | 'moderate' | 'serious' | 'critical'
+  occurred_at: string
 }
 
 function fmtTime(iso: string, allDay: boolean) {
@@ -58,6 +64,7 @@ export default function DashboardUpcoming({
   dueExpenses,
   dueBusinessExpenses,
   vehiclesDue,
+  incidentReportsDue,
   currentUserId,
 }: {
   meetings: UpcomingMeeting[]
@@ -69,6 +76,7 @@ export default function DashboardUpcoming({
   dueExpenses: UpcomingDueExpense[]
   dueBusinessExpenses: UpcomingDueExpense[]
   vehiclesDue: UpcomingVehicleDue[]
+  incidentReportsDue: UpcomingIncidentReport[]
   currentUserId: string
 }) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
@@ -101,7 +109,7 @@ export default function DashboardUpcoming({
     if (!error) setPaidIds(prev => new Set(prev).add(expense.id))
   }
 
-  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0) return null
+  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && incidentReportsDue.length === 0) return null
 
   return (
     <div className="space-y-3">
@@ -201,7 +209,7 @@ export default function DashboardUpcoming({
         {vehiclesDue.map((item, i) => {
           const dueLabel = item.daysUntilDue <= 0 ? 'Overdue' : `Due in ${item.daysUntilDue}d`
           const urgency = item.daysUntilDue <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === vehiclesDue.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === vehiclesDue.length - 1 && incidentReportsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
           return (
             <Link
               key={`vehicle-${item.kind}-${item.id}`}
@@ -216,6 +224,30 @@ export default function DashboardUpcoming({
                   {item.registration_number} — {item.kind === 'rego' ? 'Registration renewal' : 'Service due'}
                 </p>
                 <p className={`text-xs font-bold ${urgency}`}>{dueLabel}</p>
+              </div>
+            </Link>
+          )
+        })}
+        {incidentReportsDue.map((report, i) => {
+          const severityLabel = report.severity.charAt(0).toUpperCase() + report.severity.slice(1)
+          const urgency = report.severity === 'critical' || report.severity === 'serious'
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-amber-600 dark:text-amber-400'
+          const isLast = i === incidentReportsDue.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          return (
+            <Link
+              key={`incident-${report.id}`}
+              href={`/dashboard/incident-reports/${report.id}`}
+              className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${!isLast ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400">
+                <ShieldAlert size={15} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                  Incident report awaiting review
+                </p>
+                <p className={`text-xs font-bold ${urgency}`}>{severityLabel} — open</p>
               </div>
             </Link>
           )

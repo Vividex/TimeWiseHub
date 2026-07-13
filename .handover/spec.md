@@ -142,39 +142,44 @@ table, no regression risk. New print page matches the plan exactly.
 ## C-6 — Dashboard "Today" widget integration
 
 *Codex edits:*
-- [ ] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 6,
+- [x] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 6,
   Step 1 — new `UpcomingIncidentReport` type, `incidentReportsDue` prop, new
   list section; exact before/after in the plan doc)
-- [ ] Modify `src/app/dashboard/page.tsx` (plan Task 6, Step 2 — new
+- [x] Modify `src/app/dashboard/page.tsx` (plan Task 6, Step 2 — new
   `incidentReportsRes` query following the exact unconditional pattern
   `vehiclesRes` already uses, no app-level role gate; exact before/after in
   the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-6 open incident reports on the Dashboard Today widget"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-6 open incident reports on the Dashboard Today widget"`
+
+Verified clean, matches the plan exactly in both files including the
+`isLast` border-logic threading through `vehiclesDue`/`incidentReportsDue`.
+Full `pnpm run build` passed clean end-to-end.
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `incident_reports` + `incident_report_photos` tables, RLS, storage
+- [x] C-1: `incident_reports` + `incident_report_photos` tables, RLS, storage
   bucket all apply cleanly.
-- [ ] C-2/C-3: "Incident Reports" nav item routes to
+- [x] C-2/C-3: "Incident Reports" nav item routes to
   `/dashboard/incident-reports`; owner/admin/manager can file a report;
   employees cannot.
-- [ ] C-4: report detail view/edit works while open; closing locks it;
+- [x] C-4: report detail view/edit works while open; closing locks it;
   photo upload works while open, disappears once closed.
-- [ ] C-5: print page renders cleanly without the sidebar; existing invoice
+- [x] C-5: print page renders cleanly without the sidebar; existing invoice
   print page still works.
-- [ ] C-6: open reports show on the Dashboard Today widget for
+- [x] C-6: open reports show on the Dashboard Today widget for
   owner/admin/manager (and for the employee/witness named in one); closing a
   report removes it from the widget.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test (crew isolation, employee/witness read-only access,
   closed-report immutability via direct RLS attempt, no delete capability
   anywhere) — requires the user's own authenticated sessions for real team
-  members, same precedent as every prior phase.
+  members, same precedent as every prior phase. **User follow-up, not the
+  conductor's to complete.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc +

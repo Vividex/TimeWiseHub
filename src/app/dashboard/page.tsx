@@ -10,7 +10,7 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue, UpcomingIncidentReport } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { isOverdue } from '@/lib/invoices'
 import { stripQuoteChain } from '@/lib/client-messages'
@@ -150,7 +150,7 @@ export default async function DashboardHome() {
   const dueThresholdStr = dueThreshold.toISOString().slice(0, 10)
 
   // Stage 1: parallel fetches — projects returns IDs so we can filter tasks in stage 2
-  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes, dueBusinessExpensesRes, vehiclesRes] = await Promise.all([
+  const [sessionsRes, projectsRes, clientsRes, meetingsRes, calendarRes, sessionsListRes, subscriptionRes, unreadMessagesRes, invoicesRes, dueExpensesRes, dueBusinessExpensesRes, vehiclesRes, incidentReportsRes] = await Promise.all([
     orgId
       ? supabase
           .from('sessions')
@@ -227,6 +227,7 @@ export default async function DashboardHome() {
           .order('next_billing_date', { ascending: true })
       : Promise.resolve({ data: [] as DueExpenseRow[], error: null }),
     supabase.from('vehicles').select('id, registration_number, rego_expiry_date, next_service_due_date, next_service_due_km, current_odometer_km').eq('is_archived', false),
+    supabase.from('incident_reports').select('id, type, severity, occurred_at').eq('status', 'open').order('occurred_at', { ascending: false }),
   ])
 
   // Stage 2: task counts scoped to active projects
@@ -335,6 +336,7 @@ export default async function DashboardHome() {
       vehiclesDue.push({ id: v.id, registration_number: v.registration_number, kind: 'service', daysUntilDue: 0 })
     }
   }
+  const incidentReportsDue = (incidentReportsRes.data ?? []) as UpcomingIncidentReport[]
   const rosterManaged = isTeamPlan(subscriptionRes) && !!orgId
 
   const overdueInvoices = (invoicesRes.data ?? []).filter(isOverdue)
@@ -374,7 +376,7 @@ export default async function DashboardHome() {
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} currentUserId={user.id} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} incidentReportsDue={incidentReportsDue} currentUserId={user.id} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">
