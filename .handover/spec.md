@@ -53,13 +53,13 @@ Dashboard "Today" surface for open reports.
 ## C-2 — Types
 
 *Codex edits:*
-- [ ] Create `src/types/incident-reports.ts` (plan Task 2, Step 1 — exact
+- [x] Create `src/types/incident-reports.ts` (plan Task 2, Step 1 — exact
   code in the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/incident-reports.ts && git commit -m "handover: C-2 incident report types"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/incident-reports.ts && git commit -m "handover: C-2 incident report types"`
 
 ---
 
