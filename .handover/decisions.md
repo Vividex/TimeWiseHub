@@ -5,7 +5,10 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Vehicle Tracking v2 (current phase): real ongoing cost, approved 2026-07-11 —
+- Incident Reports (current phase): zero cost — pure code + one additive DB migration
+  (two new tables, one new SECURITY DEFINER function, one new private storage bucket),
+  no new npm dependencies, no external API calls.
+- Vehicle Tracking v2 (complete, prior phase): real ongoing cost, approved 2026-07-11 —
   CarRegistrationAPI.com rego lookup, ~$0.30 AUD/lookup, purchased in prepaid blocks of
   ≥100 (~$30 AUD minimum spend), user-signup + user-purchased, not drawn from the
   spend-budget-usd figure above (that covers per-turn API/build costs, not user-facing
@@ -94,6 +97,44 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Incident Reports) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-13-incident-reports-design.md
+- Source plan: docs/superpowers/plans/2026-07-13-incident-reports.md
+- Direct feature request, raised alongside a separate factual question ("do
+  customers have a way to deactivate their accounts") that was investigated
+  directly rather than brainstormed — answer: no such capability exists
+  anywhere in the codebase today (no UI, no API, no schema flag, no leave-org
+  flow; Stripe cancellation only downgrades to free tier). That's a real gap,
+  flagged as its own future brainstorm, not folded into this phase.
+- Scoped to workplace safety incidents only (injury / near-miss / hazard) —
+  explicitly not a general incident log. Property/vehicle-damage and
+  client-complaint incident types were offered as alternatives and declined.
+- Filing/editing/closing is owner/admin/manager only; employees get read-only
+  access to reports where they're the `employee_id` or a witness, never
+  create/edit/close. No delete capability anywhere, not even for the owner —
+  treated as a permanent compliance/legal record, a deliberate call over the
+  owner-only-hard-delete precedent Vehicle Tracking set.
+- Crew-scoped manager visibility reuses the exact `can_access_vehicle()`
+  shape via a new `can_access_incident_report()` function — same pattern, new
+  entity.
+- Printable via a plain print-styled route (same kind as the existing invoice
+  print page), not real PDF generation — no new dependency. Explicitly
+  confirmed with the user as the preferred approach over generating actual
+  PDF files server-side.
+- **Real gap caught during the plan's own self-review, before any code was
+  written:** (1) Task 6's Dashboard-widget wiring was first drafted assuming
+  `vehiclesRes` gates its query with an `isManager && orgId` ternary — reading
+  the actual file showed it queries unconditionally and relies entirely on
+  RLS for scoping. Fixed the plan to match that real pattern rather than the
+  wrong assumption. (2) The nav-entry step was originally bundled into the
+  types-only task, which would have shipped a live sidebar link to a 404 page
+  for one handover turn before the list page landed — the exact ordering
+  mistake Vehicle Tracking v1 hit and fixed by bundling nav+page together (see
+  that phase's notes below). Fixed by moving the nav edit into the same task
+  as the list page.
+- Codex handles text edits only; conductor runs all shell/build/git and the
+  DB migration via Supabase MCP.
 
 ## Notes (Vehicle Tracking v2) [complete, kept for reference]
 - **All 6 implementation items (C-1 through C-6) complete and verified (2026-07-12).**
