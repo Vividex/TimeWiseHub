@@ -5,7 +5,11 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Account Deactivation (current phase): zero cost — pure code + one additive DB migration
+- Video Call Whiteboard (current phase): zero cost — pure code + one additive DB migration
+  (one new table, one new function, one new private storage bucket), no new npm dependencies
+  (`perfect-freehand` already installed for Worksheet Annotation, no `react-pdf` needed since
+  there's no document to render).
+- Account Deactivation (prior phase, complete): zero cost — pure code + one additive DB migration
   (one new table, two new nullable columns), no new npm dependencies, reuses the existing
   Resend/sendEmail infrastructure already paid for. One new env var
   (`OPERATOR_NOTIFICATION_EMAIL`) to set in Vercel — free, just a config value, not a spend.
@@ -101,6 +105,60 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Video Call Whiteboard) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-15-video-call-whiteboard-design.md
+- Source plan: docs/superpowers/plans/2026-07-15-video-call-whiteboard.md
+- Direct feature request: a freeform whiteboard in video sessions, "similar
+  to Scribbleboard." Disambiguated during brainstorming (one question at a
+  time, not assumed): tutoring-only alongside the existing Worksheet
+  Annotation feature, not a general-purpose tool for every call; content
+  persists tied to the session (fresh blank canvas per session, not shared
+  across a student's whole history).
+- Explored the existing Worksheet Annotation feature in full before
+  designing anything — almost the entire architecture (discrete text_box/
+  stroke/sticker rows, Broadcast-for-live + table-for-persistence, RLS
+  shape, `perfect-freehand`) transfers directly. The two real differences:
+  scoping key (`session_id` vs `(topic_asset_id, student_id)` — sessions
+  already carry `org_id`/`created_by` directly, so the new access function
+  is simpler, no topics→subjects hop needed) and no document/page background
+  at all (blank fixed canvas, no `react-pdf`).
+- Toolset iterated live with the user: started from "match Worksheet exactly"
+  → user asked for more pen colours, adjustable thickness, and specifically
+  **true drag-to-erase** (not click-to-delete) — clarified concretely what
+  "splits at the eraser point" means (contiguous surviving point-runs become
+  separate stroke rows) before locking it in, since it's real algorithmic
+  complexity, not just a UI toggle. Considered and rejected a canvas/pixel-
+  based eraser (would mean abandoning the discrete-object sync model
+  entirely) in favour of extending the existing per-row architecture.
+- **Mid-brainstorm addition:** user asked for the whiteboard to be "visible
+  but gated from free tier users" after the rest of the design was already
+  approved — folded in as its own section rather than skipped. Real
+  complication surfaced immediately: a guest student viewer has no
+  subscription of their own, so the gate has to resolve from the **session
+  owner's** plan (`sessions.created_by → getSubscription → isPaidPlan`), not
+  the current viewer's `user.id` — otherwise a guest would always see it
+  locked regardless of their tutor's actual plan. UI-layer gate only, not
+  RLS — same documented limitation as the account-deactivation page gate,
+  chosen deliberately over a much larger RLS retrofit for a "locked out of
+  the product" goal, not a "cryptographically enforced" one.
+- **Real refactor surfaced during plan-writing, not the spec stage:**
+  `WorksheetFullScreen.tsx` hardcodes the header text "Worksheet" — reusing
+  it as-is for the whiteboard would have shown the wrong label. Fixed by
+  adding a required `title` prop and updating all three call sites (two
+  pre-existing, one new) rather than defaulting it silently. Similarly,
+  `StickerPalette.tsx` hardcoded `topicAssetId`/`studentId` into its upload
+  path — generalized to `bucket`/`buildUploadPath` props, verified the new
+  worksheet call site produces byte-identical storage paths to before (pure
+  refactor, no behavior change).
+- **Self-review catch:** the spec's eraser description illustrated the
+  "zero/one/two surviving runs" cases, but a real drag can cross a curled
+  stroke more than twice in one gesture. The plan's actual
+  `contiguousSurvivingRuns`/`completeErase` code handles an arbitrary number
+  of runs generally, not just two — noted explicitly so it reads as an
+  intentional generalization of the spec, not a contradiction of it.
+- Codex handles text edits only; conductor runs all shell/build/git and the
+  DB migration via Supabase MCP.
 
 ## Notes (Account Deactivation) [complete, kept for reference]
 - **All 6 implementation items (C-1 through C-6) complete and verified
