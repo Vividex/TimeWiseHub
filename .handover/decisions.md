@@ -5,7 +5,11 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Incident Reports (current phase): zero cost — pure code + one additive DB migration
+- Account Deactivation (current phase): zero cost — pure code + one additive DB migration
+  (one new table, two new nullable columns), no new npm dependencies, reuses the existing
+  Resend/sendEmail infrastructure already paid for. One new env var
+  (`OPERATOR_NOTIFICATION_EMAIL`) to set in Vercel — free, just a config value, not a spend.
+- Incident Reports (prior phase, complete): zero cost — pure code + one additive DB migration
   (two new tables, one new SECURITY DEFINER function, one new private storage bucket),
   no new npm dependencies, no external API calls.
 - Vehicle Tracking v2 (complete, prior phase): real ongoing cost, approved 2026-07-11 —
@@ -97,6 +101,54 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Account Deactivation) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-14-account-deactivation-design.md
+- Source plan: docs/superpowers/plans/2026-07-14-account-deactivation.md
+- Direct feature request, follow-up to the gap flagged during Incident Reports
+  brainstorming ("do customers have a way to deactivate their accounts" — no
+  such capability existed anywhere). "Unsubscribe" was genuinely ambiguous
+  (Stripe cancellation already exists; leave-org and email-preferences are
+  different, smaller features) — disambiguated via one clarifying question
+  before any design work; user confirmed full account closure plus
+  exit-data collection plus an operator notification email (small customer
+  count today, wants to know immediately when someone leaves).
+- Deliberately declined during brainstorming: auto-cancelling an active
+  Stripe subscription on deactivation. User asked directly whether it should
+  auto-cancel ("don't want to make it too easy to leave, but that feels more
+  like how bigger orgs do it") — recommended keeping deactivation blocked
+  behind a separate, deliberate Billing-portal cancellation step instead,
+  reasoning that mature SaaS products commonly add this exact friction for
+  retention, it isn't just an unsophisticated shortcut. User accepted.
+- Soft-deactivate only, never hard-delete — AU businesses generally need to
+  retain financial records (invoices, expenses) for ~5 years (ATO); a real
+  "delete everything" request is explicitly a separate future decision.
+- **Real RLS gap caught during planning, before any code was written:** the
+  existing `organisations` UPDATE policy ("Owners and admins can update
+  organisation settings") allows admins, not just owners — a plain
+  client-side `.update({deactivated_at})` would have silently let an org
+  admin deactivate (or reactivate) the whole org, violating the spec's
+  explicit "owner-only, not even admins" requirement. Fixed by routing both
+  writes through service-role API routes with an explicit
+  `role === 'owner'` check first, mirroring the exact pattern already used by
+  `src/app/api/team/role/route.ts` for the same class of problem (owner-only
+  role changes). The `account_deactivations` table's own RLS policies use
+  `has_org_role(org_id, ARRAY['owner'::member_role])` correctly, but exist
+  only as defense in depth — the app's actual writes bypass them via the
+  service-role client.
+- **Real UX/logic conflict caught during planning, before any code was
+  written:** the approved spec's flow said "sign the user out" immediately
+  before redirecting to `/account-deactivated`, but that page also needs to
+  show a Reactivate button only to the owner — impossible to determine once
+  already signed out. Resolved by dropping the explicit sign-out: the
+  `deactivated_at` page-gate alone already fully blocks re-entry to the
+  product on every subsequent page load regardless of session state, so
+  sign-out added no real security, only broke the reactivate-button UX.
+  Added a manual "Sign out" link to `/account-deactivated` so nothing is
+  lost. Documented explicitly in the plan as a deviation, not a silent
+  change.
+- Codex handles text edits only; conductor runs all shell/build/git and the
+  DB migration via Supabase MCP.
 
 ## Notes (Incident Reports) [complete, kept for reference]
 - **All 6 implementation items (C-1 through C-6) complete and verified
