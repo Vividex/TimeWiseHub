@@ -25,7 +25,7 @@ const CANVAS_HEIGHT = 600
 const ERASER_RADIUS = 14
 
 const PEN_COLORS = ['#0f172a', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
-const PEN_WIDTHS = [2, 4, 7] as const
+const PEN_WIDTHS = [2, 7, 14] as const
 
 type Tool = 'pen' | 'eraser' | 'text' | 'sticker' | null
 
@@ -69,12 +69,18 @@ function runToNewStroke(
   const ys = canvasFractionPoints.map(p => p[1])
   const minX = Math.min(...xs), minY = Math.min(...ys)
   const maxX = Math.max(...xs), maxY = Math.max(...ys)
-  const normalised: [number, number][] = canvasFractionPoints.map(([x, y]) => [x - minX, y - minY])
+  const width = Math.max(maxX - minX, 0.01)
+  const height = Math.max(maxY - minY, 0.01)
+  // Points are stored as a 0-1 fraction of THIS stroke's own bounding box
+  // (not a raw canvas-fraction delta) — the renderer reconstructs canvas
+  // position via `o.x + x * o.width`, so this division is required or a
+  // stroke renders shrunk by its own width/height a second time.
+  const normalised: [number, number][] = canvasFractionPoints.map(([x, y]) => [(x - minX) / width, (y - minY) / height])
   return {
     x: minX,
     y: minY,
-    width: Math.max(maxX - minX, 0.01),
-    height: Math.max(maxY - minY, 0.01),
+    width,
+    height,
     content: { kind: 'stroke', points: normalised, color: c.color, strokeWidth: c.strokeWidth },
   }
 }
@@ -310,12 +316,18 @@ export default function WhiteboardCanvas({
     const ys = drawingPoints.map(p => p[1])
     const minX = Math.min(...xs), minY = Math.min(...ys)
     const maxX = Math.max(...xs), maxY = Math.max(...ys)
-    const normalised: [number, number][] = drawingPoints.map(([x, y]) => [x - minX, y - minY])
+    const width = Math.max(maxX - minX, 0.01)
+    const height = Math.max(maxY - minY, 0.01)
+    // Points are stored as a 0-1 fraction of this stroke's own bounding box
+    // (see runToNewStroke's comment) — dividing by width/height, not just
+    // subtracting minX/minY, is what makes the renderer's
+    // `o.x + x * o.width` reconstruct the original canvas position.
+    const normalised: [number, number][] = drawingPoints.map(([x, y]) => [(x - minX) / width, (y - minY) / height])
 
     const saved = await insertWhiteboardObject({
       session_id: sessionId,
       object_type: 'stroke',
-      x: minX, y: minY, width: Math.max(maxX - minX, 0.01), height: Math.max(maxY - minY, 0.01),
+      x: minX, y: minY, width, height,
       content: { kind: 'stroke', points: normalised, color: penColor, strokeWidth: penWidth },
       created_by: currentUserId,
     })
@@ -375,12 +387,12 @@ export default function WhiteboardCanvas({
   }
 
   return (
-    <div className="flex h-full flex-col bg-slate-950">
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 p-2">
+    <div className="flex h-full flex-col bg-gray-50">
+      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-white p-2">
         <button
           type="button"
           onClick={() => setTool(tool === 'pen' ? null : 'pen')}
-          className={`rounded-lg p-2 ${tool === 'pen' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+          className={`rounded-lg p-2 ${tool === 'pen' ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           title="Pen"
         >
           <Pencil size={16} />
@@ -388,7 +400,7 @@ export default function WhiteboardCanvas({
         <button
           type="button"
           onClick={() => setTool(tool === 'eraser' ? null : 'eraser')}
-          className={`rounded-lg p-2 ${tool === 'eraser' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+          className={`rounded-lg p-2 ${tool === 'eraser' ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           title="Eraser"
         >
           <Eraser size={16} />
@@ -396,7 +408,7 @@ export default function WhiteboardCanvas({
         <button
           type="button"
           onClick={() => setTool(tool === 'text' ? null : 'text')}
-          className={`rounded-lg p-2 ${tool === 'text' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+          className={`rounded-lg p-2 ${tool === 'text' ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           title="Add text"
         >
           <Type size={16} />
@@ -409,14 +421,14 @@ export default function WhiteboardCanvas({
         />
 
         {tool === 'pen' && (
-          <div className="ml-2 flex items-center gap-2 border-l border-slate-700 pl-2">
+          <div className="ml-2 flex items-center gap-2 border-l border-gray-200 pl-2">
             {PEN_COLORS.map(color => (
               <button
                 key={color}
                 type="button"
                 onClick={() => setPenColor(color)}
                 title={color}
-                className={`h-6 w-6 rounded-full ${penColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-950' : ''}`}
+                className={`h-6 w-6 rounded-full ${penColor === color ? 'ring-2 ring-cyan-500 ring-offset-2 ring-offset-white' : ''}`}
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -427,9 +439,9 @@ export default function WhiteboardCanvas({
                   type="button"
                   onClick={() => setPenWidth(width)}
                   title={`${width}px`}
-                  className={`flex h-6 w-6 items-center justify-center rounded ${penWidth === width ? 'bg-slate-700' : ''}`}
+                  className={`flex h-7 w-7 items-center justify-center rounded ${penWidth === width ? 'bg-gray-200' : ''}`}
                 >
-                  <span className="rounded-full bg-white" style={{ width: width + 2, height: width + 2 }} />
+                  <span className="rounded-full" style={{ width: width + 2, height: width + 2, backgroundColor: penColor }} />
                 </button>
               ))}
             </div>
@@ -438,15 +450,15 @@ export default function WhiteboardCanvas({
       </div>
 
       {tool && (
-        <div className="bg-cyan-600/90 px-3 py-1.5 text-center text-xs font-semibold text-white">
+        <div className="bg-cyan-500 px-3 py-1.5 text-center text-xs font-semibold text-white">
           {tool === 'pen' ? 'Draw on the whiteboard' : tool === 'eraser' ? 'Drag over ink to erase it' : 'Click the whiteboard to place it'}
         </div>
       )}
 
-      <ScrollFade wrapperClassName="flex-1" className="p-4" fadeFrom="from-slate-950">
+      <ScrollFade wrapperClassName="flex-1" className="p-4" fadeFrom="from-gray-50">
         <div
           ref={canvasRef}
-          className="relative mx-auto bg-white"
+          className="relative mx-auto border border-gray-200 bg-white shadow-sm"
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, cursor: tool === 'pen' ? 'crosshair' : tool === 'eraser' ? 'cell' : tool ? 'crosshair' : 'default' }}
           onClick={handleCanvasClick}
           onPointerDown={handlePointerDown}
