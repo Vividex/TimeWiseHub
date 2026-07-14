@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase-service'
 import { resolveProgramAssetSignedUrl } from '@/lib/program-storage'
 import { createTopicAssetSignedUrl } from '@/lib/tutoring/topic-storage'
 import { ensureSessionChatParticipant } from '@/lib/session-chat'
+import { getSubscription, isPaidPlan } from '@/lib/subscription'
 import CallRoom from '@/components/video/CallRoom'
 import type { LinkedTopicAsset } from '@/components/video/WorksheetTab'
 import type { LinkedProgramBundle, Program, ProgramAsset } from '@/types/programs'
@@ -148,6 +149,15 @@ export default async function CallRoomPage({
     ? await fetchLinkedTopicAssets(call.session_id, user.id)
     : { assets: [], studentId: null }
 
+  let whiteboardAllowed = false
+  if (call.session_id) {
+    const { data: session } = await supabase
+      .from('sessions').select('created_by').eq('id', call.session_id).maybeSingle()
+    if (session?.created_by) {
+      whiteboardAllowed = isPaidPlan(await getSubscription(session.created_by))
+    }
+  }
+
   let token: string
   try {
     token = await issueOrgMemberToken(call.daily_room_name, call.created_by === user.id, userName)
@@ -167,6 +177,8 @@ export default async function CallRoomPage({
       linkedTopicAssets={linkedTopicAssets}
       sessionStudentId={sessionStudentId}
       currentUserId={user.id}
+      sessionId={call.session_id}
+      whiteboardAllowed={whiteboardAllowed}
     />
   )
 }
