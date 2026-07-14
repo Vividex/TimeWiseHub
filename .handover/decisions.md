@@ -135,6 +135,18 @@
   cancelled — your access continues until <date>" instead, no Billing link
   in that state since there's nothing further to do there. Small, scoped fix
   — done directly, not through the handover loop.
+- **Second post-ship follow-up, same day:** user then asked whether the
+  "Go to Billing →" link in the still-paying branch was actually misleading,
+  since `/dashboard/billing` itself has no visible "cancel" control — the
+  real cancel action only exists inside Stripe's own hosted Customer Portal,
+  reached by clicking that page's separate "Manage subscription" button
+  (`ManageButton` in `src/components/billing/BillingClient.tsx`, which calls
+  `/api/stripe/portal` and redirects off-site). Confirmed by reading both
+  files — correct, landing on `/dashboard/billing` and telling someone to
+  "cancel" was a dead end if they didn't spot that button. Fixed by having
+  the Danger Zone call `/api/stripe/portal` directly (same request the
+  existing `ManageButton` makes) and redirect straight to the Stripe portal
+  in one click, rather than routing through `/dashboard/billing` at all.
 - Source spec: docs/superpowers/specs/2026-07-14-account-deactivation-design.md
 - Source plan: docs/superpowers/plans/2026-07-14-account-deactivation.md
 - Direct feature request, follow-up to the gap flagged during Incident Reports
