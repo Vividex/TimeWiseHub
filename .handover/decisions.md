@@ -102,7 +102,21 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Account Deactivation) [current phase]
+## Notes (Account Deactivation) [complete, kept for reference]
+- **All 6 implementation items (C-1 through C-6) complete and verified
+  (2026-07-14).** Every turn was verified directly by the conductor (Read
+  the actual files + `pnpm run build`), not taken on Codex's report alone —
+  every file matched the plan's exact code with zero discrepancies this
+  phase (no bugs caught/fixed, unlike the prior two phases). Full
+  `pnpm run build` passes clean end-to-end; `/api/account/deactivate`,
+  `/api/account/reactivate`, and `/account-deactivated` all confirmed present
+  in the build's route table. `OPERATOR_NOTIFICATION_EMAIL` set in Vercel
+  production (`admin@vividex.au`) before C-3 shipped. Remaining: the manual
+  smoke test (deactivate as owner on free plan end-to-end including the
+  notification email, confirm other org members are locked out of both
+  `/dashboard` and `/settings`, reactivate, confirm data intact) requires the
+  user's own authenticated sessions across multiple roles — same precedent
+  as every prior phase.
 - Source spec: docs/superpowers/specs/2026-07-14-account-deactivation-design.md
 - Source plan: docs/superpowers/plans/2026-07-14-account-deactivation.md
 - Direct feature request, follow-up to the gap flagged during Incident Reports

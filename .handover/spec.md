@@ -58,102 +58,102 @@ immediately.
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-102-account-deactivation.sql` (plan Task 1, Step 1
+- [x] Write `supabase/schema-102-account-deactivation.sql` (plan Task 1, Step 1
   — exact SQL in the plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `account_deactivation`)
-- [ ] Verify via the sanity-check queries in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-102-account-deactivation.sql && git commit -m "handover: C-1 account deactivation schema + RLS"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `account_deactivation`)
+- [x] Verify via the sanity-check queries in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-102-account-deactivation.sql && git commit -m "handover: C-1 account deactivation schema + RLS"`
 
 ---
 
 ## C-2 — Types and shared lib
 
 *Codex edits:*
-- [ ] Create `src/types/account-deactivation.ts` (plan Task 2, Step 1)
-- [ ] Create `src/lib/account-deactivation.ts` (plan Task 2, Step 2)
-- [ ] Report back — list files changed.
+- [x] Create `src/types/account-deactivation.ts` (plan Task 2, Step 1)
+- [x] Create `src/lib/account-deactivation.ts` (plan Task 2, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/account-deactivation.ts src/lib/account-deactivation.ts && git commit -m "handover: C-2 account deactivation types and reason labels"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/account-deactivation.ts src/lib/account-deactivation.ts && git commit -m "handover: C-2 account deactivation types and reason labels"`
 
 ---
 
 ## C-3 — API routes (deactivate, reactivate)
 
 *Codex edits:*
-- [ ] Create `src/app/api/account/deactivate/route.ts` (plan Task 3, Step 1)
-- [ ] Create `src/app/api/account/reactivate/route.ts` (plan Task 3, Step 2)
-- [ ] Report back — list files changed.
+- [x] Create `src/app/api/account/deactivate/route.ts` (plan Task 3, Step 1)
+- [x] Create `src/app/api/account/reactivate/route.ts` (plan Task 3, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/account && git commit -m "handover: C-3 deactivate/reactivate account API routes"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/api/account && git commit -m "handover: C-3 deactivate/reactivate account API routes"`
 
 ---
 
 ## C-4 — Settings Danger Zone UI + settings access gate
 
 *Codex edits:*
-- [ ] Create `src/components/settings/DangerZoneDeactivate.tsx` (plan Task 4,
+- [x] Create `src/components/settings/DangerZoneDeactivate.tsx` (plan Task 4,
   Step 1)
-- [ ] Modify `src/app/settings/page.tsx` (plan Task 4, Step 2 — deactivation
+- [x] Modify `src/app/settings/page.tsx` (plan Task 4, Step 2 — deactivation
   gate + Danger Zone tab wiring; exact before/after in the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: as owner (free plan), confirm Danger Zone tab + full flow
   (reason → confirm modal, wrong text keeps button disabled). As admin,
   confirm tab is absent. As solo user, confirm own name is the confirm text.
-- [ ] Commit: `git add src/components/settings/DangerZoneDeactivate.tsx src/app/settings/page.tsx && git commit -m "handover: C-4 Danger Zone deactivation UI + settings access gate"`
+- [x] Commit: `git add src/components/settings/DangerZoneDeactivate.tsx src/app/settings/page.tsx && git commit -m "handover: C-4 Danger Zone deactivation UI + settings access gate"`
 
 ---
 
 ## C-5 — Dashboard layout access gate
 
 *Codex edits:*
-- [ ] Modify `src/app/dashboard/layout.tsx` (plan Task 5, Step 1 — replace the
+- [x] Modify `src/app/dashboard/layout.tsx` (plan Task 5, Step 1 — replace the
   existing `setup_completed` block with the merged deactivated_at +
   setup_completed version; exact before/after in the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: confirm a non-deactivated org's `setup_completed` redirect still
   behaves exactly as before (role-scoped, unchanged).
-- [ ] Commit: `git add src/app/dashboard/layout.tsx && git commit -m "handover: C-5 block dashboard access for deactivated accounts (all roles)"`
+- [x] Commit: `git add src/app/dashboard/layout.tsx && git commit -m "handover: C-5 block dashboard access for deactivated accounts (all roles)"`
 
 ---
 
 ## C-6 — `/account-deactivated` page + reactivation
 
 *Codex edits:*
-- [ ] Create `src/components/account/ReactivateAccountButton.tsx` (plan Task
+- [x] Create `src/components/account/ReactivateAccountButton.tsx` (plan Task
   6, Step 1)
-- [ ] Create `src/app/account-deactivated/page.tsx` (plan Task 6, Step 2)
-- [ ] Report back — list files changed.
+- [x] Create `src/app/account-deactivated/page.tsx` (plan Task 6, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean; confirm `/account-deactivated`
+- [x] `pnpm run build` — must pass clean; confirm `/account-deactivated`
   appears in the route table.
-- [ ] Commit: `git add src/app/account-deactivated src/components/account/ReactivateAccountButton.tsx && git commit -m "handover: C-6 account-deactivated page with owner-only reactivation"`
+- [x] Commit: `git add src/app/account-deactivated src/components/account/ReactivateAccountButton.tsx && git commit -m "handover: C-6 account-deactivated page with owner-only reactivation"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `account_deactivations` table + RLS + `deactivated_at` columns
+- [x] C-1: `account_deactivations` table + RLS + `deactivated_at` columns
   apply cleanly.
-- [ ] C-2/C-3: types/lib compile; both API routes return correct
+- [x] C-2/C-3: types/lib compile; both API routes return correct
   success/error shapes.
-- [ ] C-4: Danger Zone visible to owner/solo only, not admin; paid-plan block
+- [x] C-4: Danger Zone visible to owner/solo only, not admin; paid-plan block
   shows a Billing link; type-to-confirm actually blocks submission.
-- [ ] C-5: any role in a deactivated org is redirected from `/dashboard`;
+- [x] C-5: any role in a deactivated org is redirected from `/dashboard`;
   non-deactivated orgs unaffected.
-- [ ] C-6: owner sees a working Reactivate button; other members see the
+- [x] C-6: owner sees a working Reactivate button; other members see the
   informational message only; reactivating restores `/dashboard` access with
   all prior data untouched.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test across the full flow (deactivate as owner on free
   plan, confirm email arrives if `OPERATOR_NOTIFICATION_EMAIL` is set,
   confirm other org members are locked out of both `/dashboard` and
