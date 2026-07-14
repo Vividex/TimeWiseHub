@@ -1,11 +1,14 @@
+// src/components/video/WorksheetFullScreen.tsx
 'use client'
 
 import { X } from 'lucide-react'
 
 export default function WorksheetFullScreen({
+  title,
   onClose,
   children,
 }: {
+  title: string
   onClose: () => void
   children: React.ReactNode
 }) {
@@ -13,7 +16,7 @@ export default function WorksheetFullScreen({
     <div className="fixed inset-0 z-40 flex flex-col bg-slate-950">
       <div className="flex items-center justify-between gap-4 border-b border-slate-800 px-4 py-3">
         <div className="min-w-0">
-          <span className="text-sm font-bold text-white">Worksheet</span>
+          <span className="text-sm font-bold text-white">{title}</span>
           <p className="truncate text-xs text-slate-400">
             Tip: click Daily&apos;s Picture-in-Picture button first if you want to keep seeing each other while you work here.
           </p>

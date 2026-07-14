@@ -1,3 +1,4 @@
+// src/components/worksheets/StickerPalette.tsx
 'use client'
 
 import { useRef } from 'react'
@@ -6,13 +7,13 @@ import { BUILTIN_STICKERS } from '@/lib/worksheets/stickers'
 import { createClient } from '@/lib/supabase-browser'
 
 export default function StickerPalette({
-  topicAssetId,
-  studentId,
+  bucket,
+  buildUploadPath,
   onPick,
   onUploadCustom,
 }: {
-  topicAssetId: string
-  studentId: string
+  bucket: string
+  buildUploadPath: (file: File) => string
   onPick: (stickerId: string) => void
   onUploadCustom: (storagePath: string) => void
 }) {
@@ -21,9 +22,9 @@ export default function StickerPalette({
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const storagePath = `${topicAssetId}/${studentId}/${crypto.randomUUID()}-${file.name}`
+    const storagePath = buildUploadPath(file)
     const supabase = createClient()
-    const { error } = await supabase.storage.from('worksheet-stickers').upload(storagePath, file)
+    const { error } = await supabase.storage.from(bucket).upload(storagePath, file)
     if (!error) onUploadCustom(storagePath)
     e.target.value = ''
   }

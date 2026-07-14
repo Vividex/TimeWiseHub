@@ -261,8 +261,8 @@ export default function WorksheetAnnotator({
           <Pencil size={16} />
         </button>
         <StickerPalette
-          topicAssetId={topicAssetId}
-          studentId={studentId}
+          bucket="worksheet-stickers"
+          buildUploadPath={file => `${topicAssetId}/${studentId}/${crypto.randomUUID()}-${file.name}`}
           onPick={id => { setPendingStickerId(id); setTool('sticker') }}
           onUploadCustom={storagePath => { setPendingCustomSticker(storagePath); setTool('sticker') }}
         />

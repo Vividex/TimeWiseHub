@@ -232,7 +232,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
           width; the video call keeps running behind it (use Daily's own PiP button first to
           keep seeing each other while working here) */}
       {worksheetFullScreen && canUseWorksheet && (
-        <WorksheetFullScreen onClose={() => setWorksheetFullScreen(false)}>
+        <WorksheetFullScreen title="Worksheet" onClose={() => setWorksheetFullScreen(false)}>
           <WorksheetTab
             callId={callId!}
             assets={linkedTopicAssets ?? []}
@@ -243,7 +243,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
         </WorksheetFullScreen>
       )}
       {programAnnotateAsset && (
-        <WorksheetFullScreen onClose={() => setProgramAnnotateAsset(null)}>
+        <WorksheetFullScreen title="Worksheet" onClose={() => setProgramAnnotateAsset(null)}>
           <WorksheetAnnotator
             topicAssetId={programAnnotateAsset.topicAssetId}
             studentId={programAnnotateAsset.studentId}
