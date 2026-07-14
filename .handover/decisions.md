@@ -106,7 +106,21 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Video Call Whiteboard) [current phase]
+## Notes (Video Call Whiteboard) [complete, kept for reference]
+- **All 8 implementation items (C-1 through C-8) complete and verified
+  (2026-07-15).** Every turn was verified directly by the conductor (Read
+  the actual files/diffs + `pnpm run build`), not taken on Codex's report
+  alone — every file matched the plan's exact code with zero discrepancies
+  this phase, including the large, novel `WhiteboardCanvas.tsx` eraser logic
+  (C-4), which was explicitly dispatched with an instruction to transcribe
+  verbatim rather than re-derive, and confirmed line-by-line against the
+  plan afterward given how much technical risk it carried. Full
+  `pnpm run build` passes clean end-to-end. Remaining: the manual smoke test
+  (two-browser live sync for pen/text/sticker, the drag-to-erase split
+  behaviour specifically, persistence across leave/rejoin, a fresh board on
+  a different session, plan-gating across both a Pro/Team and a Free tutor
+  and their respective guests) requires the user's own authenticated and
+  guest sessions — same precedent as every prior phase.
 - Source spec: docs/superpowers/specs/2026-07-15-video-call-whiteboard-design.md
 - Source plan: docs/superpowers/plans/2026-07-15-video-call-whiteboard.md
 - Direct feature request: a freeform whiteboard in video sessions, "similar
