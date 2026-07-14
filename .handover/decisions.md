@@ -117,6 +117,24 @@
   `/dashboard` and `/settings`, reactivate, confirm data intact) requires the
   user's own authenticated sessions across multiple roles — same precedent
   as every prior phase.
+- **Post-ship follow-up (2026-07-14):** user asked whether cancelling Stripe
+  but not deactivating leaves someone with ongoing free access to paid
+  features. Confirmed via `src/app/api/stripe/webhook/route.ts`: Stripe's
+  default cancellation is cancel-at-period-end, so `status` stays `'active'`
+  (with `cancel_at_period_end: true`) until the paid period actually lapses
+  and `customer.subscription.deleted` fires — by design, not a hole (they
+  only keep what they already paid for). This did surface a real UX gap
+  though: the Danger Zone's `isPaidPlan(subscription)` block doesn't
+  distinguish "still paying, hasn't cancelled" from "already cancelled,
+  waiting out the period," so the same "cancel first" message showed even
+  right after someone cancelled. User chose to keep the hard block until the
+  period actually ends (rather than let cancel_at_period_end alone unlock
+  deactivation) but wanted the message corrected. Fixed: `DangerZoneDeactivate`
+  now takes `cancelAtPeriodEnd`/`periodEndDate` props (from the same
+  already-fetched `subscription` object) and shows "You've already
+  cancelled — your access continues until <date>" instead, no Billing link
+  in that state since there's nothing further to do there. Small, scoped fix
+  — done directly, not through the handover loop.
 - Source spec: docs/superpowers/specs/2026-07-14-account-deactivation-design.md
 - Source plan: docs/superpowers/plans/2026-07-14-account-deactivation.md
 - Direct feature request, follow-up to the gap flagged during Incident Reports
