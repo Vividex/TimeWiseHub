@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import type { DeactivationReason } from '@/types/account-deactivation'
 import { REASON_LABEL } from '@/lib/account-deactivation'
@@ -27,6 +26,24 @@ export default function DangerZoneDeactivate({
   const [typedConfirm, setTypedConfirm] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [openingPortal, setOpeningPortal] = useState(false)
+  const [portalError, setPortalError] = useState<string | null>(null)
+
+  async function goToBillingPortal() {
+    setOpeningPortal(true)
+    setPortalError(null)
+
+    const res = await fetch('/api/stripe/portal', { method: 'POST' })
+    const json = await res.json()
+
+    if (!res.ok || !json.url) {
+      setPortalError(json.error ?? 'Failed to open the billing portal.')
+      setOpeningPortal(false)
+      return
+    }
+
+    router.push(json.url)
+  }
 
   async function submitDeactivation() {
     if (typedConfirm !== accountLabel) return
@@ -67,9 +84,14 @@ export default function DangerZoneDeactivate({
       ) : blockedByPlan ? (
         <div className="mt-4 rounded-xl border border-red-200 bg-white p-4 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-slate-900 dark:text-red-300">
           You&apos;re on a paid plan. Cancel your subscription first, then come back here.
-          <Link href="/dashboard/billing" className="mt-2 block text-cyan-600 hover:underline dark:text-cyan-400">
-            Go to Billing →
-          </Link>
+          <button
+            onClick={goToBillingPortal}
+            disabled={openingPortal}
+            className="mt-2 block text-cyan-600 hover:underline disabled:opacity-50 dark:text-cyan-400"
+          >
+            {openingPortal ? 'Opening…' : 'Manage subscription →'}
+          </button>
+          {portalError && <p className="mt-2 text-xs font-semibold text-red-600">{portalError}</p>}
         </div>
       ) : step === 'idle' ? (
         <button
