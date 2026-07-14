@@ -121,6 +121,26 @@
   a different session, plan-gating across both a Pro/Team and a Free tutor
   and their respective guests) requires the user's own authenticated and
   guest sessions — same precedent as every prior phase.
+- **Post-ship fixes (2026-07-15), found via the user's own live testing:**
+  (1) real bug — `handlePointerUp` and `runToNewStroke` normalized stroke
+  points as a raw canvas-fraction delta (`x - minX`) instead of a true 0-1
+  fraction of the stroke's own bounding box (`(x - minX) / width`), while
+  the renderer assumed the latter (`o.x + x * o.width`) — a saved stroke
+  rendered shrunk by its own width/height a second time, appearing tiny
+  near its own top-left corner instead of where it was drawn. Fixed in both
+  places. **This exact same normalization pattern exists in the original
+  `WorksheetAnnotator.tsx`'s `handlePointerUp`** (copied faithfully from
+  there during planning) — flagged to the user as a likely pre-existing bug
+  in the shipped Worksheet Annotation feature too, not yet fixed there
+  pending the user's go-ahead (out of scope of this bug report until
+  confirmed). (2) UI: switched the whiteboard from the dark chrome
+  `WorksheetAnnotator` uses (appropriate there since it's viewing a
+  scanned/PDF page) to a light theme throughout — a blank whiteboard reads
+  as a literal white page, not a document viewer. (3) UX: `PEN_WIDTHS`
+  changed from `[2, 4, 7]` to `[2, 7, 14]` for clearer visual separation
+  between presets, and the width-selector dots now preview the actual
+  selected pen colour instead of a fixed white dot (which would've been
+  invisible against the new light toolbar anyway).
 - Source spec: docs/superpowers/specs/2026-07-15-video-call-whiteboard-design.md
 - Source plan: docs/superpowers/plans/2026-07-15-video-call-whiteboard.md
 - Direct feature request: a freeform whiteboard in video sessions, "similar
