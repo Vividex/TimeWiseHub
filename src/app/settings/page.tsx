@@ -5,7 +5,8 @@ import AccountSettingsForm from '@/components/AccountSettingsForm'
 import OrgBillingSettingsForm from '@/components/OrgBillingSettingsForm'
 import ThemeSelector from '@/components/ThemeSelector'
 import InviteMember from '@/components/InviteMember'
-import { effectivePlan, getSubscription, isTeamPlan } from '@/lib/subscription'
+import DangerZoneDeactivate from '@/components/settings/DangerZoneDeactivate'
+import { effectivePlan, getSubscription, isPaidPlan, isTeamPlan } from '@/lib/subscription'
 import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
 import PushPermission from '@/components/PushPermission'
@@ -31,6 +32,16 @@ export default async function SettingsPage() {
     getSubscription(user.id),
   ])
 
+  if (membership?.org_id) {
+    const { data: orgDeactivation } = await supabase
+      .from('organisations').select('deactivated_at').eq('id', membership.org_id).maybeSingle()
+    if (orgDeactivation?.deactivated_at) redirect('/account-deactivated')
+  } else {
+    const { data: profileDeactivation } = await supabase
+      .from('profiles').select('deactivated_at').eq('id', user.id).maybeSingle()
+    if (profileDeactivation?.deactivated_at) redirect('/account-deactivated')
+  }
+
   const isOrgAdmin = ['owner', 'admin'].includes(membership?.role ?? '')
   const plan = effectivePlan(subscription)
   const [{ data: organisation }, { data: members }] = isOrgAdmin && membership?.org_id
@@ -47,6 +58,12 @@ export default async function SettingsPage() {
         .order('role', { ascending: true }),
     ])
     : [{ data: null }, { data: null }]
+  const isOwner = membership?.role === 'owner'
+  const isSolo = !membership?.org_id
+  const showDangerZone = isOwner || isSolo
+  const accountLabel = membership?.org_id
+    ? (organisation?.name ?? 'your organisation')
+    : (profile?.full_name || user.email || 'your account')
 
   const profileTab = (
     <>
@@ -178,10 +195,15 @@ export default async function SettingsPage() {
     </>
   )
 
+  const dangerTab = showDangerZone ? (
+    <DangerZoneDeactivate accountLabel={accountLabel} blockedByPlan={isPaidPlan(subscription)} />
+  ) : null
+
   const tabs = [
     { key: 'profile', label: 'Profile', content: profileTab },
     ...(orgTab ? [{ key: 'organisation', label: 'Organisation', content: orgTab }] : []),
     { key: 'data', label: 'Data', content: dataTab },
+    ...(dangerTab ? [{ key: 'danger', label: 'Danger Zone', content: dangerTab }] : []),
   ]
 
   return (
