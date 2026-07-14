@@ -128,12 +128,17 @@
   the renderer assumed the latter (`o.x + x * o.width`) — a saved stroke
   rendered shrunk by its own width/height a second time, appearing tiny
   near its own top-left corner instead of where it was drawn. Fixed in both
-  places. **This exact same normalization pattern exists in the original
+  places. **This exact same normalization pattern existed in the original
   `WorksheetAnnotator.tsx`'s `handlePointerUp`** (copied faithfully from
-  there during planning) — flagged to the user as a likely pre-existing bug
-  in the shipped Worksheet Annotation feature too, not yet fixed there
-  pending the user's go-ahead (out of scope of this bug report until
-  confirmed). (2) UI: switched the whiteboard from the dark chrome
+  there during planning) — flagged to the user, who confirmed fixing it
+  there too; same fix applied to that file. **Not retroactive**: any pen
+  strokes already saved on existing worksheets before this fix have the bad
+  math baked into their stored `points` data and will keep rendering
+  tiny/misplaced — only newly-drawn strokes after this fix are correct. No
+  backfill migration was written (no test data at meaningful volume yet,
+  and reconstructing "what was actually drawn" from already-corrupted
+  points isn't generally possible). (2) UI: switched the whiteboard from
+  the dark chrome
   `WorksheetAnnotator` uses (appropriate there since it's viewing a
   scanned/PDF page) to a light theme throughout — a blank whiteboard reads
   as a literal white page, not a document viewer. (3) UX: `PEN_WIDTHS`
