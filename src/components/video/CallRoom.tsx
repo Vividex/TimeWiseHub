@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DailyIframe from '@daily-co/daily-js'
-import { NotebookPen, BookOpen, MessageCircle } from 'lucide-react'
+import { NotebookPen, BookOpen, MessageCircle, Pencil } from 'lucide-react'
 import CallPanel, { type CallPanelTabId } from './CallPanel'
 import ScrollFade from '@/components/ui/ScrollFade'
 import ProgramReferencePanel from '@/components/video/ProgramReferencePanel'
 import RoomChatTab from './RoomChatTab'
 import WorksheetTab, { type LinkedTopicAsset } from './WorksheetTab'
 import WorksheetFullScreen from './WorksheetFullScreen'
+import WhiteboardCanvas from '@/components/whiteboard/WhiteboardCanvas'
+import WhiteboardGateNotice from '@/components/whiteboard/WhiteboardGateNotice'
 import WorksheetAnnotator from '@/components/worksheets/WorksheetAnnotator'
 import { createClient } from '@/lib/supabase-browser'
 import type { LinkedProgramBundle, ProgramAsset } from '@/types/programs'
@@ -27,10 +29,12 @@ type Props = {
   sessionChat?: { conversationId: string; userId: string } | null
   linkedTopicAssets?: LinkedTopicAsset[]
   sessionStudentId?: string | null
+  sessionId?: string | null
+  whiteboardAllowed?: boolean
   currentUserId?: string
 }
 
-export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isGuest = false, callId, linkedProgram, sessionChat, linkedTopicAssets, sessionStudentId, currentUserId }: Props) {
+export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isGuest = false, callId, linkedProgram, sessionChat, linkedTopicAssets, sessionStudentId, sessionId, whiteboardAllowed = false, currentUserId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null)
   const chunkBufferRef = useRef<string>('')
@@ -43,6 +47,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
   const [activeTab, setActiveTab] = useState<CallPanelTabId>('transcript')
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([])
   const [worksheetFullScreen, setWorksheetFullScreen] = useState(false)
+  const [whiteboardFullScreen, setWhiteboardFullScreen] = useState(false)
   const [programAnnotateAsset, setProgramAnnotateAsset] = useState<{
     topicAssetId: string
     studentId: string
@@ -51,6 +56,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
   } | null>(null)
 
   const canUseWorksheet = !!callId && !!currentUserId && ((linkedTopicAssets && linkedTopicAssets.length > 0) || isGuest)
+  const canUseWhiteboard = !!callId && !!currentUserId && !!sessionId
 
   const availableTabs: CallPanelTabId[] = [
     'transcript',
@@ -253,6 +259,13 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
           />
         </WorksheetFullScreen>
       )}
+      {whiteboardFullScreen && canUseWhiteboard && (
+        <WorksheetFullScreen title="Whiteboard" onClose={() => setWhiteboardFullScreen(false)}>
+          {whiteboardAllowed
+            ? <WhiteboardCanvas sessionId={sessionId!} currentUserId={currentUserId!} />
+            : <WhiteboardGateNotice isGuest={isGuest} />}
+        </WorksheetFullScreen>
+      )}
 
       {/* Controls bar */}
       <div
@@ -296,6 +309,17 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
           >
             <NotebookPen size={15} />
             Worksheet
+          </button>
+        )}
+
+        {canUseWhiteboard && (
+          <button
+            onClick={() => setWhiteboardFullScreen(true)}
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg flex items-center gap-2 bg-slate-700 text-white hover:bg-slate-600"
+            title="Open whiteboard"
+          >
+            <Pencil size={15} />
+            Whiteboard
           </button>
         )}
 
