@@ -171,14 +171,21 @@ export default function WorksheetAnnotator({
     const ys = drawingPoints.map(p => p[1])
     const minX = Math.min(...xs), minY = Math.min(...ys)
     const maxX = Math.max(...xs), maxY = Math.max(...ys)
-    const normalised: [number, number][] = drawingPoints.map(([x, y]) => [x - minX, y - minY])
+    const width = Math.max(maxX - minX, 0.01)
+    const height = Math.max(maxY - minY, 0.01)
+    // Points are stored as a 0-1 fraction of this stroke's own bounding box
+    // (not a raw canvas-fraction delta) — the renderer reconstructs page
+    // position via `a.x + x * a.width`, so dividing by width/height here is
+    // required, or a stroke renders shrunk by its own width/height a second
+    // time, near its own top-left corner instead of where it was drawn.
+    const normalised: [number, number][] = drawingPoints.map(([x, y]) => [(x - minX) / width, (y - minY) / height])
 
     const saved = await insertAnnotation({
       topic_asset_id: topicAssetId,
       student_id: studentId,
       page_number: pageNumber,
       object_type: 'stroke',
-      x: minX, y: minY, width: Math.max(maxX - minX, 0.01), height: Math.max(maxY - minY, 0.01),
+      x: minX, y: minY, width, height,
       content: { kind: 'stroke', points: normalised, color: '#ef4444', strokeWidth: 3 },
       created_by: currentUserId,
     })
