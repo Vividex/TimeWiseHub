@@ -11,9 +11,11 @@ type Props = {
   dailyRoomName: string
   guestToken: string
   defaultName: string
+  sessionId: string | null
+  whiteboardAllowed: boolean
 }
 
-export default function GuestJoinClient({ callId, callTitle, roomUrl, dailyRoomName, guestToken, defaultName }: Props) {
+export default function GuestJoinClient({ callId, callTitle, roomUrl, dailyRoomName, guestToken, defaultName, sessionId, whiteboardAllowed }: Props) {
   const [name, setName] = useState(defaultName)
   const [token, setToken] = useState<string | null>(null)
   const [sessionChat, setSessionChat] = useState<{ conversationId: string; userId: string } | null>(null)
@@ -66,6 +68,8 @@ export default function GuestJoinClient({ callId, callTitle, roomUrl, dailyRoomN
         callId={callId}
         sessionChat={sessionChat}
         currentUserId={sessionChat?.userId}
+        sessionId={sessionId}
+        whiteboardAllowed={whiteboardAllowed}
       />
     )
   }

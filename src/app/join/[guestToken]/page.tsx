@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase-service'
 import GuestJoinClient from '@/components/video/GuestJoinClient'
+import { getSubscription, isPaidPlan } from '@/lib/subscription'
 
 export default async function GuestJoinPage({
   params,
@@ -11,7 +12,7 @@ export default async function GuestJoinPage({
 
   const { data: invitee } = await service
     .from('call_invitees')
-    .select('id, display_name, scheduled_calls(id, title, starts_at, daily_room_name, room_url)')
+    .select('id, display_name, scheduled_calls(id, title, starts_at, daily_room_name, room_url, session_id)')
     .eq('guest_token', guestToken)
     .maybeSingle()
 
@@ -21,6 +22,7 @@ export default async function GuestJoinPage({
     starts_at: string | null
     daily_room_name: string
     room_url: string
+    session_id: string | null
   } | null)
 
   if (!call?.daily_room_name || !call?.room_url) {
@@ -31,6 +33,15 @@ export default async function GuestJoinPage({
     )
   }
 
+  let whiteboardAllowed = false
+  if (call.session_id) {
+    const { data: session } = await service
+      .from('sessions').select('created_by').eq('id', call.session_id).maybeSingle()
+    if (session?.created_by) {
+      whiteboardAllowed = isPaidPlan(await getSubscription(session.created_by))
+    }
+  }
+
   return (
     <GuestJoinClient
       callId={call.id}
@@ -39,6 +50,8 @@ export default async function GuestJoinPage({
       dailyRoomName={call.daily_room_name}
       guestToken={guestToken}
       defaultName={invitee?.display_name ?? ''}
+      sessionId={call.session_id}
+      whiteboardAllowed={whiteboardAllowed}
     />
   )
 }
