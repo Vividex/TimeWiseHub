@@ -12,9 +12,13 @@ const REASONS: DeactivationReason[] = ['too_expensive', 'missing_features', 'swi
 export default function DangerZoneDeactivate({
   accountLabel,
   blockedByPlan,
+  cancelAtPeriodEnd,
+  periodEndDate,
 }: {
   accountLabel: string
   blockedByPlan: boolean
+  cancelAtPeriodEnd: boolean
+  periodEndDate: string | null
 }) {
   const router = useRouter()
   const [step, setStep] = useState<'idle' | 'reason' | 'confirm'>('idle')
@@ -56,7 +60,11 @@ export default function DangerZoneDeactivate({
         Closes {accountLabel} for everyone. No data is deleted — you can reactivate any time.
       </p>
 
-      {blockedByPlan ? (
+      {blockedByPlan && cancelAtPeriodEnd ? (
+        <div className="mt-4 rounded-xl border border-red-200 bg-white p-4 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-slate-900 dark:text-red-300">
+          You&apos;ve already cancelled{periodEndDate ? ` — your access continues until ${periodEndDate}` : ''}. You can deactivate once that date passes.
+        </div>
+      ) : blockedByPlan ? (
         <div className="mt-4 rounded-xl border border-red-200 bg-white p-4 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-slate-900 dark:text-red-300">
           You&apos;re on a paid plan. Cancel your subscription first, then come back here.
           <Link href="/dashboard/billing" className="mt-2 block text-cyan-600 hover:underline dark:text-cyan-400">

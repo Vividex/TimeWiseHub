@@ -196,7 +196,14 @@ export default async function SettingsPage() {
   )
 
   const dangerTab = showDangerZone ? (
-    <DangerZoneDeactivate accountLabel={accountLabel} blockedByPlan={isPaidPlan(subscription)} />
+    <DangerZoneDeactivate
+      accountLabel={accountLabel}
+      blockedByPlan={isPaidPlan(subscription)}
+      cancelAtPeriodEnd={subscription.cancel_at_period_end}
+      periodEndDate={subscription.current_period_end
+        ? new Date(subscription.current_period_end).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+        : null}
+    />
   ) : null
 
   const tabs = [
