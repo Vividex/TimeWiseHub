@@ -65,13 +65,15 @@ export default async function DashboardLayout({
   const workspaceProfile = await getWorkspaceProfileForUser(supabase, user.id)
   const { terminology, navOverrides } = workspaceProfile
 
-  if (orgId && ['owner', 'admin'].includes(role)) {
+  if (orgId) {
     const { data: org } = await supabase
-      .from('organisations').select('setup_completed').eq('id', orgId).maybeSingle()
-    if (org && !org.setup_completed) redirect('/setup')
-  } else if (!orgId) {
+      .from('organisations').select('deactivated_at, setup_completed').eq('id', orgId).maybeSingle()
+    if (org?.deactivated_at) redirect('/account-deactivated')
+    if (['owner', 'admin'].includes(role) && org && !org.setup_completed) redirect('/setup')
+  } else {
     const { data: profile } = await supabase
-      .from('profiles').select('setup_completed').eq('id', user.id).maybeSingle()
+      .from('profiles').select('deactivated_at, setup_completed').eq('id', user.id).maybeSingle()
+    if (profile?.deactivated_at) redirect('/account-deactivated')
     if (profile && !profile.setup_completed) redirect('/setup')
   }
 
