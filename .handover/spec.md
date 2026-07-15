@@ -113,18 +113,18 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-5 — Site CRUD UI components
 
 *Codex edits:*
-- [ ] Create `src/components/client-sites/SiteForm.tsx` (plan Task 5, Step 1)
-- [ ] Create `src/components/client-sites/EditSiteButton.tsx` and
+- [x] Create `src/components/client-sites/SiteForm.tsx` (plan Task 5, Step 1)
+- [x] Create `src/components/client-sites/EditSiteButton.tsx` and
   `EditSiteModal.tsx` (plan Task 5, Step 2)
-- [ ] Create `src/components/client-sites/DeleteSiteButton.tsx` (plan Task
+- [x] Create `src/components/client-sites/DeleteSiteButton.tsx` (plan Task
   5, Step 3)
-- [ ] Create `src/components/client-sites/RestoreSiteButton.tsx` (plan
+- [x] Create `src/components/client-sites/RestoreSiteButton.tsx` (plan
   Task 5, Step 4)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/client-sites/ && git commit -m "handover: C-5 site CRUD UI components"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/client-sites/ && git commit -m "handover: C-5 site CRUD UI components"`
 
 ---
 
