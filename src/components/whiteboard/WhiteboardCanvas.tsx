@@ -104,6 +104,7 @@ export default function WhiteboardCanvas({
   const canvasRef = useRef<HTMLDivElement>(null)
   const textDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const erasedPointIndicesRef = useRef<Map<string, Set<number>>>(new Map())
+  const isErasingRef = useRef(false)
 
   const channelRef = useRef<RealtimeChannel | null>(null)
 
@@ -207,12 +208,23 @@ export default function WhiteboardCanvas({
     setPendingCustomSticker(null)
   }
 
-  function handleEraserMove(clientX: number, clientY: number) {
+  function updateEraserCursor(clientX: number, clientY: number) {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
     const px = ((clientX - rect.left) / rect.width) * CANVAS_WIDTH
     const py = ((clientY - rect.top) / rect.height) * CANVAS_HEIGHT
     setEraserPos({ x: px, y: py })
+  }
+
+  // Only called while the pointer is actually held down (see
+  // handlePointerDown/handlePointerMove's isErasingRef gate) — otherwise
+  // just moving the mouse across the canvas with the eraser tool selected
+  // would erase anything it passed over on the way to where you meant to erase.
+  function handleEraserMove(clientX: number, clientY: number) {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const px = ((clientX - rect.left) / rect.width) * CANVAS_WIDTH
+    const py = ((clientY - rect.top) / rect.height) * CANVAS_HEIGHT
 
     let changed = false
     for (const o of objects) {
@@ -239,6 +251,7 @@ export default function WhiteboardCanvas({
   }
 
   async function completeErase() {
+    isErasingRef.current = false
     const touched = Array.from(erasedPointIndicesRef.current.entries())
     erasedPointIndicesRef.current = new Map()
     setEraserTick(t => t + 1)
@@ -292,6 +305,8 @@ export default function WhiteboardCanvas({
       const { x, y } = relativePosition(e.clientX, e.clientY)
       setDrawingPoints([[x, y]])
     } else if (tool === 'eraser') {
+      isErasingRef.current = true
+      updateEraserCursor(e.clientX, e.clientY)
       handleEraserMove(e.clientX, e.clientY)
     }
   }
@@ -301,7 +316,10 @@ export default function WhiteboardCanvas({
       const { x, y } = relativePosition(e.clientX, e.clientY)
       setDrawingPoints(prev => [...prev, [x, y]])
     } else if (tool === 'eraser') {
-      handleEraserMove(e.clientX, e.clientY)
+      updateEraserCursor(e.clientX, e.clientY)
+      if (isErasingRef.current) {
+        handleEraserMove(e.clientX, e.clientY)
+      }
     }
   }
 
@@ -515,6 +533,12 @@ export default function WhiteboardCanvas({
                         autoFocus
                         value={c.text}
                         onChange={e => handleTextChange(o, e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            setSelectedId(null)
+                          }
+                        }}
                         className="h-full w-full resize-none !border-cyan-400 !bg-white !text-slate-900 border p-1 text-sm focus:outline-none"
                       />
                       <div

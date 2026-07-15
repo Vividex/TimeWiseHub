@@ -260,7 +260,7 @@ export default function CallRoom({ roomUrl, token, dailyRoomName, isCreator, isG
         </WorksheetFullScreen>
       )}
       {whiteboardFullScreen && canUseWhiteboard && (
-        <WorksheetFullScreen title="Whiteboard" onClose={() => setWhiteboardFullScreen(false)}>
+        <WorksheetFullScreen title="Whiteboard" theme="light" onClose={() => setWhiteboardFullScreen(false)}>
           {whiteboardAllowed
             ? <WhiteboardCanvas sessionId={sessionId!} currentUserId={currentUserId!} />
             : <WhiteboardGateNotice isGuest={isGuest} />}
