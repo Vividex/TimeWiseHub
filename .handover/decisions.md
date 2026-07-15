@@ -5,7 +5,9 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Video Call Whiteboard (current phase): zero cost — pure code + one additive DB migration
+- Client Sites (current phase): zero cost — pure code + one additive DB migration (one new table,
+  two new nullable FK columns on existing tables), no new npm dependencies, no external API calls.
+- Video Call Whiteboard (prior phase, complete): zero cost — pure code + one additive DB migration
   (one new table, one new function, one new private storage bucket), no new npm dependencies
   (`perfect-freehand` already installed for Worksheet Annotation, no `react-pdf` needed since
   there's no document to render).
@@ -105,6 +107,56 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (Client Sites) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-15-client-sites-design.md
+- Source plan: docs/superpowers/plans/2026-07-15-client-sites.md
+- Trades & Field Services deep-dive (parallel to the earlier tutoring deep-dive). User picked
+  "Trades & Field Services" over Personal Training when asked which industry to deep-dive next
+  (both were candidates per the original Workspace Profile roadmap decision). Motivation was
+  explicitly exploratory ("would be good to get another one closed off"), not a specific new
+  prospect — Vehicle Tracking/Incident Reports/Account Deactivation already shipped this same week
+  are trades-shaped features, but ungated and with generic terminology; this phase asked "what's
+  actually still missing" rather than assuming the vertical was already done.
+- Competitive research pass (ServiceM8, Tradify, Fergus, general 2026 field-service-management
+  sources) surfaced: quotes-with-digital-acceptance, job costing, multi-site customers, digital
+  sign-off. User picked multi-site customers over the recommended quotes-with-acceptance option.
+- Gated to exactly `trades_field_services`, `builder_construction`, `cleaning_maintenance`,
+  `real_estate` via a new `supportsMultiSite` workspace-profile flag — not universal (tutoring
+  explicitly doesn't need it) and not exclusively trades (other property-visiting profiles do).
+- `clients.address` is deliberately untouched — stays the billing/default address, no migration of
+  existing rows. Sites are purely additive.
+- **Deliberately reopens a prior explicit scope decision**: Incident Reports
+  (`2026-07-13-incident-reports-design.md`) originally excluded any client/job link on purpose
+  ("this is not a general-purpose incident log"). Raised directly to the user before proceeding
+  (not silently overridden) — user confirmed reopening it. Adds optional `client_id`/`site_id`
+  there; the rest of that feature (workplace-safety-only fields, no delete, ungated to all
+  Team-plan orgs) is unchanged.
+- **Real gap caught during research, before writing the plan:** `incident_reports` has no
+  `client_id` at all today, which the design brainstorm surfaced only after checking the live
+  schema (not from memory/assumption) — the initial plan for "link incident reports to sites"
+  would have been wrong without that check.
+- **Real pre-existing bug noted, explicitly not fixed this phase:** the recurring-session path
+  (`POST /api/clients/[id]/sessions/series`) already silently drops `studentId`/`subjectId`/
+  `topicId` — its handler only destructures `{ title, scheduledAt, durationMinutes,
+  recurrenceInterval }` even though `NewSessionModal` sends the rest. `site_id` follows the same
+  precedent (wired into the non-recurring insert only) rather than expanding this phase's scope to
+  fix a pre-existing, unrelated gap.
+- **Self-review catch, before any code was written:** the plan's `ClientSitePicker` component is
+  shared between the new-incident-report form (clientId starts `''`) and the incident-report edit
+  view (clientId starts from `report.client_id`, siteId from `report.site_id`). The first draft's
+  `useEffect` unconditionally reset `siteId` to `''` whenever `clientId` was set — harmless in the
+  create form, but would have silently wiped a saved site selection the instant the edit view
+  mounted. Fixed with an `isFirstRun` ref guard so the reset only fires on genuine client changes,
+  not on mount.
+- All CRUD is direct `supabase.from(...)` calls in `'use client'` components, matching this
+  codebase's existing convention (confirmed via research: there is no lib-layer CRUD wrapper
+  pattern anywhere in this repo, e.g. `src/lib/vehicles.ts` is pure status-calculation helpers,
+  not a data-access layer). `client_sites` RLS and the `/api/client-sites/[id]` route both mirror
+  the existing `students` table's pattern exactly (owner-manage / org-view / org-admin-manage;
+  `/api/students/[id]/route.ts`'s field-edit-vs-archive-toggle branching).
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. C-1 (migration) is conductor-only.
 
 ## Notes (Video Call Whiteboard) [complete, kept for reference]
 - **All 8 implementation items (C-1 through C-8) complete and verified

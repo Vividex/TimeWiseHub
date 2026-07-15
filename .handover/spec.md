@@ -1,55 +1,57 @@
-# Video call whiteboard
+# Client Sites
 
 ## Goal
-Add a freeform collaborative whiteboard to tutoring video calls — a
-session-scoped blank canvas with pen (colours + thickness), true
-drag-to-erase, text boxes, and stickers. Visible to everyone on a tutoring
-call, but locked behind Pro/Team plans (Free sees an upgrade prompt instead
-of the canvas).
+Let a client have more than one physical address — a landlord, strata
+manager, or multi-branch commercial account shouldn't need a duplicate
+client record per property. A session (job) or incident report can then
+reference a specific site instead of only the client's single address.
+Gated to `trades_field_services`, `builder_construction`,
+`cleaning_maintenance`, `real_estate` workspace profiles.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-15-video-call-whiteboard-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-15-video-call-whiteboard.md`
-- Tutoring only, alongside the existing Worksheet Annotation feature — not a
-  general-purpose tool for every video call across the app.
-- Scoped by `session_id`, not `(topic_asset_id, student_id)` like worksheets
-  — one whiteboard per session, persists on reopen, no student
-  disambiguation needed.
-- Reuses Worksheet Annotation's proven architecture almost entirely
-  (discrete text_box/stroke/sticker rows, Broadcast-for-live/table-for-
-  persistence, `perfect-freehand`) — no new dependency.
-- The one genuinely new piece: true drag-to-erase. Splits a stroke's points
-  into contiguous surviving runs on release, replacing the original row with
-  zero, one, or several new rows (handles more than two runs generally, not
-  just the spec's illustrative two-run case). Only erases strokes — text
-  boxes/stickers keep the existing select-and-× delete.
-- Two existing components get small, backward-compatible generalizations so
-  both features share them: `StickerPalette` (bucket/path props instead of
-  hardcoded topicAssetId/studentId) and `WorksheetFullScreen` (adds a
-  required `title` prop instead of a hardcoded "Worksheet" label).
-- Plan gating resolved from the **session owner's** subscription
-  (`sessions.created_by → getSubscription → isPaidPlan`), not the current
-  viewer's — a guest student has no subscription of their own. UI-layer gate
-  only, not RLS, same documented limitation as the account-deactivation gate.
+- Source spec: `docs/superpowers/specs/2026-07-15-client-sites-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-15-client-sites.md`
+- `clients.address` is untouched — stays the billing/default address. Sites
+  are a separate, additive list purely for "where does the work happen." No
+  migration of existing client rows.
+- Deliberately reopens Incident Reports' original "no client link" scope
+  decision (`2026-07-13-incident-reports-design.md`) — adds optional
+  `client_id`/`site_id` there. The rest of that feature (workplace-safety
+  fields, no delete, ungated to all Team-plan orgs) is unchanged.
+- No vehicle-to-site linkage. No per-industry site terminology (one shared
+  "Sites" label). No migration of existing addresses into sites. No
+  top-level "all sites" nav page — sites live entirely under their parent
+  client.
+- The recurring-session path (`/api/clients/[id]/sessions/series`) already
+  silently drops `studentId`/`subjectId`/`topicId` — a pre-existing gap, not
+  introduced here. `site_id` follows the same precedent and is only wired
+  into the non-recurring session-booking path. Do not expand scope to fix
+  the recurring path.
+- All CRUD is direct `supabase.from(...)` calls in `'use client'`
+  components (matches this repo's existing convention — no lib-layer CRUD
+  wrappers), plus one `/api/client-sites/[id]` route mirroring
+  `/api/students/[id]` exactly for admin-gated edit/archive/restore.
+- `ClientSitePicker` (created in C-8) is a shared component reused by both
+  the new-incident-report form (C-8) and the incident-report edit view
+  (C-9) — do not duplicate its fetch-on-clientId-change logic.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP) —
   the conductor handles those.
-- Read every target file first — several tasks modify files that already
-  exist in the shipped app (`CallRoom.tsx`, `WorksheetAnnotator.tsx`,
-  `WorksheetFullScreen.tsx`, `StickerPalette.tsx`,
-  `dashboard/video/[roomId]/page.tsx`, `join/[guestToken]/page.tsx`,
-  `GuestJoinClient.tsx`).
+- Read every target file first — most tasks modify files that already exist
+  in the shipped app (`NewSessionModal.tsx`, `IncidentReportsView.tsx`,
+  `IncidentReportDetailClient.tsx`, `clients/[id]/page.tsx`,
+  `clients/[id]/sessions/page.tsx`, `incident-reports/page.tsx`,
+  `incident-reports/[id]/page.tsx`, `incident-reports/[id]/print/page.tsx`,
+  `workspace-profiles/types.ts`, `workspace-profiles/registry.ts`,
+  `types/incident-reports.ts`).
 - After each turn, list the files changed/created.
 
 ## Rules for conductor (Claude)
 - `pnpm run build` after each Codex turn — must pass before ticking the box
   and committing.
-- C-1 is conductor-only (pure SQL) — apply via Supabase MCP `apply_migration`,
-  no Codex dispatch for that item.
-- C-3 is a pure refactor of existing worksheet code (StickerPalette +
-  WorksheetFullScreen) — verify worksheets still work identically after it,
-  not just that the build passes.
+- C-1 is conductor-only (pure SQL) — apply via Supabase MCP
+  `apply_migration`, no Codex dispatch for that item.
 - Commit each verified item separately.
 
 ---
@@ -57,145 +59,179 @@ of the canvas).
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [x] Write `supabase/schema-103-whiteboard.sql` (plan Task 1, Step 1 — exact
-  SQL in the plan doc)
-- [x] Apply via Supabase MCP `apply_migration` (name: `whiteboard`)
-- [x] Verify via the sanity-check queries in the plan (Step 3)
-- [x] Commit: `git add supabase/schema-103-whiteboard.sql && git commit -m "handover: C-1 whiteboard schema + RLS + storage bucket"`
+- [ ] Write `supabase/schema-104-client-sites.sql` (plan Task 1, Step 1 —
+  exact SQL in the plan doc)
+- [ ] Apply via Supabase MCP `apply_migration` (name: `client_sites`)
+- [ ] Verify via the sanity-check queries in the plan (Step 3)
+- [ ] Commit: `git add supabase/schema-104-client-sites.sql && git commit -m "handover: C-1 client_sites schema + RLS"`
 
 ---
 
-## C-2 — Types and data access lib
+## C-2 — Types
 
 *Codex edits:*
-- [x] Create `src/types/whiteboard.ts` (plan Task 2, Step 1)
-- [x] Create `src/lib/whiteboard/objects.ts` (plan Task 3, Step 1)
-- [x] Report back — list files changed.
+- [ ] Create `src/types/client-sites.ts` (plan Task 2, Step 1)
+- [ ] Modify `src/types/incident-reports.ts` (plan Task 2, Step 2 — add
+  `client_id`/`site_id` to `IncidentReport`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/types/whiteboard.ts src/lib/whiteboard/objects.ts && git commit -m "handover: C-2 whiteboard types and data access lib"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/types/client-sites.ts src/types/incident-reports.ts && git commit -m "handover: C-2 client site + incident report types"`
 
 ---
 
-## C-3 — Generalize StickerPalette and WorksheetFullScreen
+## C-3 — Workspace profile flag
 
 *Codex edits:*
-- [x] Modify `src/components/worksheets/StickerPalette.tsx` (plan Task 4,
-  Step 1 — replace `topicAssetId`/`studentId` props with `bucket`/
-  `buildUploadPath`)
-- [x] Modify `src/components/worksheets/WorksheetAnnotator.tsx` (plan Task 4,
-  Step 2 — update its one `StickerPalette` call site to match)
-- [x] Modify `src/components/video/WorksheetFullScreen.tsx` (plan Task 4,
-  Step 3 — add a required `title` prop)
-- [x] Modify `src/components/video/CallRoom.tsx` (plan Task 4, Step 4 — pass
-  `title="Worksheet"` at both existing `WorksheetFullScreen` call sites; do
-  NOT add the Whiteboard button/overlay yet, that's C-6)
-- [x] Report back — list files changed.
+- [ ] Modify `src/lib/workspace-profiles/types.ts` (plan Task 3, Step 1 —
+  add `supportsMultiSite?: boolean`)
+- [ ] Modify `src/lib/workspace-profiles/registry.ts` (plan Task 3, Step 2
+  — set `true` on exactly `builder_construction`, `trades_field_services`,
+  `real_estate`, `cleaning_maintenance`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [ ] Manual: open an existing worksheet (via a call's Worksheet button or
-  `/dashboard/subjects`'s Annotate action), confirm the header still says
-  "Worksheet" and custom sticker upload still works at the same path.
-- [x] Commit: `git add src/components/worksheets/StickerPalette.tsx src/components/worksheets/WorksheetAnnotator.tsx src/components/video/WorksheetFullScreen.tsx src/components/video/CallRoom.tsx && git commit -m "handover: C-3 generalize StickerPalette and WorksheetFullScreen for reuse"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "handover: C-3 supportsMultiSite workspace profile flag"`
 
 ---
 
-## C-4 — WhiteboardCanvas component
+## C-4 — Site CRUD API route
 
 *Codex edits:*
-- [x] Create `src/components/whiteboard/WhiteboardCanvas.tsx` (plan Task 5,
-  Step 1 — exact code in the plan doc, including the eraser's
-  `contiguousSurvivingRuns`/`runToNewStroke`/`completeErase` logic)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/api/client-sites/[id]/route.ts` (plan Task 4, Step 1
+  — mirrors `/api/students/[id]/route.ts`, exact code in the plan doc)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/whiteboard/WhiteboardCanvas.tsx && git commit -m "handover: C-4 WhiteboardCanvas with pen/eraser/text/sticker tools"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/api/client-sites/[id]/route.ts && git commit -m "handover: C-4 client sites CRUD API route"`
 
 ---
 
-## C-5 — Plan-gate notice component
+## C-5 — Site CRUD UI components
 
 *Codex edits:*
-- [x] Create `src/components/whiteboard/WhiteboardGateNotice.tsx` (plan Task
-  6, Step 1)
-- [x] Report back — list files changed.
+- [ ] Create `src/components/client-sites/SiteForm.tsx` (plan Task 5, Step 1)
+- [ ] Create `src/components/client-sites/EditSiteButton.tsx` and
+  `EditSiteModal.tsx` (plan Task 5, Step 2)
+- [ ] Create `src/components/client-sites/DeleteSiteButton.tsx` (plan Task
+  5, Step 3)
+- [ ] Create `src/components/client-sites/RestoreSiteButton.tsx` (plan
+  Task 5, Step 4)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/whiteboard/WhiteboardGateNotice.tsx && git commit -m "handover: C-5 whiteboard plan-gate notice"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/client-sites/ && git commit -m "handover: C-5 site CRUD UI components"`
 
 ---
 
-## C-6 — Wire into CallRoom
+## C-6 — Client Sites page + client detail page tile
 
 *Codex edits:*
-- [x] Modify `src/components/video/CallRoom.tsx` (plan Task 7 — new
-  `sessionId`/`whiteboardAllowed` props, `canUseWhiteboard`, the "Whiteboard"
-  button, and the full-screen overlay rendering `WhiteboardCanvas` or
-  `WhiteboardGateNotice`; exact code in the plan doc)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/dashboard/clients/[id]/sites/page.tsx` (plan Task 6,
+  Step 1 — mirrors `clients/[id]/students/page.tsx`)
+- [ ] Modify `src/app/dashboard/clients/[id]/page.tsx` (plan Task 6, Step 2
+  — `MapPin` import, `supportsMultiSite` destructure, `siteCount` query,
+  gated Sites tile)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/video/CallRoom.tsx && git commit -m "handover: C-6 wire Whiteboard button and overlay into CallRoom"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual: as a trades-profile client, confirm the "Sites" tile appears
+  and links to a working add/edit/archive/restore flow; as a
+  tutoring-profile client, confirm no "Sites" tile appears.
+- [ ] Commit: `git add src/app/dashboard/clients/[id]/sites/page.tsx src/app/dashboard/clients/[id]/page.tsx && git commit -m "handover: C-6 client sites page and detail-page tile"`
 
 ---
 
-## C-7 — Wire into the authenticated video call page
+## C-7 — Session booking site picker
 
 *Codex edits:*
-- [x] Modify `src/app/dashboard/video/[roomId]/page.tsx` (plan Task 8 —
-  resolve `whiteboardAllowed` from the session owner's subscription, pass
-  `sessionId`/`whiteboardAllowed` to `CallRoom`; exact code in the plan doc)
-- [x] Report back — list files changed.
+- [ ] Modify `src/components/clients/NewSessionModal.tsx` (plan Task 7,
+  Step 1 — `SiteOption` type, `sites` prop, `siteId` state, Location
+  dropdown, `site_id` in the insert)
+- [ ] Modify `src/app/dashboard/clients/[id]/sessions/page.tsx` (plan Task
+  7, Step 2 — fetch active sites, pass to `NewSessionModal`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/app/dashboard/video/[roomId]/page.tsx && git commit -m "handover: C-7 resolve whiteboard plan-gating from the session owner's subscription"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual: for a client with 2+ active sites, booking a session shows
+  the Location dropdown defaulting to "[Client]'s main address"; picking a
+  site and saving persists `site_id` (check via `execute_sql`). For a
+  client with zero sites, no Location dropdown appears.
+- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/sessions/page.tsx && git commit -m "handover: C-7 session booking site picker"`
 
 ---
 
-## C-8 — Wire into the guest join path
+## C-8 — ClientSitePicker + new incident report form
 
 *Codex edits:*
-- [x] Modify `src/app/join/[guestToken]/page.tsx` (plan Task 9, Step 1-2 —
-  fetch `session_id`, resolve `whiteboardAllowed`, pass to
-  `GuestJoinClient`)
-- [x] Modify `src/components/video/GuestJoinClient.tsx` (plan Task 9, Step 3
-  — thread `sessionId`/`whiteboardAllowed` through to `CallRoom`)
-- [x] Report back — list files changed.
+- [ ] Create `src/components/incident-reports/ClientSitePicker.tsx` (plan
+  Task 8, Step 1 — note the `isFirstRun` ref guard in the `useEffect`,
+  required so mounting in edit mode with a saved `site_id` doesn't wipe it)
+- [ ] Modify `src/components/incident-reports/IncidentReportsView.tsx`
+  (plan Task 8, Step 2 — `clients` prop, `clientId`/`siteId` state,
+  `ClientSitePicker` in the form, `client_id`/`site_id` in the insert)
+- [ ] Modify `src/app/dashboard/incident-reports/page.tsx` (plan Task 8,
+  Step 3 — fetch org clients, pass to `IncidentReportsView`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/app/join/[guestToken]/page.tsx src/components/video/GuestJoinClient.tsx && git commit -m "handover: C-8 wire whiteboard sessionId and plan-gating into the guest join path"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/incident-reports/ClientSitePicker.tsx src/components/incident-reports/IncidentReportsView.tsx src/app/dashboard/incident-reports/page.tsx && git commit -m "handover: C-8 client/site picker on new incident reports"`
+
+---
+
+## C-9 — Client/site on incident report detail, edit, and print views
+
+*Codex edits:*
+- [ ] Modify `src/components/incident-reports/IncidentReportDetailClient.tsx`
+  (plan Task 9, Step 1 — `clients`/`clientName`/`siteLabel` props,
+  `clientId`/`siteId` state, `ClientSitePicker` in edit mode, read-only
+  "Client / site" item, `client_id`/`site_id` in the update payload)
+- [ ] Modify `src/app/dashboard/incident-reports/[id]/page.tsx` (plan Task
+  9, Step 2 — fetch org clients, resolve `clientName`/`siteLabel`, pass to
+  `IncidentReportDetailClient`)
+- [ ] Modify `src/app/dashboard/incident-reports/[id]/print/page.tsx`
+  (plan Task 9, Step 3 — resolve and display Client cell)
+- [ ] Report back — list files changed.
+
+*Conductor:*
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual: file an incident report with a client and site selected;
+  confirm it saves. Open the detail page and confirm "Client / site" reads
+  correctly in both view and edit mode — specifically confirm the saved
+  site is still shown selected immediately on opening edit mode (this is
+  what the `isFirstRun` guard in C-8 protects against). Open the print view
+  and confirm the Client cell appears. Edit an existing report to change
+  its client/site and confirm the change persists.
+- [ ] Commit: `git add src/components/incident-reports/IncidentReportDetailClient.tsx src/app/dashboard/incident-reports/[id]/page.tsx src/app/dashboard/incident-reports/[id]/print/page.tsx && git commit -m "handover: C-9 client/site on incident report detail, edit, and print views"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `whiteboard_objects` table + RLS + `whiteboard-stickers` bucket
-  apply cleanly.
-- [x] C-2: types/lib compile.
-- [x] C-3: worksheets unaffected — same header text, same sticker upload
-  path (confirmed by build/type-check; live browser check still pending,
-  see Verification below).
-- [x] C-4/C-5: components compile in isolation.
-- [x] C-6: Whiteboard button appears next to Worksheet on a tutoring call
-  with a linked session.
-- [x] C-7/C-8: Pro/Team tutor and Pro/Team-tutor's guest both see a working
-  canvas; Free tutor and that tutor's guest both see the button but get the
-  locked notice (with/without the Billing link respectively) when they open
-  it. (Code-verified against the plan; live browser check still pending.)
-- [x] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke test (two-browser live sync for pen/text/sticker, the
-  drag-to-erase split behaviour specifically, persistence across
-  leave/rejoin, a fresh board on a different session) — requires the user's
-  own authenticated + guest sessions. **User follow-up, not the conductor's
-  to complete.**
+- [ ] C-1: `client_sites` table + RLS + new FK columns on `sessions` and
+  `incident_reports` apply cleanly.
+- [ ] C-2/C-3: types/flags compile.
+- [ ] C-4/C-5: site CRUD API + UI components compile in isolation.
+- [ ] C-6: Sites tile appears only for the four gated workspace profiles;
+  add/edit/archive/restore all work.
+- [ ] C-7: session booking offers a site picker only for clients with
+  active sites; `site_id` persists correctly.
+- [ ] C-8/C-9: incident reports can be filed and edited with an optional
+  client/site, displayed correctly on detail and print views; the edit-mode
+  mount bug (siteId wiped on open) does not regress.
+- [ ] Full `pnpm run build` passes clean end-to-end.
+- [ ] Manual smoke test per the plan's Verification section — requires the
+  user's own authenticated session as a trades-profile org member.
+  **User follow-up, not the conductor's to complete.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc +
-eslint) after every turn, full clean build after C-8, plus the "Verification"
-checklist in `docs/superpowers/plans/2026-07-15-video-call-whiteboard.md`.
+eslint) after every turn, full clean build after C-9, plus the
+"Verification" checklist in
+`docs/superpowers/plans/2026-07-15-client-sites.md`.
