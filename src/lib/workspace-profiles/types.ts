@@ -27,4 +27,5 @@ export type WorkspaceProfileConfig = {
   label: string
   terminology: Terminology
   navOverrides?: NavOverrides
+  supportsMultiSite?: boolean
 }
