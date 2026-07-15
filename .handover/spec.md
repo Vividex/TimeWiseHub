@@ -170,19 +170,19 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-8 — ClientSitePicker + new incident report form
 
 *Codex edits:*
-- [ ] Create `src/components/incident-reports/ClientSitePicker.tsx` (plan
+- [x] Create `src/components/incident-reports/ClientSitePicker.tsx` (plan
   Task 8, Step 1 — note the `isFirstRun` ref guard in the `useEffect`,
   required so mounting in edit mode with a saved `site_id` doesn't wipe it)
-- [ ] Modify `src/components/incident-reports/IncidentReportsView.tsx`
+- [x] Modify `src/components/incident-reports/IncidentReportsView.tsx`
   (plan Task 8, Step 2 — `clients` prop, `clientId`/`siteId` state,
   `ClientSitePicker` in the form, `client_id`/`site_id` in the insert)
-- [ ] Modify `src/app/dashboard/incident-reports/page.tsx` (plan Task 8,
+- [x] Modify `src/app/dashboard/incident-reports/page.tsx` (plan Task 8,
   Step 3 — fetch org clients, pass to `IncidentReportsView`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/incident-reports/ClientSitePicker.tsx src/components/incident-reports/IncidentReportsView.tsx src/app/dashboard/incident-reports/page.tsx && git commit -m "handover: C-8 client/site picker on new incident reports"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/incident-reports/ClientSitePicker.tsx src/components/incident-reports/IncidentReportsView.tsx src/app/dashboard/incident-reports/page.tsx && git commit -m "handover: C-8 client/site picker on new incident reports"`
 
 ---
 

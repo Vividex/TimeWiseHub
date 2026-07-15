@@ -9,6 +9,7 @@ import { useTextFilter } from '@/lib/use-text-filter'
 import SearchInput from '@/components/ui/SearchInput'
 import { TYPE_LABEL, SEVERITY_LABEL, SEVERITY_COLOUR, STATUS_LABEL, STATUS_COLOUR } from '@/lib/incident-reports'
 import type { IncidentReport, IncidentType, IncidentSeverity } from '@/types/incident-reports'
+import ClientSitePicker, { type ClientOption } from './ClientSitePicker'
 
 export type OrgMemberOption = { user_id: string; name: string }
 
@@ -23,11 +24,13 @@ export default function IncidentReportsView({
   reports,
   orgId,
   members,
+  clients,
   canManage,
 }: {
   reports: IncidentReport[]
   orgId: string
   members: OrgMemberOption[]
+  clients: ClientOption[]
   canManage: boolean
 }) {
   const router = useRouter()
@@ -43,10 +46,12 @@ export default function IncidentReportsView({
   const [description, setDescription] = useState('')
   const [employeeId, setEmployeeId] = useState('')
   const [witnessIds, setWitnessIds] = useState<string[]>([])
+  const [clientId, setClientId] = useState('')
+  const [siteId, setSiteId] = useState('')
 
   function resetForm() {
     setType('injury'); setSeverity('minor'); setOccurredAt(''); setLocation('')
-    setDescription(''); setEmployeeId(''); setWitnessIds([]); setError(null)
+    setDescription(''); setEmployeeId(''); setWitnessIds([]); setClientId(''); setSiteId(''); setError(null)
   }
 
   function toggleWitness(userId: string) {
@@ -70,6 +75,8 @@ export default function IncidentReportsView({
       severity,
       occurred_at: new Date(occurredAt).toISOString(),
       location: location.trim() || null,
+      client_id: clientId || null,
+      site_id: siteId || null,
       description: description.trim(),
       employee_id: employeeId || null,
       witness_ids: witnessIds,
@@ -124,6 +131,7 @@ export default function IncidentReportsView({
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Location</span>
               <input value={location} onChange={e => setLocation(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
             </label>
+            <ClientSitePicker clients={clients} clientId={clientId} siteId={siteId} onClientChange={setClientId} onSiteChange={setSiteId} />
             <label className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Employee involved</span>
               <select value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">

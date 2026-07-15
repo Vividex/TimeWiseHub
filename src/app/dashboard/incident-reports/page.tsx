@@ -20,7 +20,7 @@ export default async function IncidentReportsPage() {
 
   if (!canSeeIncidentReports || !orgId) redirect('/dashboard')
 
-  const [{ data: reports }, { data: members }] = await Promise.all([
+  const [{ data: reports }, { data: members }, { data: clients }] = await Promise.all([
     supabase
       .from('incident_reports')
       .select('*')
@@ -30,6 +30,12 @@ export default async function IncidentReportsPage() {
       .from('organisation_members')
       .select('user_id, profiles!organisation_members_user_id_fkey(full_name, email)')
       .eq('org_id', orgId),
+    supabase
+      .from('clients')
+      .select('id, name')
+      .eq('org_id', orgId)
+      .eq('archived', false)
+      .order('name'),
   ])
 
   const reportList = (reports ?? []) as IncidentReport[]
@@ -44,7 +50,7 @@ export default async function IncidentReportsPage() {
   return (
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950 min-h-full">
       <div className="mx-auto max-w-5xl">
-        <IncidentReportsView reports={reportList} orgId={orgId} members={memberOptions} canManage={isManager} />
+        <IncidentReportsView reports={reportList} orgId={orgId} members={memberOptions} clients={clients ?? []} canManage={isManager} />
       </div>
     </div>
   )
