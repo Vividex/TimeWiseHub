@@ -7,6 +7,7 @@ import { ArrowLeft, Printer, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { SEVERITY_COLOUR, SEVERITY_LABEL, STATUS_COLOUR, STATUS_LABEL, TYPE_LABEL } from '@/lib/incident-reports'
 import type { IncidentReport, IncidentReportPhoto, IncidentSeverity, IncidentType } from '@/types/incident-reports'
+import ClientSitePicker, { type ClientOption } from './ClientSitePicker'
 
 export type OrgMemberOption = { user_id: string; name: string }
 export type IncidentPhotoWithUrl = IncidentReportPhoto & { signedUrl: string | null }
@@ -39,12 +40,18 @@ export default function IncidentReportDetailClient({
   report,
   photos,
   members,
+  clients,
+  clientName,
+  siteLabel,
   canManage,
   userId,
 }: {
   report: IncidentReport
   photos: IncidentPhotoWithUrl[]
   members: OrgMemberOption[]
+  clients: ClientOption[]
+  clientName: string | null
+  siteLabel: string | null
   canManage: boolean
   userId: string
 }) {
@@ -64,6 +71,8 @@ export default function IncidentReportDetailClient({
   const [location, setLocation] = useState(report.location ?? '')
   const [description, setDescription] = useState(report.description)
   const [employeeId, setEmployeeId] = useState(report.employee_id ?? '')
+  const [clientId, setClientId] = useState(report.client_id ?? '')
+  const [siteId, setSiteId] = useState(report.site_id ?? '')
   const [witnessIds, setWitnessIds] = useState<string[]>(report.witness_ids)
   const [bodyPart, setBodyPart] = useState(report.body_part ?? '')
   const [firstAidGiven, setFirstAidGiven] = useState(Boolean(report.first_aid_given))
@@ -94,6 +103,8 @@ export default function IncidentReportDetailClient({
         severity,
         occurred_at: new Date(occurredAt).toISOString(),
         location: location.trim() || null,
+        client_id: clientId || null,
+        site_id: siteId || null,
         description: description.trim(),
         employee_id: employeeId || null,
         witness_ids: witnessIds,
@@ -225,6 +236,7 @@ export default function IncidentReportDetailClient({
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Location</span>
               <input value={location} onChange={e => setLocation(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
             </label>
+            <ClientSitePicker clients={clients} clientId={clientId} siteId={siteId} onClientChange={setClientId} onSiteChange={setSiteId} />
             <label className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Employee involved</span>
               <select value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
@@ -286,7 +298,7 @@ export default function IncidentReportDetailClient({
           </div>
         </form>
       ) : (
-        <ReadOnlyReport report={report} memberName={memberName} />
+        <ReadOnlyReport report={report} memberName={memberName} clientName={clientName} siteLabel={siteLabel} />
       )}
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -362,7 +374,17 @@ export default function IncidentReportDetailClient({
   )
 }
 
-function ReadOnlyReport({ report, memberName }: { report: IncidentReport; memberName: (id: string | null) => string }) {
+function ReadOnlyReport({
+  report,
+  memberName,
+  clientName,
+  siteLabel,
+}: {
+  report: IncidentReport
+  memberName: (id: string | null) => string
+  clientName: string | null
+  siteLabel: string | null
+}) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -370,6 +392,7 @@ function ReadOnlyReport({ report, memberName }: { report: IncidentReport; member
         <ReadOnlyItem label="Severity" value={SEVERITY_LABEL[report.severity]} />
         <ReadOnlyItem label="Date and time" value={displayDateTime(report.occurred_at)} />
         <ReadOnlyItem label="Location" value={report.location ?? '-'} />
+        <ReadOnlyItem label="Client / site" value={clientName ? (siteLabel ? `${clientName} — ${siteLabel}` : clientName) : '-'} />
         <ReadOnlyItem label="Employee involved" value={memberName(report.employee_id)} />
         <ReadOnlyItem label="Witnesses" value={report.witness_ids.length ? report.witness_ids.map(memberName).join(', ') : '-'} />
         <ReadOnlyItem label="Description" value={report.description} wide />

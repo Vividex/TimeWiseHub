@@ -189,19 +189,19 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-9 — Client/site on incident report detail, edit, and print views
 
 *Codex edits:*
-- [ ] Modify `src/components/incident-reports/IncidentReportDetailClient.tsx`
+- [x] Modify `src/components/incident-reports/IncidentReportDetailClient.tsx`
   (plan Task 9, Step 1 — `clients`/`clientName`/`siteLabel` props,
   `clientId`/`siteId` state, `ClientSitePicker` in edit mode, read-only
   "Client / site" item, `client_id`/`site_id` in the update payload)
-- [ ] Modify `src/app/dashboard/incident-reports/[id]/page.tsx` (plan Task
+- [x] Modify `src/app/dashboard/incident-reports/[id]/page.tsx` (plan Task
   9, Step 2 — fetch org clients, resolve `clientName`/`siteLabel`, pass to
   `IncidentReportDetailClient`)
-- [ ] Modify `src/app/dashboard/incident-reports/[id]/print/page.tsx`
+- [x] Modify `src/app/dashboard/incident-reports/[id]/print/page.tsx`
   (plan Task 9, Step 3 — resolve and display Client cell)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: file an incident report with a client and site selected;
   confirm it saves. Open the detail page and confirm "Client / site" reads
   correctly in both view and edit mode — specifically confirm the saved
@@ -209,23 +209,26 @@ Gated to `trades_field_services`, `builder_construction`,
   what the `isFirstRun` guard in C-8 protects against). Open the print view
   and confirm the Client cell appears. Edit an existing report to change
   its client/site and confirm the change persists.
-- [ ] Commit: `git add src/components/incident-reports/IncidentReportDetailClient.tsx src/app/dashboard/incident-reports/[id]/page.tsx src/app/dashboard/incident-reports/[id]/print/page.tsx && git commit -m "handover: C-9 client/site on incident report detail, edit, and print views"`
+- [x] Commit: `git add src/components/incident-reports/IncidentReportDetailClient.tsx src/app/dashboard/incident-reports/[id]/page.tsx src/app/dashboard/incident-reports/[id]/print/page.tsx && git commit -m "handover: C-9 client/site on incident report detail, edit, and print views"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: `client_sites` table + RLS + new FK columns on `sessions` and
+- [x] C-1: `client_sites` table + RLS + new FK columns on `sessions` and
   `incident_reports` apply cleanly.
-- [ ] C-2/C-3: types/flags compile.
-- [ ] C-4/C-5: site CRUD API + UI components compile in isolation.
-- [ ] C-6: Sites tile appears only for the four gated workspace profiles;
-  add/edit/archive/restore all work.
-- [ ] C-7: session booking offers a site picker only for clients with
-  active sites; `site_id` persists correctly.
-- [ ] C-8/C-9: incident reports can be filed and edited with an optional
+- [x] C-2/C-3: types/flags compile.
+- [x] C-4/C-5: site CRUD API + UI components compile in isolation.
+- [x] C-6: Sites tile appears only for the four gated workspace profiles;
+  add/edit/archive/restore all work (code-verified against the plan; live
+  browser check still pending).
+- [x] C-7: session booking offers a site picker only for clients with
+  active sites; `site_id` persists correctly (code-verified).
+- [x] C-8/C-9: incident reports can be filed and edited with an optional
   client/site, displayed correctly on detail and print views; the edit-mode
-  mount bug (siteId wiped on open) does not regress.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+  mount bug (siteId wiped on open) does not regress — `ClientSitePicker`'s
+  `isFirstRun` guard verified directly in the file (code-verified; live
+  browser check still pending).
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test per the plan's Verification section — requires the
   user's own authenticated session as a trades-profile org member.
   **User follow-up, not the conductor's to complete.**

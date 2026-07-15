@@ -22,7 +22,7 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
 
   const currentReport = report as IncidentReport
 
-  const [{ data: membership }, { data: members }, { data: photos }] = await Promise.all([
+  const [{ data: membership }, { data: members }, { data: photos }, { data: clients }] = await Promise.all([
     supabase
       .from('organisation_members')
       .select('role')
@@ -38,6 +38,12 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
       .select('*')
       .eq('incident_report_id', currentReport.id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('clients')
+      .select('id, name')
+      .eq('org_id', currentReport.org_id)
+      .eq('archived', false)
+      .order('name'),
   ])
 
   const photoRows = (photos ?? []) as IncidentReportPhoto[]
@@ -64,6 +70,17 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
 
   const canManage = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
 
+  const clientOptions = clients ?? []
+  const clientName = currentReport.client_id
+    ? clientOptions.find(c => c.id === currentReport.client_id)?.name ?? null
+    : null
+
+  let siteLabel: string | null = null
+  if (currentReport.site_id) {
+    const { data: site } = await supabase.from('client_sites').select('label').eq('id', currentReport.site_id).maybeSingle()
+    siteLabel = site?.label ?? null
+  }
+
   return (
     <div className="min-h-full px-4 py-8 dark:bg-slate-950 sm:px-8">
       <div className="mx-auto max-w-5xl">
@@ -71,6 +88,9 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
           report={currentReport}
           photos={signedPhotos}
           members={memberOptions}
+          clients={clientOptions}
+          clientName={clientName}
+          siteLabel={siteLabel}
           canManage={canManage}
           userId={user.id}
         />
