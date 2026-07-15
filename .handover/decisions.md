@@ -108,7 +108,35 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (Client Sites) [current phase]
+## Notes (Client Sites) [complete, kept for reference]
+- **All 9 implementation items (C-1 through C-9) complete and verified
+  (2026-07-16).** Every turn was verified directly by the conductor (Read
+  the actual files + `pnpm run build`), not taken on Codex's report alone —
+  every file matched the plan's exact code with zero discrepancies, except
+  one deliberate, correct adaptation: C-9's dispatch described the
+  read-only "Location" `<dl>` block by its literal text, not knowing it
+  actually lives inside a separate `ReadOnlyReport` sub-component (missed
+  during the plan's own file research, which only partially read
+  `IncidentReportDetailClient.tsx`) — Codex correctly identified the real
+  component boundary and threaded `clientName`/`siteLabel` through as new
+  props to `ReadOnlyReport` and its call site, rather than misplacing the
+  code inline. Full `pnpm run build` passes clean end-to-end, including
+  confirming `/api/client-sites/[id]`, `/dashboard/clients/[id]/sites`, and
+  the new incident-report fields all appear correctly in the build's route
+  table/type-checked payloads. **Codex hit the Windows `workspace-write`
+  sandbox subprocess limitation (`CreateProcessAsUserW failed: 5`) on
+  nearly every turn's own verification reads** — six of nine turns
+  recovered via its internal (non-shell) file-read tool on the same
+  attempt; C-8 blocked twice in a row (its internal fallback didn't kick in
+  either time) and correctly reported the blocker rather than guess at the
+  task, recovering on a third retry. This matches the documented
+  CLAUDE.md/decisions.md precedent for this environment — retrying the
+  identical dispatch is the correct response, not escalating Codex's
+  sandbox or pausing prematurely. Remaining: the manual smoke test (create
+  sites for a trades-profile client, book a session against one, file+edit
+  an incident report with a client/site, confirm the tutoring-profile
+  client page shows no Sites tile at all) requires the user's own
+  authenticated session — same precedent as every prior phase.
 - Source spec: docs/superpowers/specs/2026-07-15-client-sites-design.md
 - Source plan: docs/superpowers/plans/2026-07-15-client-sites.md
 - Trades & Field Services deep-dive (parallel to the earlier tutoring deep-dive). User picked
