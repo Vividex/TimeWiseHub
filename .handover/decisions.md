@@ -146,6 +146,29 @@
   between presets, and the width-selector dots now preview the actual
   selected pen colour instead of a fixed white dot (which would've been
   invisible against the new light toolbar anyway).
+- **Second round of post-ship fixes (2026-07-15), same day:** (1) the light
+  theme above only changed `WhiteboardCanvas.tsx`'s own content — the
+  shared `WorksheetFullScreen` wrapper (outer background + header bar) was
+  still hardcoded `bg-slate-950`/dark, which is what the user was actually
+  still seeing as "still black." Added a `theme?: 'dark' | 'light'` prop to
+  `WorksheetFullScreen` (default `'dark'`, so both existing worksheet call
+  sites are unaffected), whiteboard's call site in `CallRoom.tsx` now passes
+  `theme="light"`. (2) real bug — the eraser fired on every `pointermove`
+  regardless of whether the pointer button was held, so just moving the
+  mouse across the canvas toward the spot you meant to erase deleted
+  anything it passed over. Fixed by gating the actual hit-testing
+  (`handleEraserMove`) behind a new `isErasingRef`, set on
+  `pointerdown`/cleared on `pointerup` — the eraser's aim-preview circle
+  (`updateEraserCursor`, split out from the old combined function) still
+  follows the cursor on every hover for visual aiming, it just no longer
+  erases until the button is actually down, matching how the pen tool
+  already only draws while `drawingPoints` is non-empty. (3) UX: a selected
+  text box had no keyboard way to exit edit mode — only clicking elsewhere
+  on the canvas deselected it. Added an Enter-key handler on the textarea:
+  plain Enter commits and exits to the read-only display (the debounced
+  persist already in `handleTextChange` isn't disrupted by deselecting,
+  since it's keyed off the object id, not selection state); Shift+Enter
+  still inserts a literal newline for multi-line text.
 - Source spec: docs/superpowers/specs/2026-07-15-video-call-whiteboard-design.md
 - Source plan: docs/superpowers/plans/2026-07-15-video-call-whiteboard.md
 - Direct feature request: a freeform whiteboard in video sessions, "similar
