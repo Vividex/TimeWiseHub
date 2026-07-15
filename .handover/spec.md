@@ -59,11 +59,11 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-104-client-sites.sql` (plan Task 1, Step 1 —
+- [x] Write `supabase/schema-104-client-sites.sql` (plan Task 1, Step 1 —
   exact SQL in the plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `client_sites`)
-- [ ] Verify via the sanity-check queries in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-104-client-sites.sql && git commit -m "handover: C-1 client_sites schema + RLS"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `client_sites`)
+- [x] Verify via the sanity-check queries in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-104-client-sites.sql && git commit -m "handover: C-1 client_sites schema + RLS"`
 
 ---
 
