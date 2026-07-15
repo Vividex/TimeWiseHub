@@ -131,19 +131,19 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-6 — Client Sites page + client detail page tile
 
 *Codex edits:*
-- [ ] Create `src/app/dashboard/clients/[id]/sites/page.tsx` (plan Task 6,
+- [x] Create `src/app/dashboard/clients/[id]/sites/page.tsx` (plan Task 6,
   Step 1 — mirrors `clients/[id]/students/page.tsx`)
-- [ ] Modify `src/app/dashboard/clients/[id]/page.tsx` (plan Task 6, Step 2
+- [x] Modify `src/app/dashboard/clients/[id]/page.tsx` (plan Task 6, Step 2
   — `MapPin` import, `supportsMultiSite` destructure, `siteCount` query,
   gated Sites tile)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: as a trades-profile client, confirm the "Sites" tile appears
   and links to a working add/edit/archive/restore flow; as a
   tutoring-profile client, confirm no "Sites" tile appears.
-- [ ] Commit: `git add src/app/dashboard/clients/[id]/sites/page.tsx src/app/dashboard/clients/[id]/page.tsx && git commit -m "handover: C-6 client sites page and detail-page tile"`
+- [x] Commit: `git add src/app/dashboard/clients/[id]/sites/page.tsx src/app/dashboard/clients/[id]/page.tsx && git commit -m "handover: C-6 client sites page and detail-page tile"`
 
 ---
 

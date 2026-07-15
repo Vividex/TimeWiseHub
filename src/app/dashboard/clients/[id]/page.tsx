@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknote, Mail, GraduationCap } from 'lucide-react'
+import { FolderKanban, CalendarClock, NotebookPen, ScrollText, FileText, Banknote, Mail, GraduationCap, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import DeleteClientButton from '@/components/clients/DeleteClientButton'
@@ -12,7 +12,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { terminology, key: profileKey } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { terminology, key: profileKey, supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: membership } = await supabase
     .from('organisation_members').select('role').eq('user_id', user.id).maybeSingle()
@@ -41,6 +41,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     const { count } = await supabase
       .from('students').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('archived', false)
     studentCount = count ?? 0
+  }
+
+  let siteCount = 0
+  if (supportsMultiSite) {
+    const { count } = await supabase
+      .from('client_sites').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('is_archived', false)
+    siteCount = count ?? 0
   }
 
   const { data: latestInboundMessage } = await supabase
@@ -121,6 +128,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <Tile title="Progress notes" icon={NotebookPen} accent="#7c3aed" stat={noteCount ?? 0} href={`/dashboard/clients/${id}/notes`} />
             {profileKey === 'tutoring' && (
               <Tile title="Students" icon={GraduationCap} accent="#16a34a" stat={studentCount} href={`/dashboard/clients/${id}/students`} />
+            )}
+            {supportsMultiSite && (
+              <Tile title="Sites" icon={MapPin} accent="#ea580c" stat={siteCount} href={`/dashboard/clients/${id}/sites`} />
             )}
             <Tile
               title="Messages"
