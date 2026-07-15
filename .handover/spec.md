@@ -100,13 +100,13 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-4 — Site CRUD API route
 
 *Codex edits:*
-- [ ] Create `src/app/api/client-sites/[id]/route.ts` (plan Task 4, Step 1
+- [x] Create `src/app/api/client-sites/[id]/route.ts` (plan Task 4, Step 1
   — mirrors `/api/students/[id]/route.ts`, exact code in the plan doc)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/client-sites/[id]/route.ts && git commit -m "handover: C-4 client sites CRUD API route"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/app/api/client-sites/[id]/route.ts && git commit -m "handover: C-4 client sites CRUD API route"`
 
 ---
 
