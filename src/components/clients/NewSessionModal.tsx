@@ -10,6 +10,7 @@ type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
 type StudentOption = { id: string; name: string }
 type SubjectOption = { id: string; name: string }
 type TopicOption = { id: string; name: string }
+type SiteOption = { id: string; label: string }
 
 const NEW_SUBJECT = '__new_subject__'
 const NEW_TOPIC = '__new_topic__'
@@ -20,6 +21,7 @@ export default function NewSessionModal({
   clientLabel,
   students,
   subjects,
+  sites,
   defaultOpen = false,
 }: {
   clientId: string
@@ -27,6 +29,7 @@ export default function NewSessionModal({
   clientLabel: { singular: string; plural: string }
   students: StudentOption[]
   subjects: SubjectOption[]
+  sites: SiteOption[]
   defaultOpen?: boolean
 }) {
   const router = useRouter()
@@ -34,6 +37,7 @@ export default function NewSessionModal({
   const [open, setOpen] = useState(defaultOpen)
   const [title, setTitle] = useState('')
   const [studentId, setStudentId] = useState('')
+  const [siteId, setSiteId] = useState('')
   const [yearGroup, setYearGroup] = useState('')
   const [subjectChoice, setSubjectChoice] = useState('')
   const [newSubjectName, setNewSubjectName] = useState('')
@@ -169,6 +173,7 @@ export default function NewSessionModal({
         year_group: yearGroup || null,
         subject_id: resolvedSubjectId,
         topic_id: resolvedTopicId,
+        site_id: siteId || null,
       })
       .select('id')
       .single()
@@ -232,6 +237,19 @@ export default function NewSessionModal({
               >
                 <option value="">— Select student —</option>
                 {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
+          {sites.length > 0 && (
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Location</label>
+              <select
+                value={siteId}
+                onChange={e => setSiteId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+              >
+                <option value="">{clientLabel.singular}&apos;s main address</option>
+                {sites.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
           )}

@@ -59,6 +59,13 @@ export default async function ClientSessionsPage({
     .eq('archived', false)
     .order('name')
 
+  const { data: sites } = await supabase
+    .from('client_sites')
+    .select('id, label')
+    .eq('client_id', id)
+    .eq('is_archived', false)
+    .order('label')
+
   const { data: billableSessions } = await supabase
     .from('sessions')
     .select('id, title, scheduled_at, duration_minutes, year_group, subjects(name), topics(name), students(name)')
@@ -105,7 +112,7 @@ export default async function ClientSessionsPage({
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
-          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} subjects={subjects ?? []} defaultOpen={openNew === '1'} />
+          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} subjects={subjects ?? []} sites={sites ?? []} defaultOpen={openNew === '1'} />
         </div>
 
         <BillableSessionsPanel

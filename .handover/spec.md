@@ -150,20 +150,20 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-7 — Session booking site picker
 
 *Codex edits:*
-- [ ] Modify `src/components/clients/NewSessionModal.tsx` (plan Task 7,
+- [x] Modify `src/components/clients/NewSessionModal.tsx` (plan Task 7,
   Step 1 — `SiteOption` type, `sites` prop, `siteId` state, Location
   dropdown, `site_id` in the insert)
-- [ ] Modify `src/app/dashboard/clients/[id]/sessions/page.tsx` (plan Task
+- [x] Modify `src/app/dashboard/clients/[id]/sessions/page.tsx` (plan Task
   7, Step 2 — fetch active sites, pass to `NewSessionModal`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: for a client with 2+ active sites, booking a session shows
   the Location dropdown defaulting to "[Client]'s main address"; picking a
   site and saving persists `site_id` (check via `execute_sql`). For a
   client with zero sites, no Location dropdown appears.
-- [ ] Commit: `git add src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/sessions/page.tsx && git commit -m "handover: C-7 session booking site picker"`
+- [x] Commit: `git add src/components/clients/NewSessionModal.tsx src/app/dashboard/clients/[id]/sessions/page.tsx && git commit -m "handover: C-7 session booking site picker"`
 
 ---
 
