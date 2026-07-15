@@ -9,6 +9,8 @@ export type IncidentReport = {
   severity: IncidentSeverity
   occurred_at: string
   location: string | null
+  client_id: string | null
+  site_id: string | null
   description: string
   employee_id: string | null
   witness_ids: string[]

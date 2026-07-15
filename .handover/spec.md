@@ -70,14 +70,14 @@ Gated to `trades_field_services`, `builder_construction`,
 ## C-2 — Types
 
 *Codex edits:*
-- [ ] Create `src/types/client-sites.ts` (plan Task 2, Step 1)
-- [ ] Modify `src/types/incident-reports.ts` (plan Task 2, Step 2 — add
+- [x] Create `src/types/client-sites.ts` (plan Task 2, Step 1)
+- [x] Modify `src/types/incident-reports.ts` (plan Task 2, Step 2 — add
   `client_id`/`site_id` to `IncidentReport`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/client-sites.ts src/types/incident-reports.ts && git commit -m "handover: C-2 client site + incident report types"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/client-sites.ts src/types/incident-reports.ts && git commit -m "handover: C-2 client site + incident report types"`
 
 ---
 
