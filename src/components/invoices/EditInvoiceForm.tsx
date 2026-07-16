@@ -147,7 +147,7 @@ export default function EditInvoiceForm({
             ))}
           </div>
         )}
-        <button onClick={addItem} className="text-sm font-semibold text-cyan-600 hover:underline">+ Add line item</button>
+        <button onClick={addItem} className="rounded-xl border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition-all hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 active:scale-[0.965] dark:border-slate-700 dark:text-slate-300 dark:hover:border-cyan-400/40 dark:hover:bg-cyan-500/10">+ Add line item</button>
         <div className="border-t border-gray-100 pt-4 text-right">
           <p className="text-xs text-gray-400 uppercase tracking-wide font-bold">Subtotal</p>
           <p className="text-3xl font-black text-gray-900">{currency} {subtotal.toFixed(2)}</p>
@@ -164,7 +164,7 @@ export default function EditInvoiceForm({
         </div>
         {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
         <button onClick={handleSave} disabled={submitting}
-          className="w-full rounded-xl bg-cyan-500 py-3 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+          className="w-full rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 py-3 text-sm font-bold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none">
           {submitting ? 'Saving…' : isEmployee ? 'Save & submit for approval' : 'Save changes'}
         </button>
       </div>

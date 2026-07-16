@@ -91,7 +91,7 @@ export default function SubjectsSearch() {
                         <PenSquare size={14} />
                       </button>
                     )}
-                    <button type="button" onClick={() => handleDelete(r)} className="text-xs font-bold text-red-500 hover:underline">Delete</button>
+                    <button type="button" onClick={() => handleDelete(r)} className="rounded-lg border border-transparent px-2 py-1 text-xs font-bold text-red-500 transition-all hover:border-red-200 hover:bg-red-50 active:scale-[0.95] dark:hover:border-red-400/30 dark:hover:bg-red-500/10">Delete</button>
                   </div>
                 </li>
               ))}

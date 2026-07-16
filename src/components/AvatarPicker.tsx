@@ -83,7 +83,7 @@ export default function AvatarPicker({
           type="button"
           disabled={saving}
           onClick={() => fileRef.current?.click()}
-          className="rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+          className="rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 dark:hover:bg-slate-800 dark:hover:border-slate-600 disabled:opacity-50"
         >
           {saving ? 'Uploading…' : 'Choose photo'}
         </button>

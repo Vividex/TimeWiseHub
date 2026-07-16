@@ -46,7 +46,7 @@ export default function CategoryForm({
         className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
       />
       <button type="submit" disabled={saving}
-        className="rounded-lg bg-cyan-500 px-2 py-1 text-xs font-semibold text-white disabled:opacity-50">
+        className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 px-2 py-1 text-xs font-semibold text-white shadow-sm shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none">
         {saving ? '…' : 'Add'}
       </button>
       <button type="button" onClick={onClose}

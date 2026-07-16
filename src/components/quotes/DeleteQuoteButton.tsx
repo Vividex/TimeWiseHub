@@ -23,7 +23,7 @@ export default function DeleteQuoteButton({ quoteId, quoteNumber }: { quoteId: s
       <button
         onClick={() => setOpen(true)}
         disabled={loading}
-        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+        className="rounded-lg border border-transparent p-1.5 text-gray-400 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500 active:scale-[0.92] disabled:opacity-50 dark:hover:border-red-400/30 dark:hover:bg-red-500/10"
         title="Delete quote"
       >
         <Trash2 className="h-4 w-4" />

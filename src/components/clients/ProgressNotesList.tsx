@@ -136,7 +136,7 @@ export default function ProgressNotesList({
             type="button"
             onClick={handleSendToParent}
             disabled={sending}
-            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-40"
+            className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-bold disabled:opacity-40"
           >
             {sending ? 'Sending…' : `Send ${selectedNoteIds.size} selected to parent`}
           </button>
@@ -197,14 +197,14 @@ export default function ProgressNotesList({
                     type="button"
                     onClick={() => saveEdit(note.id)}
                     disabled={savingId === note.id || !draft.trim()}
-                    className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-40"
+                    className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-bold disabled:opacity-40"
                   >
                     {savingId === note.id ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setEditingId(null); setDraft(''); setError('') }}
-                    className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:border-slate-600"
                   >
                     Cancel
                   </button>

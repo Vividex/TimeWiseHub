@@ -16,7 +16,7 @@ export default function AddStudentButton({ clients }: { clients: ClientOption[] 
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
+        className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
       >
         + New student
       </button>
@@ -40,7 +40,7 @@ export default function AddStudentButton({ clients }: { clients: ClientOption[] 
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.965]"
           >
             Cancel
           </button>
@@ -48,7 +48,7 @@ export default function AddStudentButton({ clients }: { clients: ClientOption[] 
             type="button"
             disabled={!clientId}
             onClick={() => router.push(`/dashboard/clients/${clientId}/students?new=1`)}
-            className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none"
           >
             Continue
           </button>

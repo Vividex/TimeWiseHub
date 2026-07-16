@@ -39,14 +39,14 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = 'De
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+            className="flex-1 rounded-xl bg-gradient-to-b from-red-400 to-red-500 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-500 hover:to-red-600 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-4 py-2 text-sm font-semibold"
           >
             {confirmLabel}
           </button>

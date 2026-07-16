@@ -157,11 +157,11 @@ export default function CrewManager({
                   ))}
                 </select>
                 <button onClick={() => updateCrew(crew.id)} disabled={loading === `edit-${crew.id}`}
-                  className="rounded-xl bg-cyan-500 p-2 text-white hover:bg-cyan-600 disabled:opacity-50">
+                  className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 p-2 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none">
                   <Check size={14} />
                 </button>
                 <button onClick={() => setEditingId(null)}
-                  className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:bg-gray-50">
+                  className="rounded-xl border border-gray-200 p-2 text-gray-500 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.965]">
                   <X size={14} />
                 </button>
               </div>
@@ -175,12 +175,12 @@ export default function CrewManager({
                   <div className="flex shrink-0 items-center gap-1">
                     <button
                       onClick={() => { setEditingId(crew.id); setEditName(crew.name); setEditManagerId(crew.managerId) }}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      className="rounded-lg border border-transparent p-1.5 text-gray-400 transition-all hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-600 active:scale-[0.92]"
                     >
                       <Pencil size={13} />
                     </button>
                     <button onClick={() => deleteCrew(crew.id)} disabled={loading === `del-${crew.id}`}
-                      className="rounded-lg p-1.5 text-red-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-50">
+                      className="rounded-lg border border-transparent p-1.5 text-red-300 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500 active:scale-[0.92] disabled:opacity-50">
                       <Trash2 size={13} />
                     </button>
                   </div>
@@ -222,11 +222,11 @@ export default function CrewManager({
                     </select>
                     <button onClick={() => addMember(crew.id)}
                       disabled={!addMemberId || loading === `add-${crew.id}`}
-                      className="rounded-xl bg-cyan-500 px-3 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50">
+                      className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-3 py-2 text-sm font-bold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none">
                       Add
                     </button>
                     <button onClick={() => { setAddMemberTo(null); setAddMemberId('') }}
-                      className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:bg-gray-50">
+                      className="rounded-xl border border-gray-200 p-2 text-gray-500 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.965]">
                       <X size={14} />
                     </button>
                   </div>
@@ -266,11 +266,11 @@ export default function CrewManager({
             <div className="flex gap-2">
               <button onClick={createCrew}
                 disabled={!newName.trim() || !newManagerId || loading === 'create'}
-                className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50">
+                className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none">
                 {loading === 'create' ? 'Creating…' : 'Create crew'}
               </button>
               <button onClick={() => { setCreating(false); setNewName(''); setNewManagerId('') }}
-                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50">
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.965]">
                 Cancel
               </button>
             </div>

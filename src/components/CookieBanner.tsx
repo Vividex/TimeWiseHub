@@ -27,7 +27,7 @@ export default function CookieBanner() {
           <Link href="/privacy" className="text-cyan-600 hover:underline">Privacy Policy</Link>
         </p>
         <button onClick={accept}
-          className="shrink-0 rounded-xl bg-cyan-500 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600">
+          className="shrink-0 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-5 py-2 text-sm font-bold">
           Accept
         </button>
       </div>

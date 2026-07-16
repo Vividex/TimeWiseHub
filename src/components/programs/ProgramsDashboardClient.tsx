@@ -64,7 +64,7 @@ export default function ProgramsDashboardClient({
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-2xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-5 py-2.5 text-sm font-bold"
           >
             <Plus size={16} />
             {tab === 'programs' ? `New ${programLabel.singular.toLowerCase()}` : 'New template'}
@@ -101,7 +101,7 @@ export default function ProgramsDashboardClient({
             </p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
+              className="mt-4 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold"
             >
               {tab === 'programs' ? `Create ${programLabel.singular.toLowerCase()}` : 'Create template'}
             </button>
@@ -177,7 +177,7 @@ export default function ProgramsDashboardClient({
                 type="button"
                 onClick={submitUseTemplate}
                 disabled={creatingFromTemplate || !useTemplateName.trim()}
-                className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50"
               >
                 {creatingFromTemplate ? 'Creating…' : 'Create'}
               </button>

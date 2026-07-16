@@ -96,7 +96,7 @@ export default function DangerZoneDeactivate({
       ) : step === 'idle' ? (
         <button
           onClick={() => setStep('reason')}
-          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+          className="mt-4 rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-4 py-2 text-sm font-semibold"
         >
           Deactivate account
         </button>
@@ -125,14 +125,14 @@ export default function DangerZoneDeactivate({
           <div className="flex gap-2">
             <button
               onClick={() => setStep('idle')}
-              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300"
+              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
             >
               Cancel
             </button>
             <button
               onClick={() => setStep('confirm')}
               disabled={!reason}
-              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-4 py-2 text-sm font-semibold disabled:opacity-50"
             >
               Continue
             </button>
@@ -156,14 +156,14 @@ export default function DangerZoneDeactivate({
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => { setStep('reason'); setTypedConfirm(''); setError(null) }}
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
               >
                 Back
               </button>
               <button
                 onClick={submitDeactivation}
                 disabled={typedConfirm !== accountLabel || submitting}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-4 py-2 text-sm font-semibold disabled:opacity-50"
               >
                 {submitting ? 'Deactivating…' : 'Deactivate account'}
               </button>

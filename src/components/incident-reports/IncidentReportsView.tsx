@@ -101,7 +101,7 @@ export default function IncidentReportsView({
           <button
             type="button"
             onClick={() => { setOpen(v => !v); setError(null) }}
-            className="inline-flex items-center justify-center rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-cyan-600"
+            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2.5 text-sm font-bold"
           >
             + New report
           </button>
@@ -165,8 +165,8 @@ export default function IncidentReportsView({
           </div>
           {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:bg-red-500/10 dark:text-red-300">{error}</p>}
           <div className="mt-5 flex justify-end gap-3">
-            <button type="button" onClick={() => { resetForm(); setOpen(false) }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">Cancel</button>
-            <button type="submit" disabled={saving} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving...' : 'File report'}</button>
+            <button type="button" onClick={() => { resetForm(); setOpen(false) }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:border-slate-600">Cancel</button>
+            <button type="submit" disabled={saving} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving...' : 'File report'}</button>
           </div>
         </form>
       )}

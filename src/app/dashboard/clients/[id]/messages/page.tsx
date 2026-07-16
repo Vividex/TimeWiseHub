@@ -32,7 +32,7 @@ export default async function ClientMessagesPage({
           Send and receive email with {terminology.client.plural.toLowerCase()} right from their record, branded as your business,
           with no {terminology.client.singular.toLowerCase()} login required. Upgrade to Pro to unlock it.
         </p>
-        <Link href="/dashboard/billing" className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 transition-colors">
+        <Link href="/dashboard/billing" className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-6 py-3 text-sm font-bold">
           Upgrade to Pro
         </Link>
       </div>

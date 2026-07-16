@@ -296,7 +296,7 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
       {/* Add event button — shared */}
       {!showForm && (
         <button onClick={() => openNewEvent(today)}
-          className="w-full rounded-2xl border border-gray-100 bg-cyan-500 p-4 text-left text-sm font-semibold text-white shadow-sm transition-colors hover:bg-cyan-600">
+          className="w-full rounded-2xl border border-gray-100 bg-gradient-to-b from-cyan-500 to-cyan-600 p-4 text-left text-sm font-semibold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
           + Add event
         </button>
       )}

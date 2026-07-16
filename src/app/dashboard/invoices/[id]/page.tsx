@@ -98,7 +98,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
           <div className="flex items-center gap-3">
             {canEdit && (
               <Link href={`/dashboard/invoices/${id}/edit`}
-                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300">
                 Edit
               </Link>
             )}
@@ -209,7 +209,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: {
             <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-cyan-600 mb-2">Payment link</p>
               <a href={invoice.payment_link as string} target="_blank" rel="noopener noreferrer"
-                className="inline-block rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
+                className="inline-block rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold">
                 Pay invoice →
               </a>
               <p className="mt-1 text-xs text-cyan-600">Send this link to your client to accept online payment.</p>

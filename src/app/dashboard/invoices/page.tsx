@@ -67,7 +67,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
 
         <div className="flex justify-end">
           <Link href="/dashboard/invoices/new"
-            className="rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-cyan-600 shadow-lg shadow-cyan-500/20">
+            className="rounded-2xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-6 py-3 text-sm font-bold">
             + New invoice
           </Link>
         </div>

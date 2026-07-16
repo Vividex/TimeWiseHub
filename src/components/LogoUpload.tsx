@@ -120,7 +120,7 @@ export default function LogoUpload({ currentLogoUrl, storagePath, targetTable, t
             type="button"
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
-            className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50"
           >
             {uploading ? 'Uploading...' : 'Upload logo'}
           </button>

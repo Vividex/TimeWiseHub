@@ -19,7 +19,7 @@ export default function DownloadPage() {
           </Link>
           <Link
             href="/login"
-            className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600"
+            className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold"
           >
             Sign in
           </Link>
@@ -39,7 +39,7 @@ export default function DownloadPage() {
           <div className="mt-12 flex flex-col items-center gap-4">
             <a
               href={WINDOWS_DOWNLOAD_URL}
-              className="inline-flex items-center gap-3 rounded-2xl bg-cyan-500 px-8 py-4 text-base font-bold text-white shadow-lg transition-colors hover:bg-cyan-600"
+              className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-8 py-4 text-base font-bold"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
                 <path d="M12 16l-6-6h4V4h4v6h4l-6 6zM4 18h16v2H4v-2z" />

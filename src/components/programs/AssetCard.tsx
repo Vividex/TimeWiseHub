@@ -121,7 +121,7 @@ export default function AssetCard({
           <button
             type="button"
             onClick={handleOpen}
-            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-600"
           >
             <ExternalLink size={11} />
             Open
@@ -131,7 +131,7 @@ export default function AssetCard({
           <button
             type="button"
             onClick={() => setAnnotating(true)}
-            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-600"
           >
             <PenSquare size={11} />
             Annotate

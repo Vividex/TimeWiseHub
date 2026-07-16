@@ -335,8 +335,10 @@ export default function SessionDetailClient({
               {STATUS_NEXT[status] && (
                 <button
                   onClick={advanceStatus}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-white transition-colors ${
-                    status === 'scheduled' ? 'bg-cyan-500 hover:bg-cyan-600' : 'bg-amber-500 hover:bg-amber-600'
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-white transition-all duration-150 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    status === 'scheduled'
+                      ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 shadow-md shadow-cyan-500/25 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 focus-visible:outline-cyan-400'
+                      : 'bg-gradient-to-b from-amber-500 to-amber-600 shadow-md shadow-amber-500/25 hover:from-amber-600 hover:to-amber-700 hover:shadow-lg hover:shadow-amber-500/30 focus-visible:outline-amber-400'
                   }`}
                 >
                   {status === 'scheduled' ? <Play size={12} /> : <Square size={12} />}
@@ -358,7 +360,7 @@ export default function SessionDetailClient({
                     type="button"
                     onClick={deleteSession}
                     disabled={deletingSession}
-                    className="rounded-lg bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                    className="rounded-lg bg-gradient-to-b from-red-400 to-red-500 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-500 hover:to-red-600 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-2.5 py-0.5 text-xs font-bold disabled:opacity-50"
                   >
                     {deletingSession ? '…' : 'Yes'}
                   </button>
@@ -382,7 +384,7 @@ export default function SessionDetailClient({
               <button
                 onClick={saveAsTemplate}
                 disabled={savingTemplate || todos.length === 0}
-                className="text-xs font-semibold text-cyan-600 hover:underline disabled:opacity-40"
+                className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 shadow-sm transition-all hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 active:scale-[0.95] disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:border-cyan-400/40 dark:hover:bg-cyan-500/10"
               >
                 {templateSaved ? 'Saved!' : savingTemplate ? 'Saving...' : 'Save as template'}
               </button>
@@ -429,7 +431,7 @@ export default function SessionDetailClient({
                   type="button"
                   onClick={addTodo}
                   disabled={!newTodo.trim()}
-                  className="min-h-10 !shadow-none rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                  className="min-h-10 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                   Add
                 </button>
@@ -454,7 +456,7 @@ export default function SessionDetailClient({
                       type="button"
                       onClick={addCallSummaryToSessionNotes}
                       disabled={savingCallSummaryToSessionNotes}
-                      className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                      className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1.5 text-xs font-bold disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     >
                       {savingCallSummaryToSessionNotes ? 'Adding...' : callSummaryToSessionNotesSaved ? 'Added!' : 'Add to session notes'}
                     </button>
@@ -462,7 +464,7 @@ export default function SessionDetailClient({
                       type="button"
                       onClick={addCallSummaryToProgressNotes}
                       disabled={savingCallSummaryNote}
-                      className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                      className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1.5 text-xs font-bold disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     >
                       {savingCallSummaryNote ? 'Adding...' : callSummaryNoteSaved ? 'Added!' : 'Add to progress notes'}
                     </button>
@@ -490,7 +492,7 @@ export default function SessionDetailClient({
                   type="button"
                   onClick={addSessionNotesToProgressNotes}
                   disabled={savingProgressNote || !notes.trim()}
-                  className="!shadow-none rounded-xl bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                  className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1.5 text-xs font-bold disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                   {savingProgressNote ? 'Adding...' : progressNoteSaved ? 'Added!' : 'Add to progress notes'}
                 </button>

@@ -152,16 +152,16 @@ export default function RosterGrid({ orgId, members, initialShifts, leaveBlocks,
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={prevWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">←</button>
+          <button onClick={prevWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:hover:bg-slate-800 dark:hover:border-slate-600">←</button>
           <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
             {weekDates[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {weekDates[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
-          <button onClick={nextWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">→</button>
+          <button onClick={nextWeek} className="rounded-xl border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:hover:bg-slate-800 dark:hover:border-slate-600">→</button>
         </div>
         <div className="flex items-center gap-2">
           {canManageRoster && unpublishedCount > 0 && (
             <button onClick={publishWeek} disabled={publishing}
-              className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+              className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
               {publishing ? 'Publishing…' : `Publish week (${unpublishedCount} draft)`}
             </button>
           )}

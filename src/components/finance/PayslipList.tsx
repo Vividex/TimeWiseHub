@@ -82,9 +82,9 @@ export default function PayslipList({
               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.pay_date}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => download(p.file_path)} className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-600">Download</button>
+                  <button type="button" onClick={() => download(p.file_path)} className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1.5 text-xs font-semibold">Download</button>
                   {canDelete && (
-                    <button type="button" onClick={() => remove(p)} disabled={busyId === p.id} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                    <button type="button" onClick={() => remove(p)} disabled={busyId === p.id} className="rounded-lg bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-3 py-1.5 text-xs font-semibold disabled:opacity-50">
                       {busyId === p.id ? '…' : 'Delete'}
                     </button>
                   )}

@@ -389,7 +389,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                 <button
                   onClick={handleCancel}
                   disabled={cancelling}
-                  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                  className="rounded-lg bg-gradient-to-b from-red-400 to-red-500 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-500 hover:to-red-600 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-3 py-1.5 text-xs font-bold disabled:opacity-50"
                 >
                   {cancelling ? 'Cancelling…' : 'Yes, cancel it'}
                 </button>

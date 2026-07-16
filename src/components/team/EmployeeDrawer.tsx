@@ -132,7 +132,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" /></div>
                 {canManageTeam && (
                   <button onClick={saveProfile} disabled={savingProfile}
-                    className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+                    className="w-full rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 py-2 text-sm font-semibold disabled:opacity-50">
                     {savingProfile ? 'Saving…' : 'Save profile'}
                   </button>
                 )}
@@ -187,7 +187,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
                 <input type="date" value={newCertExpiry} onChange={e => setNewCertExpiry(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
                 <button onClick={addCert} disabled={addingCert || !newCertName}
-                  className="w-full rounded-xl bg-cyan-500 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+                  className="w-full rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 py-2 text-sm font-semibold disabled:opacity-50">
                   {addingCert ? 'Adding…' : 'Add certification'}
                 </button>
               </div>

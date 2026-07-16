@@ -188,7 +188,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
                         {expense.status === 'submitted' && (
                           <div className="flex gap-2 shrink-0">
                             <button onClick={() => setReviewing(reviewing === expense.id ? null : expense.id)}
-                              className="rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600">
+                              className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-2 text-xs font-semibold">
                               Review
                             </button>
                           </div>
@@ -205,7 +205,7 @@ export default function ManagerExpenseView({ orgId }: { orgId: string }) {
                               Approve
                             </button>
                             <button onClick={() => handleReview(expense.id, 'rejected')}
-                              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
+                              className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-4 py-2 text-sm font-semibold">
                               Reject
                             </button>
                           </div>

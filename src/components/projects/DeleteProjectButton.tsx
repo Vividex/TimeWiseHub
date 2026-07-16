@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 export default function DeleteProjectButton({ projectId, clientId }: { projectId: string; clientId: string }) {
   const router = useRouter()
-  const [confirming, setConfirming] = useState(false)
+  const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleDelete() {
@@ -16,36 +17,24 @@ export default function DeleteProjectButton({ projectId, clientId }: { projectId
     router.push(`/dashboard/clients/${clientId}/projects`)
   }
 
-  if (!confirming) {
-    return (
+  return (
+    <>
       <button
         type="button"
-        onClick={() => setConfirming(true)}
-        className="rounded-xl border border-red-200 px-4 py-2 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
+        onClick={() => setOpen(true)}
+        disabled={loading}
+        className="rounded-xl border border-red-300 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 active:scale-[0.965] disabled:opacity-50 dark:border-red-400/40 dark:text-red-400 dark:hover:bg-red-500/10"
       >
         Delete project
       </button>
-    )
-  }
-
-  return (
-    <div className="flex w-full flex-wrap items-center gap-2 rounded-xl bg-red-50 px-3 py-2 dark:bg-red-950 sm:w-auto">
-      <p className="w-full text-xs font-semibold text-red-700 dark:text-red-300 sm:w-auto">Delete permanently?</p>
-      <button
-        type="button"
-        onClick={handleDelete}
-        disabled={loading}
-        className="rounded-lg bg-red-500 px-3 py-1 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
-      >
-        {loading ? 'Deleting…' : 'Yes, delete'}
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirming(false)}
-        className="rounded-lg px-2 py-1 text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700"
-      >
-        Cancel
-      </button>
-    </div>
+      <ConfirmDialog
+        open={open}
+        title="Delete project?"
+        message="This will permanently delete the project and cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setOpen(false)}
+      />
+    </>
   )
 }

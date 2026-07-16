@@ -443,7 +443,7 @@ export default function VehicleDetailClient({
                 <input type="number" min="0" value={nextServiceDueKm} onChange={event => setNextServiceDueKm(event.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
               </div>
-              <button type="submit" disabled={savingVehicle} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+              <button type="submit" disabled={savingVehicle} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
                 {savingVehicle ? 'Saving...' : 'Save vehicle details'}
               </button>
             </form>
@@ -492,7 +492,7 @@ export default function VehicleDetailClient({
                 </select>
               </div>
               {odometerError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{odometerError}</p>}
-              <button type="submit" disabled={savingOdometer} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+              <button type="submit" disabled={savingOdometer} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
                 {savingOdometer ? 'Saving...' : 'Log odometer'}
               </button>
             </form>
@@ -530,7 +530,7 @@ export default function VehicleDetailClient({
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
             </div>
             {noteError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{noteError}</p>}
-            <button type="submit" disabled={savingNote || !noteText.trim()} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+            <button type="submit" disabled={savingNote || !noteText.trim()} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
               {savingNote ? 'Saving...' : 'Add note'}
             </button>
           </form>
@@ -565,7 +565,7 @@ export default function VehicleDetailClient({
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Linked expenses</h2>
           </div>
           {canLog && (
-            <button onClick={() => setExpenseOpen(open => !open)} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600">
+            <button onClick={() => setExpenseOpen(open => !open)} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold">
               {expenseOpen ? 'Cancel' : '+ Log vehicle expense'}
             </button>
           )}
@@ -613,7 +613,7 @@ export default function VehicleDetailClient({
                 className="w-full text-sm font-medium text-gray-500 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-cyan-600 hover:file:bg-cyan-100" />
             </div>
             {expenseError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{expenseError}</p>}
-            <button type="submit" disabled={savingExpense} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50">
+            <button type="submit" disabled={savingExpense} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
               {savingExpense ? 'Saving...' : 'Submit for approval'}
             </button>
           </form>
@@ -655,7 +655,7 @@ export default function VehicleDetailClient({
                 lists while keeping its odometer, notes, and expense history.
               </p>
             </div>
-            <button onClick={archiveVehicle} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700">
+            <button onClick={archiveVehicle} className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400">
               Archive
             </button>
           </div>
@@ -674,7 +674,7 @@ export default function VehicleDetailClient({
                 test entry), not for vehicles that were genuinely in use.
               </p>
             </div>
-            <button onClick={deleteVehicle} className="rounded-xl border-2 border-red-600 bg-transparent px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-600 hover:text-white dark:text-red-400 dark:hover:text-white">
+            <button onClick={deleteVehicle} className="rounded-xl border border-red-300 bg-transparent px-4 py-2 text-sm font-semibold text-red-600 transition-all hover:border-red-500 hover:bg-red-50 active:scale-[0.965] dark:border-red-400/40 dark:text-red-400 dark:hover:bg-red-500/10">
               Delete permanently
             </button>
           </div>

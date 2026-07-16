@@ -135,7 +135,7 @@ export default function TaskDrawer({
         )}
 
         <button onClick={save} disabled={saving || !title.trim()}
-          className="mt-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">
+          className="mt-2 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2.5 text-sm font-semibold disabled:opacity-50">
           {saving ? 'Saving…' : 'Save'}
         </button>
 
@@ -149,7 +149,7 @@ export default function TaskDrawer({
             <div className="flex items-center gap-3 rounded-xl bg-red-50 px-3 py-2.5 dark:bg-red-950">
               <p className="flex-1 text-sm font-semibold text-red-700 dark:text-red-300">Delete permanently?</p>
               <button type="button" onClick={handleDelete} disabled={saving}
-                className="rounded-lg bg-red-500 px-3 py-1 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50">
+                className="rounded-lg bg-gradient-to-b from-red-400 to-red-500 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-500 hover:to-red-600 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-3 py-1 text-xs font-bold disabled:opacity-50">
                 {saving ? '…' : 'Yes, delete'}
               </button>
               <button type="button" onClick={() => setConfirmDelete(false)}

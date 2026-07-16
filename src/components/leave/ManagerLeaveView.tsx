@@ -104,7 +104,7 @@ export default function ManagerLeaveView({ pending }: { pending: LeaveReq[] }) {
                     Approve
                   </button>
                   <button onClick={() => setRejectOpen(rejectOpen === r.id ? null : r.id)} disabled={!!processing}
-                    className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50">
+                    className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-3 py-1.5 text-xs font-bold disabled:opacity-50">
                     Reject
                   </button>
                 </div>
@@ -115,7 +115,7 @@ export default function ManagerLeaveView({ pending }: { pending: LeaveReq[] }) {
                     placeholder="Reason (optional)"
                     className="flex-1 rounded-xl border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
                   <button onClick={() => handleReject(r.id)} disabled={!!processing}
-                    className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50">
+                    className="rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white shadow-md shadow-red-500/25 transition-all duration-150 hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 px-3 py-1.5 text-xs font-bold disabled:opacity-50">
                     Confirm
                   </button>
                 </div>

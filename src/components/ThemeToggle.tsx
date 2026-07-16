@@ -27,7 +27,7 @@ export default function ThemeToggle() {
     <button
       onClick={cycle}
       title={`Theme: ${label} — click to cycle`}
-      className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-500 transition-colors hover:bg-gray-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+      className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:border-slate-600 dark:hover:text-slate-100"
     >
       <Icon size={16} />
     </button>

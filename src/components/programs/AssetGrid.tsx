@@ -35,7 +35,7 @@ export default function AssetGrid({
           <button
             type="button"
             onClick={() => setShowUpload(true)}
-            className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-white shadow shadow-cyan-500/20 hover:bg-cyan-600"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-xs font-bold"
           >
             <Plus size={14} />
             Add content
@@ -51,7 +51,7 @@ export default function AssetGrid({
             <button
               type="button"
               onClick={() => setShowUpload(true)}
-              className="mt-3 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-600"
+              className="mt-3 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-xs font-semibold"
             >
               Add content
             </button>

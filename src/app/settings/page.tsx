@@ -148,7 +148,7 @@ export default async function SettingsPage() {
             </p>
             <Link
               href="/dashboard/billing"
-              className="inline-flex rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-600 transition-colors"
+              className="inline-flex rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-5 py-2.5 text-sm font-bold"
             >
               Upgrade to Business
             </Link>
@@ -188,7 +188,7 @@ export default async function SettingsPage() {
         <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Download all my data</h2>
         <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">Export a complete copy of your account data in JSON format (GDPR right of access).</p>
         <a href="/api/export" download
-          className="mt-4 inline-flex rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50">
+          className="mt-4 inline-flex rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300">
           Download raw data (JSON)
         </a>
       </div>

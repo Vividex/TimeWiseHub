@@ -224,13 +224,13 @@ export default function TopicAssetsPanel({ topicId }: { topicId: string }) {
         <form onSubmit={handleAddLink} className="flex gap-2">
           <input value={linkName} onChange={e => setLinkName(e.target.value)} placeholder="Link name" className="w-1/3 rounded-lg border border-gray-200 px-2 py-1 text-xs" />
           <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://…" className="flex-1 rounded-lg border border-gray-200 px-2 py-1 text-xs" />
-          <button type="submit" className="rounded-lg bg-cyan-500 px-3 py-1 text-xs font-semibold text-white hover:bg-cyan-600">Add link</button>
+          <button type="submit" className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1 text-xs font-semibold">Add link</button>
         </form>
 
         <form onSubmit={handleAddNote} className="space-y-1">
           <input value={noteName} onChange={e => setNoteName(e.target.value)} placeholder="Note title" className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs" />
           <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Note content" rows={2} className="w-full resize-none rounded-lg border border-gray-200 px-2 py-1 text-xs" />
-          <button type="submit" className="rounded-lg bg-cyan-500 px-3 py-1 text-xs font-semibold text-white hover:bg-cyan-600">Add note</button>
+          <button type="submit" className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-3 py-1 text-xs font-semibold">Add note</button>
         </form>
       </div>
 
