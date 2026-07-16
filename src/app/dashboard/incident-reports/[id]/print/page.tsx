@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { TYPE_LABEL, SEVERITY_LABEL } from '@/lib/incident-reports'
 import type { IncidentReport } from '@/types/incident-reports'
+import IncidentReportPrintControls from '@/components/incident-reports/IncidentReportPrintControls'
 
 function fmtDateTime(iso: string | null) {
   if (!iso) return '—'
@@ -65,6 +66,7 @@ export default async function IncidentReportPrintPage({ params }: { params: Prom
           }
         `}</style>
       <div className="incident-print-page">
+        <IncidentReportPrintControls />
         <div className="header">
           <div className="logo">TimeWiseHub</div>
           <div className="title">
