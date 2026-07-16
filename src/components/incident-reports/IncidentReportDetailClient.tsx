@@ -236,7 +236,14 @@ export default function IncidentReportDetailClient({
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Location</span>
               <input value={location} onChange={e => setLocation(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
             </label>
-            <ClientSitePicker clients={clients} clientId={clientId} siteId={siteId} onClientChange={setClientId} onSiteChange={setSiteId} />
+            <ClientSitePicker
+              clients={clients}
+              clientId={clientId}
+              siteId={siteId}
+              onClientChange={setClientId}
+              onSiteChange={setSiteId}
+              onSiteAddressChange={address => { if (!location.trim()) setLocation(address) }}
+            />
             <label className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Employee involved</span>
               <select value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
