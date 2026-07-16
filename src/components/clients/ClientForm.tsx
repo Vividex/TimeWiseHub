@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 
 const CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR', 'NZD', 'CAD', 'SGD']
 
@@ -80,7 +81,7 @@ export default function ClientForm({ orgId, clientLabel }: { orgId: string | nul
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address</label>
-            <input type="text" value={address} onChange={e => setAddress(e.target.value)}
+            <AddressAutocomplete value={address} onChange={setAddress}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 

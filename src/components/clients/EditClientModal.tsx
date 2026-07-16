@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 
 const CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR', 'NZD', 'CAD', 'SGD']
 
@@ -89,7 +90,7 @@ export default function EditClientModal({ client, onClose, clientLabel }: { clie
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address</label>
-            <input type="text" value={address} onChange={e => setAddress(e.target.value)} className={inputCls} />
+            <AddressAutocomplete value={address} onChange={setAddress} className={inputCls} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

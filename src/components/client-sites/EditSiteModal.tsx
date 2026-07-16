@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 
 type Site = {
   id: string
@@ -73,7 +74,7 @@ export default function EditSiteModal({ site, onClose }: { site: Site; onClose: 
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address *</label>
-            <input required type="text" value={address} onChange={e => setAddress(e.target.value)}
+            <AddressAutocomplete required value={address} onChange={setAddress}
               className={inputCls} />
           </div>
 

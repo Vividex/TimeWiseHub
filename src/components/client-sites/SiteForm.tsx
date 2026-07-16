@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 
 export default function SiteForm({ clientId, defaultOpen = false }: { clientId: string; defaultOpen?: boolean }) {
   const router = useRouter()
@@ -58,7 +59,7 @@ export default function SiteForm({ clientId, defaultOpen = false }: { clientId: 
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address *</label>
-            <input required type="text" value={address} onChange={e => setAddress(e.target.value)}
+            <AddressAutocomplete required value={address} onChange={setAddress}
               placeholder="e.g. 42 Industrial Rd, Dandenong VIC"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
