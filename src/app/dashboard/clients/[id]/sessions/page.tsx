@@ -30,21 +30,28 @@ export default async function ClientSessionsPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { terminology, key: profileKey } = await getWorkspaceProfileForUser(supabase, user.id)
+  const showTutoringFields = profileKey === 'tutoring'
 
   const { data: membership } = await supabase
     .from('organisation_members').select('org_id').eq('user_id', user.id).maybeSingle()
   const orgId = membership?.org_id ?? null
 
-  await ensureSeedSubjects(supabase, user.id, orgId)
+  if (showTutoringFields) {
+    await ensureSeedSubjects(supabase, user.id, orgId)
+  }
 
   const { data: client } = await supabase.from('clients').select('id, name, default_rate, currency').eq('id', id).maybeSingle()
   if (!client) notFound()
 
-  const subjectsQuery = orgId
-    ? supabase.from('subjects').select('id, name').eq('org_id', orgId).eq('archived', false).order('name')
-    : supabase.from('subjects').select('id, name').is('org_id', null).eq('created_by', user.id).eq('archived', false).order('name')
-  const { data: subjects } = await subjectsQuery
+  let subjects: { id: string; name: string }[] = []
+  if (showTutoringFields) {
+    const subjectsQuery = orgId
+      ? supabase.from('subjects').select('id, name').eq('org_id', orgId).eq('archived', false).order('name')
+      : supabase.from('subjects').select('id, name').is('org_id', null).eq('created_by', user.id).eq('archived', false).order('name')
+    const { data } = await subjectsQuery
+    subjects = data ?? []
+  }
 
   const { data: sessions } = await supabase
     .from('sessions')
@@ -52,12 +59,16 @@ export default async function ClientSessionsPage({
     .eq('client_id', id)
     .order('scheduled_at', { ascending: true })
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('id, name')
-    .eq('client_id', id)
-    .eq('archived', false)
-    .order('name')
+  let students: { id: string; name: string }[] = []
+  if (showTutoringFields) {
+    const { data } = await supabase
+      .from('students')
+      .select('id, name')
+      .eq('client_id', id)
+      .eq('archived', false)
+      .order('name')
+    students = data ?? []
+  }
 
   const { data: sites } = await supabase
     .from('client_sites')
@@ -112,7 +123,7 @@ export default async function ClientSessionsPage({
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Sessions</h1>
-          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students ?? []} subjects={subjects ?? []} sites={sites ?? []} defaultOpen={openNew === '1'} />
+          <NewSessionModal clientId={id} orgId={orgId} clientLabel={terminology.client} students={students} subjects={subjects} sites={sites ?? []} showTutoringFields={showTutoringFields} defaultOpen={openNew === '1'} />
         </div>
 
         <BillableSessionsPanel

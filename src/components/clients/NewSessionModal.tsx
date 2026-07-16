@@ -22,6 +22,7 @@ export default function NewSessionModal({
   students,
   subjects,
   sites,
+  showTutoringFields,
   defaultOpen = false,
 }: {
   clientId: string
@@ -30,6 +31,7 @@ export default function NewSessionModal({
   students: StudentOption[]
   subjects: SubjectOption[]
   sites: SiteOption[]
+  showTutoringFields: boolean
   defaultOpen?: boolean
 }) {
   const router = useRouter()
@@ -253,69 +255,73 @@ export default function NewSessionModal({
               </select>
             </div>
           )}
-          <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Year group</label>
-            <select
-              value={yearGroup}
-              onChange={e => setYearGroup(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-            >
-              <option value="">— None —</option>
-              {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
-            <select
-              value={subjectChoice}
-              onChange={e => setSubjectChoice(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-            >
-              <option value="">— None —</option>
-              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              <option value={NEW_SUBJECT}>+ Add new subject…</option>
-            </select>
-            {isNewSubject && (
-              <input
-                value={newSubjectName}
-                onChange={e => setNewSubjectName(e.target.value)}
-                placeholder="e.g. Music"
-                className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-              />
-            )}
-          </div>
-          {subjectChoice && (
-            <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Topic</label>
-              {isNewSubject ? (
-                <input
-                  value={newTopicName}
-                  onChange={e => setNewTopicName(e.target.value)}
-                  placeholder="e.g. Algebra"
+          {showTutoringFields && (
+            <>
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Year group</label>
+                <select
+                  value={yearGroup}
+                  onChange={e => setYearGroup(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              ) : (
-                <>
-                  <select
-                    value={topicChoice}
-                    onChange={e => setTopicChoice(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
-                  >
-                    <option value="">— None —</option>
-                    {topicOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    <option value={NEW_TOPIC}>+ Add new topic…</option>
-                  </select>
-                  {topicChoice === NEW_TOPIC && (
+                >
+                  <option value="">— None —</option>
+                  {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Subject</label>
+                <select
+                  value={subjectChoice}
+                  onChange={e => setSubjectChoice(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                >
+                  <option value="">— None —</option>
+                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  <option value={NEW_SUBJECT}>+ Add new subject…</option>
+                </select>
+                {isNewSubject && (
+                  <input
+                    value={newSubjectName}
+                    onChange={e => setNewSubjectName(e.target.value)}
+                    placeholder="e.g. Music"
+                    className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                  />
+                )}
+              </div>
+              {subjectChoice && (
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Topic</label>
+                  {isNewSubject ? (
                     <input
                       value={newTopicName}
                       onChange={e => setNewTopicName(e.target.value)}
                       placeholder="e.g. Algebra"
-                      className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
                     />
+                  ) : (
+                    <>
+                      <select
+                        value={topicChoice}
+                        onChange={e => setTopicChoice(e.target.value)}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                      >
+                        <option value="">— None —</option>
+                        {topicOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        <option value={NEW_TOPIC}>+ Add new topic…</option>
+                      </select>
+                      {topicChoice === NEW_TOPIC && (
+                        <input
+                          value={newTopicName}
+                          onChange={e => setNewTopicName(e.target.value)}
+                          placeholder="e.g. Algebra"
+                          className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
+                        />
+                      )}
+                    </>
                   )}
-                </>
+                </div>
               )}
-            </div>
+            </>
           )}
           <div>
             <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Date &amp; time</label>
