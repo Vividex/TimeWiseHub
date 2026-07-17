@@ -111,7 +111,28 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (SWMS + Licence Tracking) [current phase]
+## Notes (SWMS + Licence Tracking) [complete, kept for reference]
+- **All 8 implementation items (C-1 through C-8) complete and verified
+  (2026-07-18).** Every turn was verified directly by the conductor (Read the
+  actual files/diffs + `pnpm run build`), not taken on Codex's report alone —
+  every file matched the plan's exact code with zero discrepancies this
+  phase (no bugs caught/fixed, unlike several prior phases). Two assumptions
+  baked into the plan (`getWorkspaceProfileForUser` actually existing at the
+  claimed path; `/api/team/certifications` already accepting
+  `document_path`) were independently re-confirmed live before each relevant
+  dispatch rather than trusted from the plan text alone. Full
+  `pnpm run build` passes clean end-to-end across all three modified
+  server pages/components and the two new panel components. Remaining: the
+  manual smoke test (crew add/remove, SWMS upload/view/acknowledge/delete,
+  RLS non-crew-visibility check, tutoring-profile confirms neither section
+  renders, certification document upload/view, Dashboard expiry card
+  appearing/disappearing) requires the user's own authenticated sessions
+  across a trades/construction-profile org and a tutoring-profile org — same
+  precedent as every prior phase.
+- Codex hit the known Windows `workspace-write` sandbox subprocess limitation
+  (`CreateProcessAsUserW failed: 5`) on its first shell call in all three of
+  C-6/C-7/C-8's turns — recovered on its own via its internal (non-shell)
+  file tool every time, no retries needed this phase.
 - Source spec: docs/superpowers/specs/2026-07-18-swms-licence-tracking-design.md
 - Source plan: docs/superpowers/plans/2026-07-18-swms-licence-tracking.md
 - Direct follow-up to the Trades & Field Services deep-dive: three parallel research agents
