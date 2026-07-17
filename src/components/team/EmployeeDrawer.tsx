@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
+import { createClient } from '@/lib/supabase-browser'
 import ScrollFade from '@/components/ui/ScrollFade'
 
 type Profile = { job_title: string | null; start_date: string | null; emergency_contact_name: string | null; emergency_contact_phone: string | null }
-type Cert = { id: string; name: string; issued_date: string | null; expiry_date: string | null }
+type Cert = { id: string; name: string; issued_date: string | null; expiry_date: string | null; document_path: string | null }
 type OnboardingItem = { label: string; required: boolean }
 type OnboardingProgress = { item_label: string; completed_at: string | null }
 type Tab = 'profile' | 'certifications' | 'onboarding'
@@ -29,6 +30,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
   const [newCertName, setNewCertName] = useState('')
   const [newCertExpiry, setNewCertExpiry] = useState('')
   const [addingCert, setAddingCert] = useState(false)
+  const [newCertFile, setNewCertFile] = useState<File | null>(null)
   const [onboardingItems, setOnboardingItems] = useState<OnboardingItem[]>([])
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress[]>([])
 
@@ -76,16 +78,31 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
   async function addCert() {
     if (!newCertName) return
     setAddingCert(true)
+
+    let documentPath: string | null = null
+    if (newCertFile) {
+      const supabase = createClient()
+      const path = `${orgId}/${member.user_id}/${Date.now()}-${newCertFile.name}`
+      const { error: uploadError } = await supabase.storage.from('employee-docs').upload(path, newCertFile)
+      if (!uploadError) documentPath = path
+    }
+
     const res = await fetch('/api/team/certifications', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: member.user_id, org_id: orgId, name: newCertName, expiry_date: newCertExpiry || null }) })
+      body: JSON.stringify({ user_id: member.user_id, org_id: orgId, name: newCertName, expiry_date: newCertExpiry || null, document_path: documentPath }) })
     const newCert = await res.json()
     setCerts(prev => [...prev, newCert])
-    setNewCertName(''); setNewCertExpiry(''); setAddingCert(false)
+    setNewCertName(''); setNewCertExpiry(''); setNewCertFile(null); setAddingCert(false)
   }
 
   async function deleteCert(id: string) {
     await fetch('/api/team/certifications', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     setCerts(prev => prev.filter(c => c.id !== id))
+  }
+
+  async function viewCertDocument(path: string) {
+    const supabase = createClient()
+    const { data } = await supabase.storage.from('employee-docs').createSignedUrl(path, 60)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
   }
 
   async function toggleOnboarding(label: string, done: boolean) {
@@ -175,6 +192,9 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
                         Expires {c.expiry_date}{expired ? ' — EXPIRED' : expiringSoon ? ' — expiring soon' : ''}
                       </p>
                     )}
+                    {c.document_path && (
+                      <button onClick={() => viewCertDocument(c.document_path as string)} className="mt-0.5 text-xs font-semibold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400">View document</button>
+                    )}
                   </div>
                   {canManageTeam && <button onClick={() => deleteCert(c.id)} className="text-gray-300 hover:text-red-400 ml-2 text-lg leading-none">×</button>}
                 </div>
@@ -186,6 +206,8 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
                   className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
                 <input type="date" value={newCertExpiry} onChange={e => setNewCertExpiry(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
+                <input type="file" onChange={e => setNewCertFile(e.target.files?.[0] ?? null)}
+                  className="w-full text-xs text-gray-500 dark:text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-700 dark:file:bg-slate-700 dark:file:text-slate-200" />
                 <button onClick={addCert} disabled={addingCert || !newCertName}
                   className="w-full rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 py-2 text-sm font-semibold disabled:opacity-50">
                   {addingCert ? 'Adding…' : 'Add certification'}

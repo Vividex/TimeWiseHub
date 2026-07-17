@@ -126,15 +126,15 @@ Services.
 ## C-7 — Certification document upload
 
 *Codex edits:*
-- [ ] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 7, Steps 1–5 — storage import,
+- [x] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 7, Steps 1–5 — storage import,
   `Cert.document_path`, file state, `addCert` upload, `viewCertDocument`, file input + View link)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: add a certification with a file attached; confirm "View document" opens it via a
   signed URL; confirm existing certifications without a document still display correctly.
-- [ ] Commit: `git add src/components/team/EmployeeDrawer.tsx && git commit -m "handover: C-7 certification document upload"`
+- [x] Commit: `git add src/components/team/EmployeeDrawer.tsx && git commit -m "handover: C-7 certification document upload"`
 
 ---
 
