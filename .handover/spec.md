@@ -46,11 +46,11 @@ Services.
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-105-swms-crew-tracking.sql` (plan Task 1, Step 1 — exact SQL in the
+- [x] Write `supabase/schema-105-swms-crew-tracking.sql` (plan Task 1, Step 1 — exact SQL in the
   plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `swms_crew_tracking`)
-- [ ] Verify via the sanity-check queries in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-105-swms-crew-tracking.sql && git commit -m "handover: C-1 project_members RLS + SWMS tables/bucket + employee-docs bucket RLS"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `swms_crew_tracking`)
+- [x] Verify via the sanity-check queries in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-105-swms-crew-tracking.sql && git commit -m "handover: C-1 project_members RLS + SWMS tables/bucket + employee-docs bucket RLS"`
 
 ---
 
