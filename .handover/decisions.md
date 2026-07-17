@@ -5,7 +5,10 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Client Sites (current phase): zero cost — pure code + one additive DB migration (one new table,
+- SWMS + Licence Tracking (current phase): zero cost — pure code + one additive DB migration (RLS
+  on an existing empty table, two new tables, one new storage bucket, storage RLS on an existing
+  empty bucket), no new npm dependencies, no external API calls.
+- Client Sites (prior phase, complete): zero cost — pure code + one additive DB migration (one new table,
   two new nullable FK columns on existing tables), no new npm dependencies, no external API calls.
 - Video Call Whiteboard (prior phase, complete): zero cost — pure code + one additive DB migration
   (one new table, one new function, one new private storage bucket), no new npm dependencies
@@ -107,6 +110,55 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (SWMS + Licence Tracking) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-18-swms-licence-tracking-design.md
+- Source plan: docs/superpowers/plans/2026-07-18-swms-licence-tracking.md
+- Direct follow-up to the Trades & Field Services deep-dive: three parallel research agents
+  (competitor construction software, on-site worker daily needs, AU construction compliance)
+  independently converged on SWMS + high-risk-work licence tracking as the single strongest
+  cross-validated gap — two of the three named it their top pick from completely different
+  research angles.
+- **Real course-correction during brainstorming, before any code was written:** the user clarified
+  Sessions was purpose-built to bridge tutoring/PT's single-lesson-appointment model and was never
+  meant to fit construction — "jobs" map to the existing `projects`+`tasks` tables instead. This
+  reframed the entire feature away from an initial (wrong) assumption that SWMS acknowledgment
+  would need to be scoped to a session's single `created_by` person.
+- **Real gap caught via direct research, not assumption:** licence tracking already existed almost
+  entirely as the generic `certifications` table/UI (add/list/delete, per-member expired/expiring
+  badges, an org-wide `CertExpiryPanel`) — checked the actual schema and component tree before
+  proposing anything, avoiding building a duplicate parallel system. The user then explicitly
+  scoped this phase down to a small polish pass (document upload + Dashboard surfacing) rather than
+  the fuller "scheduling-time warnings" option also offered.
+- **Real gap caught via direct research:** `project_members` exists in the schema and
+  `project_documents`' own RLS already references it, but zero application code populates or reads
+  it — confirmed via a live grep before assuming crew management could be skipped. Building a small
+  Crew UI was treated as necessary scaffolding for SWMS access (explicitly agreed with the user,
+  not silently expanded scope).
+- SWMS access is crew-wide (any `project_members` row on the project can view/acknowledge, not just
+  the project owner/admin) per the user's explicit requirement ("every employee needs to be able to
+  access swms") — clarified during brainstorming to mean "anyone on the project's crew," not a
+  company-wide library across every project.
+- Acknowledgment is tracked, not a hard gate — matches the Incident Reports precedent (a permanent
+  compliance record, not a workflow blocker). Avoids edge cases like a SWMS added after a task is
+  already in progress.
+- Gated to `trades_field_services` + `builder_construction` only via a new `supportsSwms` flag; the
+  underlying `projects`/`tasks` tables stay fully generic and ungated for every other profile.
+  Certifications itself stays ungated — it's a pre-existing, industry-agnostic feature.
+- **Real correction caught during plan-writing, before any code was written:** a draft of the
+  Dashboard certifications-due card assumed `certifications.user_id` could be embedded via
+  `profiles!certifications_user_id_fkey`, following the pattern used elsewhere in this codebase for
+  `organisation_members.user_id`. A live query against the actual FK constraints showed
+  `certifications.user_id` references `auth.users` directly — no such embeddable relationship
+  exists, so that query would have failed outright. Fixed by resolving display names from
+  `mappedMembers`, a list this exact page already computes for an unrelated purpose (the manager
+  task pool), rather than guessing at a fallback in the plan itself.
+- New `project-swms` storage bucket, RLS-scoped by path-prefix project ownership (mirrors the
+  existing `project-documents` bucket's own path-prefix pattern exactly). Certifications reuses the
+  pre-existing but completely unused (zero policies, zero code) `employee-docs` bucket rather than
+  creating a new one.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. C-1 (migration) is conductor-only.
 
 ## Notes (Client Sites) [complete, kept for reference]
 - **All 9 implementation items (C-1 through C-9) complete and verified
