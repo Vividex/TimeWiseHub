@@ -70,15 +70,15 @@ Services.
 ## C-3 — Workspace profile flag
 
 *Codex edits:*
-- [ ] Modify `src/lib/workspace-profiles/types.ts` (plan Task 3, Step 1 — add
+- [x] Modify `src/lib/workspace-profiles/types.ts` (plan Task 3, Step 1 — add
   `supportsSwms?: boolean`)
-- [ ] Modify `src/lib/workspace-profiles/registry.ts` (plan Task 3, Step 2 — set `true` on exactly
+- [x] Modify `src/lib/workspace-profiles/registry.ts` (plan Task 3, Step 2 — set `true` on exactly
   `builder_construction`, `trades_field_services`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "handover: C-3 supportsSwms workspace profile flag"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "handover: C-3 supportsSwms workspace profile flag"`
 
 ---
 

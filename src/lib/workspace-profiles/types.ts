@@ -28,4 +28,5 @@ export type WorkspaceProfileConfig = {
   terminology: Terminology
   navOverrides?: NavOverrides
   supportsMultiSite?: boolean
+  supportsSwms?: boolean
 }
