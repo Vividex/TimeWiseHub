@@ -2,11 +2,16 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import ProjectTaskGrid from '@/components/projects/ProjectTaskGrid'
 import ProjectExpensesPanel, { type ProjectExpense } from '@/components/projects/ProjectExpensesPanel'
 import DocumentPanel from '@/components/projects/DocumentPanel'
+import ProjectCrewPanel from '@/components/projects/ProjectCrewPanel'
+import ProjectSwmsPanel from '@/components/projects/ProjectSwmsPanel'
 import ArchiveButton from '@/components/projects/ArchiveButton'
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton'
+import type { CrewMemberOption } from '@/types/project-crew'
+import type { SwmsDocument } from '@/types/swms'
 
 export default async function ClientProjectPage({
   params,
@@ -17,6 +22,8 @@ export default async function ClientProjectPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { supportsSwms } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }, { data: expenses }] = await Promise.all([
     supabase.from('projects').select('*, clients(name)').eq('id', projectId).single(),
@@ -43,6 +50,40 @@ export default async function ClientProjectPage({
         displayName: (m.profiles?.full_name || m.profiles?.email || m.user_id) as string,
       }))
     : undefined
+
+  let crew: CrewMemberOption[] = []
+  let availableMembers: CrewMemberOption[] = []
+  let swmsDocuments: SwmsDocument[] = []
+  let isCrewMember = false
+
+  if (supportsSwms) {
+    const allOrgMembers = mappedOrgMembers ?? []
+    const { data: crewRows } = await supabase.from('project_members').select('user_id').eq('project_id', projectId)
+    const crewUserIds = new Set((crewRows ?? []).map(r => r.user_id as string))
+    crew = allOrgMembers.filter(m => crewUserIds.has(m.userId))
+    availableMembers = allOrgMembers.filter(m => !crewUserIds.has(m.userId))
+    isCrewMember = crewUserIds.has(user.id)
+
+    const { data: swmsRows } = await supabase
+      .from('project_swms_documents')
+      .select('id, name, storage_path')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+
+    const swmsIds = (swmsRows ?? []).map(d => d.id)
+    const { data: ackRows } = swmsIds.length > 0
+      ? await supabase.from('project_swms_acknowledgments').select('swms_document_id, user_id, acknowledged_at').in('swms_document_id', swmsIds)
+      : { data: [] as { swms_document_id: string; user_id: string; acknowledged_at: string }[] }
+
+    swmsDocuments = (swmsRows ?? []).map(doc => ({
+      id: doc.id,
+      name: doc.name,
+      storagePath: doc.storage_path,
+      acknowledgments: (ackRows ?? [])
+        .filter(a => a.swms_document_id === doc.id)
+        .map(a => ({ userId: a.user_id, acknowledgedAt: a.acknowledged_at })),
+    }))
+  }
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -87,6 +128,25 @@ export default async function ClientProjectPage({
           isOrgProject={isOrgProject}
           canManageConfidential={canManageConfidential}
         />
+
+        {supportsSwms && (
+          <>
+            <ProjectCrewPanel
+              projectId={project.id}
+              crew={crew}
+              availableMembers={availableMembers}
+              canManage={canManageConfidential}
+            />
+            <ProjectSwmsPanel
+              projectId={project.id}
+              documents={swmsDocuments}
+              crewSize={crew.length}
+              currentUserId={user.id}
+              isCrewMember={isCrewMember}
+              canManage={canManageConfidential}
+            />
+          </>
+        )}
       </div>
     </div>
   )

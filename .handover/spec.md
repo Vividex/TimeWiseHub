@@ -109,17 +109,17 @@ Services.
 ## C-6 — Wire Crew + SWMS into the project detail page
 
 *Codex edits:*
-- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Steps
+- [x] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Steps
   1–3 — imports, `supportsSwms` resolution, crew/SWMS data fetch, render the two new sections)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: as a trades/construction-profile org, add a crew member to a project, upload a SWMS
   document, confirm the crew member can view and acknowledge it, confirm a non-crew org member
   cannot see the Crew/Safety sections' data (RLS). As a tutoring-profile org, confirm neither
   section renders at all.
-- [ ] Commit: `git add "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Crew and SWMS sections into the project detail page"`
+- [x] Commit: `git add "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Crew and SWMS sections into the project detail page"`
 
 ---
 
