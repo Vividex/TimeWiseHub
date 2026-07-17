@@ -57,13 +57,13 @@ Services.
 ## C-2 — Types
 
 *Codex edits:*
-- [ ] Create `src/types/project-crew.ts` (plan Task 2, Step 1)
-- [ ] Create `src/types/swms.ts` (plan Task 2, Step 2)
-- [ ] Report back — list files changed.
+- [x] Create `src/types/project-crew.ts` (plan Task 2, Step 1)
+- [x] Create `src/types/swms.ts` (plan Task 2, Step 2)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/project-crew.ts src/types/swms.ts && git commit -m "handover: C-2 crew and SWMS types"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/types/project-crew.ts src/types/swms.ts && git commit -m "handover: C-2 crew and SWMS types"`
 
 ---
 
