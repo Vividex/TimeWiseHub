@@ -139,6 +139,23 @@ shows — doesn't block saving, just surfaces the gap. Certifications entered be
 `licence_class = null` until someone goes back and tags them; until then they simply won't
 contribute to a match (same as any newly-added optional field on existing rows).
 
+**Real finding from the category research (below): most of the 18 categories don't require an
+HRWL at all.** Only tilt-up/precast concrete and powered mobile plant map cleanly onto HRWL
+classes (plus HRWL components hiding inside a few others — e.g. rigging/crane work incidental to
+demolition, an EWP boom ≥11m for falls/tower work). The rest require a completely different,
+separately-issued credential: a state electrical licence (energised electrical work), a state
+gasfitting licence (pressurised gas mains), a state demolition licence (not nationally
+standardized — e.g. NSW's DE1/DE2), a Class A/B asbestos removal licence, a state shotfirer's
+licence (explosives), an ARCtick refrigerant handling licence (chemical/fuel/refrigerant lines),
+or a state traffic-controller ticket (traffic corridor work). `licence_class` stays scoped to the
+real 29 HRWL codes only — cleanly matchable against `certifications`. For every other category,
+the template carries an **informational note** instead ("Requires a state-issued electrical
+licence — not cross-checked against Certifications, confirm your crew holds one"), shown on the
+build page with no automated match attempted. This is more honest than pretending a broader
+match is being verified when it isn't — cross-checking demolition licences alone would need
+state-varying logic (NSW's codes aren't national), which is real scope not worth taking on this
+phase.
+
 ## Explicitly out of scope this phase
 
 - Replacing the upload path — both stay
