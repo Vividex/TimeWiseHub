@@ -1444,3 +1444,23 @@
 - Manual click-through smoke test requires an authenticated browser session the conductor doesn't
   have — that's the user's own final verification step, same precedent as prior desktop/video
   smoke tests in this repo.
+
+## Notes (JSA Document Type + Reusable Signatures)
+- Source spec: docs/superpowers/specs/2026-07-18-jsa-form-builder-design.md
+- Source plan: docs/superpowers/plans/2026-07-18-jsa-and-signatures.md
+- Zero cost — pure code + two additive DB migrations (doc_type column on
+  project_swms_documents; profiles.signature_path + a new private signatures storage bucket with
+  owner-only RLS). No new npm dependencies — signature capture is a hand-rolled <canvas>
+  component, same pattern already proven by WhiteboardCanvas.tsx/LogoUpload.tsx. No external API
+  calls at runtime (the 11 JSA hazard templates were researched during plan-writing via three
+  parallel background research agents against SafeWork Australia/state regulator sources, not a
+  paid runtime dependency).
+- Two independently-shippable parts: Part A (JSA document type, items A-1..A-8) can ship and be
+  used standalone; Part B (reusable signatures, items B-1..B-6) layers on top and touches SWMS too
+  (retroactively adds a sign-off area the shipped SWMS PDF never had).
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only; conductor
+  runs all shell/build/git and both DB migrations via Supabase MCP.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
+- Manual smoke tests (building a JSA, drawing/saving a signature, the acknowledgment-signature
+  flow, viewing a signed PDF) require an authenticated browser session the conductor doesn't have
+  — user follow-up, same precedent as every prior phase.
