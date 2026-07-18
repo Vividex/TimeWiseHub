@@ -22,7 +22,10 @@ export default async function ProjectsPage() {
     ? supabase.from('projects').select('id, name, colour, due_date, status, clients(name), tasks(id, status)', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active').order('name')
     : supabase.from('projects').select('id, name, colour, due_date, status, clients(name), tasks(id, status)', { count: 'exact' }).eq('owner_id', user.id).eq('status', 'active').order('name')
 
-  const { data: projectsRaw, count } = await projectQuery
+  const { data: projectsRaw, count, error: projectsError } = await projectQuery
+  if (projectsError) {
+    console.error('[dashboard/projects] project query failed', { orgId, userId: user.id, error: projectsError })
+  }
   const activeCount = count ?? (projectsRaw?.length ?? 0)
 
   type ClientRow = { name: string } | null
@@ -55,6 +58,12 @@ export default async function ProjectsPage() {
         </div>
 
         <ProjectForm userId={user.id} orgId={orgId} activeProjectCount={activeCount} activeProjectLimit={limit} />
+
+        {projectsError && (
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-950 dark:text-red-400">
+            Couldn&apos;t load projects: {projectsError.message}
+          </p>
+        )}
 
         <TileGrid empty="No active projects yet. Create one above or start from a client.">
           {projects.map(p => (
