@@ -9,6 +9,7 @@ import ProjectExpensesPanel, { type ProjectExpense } from '@/components/projects
 import DocumentPanel from '@/components/projects/DocumentPanel'
 import ProjectCrewPanel from '@/components/projects/ProjectCrewPanel'
 import ProjectSwmsPanel from '@/components/projects/ProjectSwmsPanel'
+import ProjectSiteControl from '@/components/projects/ProjectSiteControl'
 import ArchiveButton from '@/components/projects/ArchiveButton'
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton'
 import type { CrewMemberOption } from '@/types/project-crew'
@@ -24,10 +25,10 @@ export default async function ClientProjectPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { supportsSwms } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { supportsSwms, supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }, { data: expenses }] = await Promise.all([
-    supabase.from('projects').select('*, clients(name)').eq('id', projectId).single(),
+    supabase.from('projects').select('*, clients(name), client_sites(label)').eq('id', projectId).single(),
     supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: true }),
     supabase.from('project_documents').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
     supabase.from('organisation_members').select('org_id, role').eq('user_id', user.id).maybeSingle(),
@@ -119,6 +120,16 @@ export default async function ClientProjectPage({
               <div className="min-w-0">
                 <h1 className="break-words text-3xl font-black tracking-tight text-gray-900 dark:text-slate-100">{project.name}</h1>
                 {project.description && <p className="mt-2 text-sm font-semibold text-gray-500">{project.description}</p>}
+                {supportsMultiSite && canManageConfidential && (
+                  <div className="mt-3">
+                    <ProjectSiteControl
+                      projectId={project.id}
+                      clientId={project.client_id}
+                      currentSiteId={project.site_id}
+                      currentSiteLabel={(project.client_sites as unknown as { label: string } | null)?.label ?? null}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">

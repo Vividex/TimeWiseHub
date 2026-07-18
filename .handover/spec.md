@@ -43,7 +43,7 @@ optional, gated to multi-site workspace profiles.
 - [x] **PS-1** — Site picker at project creation (plan Task 1).
   - Modify `src/components/projects/ProjectForm.tsx`, `src/app/dashboard/projects/page.tsx`,
     `src/app/api/projects/route.ts`.
-- [ ] **PS-2** — Retrofit control for existing projects (plan Task 2).
+- [x] **PS-2** — Retrofit control for existing projects (plan Task 2).
   - Create `src/components/projects/ProjectSiteControl.tsx`, modify the project detail page.
   - [ ] Manual smoke (deferred to user): create a project with a site, confirm it saves; assign a
     site to an existing project via the new control, confirm it persists; confirm the whole site
