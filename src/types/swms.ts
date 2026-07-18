@@ -23,6 +23,19 @@ export type HrcwCategory =
   | 'temperature_extremes'
   | 'water_drowning_risk'
 
+export type JsaHazard =
+  | 'ladder_step'
+  | 'hand_power_tools'
+  | 'hazardous_substances'
+  | 'manual_handling'
+  | 'slips_trips_falls'
+  | 'working_alone'
+  | 'hot_work'
+  | 'portable_electrical'
+  | 'noise_exposure'
+  | 'weather_exposure'
+  | 'biological_hazards'
+
 export type HrwlClass =
   | 'SB' | 'SI' | 'SA'
   | 'DG' | 'RB' | 'RI' | 'RA'
@@ -39,8 +52,7 @@ export type SwmsRow = {
   control: string
 }
 
-export type SwmsAuthoredContent = {
-  category: HrcwCategory
+type SwmsAuthoredContentBase = {
   supervisor: string
   preparedBy: string
   date: string
@@ -49,11 +61,22 @@ export type SwmsAuthoredContent = {
   consultedUserIds: string[]
 }
 
+export type SwmsAuthoredContent =
+  | (SwmsAuthoredContentBase & { docType: 'swms'; category: HrcwCategory })
+  | (SwmsAuthoredContentBase & {
+      docType: 'jsa'
+      category: JsaHazard
+      whoAtRisk: string
+      equipment: string
+      emergencyProcedures: string
+    })
+
 export type SwmsDocument = {
   id: string
   name: string
   storagePath: string
-  category: HrcwCategory | null
+  category: HrcwCategory | JsaHazard | null
+  docType: 'swms' | 'jsa'
   source: 'uploaded' | 'authored'
   acknowledgments: SwmsAcknowledgment[]
 }

@@ -64,7 +64,7 @@ rendered into both document types on demand.
 - [x] **A-1** — Database migration: `doc_type` column (plan Task 1). *Conductor-only, pure SQL.*
   - Write `supabase/schema-108-jsa-doc-type.sql`, apply via Supabase MCP (name: `jsa_doc_type`),
     verify column exists, commit.
-- [ ] **A-2** — Types: discriminated `SwmsAuthoredContent` + `JsaHazard` (plan Task 2).
+- [x] **A-2** — Types: discriminated `SwmsAuthoredContent` + `JsaHazard` (plan Task 2).
   - Modify `src/types/swms.ts`.
 - [ ] **A-3** — JSA hazard template library, 11 templates (plan Task 3).
   - Create `src/lib/jsa-templates.ts`.
