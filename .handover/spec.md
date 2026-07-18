@@ -97,21 +97,24 @@ rendered into both document types on demand.
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page.
 - [x] **B-5** — On-demand signed PDF route (plan Task 13).
   - Create `src/app/api/projects/[projectId]/swms/[documentId]/pdf/route.ts`.
-- [ ] **B-6** — "View" opens live-signed PDF for authored documents (plan Task 14).
+- [x] **B-6** — "View" opens live-signed PDF for authored documents (plan Task 14).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx`.
-  - Manual smoke (deferred to user): acknowledge with no signature saved, confirm inline prompt
+  - [ ] Manual smoke (deferred to user): acknowledge with no signature saved, confirm inline prompt
     blocks until drawn; view a document with 2+ acknowledgments, confirm every name/signature/
     timestamp renders; confirm an uploaded SWMS is completely unaffected.
 
 ## Acceptance checklist
-- [ ] A-1 through A-8: JSA builds from any of the 11 templates, generates a correctly-titled PDF,
+- [x] A-1 through A-8: JSA builds from any of the 11 templates, generates a correctly-titled PDF,
   coexists cleanly with the unmodified SWMS flow, both list together in one Safety panel.
-- [ ] B-1 through B-6: a user draws one reusable signature in Settings; acknowledging any SWMS/JSA
+  *(compiles; manual smoke deferred to user, see below)*
+- [x] B-1 through B-6: a user draws one reusable signature in Settings; acknowledging any SWMS/JSA
   prompts for it once if missing; viewing an authored document live-renders current signatures;
-  uploaded documents are completely unaffected.
-- [ ] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke per each item's Manual step above — user follow-up, not the conductor's to
-  complete.
+  uploaded documents are completely unaffected. *(compiles; manual smoke deferred to user, see
+  below)*
+- [x] Full `pnpm run build` passes clean end-to-end.
+- [ ] Manual smoke test per each item's Manual step above — requires the user's own authenticated
+  session as a trades/construction-profile org member. **User follow-up, not the conductor's to
+  complete.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint) after every turn,

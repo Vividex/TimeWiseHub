@@ -64,9 +64,13 @@ export default function ProjectSwmsPanel({
     router.refresh()
   }
 
-  async function handleView(path: string) {
+  async function handleView(doc: SwmsDocument) {
+    if (doc.source === 'authored') {
+      window.open(`/api/projects/${projectId}/swms/${doc.id}/pdf`, '_blank')
+      return
+    }
     const supabase = createClient()
-    const { data } = await supabase.storage.from('project-swms').createSignedUrl(path, 60)
+    const { data } = await supabase.storage.from('project-swms').createSignedUrl(doc.storagePath, 60)
     if (data?.signedUrl) window.open(data.signedUrl, '_blank')
   }
 
@@ -152,7 +156,7 @@ export default function ProjectSwmsPanel({
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <button onClick={() => handleView(doc.storagePath)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">View</button>
+                    <button onClick={() => handleView(doc)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">View</button>
                     {canManage && doc.source === 'authored' && (
                       <Link href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?documentId=${doc.id}`} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">Edit</Link>
                     )}
