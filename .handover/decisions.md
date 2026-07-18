@@ -117,6 +117,41 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
+## Notes (Project-Site Linking) [complete, kept for reference]
+- **Both implementation items (PS-1, PS-2) complete and verified (2026-07-19).** Every turn was
+  verified directly by the conductor (Read the actual diffs + `pnpm run build`), not taken on
+  Codex's report alone — every file matched the plan's exact code with zero discrepancies either
+  turn. Codex hit the known Windows `workspace-write` sandbox subprocess limitation
+  (`CreateProcessAsUserW failed: 5`) on PS-2's first shell call; recovered on its own the same call
+  via its internal (non-shell) file tool, no retry needed. Full `pnpm run build` passes clean
+  end-to-end. Remaining: the manual smoke test (create a project with a site, confirm it saves;
+  assign a site to an existing project via the new retrofit control, confirm it persists; confirm
+  the whole site UI is absent for a non-multi-site workspace profile) requires the user's own
+  authenticated session — same precedent as every prior phase.
+- Source spec: docs/superpowers/specs/2026-07-19-project-site-linking-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-project-site-linking.md
+- Direct follow-up request: "we need to consolidate projects and sites, because i sign in to the
+  site, but theres currently no system linking project to site other than client id." `site_id`
+  already existed on `projects` (added during the Site Sign-In migration) but nothing in the UI
+  ever set it — this phase gave it two real entry points (creation-time picker, retrofit control on
+  the detail page) rather than adding a migration.
+- No database migration this phase — reused the existing `projects.site_id` column outright.
+- Confirmed via research before designing: there is no general project-edit form anywhere in this
+  codebase (only Archive/Delete controls) — shaped the design toward a small standalone
+  `ProjectSiteControl` component rather than building a full edit form just for this one field.
+- Both surfaces (creation picker, retrofit control) are client-scoped (only shows sites belonging
+  to the project's own client), optional, and gated to `supportsMultiSite` workspace profiles —
+  same flag Client Sites introduced, not a new one.
+- A separate, larger request bundled in the same user message — renaming "Project" to "Job" for
+  construction/trades/field-service workspace profiles, auditing every button/nav/tile/back-link
+  that hardcodes the word — was explicitly sequenced by the user to come after this phase ("Site→
+  project link first"). Investigated but not yet spec'd: the `TerminologyKey`/`WORKSPACE_PROFILES`
+  registry already has a `project` terminology slot, but it's consumed in exactly one file
+  (`src/lib/tutorial/steps/generic.ts`) — the actual UI hardcodes the literal word throughout, so
+  this would be a genuine find-and-convert audit, not a registry value change.
+- Codex handles text edits only; conductor runs all shell/build/git. No migration this phase, so no
+  conductor-only DB item.
+
 ## Notes (SWMS Form Builder) [complete, kept for reference]
 - **All 7 implementation items (C-1 through C-7) complete and verified (2026-07-18).** Every turn
   was verified directly by the conductor (Read the actual files/diffs + `pnpm run build`), not
