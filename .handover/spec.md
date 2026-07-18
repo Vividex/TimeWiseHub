@@ -40,7 +40,7 @@ optional, gated to multi-site workspace profiles.
 
 ---
 
-- [ ] **PS-1** — Site picker at project creation (plan Task 1).
+- [x] **PS-1** — Site picker at project creation (plan Task 1).
   - Modify `src/components/projects/ProjectForm.tsx`, `src/app/dashboard/projects/page.tsx`,
     `src/app/api/projects/route.ts`.
 - [ ] **PS-2** — Retrofit control for existing projects (plan Task 2).

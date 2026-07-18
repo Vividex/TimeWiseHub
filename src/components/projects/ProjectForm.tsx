@@ -16,17 +16,20 @@ const COLOURS = [
 ]
 
 type Client = { id: string; name: string; default_rate: number | null; currency: string }
+type Site = { id: string; label: string }
 
 export default function ProjectForm({
   userId,
   orgId,
   activeProjectCount,
   activeProjectLimit,
+  supportsMultiSite,
 }: {
   userId: string
   orgId: string | null
   activeProjectCount: number
   activeProjectLimit: number | null
+  supportsMultiSite: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -35,9 +38,11 @@ export default function ProjectForm({
   const [colour, setColour] = useState('#2563eb')
   const [dueDate, setDueDate] = useState('')
   const [clientId, setClientId] = useState('')
+  const [siteId, setSiteId] = useState('')
   const [budgetHours, setBudgetHours] = useState('')
   const [budgetDollars, setBudgetDollars] = useState('')
   const [clients, setClients] = useState<Client[]>([])
+  const [sites, setSites] = useState<Site[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [scope, setScope] = useState<'personal' | 'org'>('org')
@@ -52,6 +57,14 @@ export default function ProjectForm({
       : supabase.from('clients').select('id, name, default_rate, currency').eq('owner_id', userId).eq('archived', false).order('name')
     q.then(({ data }) => setClients(data ?? []))
   }, [open, orgId, userId])
+
+  useEffect(() => {
+    setSiteId('')
+    if (!open || !clientId || !supportsMultiSite) { setSites([]); return }
+    const supabase = createClient()
+    supabase.from('client_sites').select('id, label').eq('client_id', clientId).eq('is_archived', false).order('label')
+      .then(({ data }) => setSites(data ?? []))
+  }, [open, clientId, supportsMultiSite])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -74,6 +87,7 @@ export default function ProjectForm({
       colour,
       due_date: dueDate || null,
       client_id: clientId || null,
+      site_id: siteId || null,
       budget_hours: budgetHours ? Number(budgetHours) : null,
       budget_dollars: budgetDollars ? Number(budgetDollars) : null,
       }),
@@ -83,7 +97,7 @@ export default function ProjectForm({
     if (!res.ok) { setError(result.error ?? 'Could not create project'); setLoading(false); return }
 
     setName(''); setDescription(''); setDueDate('')
-    setClientId(''); setBudgetHours(''); setBudgetDollars('')
+    setClientId(''); setSiteId(''); setBudgetHours(''); setBudgetDollars('')
     setOpen(false)
     setLoading(false)
     router.refresh()
@@ -145,6 +159,17 @@ export default function ProjectForm({
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 <option value="">— No client —</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.default_rate ? ` (${c.currency} ${Number(c.default_rate).toFixed(0)}/hr)` : ''}</option>)}
+              </select>
+            </div>
+          )}
+
+          {supportsMultiSite && sites.length > 0 && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Site (optional)</label>
+              <select value={siteId} onChange={e => setSiteId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <option value="">— No site —</option>
+                {sites.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
           )}

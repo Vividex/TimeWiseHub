@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import { Tile, TileGrid } from '@/components/ui/Tile'
 import ProjectForm from '@/components/projects/ProjectForm'
 import { getSubscription, maxActiveProjects } from '@/lib/subscription'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function ProjectsPage() {
   const supabase = await createClient()
@@ -17,6 +18,7 @@ export default async function ProjectsPage() {
   const subscription = await getSubscription(user.id)
   const limitRaw = maxActiveProjects(subscription)
   const limit = isFinite(limitRaw) ? limitRaw : null
+  const { supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const projectQuery = orgId
     ? supabase.from('projects').select('id, name, colour, due_date, status, clients(name), tasks(id, status)', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active').order('name')
@@ -57,7 +59,7 @@ export default async function ProjectsPage() {
           </Link>
         </div>
 
-        <ProjectForm userId={user.id} orgId={orgId} activeProjectCount={activeCount} activeProjectLimit={limit} />
+        <ProjectForm userId={user.id} orgId={orgId} activeProjectCount={activeCount} activeProjectLimit={limit} supportsMultiSite={!!supportsMultiSite} />
 
         {projectsError && (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-950 dark:text-red-400">

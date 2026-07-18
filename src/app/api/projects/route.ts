@@ -10,6 +10,7 @@ type ProjectPayload = {
   colour?: string
   due_date?: string | null
   client_id?: string | null
+  site_id?: string | null
   budget_hours?: number | null
   budget_dollars?: number | null
 }
@@ -77,6 +78,7 @@ export async function POST(req: Request) {
     colour: payload.colour || '#2563eb',
     due_date: payload.due_date || null,
     client_id: payload.client_id || null,
+    site_id: payload.site_id || null,
     budget_hours: payload.budget_hours ?? null,
     budget_dollars: payload.budget_dollars ?? null,
   })
