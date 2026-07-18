@@ -5,10 +5,13 @@ import type { CrewMemberOption } from '@/types/project-crew'
 
 export default async function NewSwmsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; projectId: string }>
+  searchParams: Promise<{ documentId?: string }>
 }) {
   const { id, projectId } = await params
+  const { documentId } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -40,6 +43,12 @@ export default async function NewSwmsPage({
     crewCertLicenceClasses = (certs ?? []).map(c => ({ userId: c.user_id as string, licenceClass: c.licence_class as string }))
   }
 
+  let existingContent = null
+  if (documentId) {
+    const { data: doc } = await supabase.from('project_swms_documents').select('content').eq('id', documentId).eq('project_id', projectId).single()
+    existingContent = doc?.content ?? null
+  }
+
   return (
     <SwmsBuilderForm
       clientId={id}
@@ -48,6 +57,8 @@ export default async function NewSwmsPage({
       crew={crew}
       crewCertLicenceClasses={crewCertLicenceClasses}
       currentUserDisplayName={user.email ?? 'You'}
+      documentId={documentId ?? null}
+      existingContent={existingContent}
     />
   )
 }

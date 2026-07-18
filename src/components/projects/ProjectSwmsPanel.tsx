@@ -130,6 +130,9 @@ export default function ProjectSwmsPanel({
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <button onClick={() => handleView(doc.storagePath)} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">View</button>
+                    {canManage && doc.source === 'authored' && (
+                      <Link href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?documentId=${doc.id}`} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">Edit</Link>
+                    )}
                     {isCrewMember && !hasAcknowledged && (
                       <button
                         onClick={() => handleAcknowledge(doc.id)}

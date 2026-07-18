@@ -152,36 +152,38 @@ upload path.
 ## C-7 — Edit-before-acknowledgment / supersede-after-acknowledgment
 
 *Codex edits:*
-- [ ] Modify `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 7, Step 1 — `documentId`
+- [x] Modify `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 7, Step 1 — `documentId`
   in-place-edit-or-supersede logic)
-- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
+- [x] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
   7, Step 2 — `documentId` search param, `existingContent` fetch)
-- [ ] Modify `src/components/projects/SwmsBuilderForm.tsx` (plan Task 7, Step 3 — pre-fill from
+- [x] Modify `src/components/projects/SwmsBuilderForm.tsx` (plan Task 7, Step 3 — pre-fill from
   `existingContent`, pass `documentId` through)
-- [ ] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 7, Step 4 — Edit link for
+- [x] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 7, Step 4 — Edit link for
   authored documents)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: build a SWMS, edit it before anyone acknowledges (confirm it updates the same
   document, not a duplicate), have a crew member acknowledge it, edit again (confirm this time it
   creates a new document and the old one remains with its original acknowledgment intact).
-- [ ] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx src/components/projects/ProjectSwmsPanel.tsx && git commit -m "handover: C-7 edit-before-ack / supersede-after-ack SWMS lifecycle"`
+- [x] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx src/components/projects/ProjectSwmsPanel.tsx && git commit -m "handover: C-7 edit-before-ack / supersede-after-ack SWMS lifecycle"`
 
 ---
 
 ## Acceptance checklist
-- [ ] C-1: migration applies cleanly (new columns + corrected employee-docs RLS).
-- [ ] C-2: types and the 18-category template library compile.
-- [ ] C-3: `SwmsDocumentPdf` compiles in isolation.
-- [ ] C-4: licence-class dropdown appears only for `supportsSwms` orgs; certifications API accepts
-  and stores it.
-- [ ] C-5: "+ Build SWMS" generates a real PDF from the form, saved alongside uploaded documents.
-- [ ] C-6: category label and Build entry point appear correctly in `ProjectSwmsPanel`.
-- [ ] C-7: edit-before-ack updates in place; edit-after-ack creates a new document, old one
-  preserved with its acknowledgments intact.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] C-1: migration applies cleanly (new columns + corrected employee-docs RLS).
+- [x] C-2: types and the 18-category template library compile.
+- [x] C-3: `SwmsDocumentPdf` compiles in isolation.
+- [x] C-4: licence-class dropdown appears only for `supportsSwms` orgs; certifications API accepts
+  and stores it. *(compiles; manual smoke deferred to user, see below)*
+- [x] C-5: "+ Build SWMS" generates a real PDF from the form, saved alongside uploaded documents.
+  *(compiles; manual smoke deferred to user, see below)*
+- [x] C-6: category label and Build entry point appear correctly in `ProjectSwmsPanel`. *(compiles;
+  manual smoke deferred to user, see below)*
+- [x] C-7: edit-before-ack updates in place; edit-after-ack creates a new document, old one
+  preserved with its acknowledgments intact. *(compiles; manual smoke deferred to user, see below)*
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke test per each task's Manual step above — requires the user's own authenticated
   session as a trades/construction-profile org member. **User follow-up, not the conductor's to
   complete.**

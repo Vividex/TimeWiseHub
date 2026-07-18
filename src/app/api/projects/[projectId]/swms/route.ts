@@ -14,11 +14,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json() as SwmsAuthoredContent & { consultedNames: string[]; projectName: string }
-  const { category, supervisor, preparedBy, date, rows, ppe, consultedUserIds, consultedNames, projectName } = body
+  const body = await req.json() as SwmsAuthoredContent & { consultedNames: string[]; projectName: string; documentId?: string }
+  const { category, supervisor, preparedBy, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId } = body
 
   if (!category || !rows || rows.length === 0) {
     return NextResponse.json({ error: 'A category and at least one job step are required' }, { status: 400 })
+  }
+
+  const content: SwmsAuthoredContent = { category, supervisor, preparedBy, date, rows, ppe, consultedUserIds }
+
+  let editableExistingPath: string | null = null
+  if (documentId) {
+    const [{ data: existing }, { count: ackCount }] = await Promise.all([
+      supabase.from('project_swms_documents').select('id, storage_path, source').eq('id', documentId).eq('project_id', projectId).single(),
+      supabase.from('project_swms_acknowledgments').select('id', { count: 'exact', head: true }).eq('swms_document_id', documentId),
+    ])
+    if (existing && existing.source === 'authored' && (ackCount ?? 0) === 0) {
+      editableExistingPath = existing.storage_path
+    }
   }
 
   const element = React.createElement(SwmsDocumentPdf, {
@@ -26,12 +39,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   }) as unknown as React.ReactElement<DocumentProps>
 
   const buffer = await renderToBuffer(element)
-  const path = `${projectId}/${Date.now()}-swms-${category}.pdf`
+  const path = editableExistingPath ?? `${projectId}/${Date.now()}-swms-${category}.pdf`
 
-  const { error: uploadError } = await supabase.storage.from('project-swms').upload(path, buffer, { contentType: 'application/pdf' })
+  const { error: uploadError } = await supabase.storage.from('project-swms').upload(path, buffer, { contentType: 'application/pdf', upsert: !!editableExistingPath })
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 400 })
 
-  const content: SwmsAuthoredContent = { category, supervisor, preparedBy, date, rows, ppe, consultedUserIds }
+  if (editableExistingPath) {
+    const { data, error } = await supabase
+      .from('project_swms_documents')
+      .update({ name: `SWMS — ${category}`, category, content })
+      .eq('id', documentId)
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    return NextResponse.json(data)
+  }
 
   const { data, error } = await supabase
     .from('project_swms_documents')

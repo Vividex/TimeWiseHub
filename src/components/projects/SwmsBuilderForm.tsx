@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { SWMS_TEMPLATES, HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
-import type { HrcwCategory, SwmsRow } from '@/types/swms'
+import type { HrcwCategory, SwmsRow, SwmsAuthoredContent } from '@/types/swms'
 import type { CrewMemberOption } from '@/types/project-crew'
 
 export default function SwmsBuilderForm({
-  clientId, projectId, projectName, crew, crewCertLicenceClasses, currentUserDisplayName,
+  clientId, projectId, projectName, crew, crewCertLicenceClasses, currentUserDisplayName, documentId, existingContent,
 }: {
   clientId: string
   projectId: string
@@ -17,14 +17,16 @@ export default function SwmsBuilderForm({
   crew: CrewMemberOption[]
   crewCertLicenceClasses: { userId: string; licenceClass: string }[]
   currentUserDisplayName: string
+  documentId: string | null
+  existingContent: SwmsAuthoredContent | null
 }) {
   const router = useRouter()
-  const [category, setCategory] = useState<HrcwCategory | ''>('')
-  const [supervisor, setSupervisor] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [rows, setRows] = useState<SwmsRow[]>([])
-  const [ppe, setPpe] = useState<string[]>([])
-  const [consultedUserIds, setConsultedUserIds] = useState<string[]>([])
+  const [category, setCategory] = useState<HrcwCategory | ''>(existingContent?.category ?? '')
+  const [supervisor, setSupervisor] = useState(existingContent?.supervisor ?? '')
+  const [date, setDate] = useState(existingContent?.date ?? new Date().toISOString().split('T')[0])
+  const [rows, setRows] = useState<SwmsRow[]>(existingContent?.rows ?? [])
+  const [ppe, setPpe] = useState<string[]>(existingContent?.ppe ?? [])
+  const [consultedUserIds, setConsultedUserIds] = useState<string[]>(existingContent?.consultedUserIds ?? [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,7 +64,7 @@ export default function SwmsBuilderForm({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         category, supervisor, preparedBy: currentUserDisplayName, date, rows, ppe,
-        consultedUserIds, consultedNames, projectName,
+        consultedUserIds, consultedNames, projectName, documentId,
       }),
     })
     setSaving(false)
