@@ -50,11 +50,11 @@ upload path.
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [ ] Write `supabase/schema-106-swms-form-builder.sql` (plan Task 1, Step 1 — exact SQL in the
+- [x] Write `supabase/schema-106-swms-form-builder.sql` (plan Task 1, Step 1 — exact SQL in the
   plan doc)
-- [ ] Apply via Supabase MCP `apply_migration` (name: `swms_form_builder`)
-- [ ] Verify via the sanity-check queries in the plan (Step 3)
-- [ ] Commit: `git add supabase/schema-106-swms-form-builder.sql && git commit -m "handover: C-1 SWMS form builder migration (category/content/source, licence_class, employee-docs RLS fix)"`
+- [x] Apply via Supabase MCP `apply_migration` (name: `swms_form_builder`)
+- [x] Verify via the sanity-check queries in the plan (Step 3)
+- [x] Commit: `git add supabase/schema-106-swms-form-builder.sql && git commit -m "handover: C-1 SWMS form builder migration (category/content/source, licence_class, employee-docs RLS fix)"`
 
 ---
 
