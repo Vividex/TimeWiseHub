@@ -59,11 +59,10 @@ export async function POST(req: Request) {
 
   const limit = maxActiveProjects(subscription)
   if (limit !== Infinity) {
-    const { count } = await service
-      .from('projects')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', user.id)
-      .eq('status', 'active')
+    const countQuery = orgId
+      ? service.from('projects').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active')
+      : service.from('projects').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).eq('status', 'active')
+    const { count } = await countQuery
 
     if ((count ?? 0) >= limit) {
       return NextResponse.json({ error: `Free plan is limited to ${limit} active projects` }, { status: 402 })
