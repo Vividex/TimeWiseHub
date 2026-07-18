@@ -8,7 +8,7 @@ import { getTodaySydneyDateString } from '@/lib/today'
 
 export type SignInSite = {
   id: string
-  label: string
+  address: string
   clientName: string
   signedInToday: boolean
 }
@@ -55,7 +55,7 @@ export default function SiteSignInWidget({ sites, userId }: { sites: SignInSite[
                 <MapPin size={15} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{site.label}</p>
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{site.address}</p>
                 <p className="truncate text-xs text-gray-500 dark:text-slate-500">{site.clientName}</p>
               </div>
               {isSignedIn ? (

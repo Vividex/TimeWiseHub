@@ -33,14 +33,14 @@ export default async function IncidentReportPrintPage({ params }: { params: Prom
   const name = (id: string | null) => (id ? nameById.get(id) ?? 'Unknown' : '—')
 
   let clientName: string | null = null
-  let siteLabel: string | null = null
+  let siteAddress: string | null = null
   if (currentReport.client_id) {
     const { data: client } = await supabase.from('clients').select('name').eq('id', currentReport.client_id).maybeSingle()
     clientName = client?.name ?? null
   }
   if (currentReport.site_id) {
-    const { data: site } = await supabase.from('client_sites').select('label').eq('id', currentReport.site_id).maybeSingle()
-    siteLabel = site?.label ?? null
+    const { data: site } = await supabase.from('client_sites').select('address').eq('id', currentReport.site_id).maybeSingle()
+    siteAddress = site?.address ?? null
   }
 
   return (
@@ -95,7 +95,7 @@ export default async function IncidentReportPrintPage({ params }: { params: Prom
           {clientName && (
             <div>
               <div className="meta-label">Client</div>
-              <div className="meta-value">{clientName}{siteLabel ? ` — ${siteLabel}` : ''}</div>
+              <div className="meta-value">{clientName}{siteAddress ? ` — ${siteAddress}` : ''}</div>
             </div>
           )}
           <div>

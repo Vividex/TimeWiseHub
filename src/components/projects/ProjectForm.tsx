@@ -16,7 +16,7 @@ const COLOURS = [
 ]
 
 type Client = { id: string; name: string; default_rate: number | null; currency: string }
-type Site = { id: string; label: string }
+type Site = { id: string; address: string }
 
 export default function ProjectForm({
   userId,
@@ -62,7 +62,7 @@ export default function ProjectForm({
     setSiteId('')
     if (!open || !clientId || !supportsMultiSite) { setSites([]); return }
     const supabase = createClient()
-    supabase.from('client_sites').select('id, label').eq('client_id', clientId).eq('is_archived', false).order('label')
+    supabase.from('client_sites').select('id, address').eq('client_id', clientId).eq('is_archived', false).order('address')
       .then(({ data }) => setSites(data ?? []))
   }, [open, clientId, supportsMultiSite])
 
@@ -169,7 +169,7 @@ export default function ProjectForm({
               <select value={siteId} onChange={e => setSiteId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 <option value="">— No site —</option>
-                {sites.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                {sites.map(s => <option key={s.id} value={s.id}>{s.address}</option>)}
               </select>
             </div>
           )}

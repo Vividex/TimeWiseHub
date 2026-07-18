@@ -8,7 +8,6 @@ import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 export default function SiteForm({ clientId, defaultOpen = false }: { clientId: string; defaultOpen?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(defaultOpen)
-  const [label, setLabel] = useState('')
   const [address, setAddress] = useState('')
   const [contactName, setContactName] = useState('')
   const [contactPhone, setContactPhone] = useState('')
@@ -24,7 +23,6 @@ export default function SiteForm({ clientId, defaultOpen = false }: { clientId: 
     const supabase = createClient()
     const { error: insertError } = await supabase.from('client_sites').insert({
       client_id: clientId,
-      label,
       address,
       contact_name: contactName || null,
       contact_phone: contactPhone || null,
@@ -35,7 +33,7 @@ export default function SiteForm({ clientId, defaultOpen = false }: { clientId: 
       setError(insertError.message)
     } else {
       setOpen(false)
-      setLabel(''); setAddress(''); setContactName(''); setContactPhone(''); setAccessNotes('')
+      setAddress(''); setContactName(''); setContactPhone(''); setAccessNotes('')
       router.refresh()
     }
     setLoading(false)
@@ -50,13 +48,6 @@ export default function SiteForm({ clientId, defaultOpen = false }: { clientId: 
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Label *</label>
-            <input required type="text" value={label} onChange={e => setLabel(e.target.value)}
-              placeholder="e.g. Warehouse"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-          </div>
-
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address *</label>
             <AddressAutocomplete required value={address} onChange={setAddress}

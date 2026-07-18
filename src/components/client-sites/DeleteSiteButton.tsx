@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
-export default function DeleteSiteButton({ siteId, siteLabel }: { siteId: string; siteLabel: string }) {
+export default function DeleteSiteButton({ siteId, siteAddress }: { siteId: string; siteAddress: string }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -33,8 +33,8 @@ export default function DeleteSiteButton({ siteId, siteLabel }: { siteId: string
 
       <ConfirmDialog
         open={open}
-        title={`Archive ${siteLabel}?`}
-        message={`${siteLabel} will be removed from the active site list. Existing sessions and incident reports that reference it are preserved.`}
+        title={`Archive ${siteAddress}?`}
+        message={`${siteAddress} will be removed from the active site list. Existing sessions and incident reports that reference it are preserved.`}
         confirmLabel="Archive site"
         onConfirm={handleArchive}
         onCancel={() => setOpen(false)}

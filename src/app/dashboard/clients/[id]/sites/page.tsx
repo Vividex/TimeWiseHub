@@ -30,12 +30,12 @@ export default async function ClientSitesPage({
   const [{ data: sites }, { data: archivedSites }] = await Promise.all([
     supabase
       .from('client_sites')
-      .select('id, label, address, contact_name, contact_phone, access_notes')
+      .select('id, address, contact_name, contact_phone, access_notes')
       .eq('client_id', id)
       .eq('is_archived', false)
-      .order('label'),
+      .order('address'),
     canEdit
-      ? supabase.from('client_sites').select('id, label').eq('client_id', id).eq('is_archived', true).order('label')
+      ? supabase.from('client_sites').select('id, address').eq('client_id', id).eq('is_archived', true).order('address')
       : Promise.resolve({ data: [] }),
   ])
 
@@ -55,8 +55,7 @@ export default async function ClientSitesPage({
               {(sites ?? []).map(s => (
                 <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.label}</p>
-                    <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-slate-400">{s.address}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.address}</p>
                     {(s.contact_name || s.contact_phone) && (
                       <p className="mt-0.5 truncate text-xs text-gray-400 dark:text-slate-500">
                         {[s.contact_name, s.contact_phone].filter(Boolean).join(' · ')}
@@ -66,7 +65,7 @@ export default async function ClientSitesPage({
                   {canEdit && (
                     <div className="flex shrink-0 items-center gap-2">
                       <EditSiteButton site={s} />
-                      <DeleteSiteButton siteId={s.id} siteLabel={s.label} />
+                      <DeleteSiteButton siteId={s.id} siteAddress={s.address} />
                     </div>
                   )}
                 </li>
@@ -82,7 +81,7 @@ export default async function ClientSitesPage({
               <ul className="divide-y divide-gray-50 dark:divide-slate-800">
                 {(archivedSites ?? []).map(s => (
                   <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
-                    <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">{s.label}</p>
+                    <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">{s.address}</p>
                     <RestoreSiteButton siteId={s.id} />
                   </li>
                 ))}

@@ -10,7 +10,7 @@ type Repeat = 'none' | 'weekly' | 'fortnightly' | 'monthly'
 type StudentOption = { id: string; name: string }
 type SubjectOption = { id: string; name: string }
 type TopicOption = { id: string; name: string }
-type SiteOption = { id: string; label: string }
+type SiteOption = { id: string; address: string }
 
 const NEW_SUBJECT = '__new_subject__'
 const NEW_TOPIC = '__new_topic__'
@@ -251,7 +251,7 @@ export default function NewSessionModal({
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none"
               >
                 <option value="">{clientLabel.singular}&apos;s main address</option>
-                {sites.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                {sites.map(s => <option key={s.id} value={s.id}>{s.address}</option>)}
               </select>
             </div>
           )}

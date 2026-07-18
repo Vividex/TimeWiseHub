@@ -42,7 +42,7 @@ export default function IncidentReportDetailClient({
   members,
   clients,
   clientName,
-  siteLabel,
+  siteAddress,
   canManage,
   userId,
 }: {
@@ -51,7 +51,7 @@ export default function IncidentReportDetailClient({
   members: OrgMemberOption[]
   clients: ClientOption[]
   clientName: string | null
-  siteLabel: string | null
+  siteAddress: string | null
   canManage: boolean
   userId: string
 }) {
@@ -305,7 +305,7 @@ export default function IncidentReportDetailClient({
           </div>
         </form>
       ) : (
-        <ReadOnlyReport report={report} memberName={memberName} clientName={clientName} siteLabel={siteLabel} />
+        <ReadOnlyReport report={report} memberName={memberName} clientName={clientName} siteAddress={siteAddress} />
       )}
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -385,12 +385,12 @@ function ReadOnlyReport({
   report,
   memberName,
   clientName,
-  siteLabel,
+  siteAddress,
 }: {
   report: IncidentReport
   memberName: (id: string | null) => string
   clientName: string | null
-  siteLabel: string | null
+  siteAddress: string | null
 }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -399,7 +399,7 @@ function ReadOnlyReport({
         <ReadOnlyItem label="Severity" value={SEVERITY_LABEL[report.severity]} />
         <ReadOnlyItem label="Date and time" value={displayDateTime(report.occurred_at)} />
         <ReadOnlyItem label="Location" value={report.location ?? '-'} />
-        <ReadOnlyItem label="Client / site" value={clientName ? (siteLabel ? `${clientName} — ${siteLabel}` : clientName) : '-'} />
+        <ReadOnlyItem label="Client / site" value={clientName ? (siteAddress ? `${clientName} — ${siteAddress}` : clientName) : '-'} />
         <ReadOnlyItem label="Employee involved" value={memberName(report.employee_id)} />
         <ReadOnlyItem label="Witnesses" value={report.witness_ids.length ? report.witness_ids.map(memberName).join(', ') : '-'} />
         <ReadOnlyItem label="Description" value={report.description} wide />

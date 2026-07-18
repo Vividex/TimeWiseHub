@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 
 export type ClientOption = { id: string; name: string }
-type SiteOption = { id: string; label: string; address: string }
+type SiteOption = { id: string; address: string }
 
 export default function ClientSitePicker({
   clients,
@@ -39,10 +39,10 @@ export default function ClientSitePicker({
     const supabase = createClient()
     supabase
       .from('client_sites')
-      .select('id, label, address')
+      .select('id, address')
       .eq('client_id', clientId)
       .eq('is_archived', false)
-      .order('label')
+      .order('address')
       .then(({ data }) => setSites(data ?? []))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
@@ -69,7 +69,7 @@ export default function ClientSitePicker({
           <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Site</span>
           <select value={siteId} onChange={e => handleSiteChange(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
             <option value="">Client&apos;s main address</option>
-            {sites.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            {sites.map(s => <option key={s.id} value={s.id}>{s.address}</option>)}
           </select>
         </label>
       )}

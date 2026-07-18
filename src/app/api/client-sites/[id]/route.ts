@@ -32,20 +32,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const body = await req.json().catch(() => ({}))
 
-  // Field-edit path — triggered when body contains 'label'
-  if ('label' in body) {
-    const { label, address, contact_name, contact_phone, access_notes } = body as {
-      label: string
+  // Field-edit path — triggered when body contains 'address'
+  if ('address' in body) {
+    const { address, contact_name, contact_phone, access_notes } = body as {
       address: string
       contact_name?: string | null
       contact_phone?: string | null
       access_notes?: string | null
     }
-    if (!label?.trim()) return NextResponse.json({ error: 'Label is required' }, { status: 400 })
     if (!address?.trim()) return NextResponse.json({ error: 'Address is required' }, { status: 400 })
 
     const { error } = await supabase.from('client_sites').update({
-      label: label.trim(),
       address: address.trim(),
       contact_name: contact_name || null,
       contact_phone: contact_phone || null,

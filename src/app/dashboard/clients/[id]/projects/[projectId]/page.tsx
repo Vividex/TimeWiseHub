@@ -28,7 +28,7 @@ export default async function ClientProjectPage({
   const { supportsSwms, supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }, { data: expenses }] = await Promise.all([
-    supabase.from('projects').select('*, clients(name), client_sites(label)').eq('id', projectId).single(),
+    supabase.from('projects').select('*, clients(name), client_sites(address)').eq('id', projectId).single(),
     supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: true }),
     supabase.from('project_documents').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
     supabase.from('organisation_members').select('org_id, role').eq('user_id', user.id).maybeSingle(),
@@ -126,7 +126,7 @@ export default async function ClientProjectPage({
                       projectId={project.id}
                       clientId={project.client_id}
                       currentSiteId={project.site_id}
-                      currentSiteLabel={(project.client_sites as unknown as { label: string } | null)?.label ?? null}
+                      currentSiteAddress={(project.client_sites as unknown as { address: string } | null)?.address ?? null}
                     />
                   </div>
                 )}

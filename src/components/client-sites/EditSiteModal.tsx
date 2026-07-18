@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
 
 type Site = {
   id: string
-  label: string
   address: string
   contact_name: string | null
   contact_phone: string | null
@@ -15,16 +14,12 @@ type Site = {
 
 export default function EditSiteModal({ site, onClose }: { site: Site; onClose: () => void }) {
   const router = useRouter()
-  const [label, setLabel] = useState(site.label)
   const [address, setAddress] = useState(site.address)
   const [contactName, setContactName] = useState(site.contact_name ?? '')
   const [contactPhone, setContactPhone] = useState(site.contact_phone ?? '')
   const [accessNotes, setAccessNotes] = useState(site.access_notes ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const firstRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => { firstRef.current?.focus() }, [])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -40,7 +35,6 @@ export default function EditSiteModal({ site, onClose }: { site: Site; onClose: 
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        label,
         address,
         contact_name: contactName || null,
         contact_phone: contactPhone || null,
@@ -66,12 +60,6 @@ export default function EditSiteModal({ site, onClose }: { site: Site; onClose: 
         <h2 className="font-['Poppins'] text-lg font-black text-slate-900 dark:text-slate-100">Edit site</h2>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Label *</label>
-            <input ref={firstRef} required type="text" value={label} onChange={e => setLabel(e.target.value)}
-              className={inputCls} />
-          </div>
-
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Address *</label>
             <AddressAutocomplete required value={address} onChange={setAddress}

@@ -87,7 +87,7 @@ export default async function DashboardHome() {
 
     if (clientIds.length > 0) {
       const [{ data: sites }, { data: mySignIns }, { data: todaySignIns }] = await Promise.all([
-        supabase.from('client_sites').select('id, label, client_id, clients(name)').in('client_id', clientIds).eq('is_archived', false).order('created_at', { ascending: false }),
+        supabase.from('client_sites').select('id, address, client_id, clients(name)').in('client_id', clientIds).eq('is_archived', false).order('created_at', { ascending: false }),
         supabase.from('site_sign_ins').select('site_id, signed_in_at').eq('user_id', user.id).order('signed_in_at', { ascending: false }).limit(50),
         supabase.from('site_sign_ins').select('site_id').eq('user_id', user.id).eq('sign_in_date', getTodaySydneyDateString()),
       ])
@@ -98,7 +98,7 @@ export default async function DashboardHome() {
         if (!recentSiteIds.includes(s.site_id as string)) recentSiteIds.push(s.site_id as string)
       }
 
-      type SiteRow = { id: string; label: string; client_id: string; clients: { name: string } | null }
+      type SiteRow = { id: string; address: string; client_id: string; clients: { name: string } | null }
       const allSites = (sites ?? []) as unknown as SiteRow[]
       const siteMap = new Map(allSites.map(s => [s.id, s]))
 
@@ -111,7 +111,7 @@ export default async function DashboardHome() {
         const s = siteMap.get(id)!
         return {
           id: s.id,
-          label: s.label,
+          address: s.address,
           clientName: s.clients?.name ?? 'Client',
           signedInToday: todaySignedInIds.has(s.id),
         }

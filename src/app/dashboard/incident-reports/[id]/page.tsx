@@ -75,10 +75,10 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
     ? clientOptions.find(c => c.id === currentReport.client_id)?.name ?? null
     : null
 
-  let siteLabel: string | null = null
+  let siteAddress: string | null = null
   if (currentReport.site_id) {
-    const { data: site } = await supabase.from('client_sites').select('label').eq('id', currentReport.site_id).maybeSingle()
-    siteLabel = site?.label ?? null
+    const { data: site } = await supabase.from('client_sites').select('address').eq('id', currentReport.site_id).maybeSingle()
+    siteAddress = site?.address ?? null
   }
 
   return (
@@ -90,7 +90,7 @@ export default async function IncidentReportDetailPage({ params }: { params: Pro
           members={memberOptions}
           clients={clientOptions}
           clientName={clientName}
-          siteLabel={siteLabel}
+          siteAddress={siteAddress}
           canManage={canManage}
           userId={user.id}
         />

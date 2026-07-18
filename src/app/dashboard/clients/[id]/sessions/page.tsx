@@ -72,10 +72,10 @@ export default async function ClientSessionsPage({
 
   const { data: sites } = await supabase
     .from('client_sites')
-    .select('id, label')
+    .select('id, address')
     .eq('client_id', id)
     .eq('is_archived', false)
-    .order('label')
+    .order('address')
 
   const { data: billableSessions } = await supabase
     .from('sessions')

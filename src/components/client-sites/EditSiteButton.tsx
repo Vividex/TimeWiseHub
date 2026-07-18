@@ -6,7 +6,6 @@ import EditSiteModal from './EditSiteModal'
 
 type Site = {
   id: string
-  label: string
   address: string
   contact_name: string | null
   contact_phone: string | null
