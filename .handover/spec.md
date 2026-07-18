@@ -86,12 +86,12 @@ upload path.
 ## C-3 — SwmsDocumentPdf component
 
 *Codex edits:*
-- [ ] Create `src/components/projects/SwmsDocumentPdf.tsx` (plan Task 3, Step 1)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/projects/SwmsDocumentPdf.tsx` (plan Task 3, Step 1)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/components/projects/SwmsDocumentPdf.tsx && git commit -m "handover: C-3 SwmsDocumentPdf component"`
+- [x] `pnpm run build` — must pass clean.
+- [x] Commit: `git add src/components/projects/SwmsDocumentPdf.tsx && git commit -m "handover: C-3 SwmsDocumentPdf component"`
 
 ---
 
