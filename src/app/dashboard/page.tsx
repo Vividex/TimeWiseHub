@@ -8,10 +8,11 @@ import NudgeBanner from '@/components/NudgeBanner'
 import OrgDocuments from '@/components/home/OrgDocuments'
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
+import { getSwmsAwaitingSignature } from '@/lib/swms-awaiting-signature'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
 import SiteSignInWidget, { type SignInSite } from '@/components/dashboard/SiteSignInWidget'
-import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue, UpcomingCertDue, UpcomingIncidentReport } from '@/components/dashboard/DashboardUpcoming'
+import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue, UpcomingCertDue, UpcomingIncidentReport, UpcomingSwmsAck } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { isOverdue } from '@/lib/invoices'
 import { stripQuoteChain } from '@/lib/client-messages'
@@ -383,6 +384,9 @@ export default async function DashboardHome() {
     }
   }
   const incidentReportsDue = (incidentReportsRes.data ?? []) as UpcomingIncidentReport[]
+  const swmsAwaitingSignature: UpcomingSwmsAck[] = workspaceProfile.supportsSwms
+    ? await getSwmsAwaitingSignature(user.id)
+    : []
 
   const certThresholdDate = new Date(); certThresholdDate.setDate(certThresholdDate.getDate() + 30)
   const certThresholdStr = certThresholdDate.toISOString().split('T')[0]
@@ -442,7 +446,7 @@ export default async function DashboardHome() {
         )}
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
-        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} certsDue={certsDue} incidentReportsDue={incidentReportsDue} currentUserId={user.id} />
+        <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} certsDue={certsDue} incidentReportsDue={incidentReportsDue} swmsAwaitingSignature={swmsAwaitingSignature} currentUserId={user.id} />
 
         {/* Personal to-dos & My tasks */}
         <div className="grid gap-8 lg:grid-cols-2">

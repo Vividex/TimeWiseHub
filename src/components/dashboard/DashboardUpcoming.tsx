@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2, Car, Wrench, ShieldAlert, Award } from 'lucide-react'
+import { Calendar, Video, Clock3, CheckSquare, Receipt, MessageCircle, DollarSign, Building2, Car, Wrench, ShieldAlert, Award, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { daysUntil, markExpenseCyclePaid, type RecurrenceInterval } from '@/lib/expenses'
 
@@ -42,6 +42,14 @@ export type UpcomingIncidentReport = {
   severity: 'minor' | 'moderate' | 'serious' | 'critical'
   occurred_at: string
 }
+export type UpcomingSwmsAck = {
+  id: string
+  projectId: string
+  clientId: string
+  projectName: string
+  docType: 'swms' | 'jsa'
+  categoryLabel: string
+}
 
 function fmtTime(iso: string, allDay: boolean) {
   if (allDay) return 'All day'
@@ -72,6 +80,7 @@ export default function DashboardUpcoming({
   vehiclesDue,
   certsDue,
   incidentReportsDue,
+  swmsAwaitingSignature,
   currentUserId,
 }: {
   meetings: UpcomingMeeting[]
@@ -85,6 +94,7 @@ export default function DashboardUpcoming({
   vehiclesDue: UpcomingVehicleDue[]
   certsDue: UpcomingCertDue[]
   incidentReportsDue: UpcomingIncidentReport[]
+  swmsAwaitingSignature: UpcomingSwmsAck[]
   currentUserId: string
 }) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set())
@@ -117,7 +127,7 @@ export default function DashboardUpcoming({
     if (!error) setPaidIds(prev => new Set(prev).add(expense.id))
   }
 
-  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && certsDue.length === 0 && incidentReportsDue.length === 0) return null
+  if (timedItems.length === 0 && visibleTasks.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && certsDue.length === 0 && incidentReportsDue.length === 0 && swmsAwaitingSignature.length === 0) return null
 
   return (
     <div className="space-y-3">
@@ -125,7 +135,7 @@ export default function DashboardUpcoming({
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {visibleTasks.map((task, i) => {
           const overdue = new Date(task.due_date) < todayStartOfDay
-          const isLast = i === visibleTasks.length - 1 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === visibleTasks.length - 1 && visibleDueExpenses.length === 0 && visibleDueBusinessExpenses.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <div
               key={`task-${task.id}`}
@@ -156,7 +166,7 @@ export default function DashboardUpcoming({
           const days = daysUntil(expense.next_billing_date)
           const dueLabel = days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`
           const urgency = days <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === visibleDueExpenses.length - 1 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && certsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === visibleDueExpenses.length - 1 && visibleDueBusinessExpenses.length === 0 && vehiclesDue.length === 0 && certsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <div
               key={`expense-${expense.id}`}
@@ -187,7 +197,7 @@ export default function DashboardUpcoming({
           const days = daysUntil(expense.next_billing_date)
           const dueLabel = days === 0 ? 'Due today' : days < 0 ? 'Overdue' : `Due in ${days}d`
           const urgency = days <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === visibleDueBusinessExpenses.length - 1 && vehiclesDue.length === 0 && certsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === visibleDueBusinessExpenses.length - 1 && vehiclesDue.length === 0 && certsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <div
               key={`business-expense-${expense.id}`}
@@ -217,7 +227,7 @@ export default function DashboardUpcoming({
         {vehiclesDue.map((item, i) => {
           const dueLabel = item.daysUntilDue <= 0 ? 'Overdue' : `Due in ${item.daysUntilDue}d`
           const urgency = item.daysUntilDue <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === vehiclesDue.length - 1 && certsDue.length === 0 && incidentReportsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === vehiclesDue.length - 1 && certsDue.length === 0 && incidentReportsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <Link
               key={`vehicle-${item.kind}-${item.id}`}
@@ -239,7 +249,7 @@ export default function DashboardUpcoming({
         {certsDue.map((item, i) => {
           const dueLabel = item.daysUntilDue <= 0 ? 'Overdue' : `Due in ${item.daysUntilDue}d`
           const urgency = item.daysUntilDue <= 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === certsDue.length - 1 && incidentReportsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === certsDue.length - 1 && incidentReportsDue.length === 0 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <Link
               key={`cert-${item.id}`}
@@ -263,7 +273,7 @@ export default function DashboardUpcoming({
           const urgency = report.severity === 'critical' || report.severity === 'serious'
             ? 'text-red-600 dark:text-red-400'
             : 'text-amber-600 dark:text-amber-400'
-          const isLast = i === incidentReportsDue.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0
+          const isLast = i === incidentReportsDue.length - 1 && approvals.length === 0 && unreadMessages.length === 0 && timedItems.length === 0 && swmsAwaitingSignature.length === 0
           return (
             <Link
               key={`incident-${report.id}`}
@@ -286,7 +296,7 @@ export default function DashboardUpcoming({
           <Link
             key={`approval-${approval.id}`}
             href={`/dashboard/invoices/${approval.id}`}
-            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || unreadMessages.length > 0 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10 ${i < approvals.length - 1 || unreadMessages.length > 0 || timedItems.length > 0 || swmsAwaitingSignature.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
               <Receipt size={15} />
@@ -304,7 +314,7 @@ export default function DashboardUpcoming({
           <Link
             key={`unread-${msg.client_id}`}
             href={`/dashboard/clients/${msg.client_id}/messages`}
-            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${i < unreadMessages.length - 1 || timedItems.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${i < unreadMessages.length - 1 || timedItems.length > 0 || swmsAwaitingSignature.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
               <MessageCircle size={15} />
@@ -321,7 +331,7 @@ export default function DashboardUpcoming({
         {timedItems.map((item, i) => (
           <div
             key={`${item.kind}-${item.id}`}
-            className={`flex items-center gap-4 px-5 py-4 ${i < timedItems.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+            className={`flex items-center gap-4 px-5 py-4 ${i < timedItems.length - 1 || swmsAwaitingSignature.length > 0 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
           >
             <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
               item.kind === 'meeting'
@@ -365,6 +375,26 @@ export default function DashboardUpcoming({
               </div>
             )}
           </div>
+        ))}
+        {swmsAwaitingSignature.map((item, i) => (
+          <Link
+            key={`swms-${item.id}`}
+            href={`/dashboard/clients/${item.clientId}/projects/${item.projectId}`}
+            className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10 ${i < swmsAwaitingSignature.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+              <ShieldCheck size={15} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                {item.projectName} — {item.docType === 'jsa' ? 'JSA' : 'SWMS'}
+              </p>
+              <p className="truncate text-xs text-gray-500 dark:text-slate-500">{item.categoryLabel}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+              Sign
+            </span>
+          </Link>
         ))}
       </div>
     </div>

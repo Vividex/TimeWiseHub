@@ -56,7 +56,7 @@ and surface it on their Dashboard under "Today."
   - Create `src/components/dashboard/SiteSignInWidget.tsx`, modify `src/app/dashboard/page.tsx`.
   - [ ] Manual smoke (deferred to user): widget shows up to 3 sites with working "show more",
     sign-in flips to "✓ Signed in", recently-used sites sort first next visit.
-- [ ] **SS-4** — Dashboard Today item for pending SWMS/JSA signatures (plan Task 4).
+- [x] **SS-4** — Dashboard Today item for pending SWMS/JSA signatures (plan Task 4).
   - Create `src/lib/swms-awaiting-signature.ts`, modify `DashboardUpcoming.tsx` and
     `dashboard/page.tsx`.
 - [ ] **SS-5** — Notify crew + signed-in workers on new SWMS/JSA (plan Task 5).
