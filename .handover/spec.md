@@ -70,7 +70,7 @@ rendered into both document types on demand.
   - Create `src/lib/jsa-templates.ts`.
 - [x] **A-4** — `SwmsBuilderForm.tsx` branches on docType (plan Task 4).
   - Modify `src/components/projects/SwmsBuilderForm.tsx`.
-- [ ] **A-5** — `swms/new/page.tsx` reads `?type=` and derives docType (plan Task 5).
+- [x] **A-5** — `swms/new/page.tsx` reads `?type=` and derives docType (plan Task 5).
   - Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx`.
 - [ ] **A-6** — API route accepts `doc_type` (plan Task 6).
   - Modify `src/app/api/projects/[projectId]/swms/route.ts`.
