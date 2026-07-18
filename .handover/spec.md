@@ -84,7 +84,7 @@ rendered into both document types on demand.
 
 ## Part B — Reusable signatures
 
-- [ ] **B-1** — Database migration: signatures (plan Task 9). *Conductor-only, pure SQL.*
+- [x] **B-1** — Database migration: signatures (plan Task 9). *Conductor-only, pure SQL.*
   - Write `supabase/schema-109-signatures.sql`, apply via Supabase MCP (name: `jsa_signatures`),
     verify column/bucket/policies exist, commit.
 - [ ] **B-2** — `SignaturePad` component, hand-rolled canvas capture (plan Task 10).
