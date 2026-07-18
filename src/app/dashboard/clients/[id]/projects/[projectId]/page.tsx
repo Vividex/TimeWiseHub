@@ -55,6 +55,12 @@ export default async function ClientProjectPage({
   let availableMembers: CrewMemberOption[] = []
   let swmsDocuments: SwmsDocument[] = []
   let isCrewMember = false
+  let hasSignature = false
+
+  if (supportsSwms) {
+    const { data: currentProfile } = await supabase.from('profiles').select('signature_path').eq('id', user.id).maybeSingle()
+    hasSignature = !!currentProfile?.signature_path
+  }
 
   if (supportsSwms) {
     const allOrgMembers = mappedOrgMembers ?? []
@@ -143,6 +149,7 @@ export default async function ClientProjectPage({
             <ProjectSwmsPanel
               clientId={id}
               projectId={project.id}
+              hasSignature={hasSignature}
               documents={swmsDocuments}
               crewSize={crew.length}
               currentUserId={user.id}

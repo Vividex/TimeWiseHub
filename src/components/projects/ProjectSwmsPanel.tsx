@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import SignaturePad from '@/components/settings/SignaturePad'
 import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
 import { JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
 import type { SwmsDocument } from '@/types/swms'
@@ -18,6 +19,7 @@ export default function ProjectSwmsPanel({
   currentUserId,
   isCrewMember,
   canManage,
+  hasSignature,
 }: {
   clientId: string
   projectId: string
@@ -26,12 +28,15 @@ export default function ProjectSwmsPanel({
   currentUserId: string
   isCrewMember: boolean
   canManage: boolean
+  hasSignature: boolean
 }) {
   const router = useRouter()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<SwmsDocument | null>(null)
   const [ackingId, setAckingId] = useState<string | null>(null)
+  const [signaturePromptDocId, setSignaturePromptDocId] = useState<string | null>(null)
+  const [localHasSignature, setLocalHasSignature] = useState(hasSignature)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -73,7 +78,16 @@ export default function ProjectSwmsPanel({
       user_id: currentUserId,
     })
     setAckingId(null)
+    setSignaturePromptDocId(null)
     router.refresh()
+  }
+
+  function handleAcknowledgeClick(documentId: string) {
+    if (!localHasSignature) {
+      setSignaturePromptDocId(documentId)
+      return
+    }
+    handleAcknowledge(documentId)
   }
 
   async function handleDelete(doc: SwmsDocument) {
@@ -144,7 +158,7 @@ export default function ProjectSwmsPanel({
                     )}
                     {isCrewMember && !hasAcknowledged && (
                       <button
-                        onClick={() => handleAcknowledge(doc.id)}
+                        onClick={() => handleAcknowledgeClick(doc.id)}
                         disabled={ackingId === doc.id}
                         className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-cyan-500/25 transition-all hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.95] disabled:opacity-50"
                       >
@@ -159,6 +173,21 @@ export default function ProjectSwmsPanel({
                     )}
                   </div>
                 </div>
+                {signaturePromptDocId === doc.id && (
+                  <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50/50 p-4 dark:border-cyan-500/30 dark:bg-cyan-500/10">
+                    <p className="mb-2 text-xs font-semibold text-gray-700 dark:text-slate-300">
+                      Draw your signature to confirm you&apos;ve read and understood this document. It&apos;s saved to your profile and reused next time.
+                    </p>
+                    <SignaturePad
+                      userId={currentUserId}
+                      initialSignatureUrl={null}
+                      onSaved={() => {
+                        setLocalHasSignature(true)
+                        handleAcknowledge(doc.id)
+                      }}
+                    />
+                  </div>
+                )}
               </li>
             )
           })}

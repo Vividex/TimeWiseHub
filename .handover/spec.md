@@ -93,7 +93,7 @@ rendered into both document types on demand.
   - Modify `src/app/settings/page.tsx`.
   - [ ] Manual smoke (deferred to user): draw and save a signature, confirm it persists and can be
     redrawn.
-- [ ] **B-4** — Require a saved signature before first acknowledgment (plan Task 12).
+- [x] **B-4** — Require a saved signature before first acknowledgment (plan Task 12).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page.
 - [ ] **B-5** — On-demand signed PDF route (plan Task 13).
   - Create `src/app/api/projects/[projectId]/swms/[documentId]/pdf/route.ts`.
