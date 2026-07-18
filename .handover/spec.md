@@ -1,38 +1,42 @@
-# SWMS + Licence Tracking
+# SWMS Form Builder
 
 ## Goal
-Add project crew management, SWMS (Safe Work Method Statement) document tracking with
-per-crew-member acknowledgment, and a small polish pass on the existing Certifications feature
-(document upload + Dashboard surfacing) — gated to Builder & Construction and Trades & Field
-Services.
+Let a business author a SWMS from a structured form (pick one of 18 legislated High Risk
+Construction Work categories, edit a pre-filled job-step/hazard/control table, generate a real
+branded PDF) instead of only being able to upload an existing file. Coexists with the existing
+upload path.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-18-swms-licence-tracking-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-18-swms-licence-tracking.md`
-- Not a Sessions feature — construction "jobs" map to `projects` + `tasks`, which already existed;
-  Sessions was purpose-built for tutoring/PT and was never a fit for construction.
-- Licence tracking already mostly existed as the generic `certifications` table/UI — this phase is
-  a small polish pass (document upload + Dashboard card), not a new system.
-- `project_members` existed in the schema with zero code using it (though `project_documents`' RLS
-  already referenced it) — this phase wires it up for the first time as necessary scaffolding for
-  SWMS crew access, not scope creep.
-- SWMS access is crew-wide (any `project_members` row, not just the project owner/admin) — tracked
-  acknowledgment, not a hard gate on anything.
-- Gated to `trades_field_services` + `builder_construction` via a new `supportsSwms` flag;
-  `projects`/`tasks` themselves stay fully generic and ungated.
-- New `project-swms` storage bucket (crew-based RLS); certifications reuses the existing,
-  previously-unused `employee-docs` bucket.
-- `certifications.user_id` references `auth.users` directly, not `profiles` — confirmed via a live
-  DB query before writing the plan, so the Dashboard card resolves display names from the
-  `mappedMembers` list this page already computes, not a `profiles!certifications_user_id_fkey`
-  embed (which would fail — no such relationship exists for Postgrest to embed).
+- Source spec: `docs/superpowers/specs/2026-07-18-swms-form-builder-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-18-swms-form-builder.md`
+- Reuses the already-proven `@react-pdf/renderer` pattern (`InvoiceDocument.tsx`/
+  `invoices/[id]/pdf/route.ts`) — no new npm dependency.
+- `project_swms_documents` gets `category`/`content`/`source` columns; existing
+  view/acknowledge/delete code needs zero changes since it only ever reads `storage_path`.
+- 18 HRCW category templates (job steps/hazards/controls/PPE/licence info) are real, sourced
+  content (Safe Work Australia + state WorkSafe/SafeWork guidance), researched during
+  plan-writing — not invented, not placeholder.
+- Licence cross-check is scoped to the real 29 HRWL codes only (cleanly matchable against a new
+  `certifications.licence_class` field); every other category (most of the 18 — electrical,
+  gasfitting, demolition, asbestos, shotfirer, refrigerant, traffic control) shows an
+  informational note instead of a false automated match, since those need separately-issued,
+  often state-varying credentials outside the HRWL scheme.
+- `licence_class` dropdown on Certifications only renders for `supportsSwms` orgs (builder
+  & construction / trades & field services) — gated the same way Crew/SWMS already are, so a
+  tutoring org's certification form is unaffected.
+- Edit lifecycle: free edit in place before any crew acknowledgment exists; once acknowledged,
+  further edits create a new document (old one stays, acknowledgments don't carry over).
+- Real pre-existing RLS gap found during research, fixed in this phase's migration: the
+  `employee-docs` upload storage policy only allowed owner/admin, while certifications' own
+  INSERT policy (schema-046) allows owner/admin/manager — a manager could add a cert row but
+  fail to upload its document.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP) —
   the conductor handles those.
 - Read every target file first — several tasks modify files that already exist in the shipped app
-  (`clients/[id]/projects/[projectId]/page.tsx`, `EmployeeDrawer.tsx`, `DashboardUpcoming.tsx`,
-  `dashboard/page.tsx`, `workspace-profiles/types.ts`, `workspace-profiles/registry.ts`).
+  (`EmployeeDrawer.tsx`, `TeamGrid.tsx`, `dashboard/team/page.tsx`, `ProjectSwmsPanel.tsx`,
+  `clients/[id]/projects/[projectId]/page.tsx`, `certifications/route.ts`).
 - After each turn, list the files changed/created.
 
 ## Rules for conductor (Claude)
@@ -46,134 +50,131 @@ Services.
 ## C-1 — Database migration
 
 *Conductor (no Codex turn — pure SQL):*
-- [x] Write `supabase/schema-105-swms-crew-tracking.sql` (plan Task 1, Step 1 — exact SQL in the
+- [ ] Write `supabase/schema-106-swms-form-builder.sql` (plan Task 1, Step 1 — exact SQL in the
   plan doc)
-- [x] Apply via Supabase MCP `apply_migration` (name: `swms_crew_tracking`)
-- [x] Verify via the sanity-check queries in the plan (Step 3)
-- [x] Commit: `git add supabase/schema-105-swms-crew-tracking.sql && git commit -m "handover: C-1 project_members RLS + SWMS tables/bucket + employee-docs bucket RLS"`
+- [ ] Apply via Supabase MCP `apply_migration` (name: `swms_form_builder`)
+- [ ] Verify via the sanity-check queries in the plan (Step 3)
+- [ ] Commit: `git add supabase/schema-106-swms-form-builder.sql && git commit -m "handover: C-1 SWMS form builder migration (category/content/source, licence_class, employee-docs RLS fix)"`
 
 ---
 
-## C-2 — Types
+## C-2 — Types + 18-category template library
 
 *Codex edits:*
-- [x] Create `src/types/project-crew.ts` (plan Task 2, Step 1)
-- [x] Create `src/types/swms.ts` (plan Task 2, Step 2)
-- [x] Report back — list files changed.
+- [ ] Extend `src/types/swms.ts` (plan Task 2, Step 1 — `HrcwCategory`, `HrwlClass`, `SwmsRow`,
+  `SwmsAuthoredContent`, extended `SwmsDocument`)
+- [ ] Create `src/lib/swms-templates.ts` (plan Task 2, Step 2 — `HRWL_CLASSES`,
+  `HRCW_CATEGORY_LABELS`, `SwmsTemplate`, `SWMS_TEMPLATES` — transcribe the 18 templates exactly
+  as written in the plan, do not paraphrase)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/types/project-crew.ts src/types/swms.ts && git commit -m "handover: C-2 crew and SWMS types"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/types/swms.ts src/lib/swms-templates.ts && git commit -m "handover: C-2 SWMS types + 18-category template library"`
 
 ---
 
-## C-3 — Workspace profile flag
+## C-3 — SwmsDocumentPdf component
 
 *Codex edits:*
-- [x] Modify `src/lib/workspace-profiles/types.ts` (plan Task 3, Step 1 — add
-  `supportsSwms?: boolean`)
-- [x] Modify `src/lib/workspace-profiles/registry.ts` (plan Task 3, Step 2 — set `true` on exactly
-  `builder_construction`, `trades_field_services`)
-- [x] Report back — list files changed.
+- [ ] Create `src/components/projects/SwmsDocumentPdf.tsx` (plan Task 3, Step 1)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/lib/workspace-profiles/types.ts src/lib/workspace-profiles/registry.ts && git commit -m "handover: C-3 supportsSwms workspace profile flag"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/components/projects/SwmsDocumentPdf.tsx && git commit -m "handover: C-3 SwmsDocumentPdf component"`
 
 ---
 
-## C-4 — ProjectCrewPanel component
+## C-4 — Certifications licence_class field
 
 *Codex edits:*
-- [x] Create `src/components/projects/ProjectCrewPanel.tsx` (plan Task 4, Step 1)
-- [x] Report back — list files changed.
+- [ ] Modify `src/app/api/team/certifications/route.ts` (plan Task 4, Step 1 — POST accepts
+  `licence_class`)
+- [ ] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 4, Steps 2-4 — `Cert.licence_class`,
+  `showLicenceClass` prop, `newCertLicenceClass` state, dropdown gated to `showLicenceClass`)
+- [ ] Modify `src/app/dashboard/team/page.tsx` and `src/components/team/TeamGrid.tsx` (plan Task
+  4, Step 5 — resolve `supportsSwms` and thread `showLicenceClass` through to `EmployeeDrawer`)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/projects/ProjectCrewPanel.tsx && git commit -m "handover: C-4 ProjectCrewPanel component"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/api/team/certifications/route.ts src/components/team/EmployeeDrawer.tsx src/components/team/TeamGrid.tsx src/app/dashboard/team/page.tsx && git commit -m "handover: C-4 certifications licence_class field"`
 
 ---
 
-## C-5 — ProjectSwmsPanel component
+## C-5 — SWMS build page, form, and create API route
 
 *Codex edits:*
-- [x] Create `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 5, Step 1)
-- [x] Report back — list files changed.
+- [ ] Create `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 5, Step 1)
+- [ ] Create `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
+  5, Step 2)
+- [ ] Create `src/components/projects/SwmsBuilderForm.tsx` (plan Task 5, Step 3)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [x] Commit: `git add src/components/projects/ProjectSwmsPanel.tsx && git commit -m "handover: C-5 ProjectSwmsPanel component"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx && git commit -m "handover: C-5 SWMS build page, form, and create API route"`
 
 ---
 
-## C-6 — Wire Crew + SWMS into the project detail page
+## C-6 — Wire "+ Build SWMS" entry point into ProjectSwmsPanel
 
 *Codex edits:*
-- [x] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Steps
-  1–3 — imports, `supportsSwms` resolution, crew/SWMS data fetch, render the two new sections)
-- [x] Report back — list files changed.
+- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Steps
+  1, 4 — SWMS fetch adds category/source, `clientId` prop passed to `ProjectSwmsPanel`)
+- [ ] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 6, Steps 2-3 — "+ Build
+  SWMS" button, `clientId` prop, category label per authored document)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [ ] Manual: as a trades/construction-profile org, add a crew member to a project, upload a SWMS
-  document, confirm the crew member can view and acknowledge it, confirm a non-crew org member
-  cannot see the Crew/Safety sections' data (RLS). As a tutoring-profile org, confirm neither
-  section renders at all.
-- [x] Commit: `git add "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Crew and SWMS sections into the project detail page"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual: as a trades/construction-profile org, click "+ Build SWMS" on a project, confirm the
+  category picker pre-fills the table, confirm the licence warning appears/doesn't appear
+  correctly, confirm the generated PDF opens via "View" and matches what was entered, confirm the
+  category label shows on the authored document's row.
+- [ ] Commit: `git add src/components/projects/ProjectSwmsPanel.tsx "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Build SWMS entry point into ProjectSwmsPanel"`
 
 ---
 
-## C-7 — Certification document upload
+## C-7 — Edit-before-acknowledgment / supersede-after-acknowledgment
 
 *Codex edits:*
-- [x] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 7, Steps 1–5 — storage import,
-  `Cert.document_path`, file state, `addCert` upload, `viewCertDocument`, file input + View link)
-- [x] Report back — list files changed.
+- [ ] Modify `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 7, Step 1 — `documentId`
+  in-place-edit-or-supersede logic)
+- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
+  7, Step 2 — `documentId` search param, `existingContent` fetch)
+- [ ] Modify `src/components/projects/SwmsBuilderForm.tsx` (plan Task 7, Step 3 — pre-fill from
+  `existingContent`, pass `documentId` through)
+- [ ] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 7, Step 4 — Edit link for
+  authored documents)
+- [ ] Report back — list files changed.
 
 *Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [ ] Manual: add a certification with a file attached; confirm "View document" opens it via a
-  signed URL; confirm existing certifications without a document still display correctly.
-- [x] Commit: `git add src/components/team/EmployeeDrawer.tsx && git commit -m "handover: C-7 certification document upload"`
-
----
-
-## C-8 — Dashboard certifications-due card
-
-*Codex edits:*
-- [x] Modify `src/components/dashboard/DashboardUpcoming.tsx` (plan Task 8, Steps 1–3 — new
-  `UpcomingCertDue` type, `Award` icon import, `certsDue` prop, updated isLast chains, new render
-  block)
-- [x] Modify `src/app/dashboard/page.tsx` (plan Task 8, Step 4 — `certsRes` query, `certsDue`
-  computation resolving names from the existing `mappedMembers` list, updated import, updated
-  `<DashboardUpcoming>` call)
-- [x] Report back — list files changed.
-
-*Conductor:*
-- [x] `pnpm run build` — must pass clean.
-- [ ] Manual: with a test certification expiring within 30 days, confirm it appears in the
-  Dashboard's Today feed linking to `/dashboard/team`; confirm it disappears once nothing is due.
-- [x] Commit: `git add src/components/dashboard/DashboardUpcoming.tsx src/app/dashboard/page.tsx && git commit -m "handover: C-8 dashboard certifications-due card"`
+- [ ] `pnpm run build` — must pass clean.
+- [ ] Manual: build a SWMS, edit it before anyone acknowledges (confirm it updates the same
+  document, not a duplicate), have a crew member acknowledge it, edit again (confirm this time it
+  creates a new document and the old one remains with its original acknowledgment intact).
+- [ ] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx src/components/projects/ProjectSwmsPanel.tsx && git commit -m "handover: C-7 edit-before-ack / supersede-after-ack SWMS lifecycle"`
 
 ---
 
 ## Acceptance checklist
-- [x] C-1: `project_members` RLS + SWMS tables/bucket + employee-docs bucket RLS apply cleanly.
-- [x] C-2/C-3: types/flags compile.
-- [x] C-4/C-5: Crew and SWMS panel components compile in isolation.
-- [x] C-6: Crew and Safety sections appear only for the two gated workspace profiles; add/remove
-  crew, upload/view/acknowledge/delete SWMS all work; RLS confirmed to block non-crew visibility.
-  *(compiles and renders correctly; manual RLS/UI smoke deferred to user, see below)*
-- [x] C-7: certification document upload/view works; existing document-less certifications
-  unaffected. *(compiles; manual smoke deferred to user, see below)*
-- [x] C-8: Dashboard surfaces expiring/expired certifications org-wide, ungated. *(compiles;
-  manual smoke deferred to user, see below)*
-- [x] Full `pnpm run build` passes clean end-to-end.
-- [ ] Manual smoke test per the plan's Verification section — requires the user's own
-  authenticated session as a trades/construction-profile org member. **User follow-up, not the
-  conductor's to complete.**
+- [ ] C-1: migration applies cleanly (new columns + corrected employee-docs RLS).
+- [ ] C-2: types and the 18-category template library compile.
+- [ ] C-3: `SwmsDocumentPdf` compiles in isolation.
+- [ ] C-4: licence-class dropdown appears only for `supportsSwms` orgs; certifications API accepts
+  and stores it.
+- [ ] C-5: "+ Build SWMS" generates a real PDF from the form, saved alongside uploaded documents.
+- [ ] C-6: category label and Build entry point appear correctly in `ProjectSwmsPanel`.
+- [ ] C-7: edit-before-ack updates in place; edit-after-ack creates a new document, old one
+  preserved with its acknowledgments intact.
+- [ ] Full `pnpm run build` passes clean end-to-end.
+- [ ] Manual smoke test per each task's Manual step above — requires the user's own authenticated
+  session as a trades/construction-profile org member. **User follow-up, not the conductor's to
+  complete.**
 
 ## Verification
 No test runner in this project — verification is `pnpm run build` (tsc + eslint) after every turn,
-full clean build after C-8, plus the "Verification" checklist in
-`docs/superpowers/plans/2026-07-18-swms-licence-tracking.md`.
+full clean build after C-7, plus the "Verification" checklist in
+`docs/superpowers/plans/2026-07-18-swms-form-builder.md`.

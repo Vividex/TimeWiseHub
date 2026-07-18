@@ -5,7 +5,13 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- SWMS + Licence Tracking (current phase): zero cost — pure code + one additive DB migration (RLS
+- SWMS Form Builder (current phase): zero cost — pure code + one additive DB migration
+  (`category`/`content`/`source` on `project_swms_documents`, `licence_class` on
+  `certifications`, plus a storage RLS fix). No new npm dependencies — `@react-pdf/renderer` is
+  already installed and paid for as part of the existing plan. No external API calls (research for
+  the 18 category templates happened during plan-writing via WebSearch/WebFetch, not a paid
+  runtime dependency).
+- SWMS + Licence Tracking (prior phase, complete): zero cost — pure code + one additive DB migration (RLS
   on an existing empty table, two new tables, one new storage bucket, storage RLS on an existing
   empty bucket), no new npm dependencies, no external API calls.
 - Client Sites (prior phase, complete): zero cost — pure code + one additive DB migration (one new table,
@@ -110,6 +116,53 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (SWMS Form Builder) [current phase]
+- Source spec: docs/superpowers/specs/2026-07-18-swms-form-builder-design.md
+- Source plan: docs/superpowers/plans/2026-07-18-swms-form-builder.md
+- Direct follow-up request right after the SWMS + Licence Tracking phase shipped: "should we have
+  digitised a swms form? user fills out all the info then it auto uploads it into a pdf." Confirmed
+  during brainstorming that a real, already-proven PDF-generation pattern exists in this codebase
+  (`@react-pdf/renderer`, used for `InvoiceDocument.tsx`/`PayslipDocument.tsx`) — not a new
+  dependency, and directly reusable.
+- Coexists with the existing upload path rather than replacing it (subcontractor-supplied or
+  externally-authored SWMS still get uploaded as files).
+- Template content for all 18 legislated High Risk Construction Work (HRCW) categories was
+  dispatched as real research (three parallel batches — two via background Agent dispatch, one
+  done directly after the third agent hit a session-limit failure), sourced against Safe Work
+  Australia and state WorkSafe/SafeWork guidance with inline citations, not invented from training
+  knowledge — matches the standing project pattern of dispatching real research for
+  domain-critical/compliance-adjacent content rather than guessing.
+- **Real finding from that research, surfaced to the user before finalizing the design:** most of
+  the 18 categories do NOT map to a High Risk Work Licence (HRWL) at all — only tilt-up/precast
+  concrete and (partially) powered mobile plant do cleanly. The rest need a completely separate,
+  often state-varying credential (state electrical licence, gasfitting licence, demolition
+  licence, Class A/B asbestos removal licence, shotfirer's licence, ARCtick refrigerant handling
+  licence, traffic controller ticket) — none of which live in the 29-code HRWL scheme. User chose
+  the simpler, more honest fix over building a broader multi-scheme cross-check system: keep
+  `licence_class` scoped to real HRWL codes only (cleanly matchable), show an informational note
+  (not a false automated match) for every other category.
+- **Real pre-existing gap found during this same research, fixed as part of this phase's
+  migration:** the `employee-docs` storage upload policy (from the SWMS + Licence Tracking phase)
+  only allowed owner/admin, while `certifications`' own INSERT policy (schema-046) allows
+  owner/admin/manager — a manager could add a certification row but silently fail to upload its
+  document. Flagged and folded into this phase's migration rather than opened as a separate
+  phase, since it's a one-line policy fix directly adjacent to code this phase already touches.
+- User chose the higher-scope option at two points during brainstorming, both against the
+  recommended (smaller) option: (1) pre-built templates per category rather than a blank form to
+  start, (2) all 18 legislated categories researched now rather than a smaller ~6-category starter
+  set. Both were explicitly flagged for their real cost (template content needs genuine sourcing,
+  not invention) before the user confirmed.
+- Edit lifecycle: free in-place edit before any crew acknowledgment exists (nothing's been relied
+  on yet); once acknowledged, further edits create a new document row rather than mutating the
+  acknowledged one — the old document stays visible, acknowledgments don't carry over. Note that
+  `ProjectSwmsPanel` already allows deleting any SWMS document outright (a pre-existing, more
+  permissive precedent from the prior phase) — this phase doesn't relitigate that.
+- The 18-category template module (`src/lib/swms-templates.ts`) is a static TypeScript file, not
+  a database table — reference content maintained by the codebase, not tenant data, so changes go
+  through real code review like any other reference constant in this repo.
+- Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
+  Supabase MCP. C-1 (migration) is conductor-only.
 
 ## Notes (SWMS + Licence Tracking) [complete, kept for reference]
 - **All 8 implementation items (C-1 through C-8) complete and verified
