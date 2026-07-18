@@ -8,8 +8,8 @@ export type TeamMember = {
   has_incomplete_onboarding: boolean; has_expiring_cert: boolean; has_expired_cert: boolean
 }
 
-export default function TeamGrid({ orgId, canManageTeam, canChangeRole, viewerUserId, members, expiring }: {
-  orgId: string; canManageTeam: boolean; canChangeRole: boolean; viewerUserId: string
+export default function TeamGrid({ orgId, canManageTeam, canChangeRole, showLicenceClass, viewerUserId, members, expiring }: {
+  orgId: string; canManageTeam: boolean; canChangeRole: boolean; showLicenceClass: boolean; viewerUserId: string
   members: TeamMember[]; expiring: ExpiringCert[]
 }) {
   const [selected, setSelected] = useState<TeamMember | null>(null)
@@ -34,7 +34,7 @@ export default function TeamGrid({ orgId, canManageTeam, canChangeRole, viewerUs
       {selected && (
         <>
           <div className="fixed inset-0 z-30 bg-black/30" onClick={() => setSelected(null)} />
-          <EmployeeDrawer member={selected} orgId={orgId} canManageTeam={canManageTeam} canChangeRole={canChangeRole && selected.user_id !== viewerUserId && selected.role !== 'owner'} onClose={() => setSelected(null)} />
+          <EmployeeDrawer member={selected} orgId={orgId} canManageTeam={canManageTeam} canChangeRole={canChangeRole && selected.user_id !== viewerUserId && selected.role !== 'owner'} showLicenceClass={showLicenceClass} onClose={() => setSelected(null)} />
         </>
       )}
     </div>

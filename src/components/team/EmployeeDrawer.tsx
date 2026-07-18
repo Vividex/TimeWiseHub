@@ -3,17 +3,18 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
+import { HRWL_CLASSES } from '@/lib/swms-templates'
 import ScrollFade from '@/components/ui/ScrollFade'
 
 type Profile = { job_title: string | null; start_date: string | null; emergency_contact_name: string | null; emergency_contact_phone: string | null }
-type Cert = { id: string; name: string; issued_date: string | null; expiry_date: string | null; document_path: string | null }
+type Cert = { id: string; name: string; issued_date: string | null; expiry_date: string | null; document_path: string | null; licence_class: string | null }
 type OnboardingItem = { label: string; required: boolean }
 type OnboardingProgress = { item_label: string; completed_at: string | null }
 type Tab = 'profile' | 'certifications' | 'onboarding'
 
-export default function EmployeeDrawer({ member, orgId, canManageTeam, canChangeRole, onClose }: {
+export default function EmployeeDrawer({ member, orgId, canManageTeam, canChangeRole, showLicenceClass, onClose }: {
   member: { user_id: string; display_name: string; role: string }; orgId: string
-  canManageTeam: boolean; canChangeRole: boolean; onClose: () => void
+  canManageTeam: boolean; canChangeRole: boolean; showLicenceClass: boolean; onClose: () => void
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('profile')
@@ -31,6 +32,7 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
   const [newCertExpiry, setNewCertExpiry] = useState('')
   const [addingCert, setAddingCert] = useState(false)
   const [newCertFile, setNewCertFile] = useState<File | null>(null)
+  const [newCertLicenceClass, setNewCertLicenceClass] = useState('')
   const [onboardingItems, setOnboardingItems] = useState<OnboardingItem[]>([])
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress[]>([])
 
@@ -88,10 +90,10 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
     }
 
     const res = await fetch('/api/team/certifications', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: member.user_id, org_id: orgId, name: newCertName, expiry_date: newCertExpiry || null, document_path: documentPath }) })
+      body: JSON.stringify({ user_id: member.user_id, org_id: orgId, name: newCertName, expiry_date: newCertExpiry || null, document_path: documentPath, licence_class: newCertLicenceClass || null }) })
     const newCert = await res.json()
     setCerts(prev => [...prev, newCert])
-    setNewCertName(''); setNewCertExpiry(''); setNewCertFile(null); setAddingCert(false)
+    setNewCertName(''); setNewCertExpiry(''); setNewCertFile(null); setNewCertLicenceClass(''); setAddingCert(false)
   }
 
   async function deleteCert(id: string) {
@@ -208,6 +210,13 @@ export default function EmployeeDrawer({ member, orgId, canManageTeam, canChange
                   className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
                 <input type="file" onChange={e => setNewCertFile(e.target.files?.[0] ?? null)}
                   className="w-full text-xs text-gray-500 dark:text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-700 dark:file:bg-slate-700 dark:file:text-slate-200" />
+                {showLicenceClass && (
+                  <select value={newCertLicenceClass} onChange={e => setNewCertLicenceClass(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm">
+                    <option value="">Not a High Risk Work Licence</option>
+                    {HRWL_CLASSES.map(cls => <option key={cls} value={cls}>{cls}</option>)}
+                  </select>
+                )}
                 <button onClick={addCert} disabled={addingCert || !newCertName}
                   className="w-full rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 py-2 text-sm font-semibold disabled:opacity-50">
                   {addingCert ? 'Adding…' : 'Add certification'}

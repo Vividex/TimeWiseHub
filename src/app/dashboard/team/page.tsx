@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import TeamGrid, { type TeamMember } from '@/components/team/TeamGrid'
 import type { ExpiringCert } from '@/components/team/CertExpiryPanel'
 import InviteMember from '@/components/InviteMember'
@@ -16,6 +17,7 @@ export default async function TeamPage() {
   const orgId = membership?.org_id ?? null
   const subscription = await getSubscription(user.id)
   const canManageTeam = ['owner','admin'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const { supportsSwms } = await getWorkspaceProfileForUser(supabase, user.id)
 
   if (!orgId) return (
     <div className="px-4 py-8 sm:px-8">
@@ -77,7 +79,7 @@ export default async function TeamPage() {
             <InviteMember orgId={orgId} canInvite={true} />
           </div>
         )}
-        <TeamGrid orgId={orgId} canManageTeam={canManageTeam} canChangeRole={membership?.role === 'owner'} viewerUserId={user.id} members={members} expiring={expiring} />
+        <TeamGrid orgId={orgId} canManageTeam={canManageTeam} canChangeRole={membership?.role === 'owner'} showLicenceClass={!!supportsSwms} viewerUserId={user.id} members={members} expiring={expiring} />
       </div>
     </div>
   )

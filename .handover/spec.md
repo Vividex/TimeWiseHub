@@ -98,17 +98,19 @@ upload path.
 ## C-4 — Certifications licence_class field
 
 *Codex edits:*
-- [ ] Modify `src/app/api/team/certifications/route.ts` (plan Task 4, Step 1 — POST accepts
+- [x] Modify `src/app/api/team/certifications/route.ts` (plan Task 4, Step 1 — POST accepts
   `licence_class`)
-- [ ] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 4, Steps 2-4 — `Cert.licence_class`,
+- [x] Modify `src/components/team/EmployeeDrawer.tsx` (plan Task 4, Steps 2-4 — `Cert.licence_class`,
   `showLicenceClass` prop, `newCertLicenceClass` state, dropdown gated to `showLicenceClass`)
-- [ ] Modify `src/app/dashboard/team/page.tsx` and `src/components/team/TeamGrid.tsx` (plan Task
+- [x] Modify `src/app/dashboard/team/page.tsx` and `src/components/team/TeamGrid.tsx` (plan Task
   4, Step 5 — resolve `supportsSwms` and thread `showLicenceClass` through to `EmployeeDrawer`)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/team/certifications/route.ts src/components/team/EmployeeDrawer.tsx src/components/team/TeamGrid.tsx src/app/dashboard/team/page.tsx && git commit -m "handover: C-4 certifications licence_class field"`
+- [x] `pnpm run build` — must pass clean. Found a real type bug: `getWorkspaceProfileForUser`'s
+  `supportsSwms` is `boolean | undefined` (optional flag), but `TeamGrid`'s `showLicenceClass`
+  prop requires plain `boolean` — fixed with `!!supportsSwms` at the call site.
+- [x] Commit: `git add src/app/api/team/certifications/route.ts src/components/team/EmployeeDrawer.tsx src/components/team/TeamGrid.tsx src/app/dashboard/team/page.tsx && git commit -m "handover: C-4 certifications licence_class field"`
 
 ---
 
