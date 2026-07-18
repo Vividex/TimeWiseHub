@@ -95,7 +95,7 @@ rendered into both document types on demand.
     redrawn.
 - [x] **B-4** — Require a saved signature before first acknowledgment (plan Task 12).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page.
-- [ ] **B-5** — On-demand signed PDF route (plan Task 13).
+- [x] **B-5** — On-demand signed PDF route (plan Task 13).
   - Create `src/app/api/projects/[projectId]/swms/[documentId]/pdf/route.ts`.
 - [ ] **B-6** — "View" opens live-signed PDF for authored documents (plan Task 14).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx`.
