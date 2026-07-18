@@ -61,16 +61,25 @@ upload path.
 ## C-2 — Types + 18-category template library
 
 *Codex edits:*
-- [ ] Extend `src/types/swms.ts` (plan Task 2, Step 1 — `HrcwCategory`, `HrwlClass`, `SwmsRow`,
+- [x] Extend `src/types/swms.ts` (plan Task 2, Step 1 — `HrcwCategory`, `HrwlClass`, `SwmsRow`,
   `SwmsAuthoredContent`, extended `SwmsDocument`)
-- [ ] Create `src/lib/swms-templates.ts` (plan Task 2, Step 2 — `HRWL_CLASSES`,
+- [x] Create `src/lib/swms-templates.ts` (plan Task 2, Step 2 — `HRWL_CLASSES`,
   `HRCW_CATEGORY_LABELS`, `SwmsTemplate`, `SWMS_TEMPLATES` — transcribe the 18 templates exactly
-  as written in the plan, do not paraphrase)
-- [ ] Report back — list files changed.
+  as written in the plan, do not paraphrase). Two Codex turns needed: first hit a genuine sandbox
+  blocker on the large template file and honestly reported it instead of guessing; a focused
+  retry (types file already done, don't touch) completed it.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/types/swms.ts src/lib/swms-templates.ts && git commit -m "handover: C-2 SWMS types + 18-category template library"`
+- [x] `pnpm run build` — must pass clean. **Found a real plan-sequencing gap**: extending
+  `SwmsDocument` to require `category`/`source` broke the existing project detail page's SWMS
+  fetch/mapping (Task 6, Step 1's change), which wasn't due to land until C-6 — an intermediate
+  broken build between C-2 and C-6. Per this project's standing precedent (never leave an
+  intermediate broken build across commits — see Vehicle Tracking v1 notes), pulled Task 6 Step 1
+  forward and applied it directly here rather than waiting. **C-6 no longer needs to touch
+  `page.tsx`'s SWMS fetch/mapping — only its Steps 2-4 (button, clientId prop, category label)
+  remain for that item.**
+- [x] Commit: `git add src/types/swms.ts src/lib/swms-templates.ts "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-2 SWMS types + 18-category template library"`
 
 ---
 
@@ -121,8 +130,10 @@ upload path.
 ## C-6 — Wire "+ Build SWMS" entry point into ProjectSwmsPanel
 
 *Codex edits:*
-- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Steps
-  1, 4 — SWMS fetch adds category/source, `clientId` prop passed to `ProjectSwmsPanel`)
+- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Step 4
+  only — `clientId` prop passed to `ProjectSwmsPanel`. **Step 1 — the SWMS fetch adding
+  category/source — was already applied during C-2 to avoid an intermediate broken build; do not
+  redo it, the file already selects `category, source` and maps them.**)
 - [ ] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 6, Steps 2-3 — "+ Build
   SWMS" button, `clientId` prop, category label per authored document)
 - [ ] Report back — list files changed.
