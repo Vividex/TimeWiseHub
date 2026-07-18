@@ -1488,3 +1488,14 @@ user -- same precedent as every prior phase.
 - pnpm is the package manager. Verification gate = `pnpm run build`.
 - Manual smoke tests (sign-in widget, notification delivery) require an authenticated browser
   session the conductor doesn't have -- user follow-up, same precedent as every prior phase.
+
+## Phase complete: Site Sign-In (5/5 items, all verified)
+All items SS-1 through SS-5 done, verified via git diff against the plan, and committed
+individually. One real gap found during verification, not present in the plan: the Dashboard
+Today item's border/separator logic only updated the immediately-preceding category
+(timedItems), missing the six categories before it -- would have shown a missing divider on a
+day with pending SWMS/JSA signatures but no meetings/sessions/events. Codex correctly flagged
+this as a documented risk rather than silently deviating from the plan; fixed directly as
+conductor by threading the same condition through all six remaining categories. Full
+`pnpm run build` passes clean end to end. Manual smoke (sign-in widget, notification delivery)
+deferred to the user -- same precedent as every prior phase.
