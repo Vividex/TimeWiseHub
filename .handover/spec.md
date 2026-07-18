@@ -72,7 +72,7 @@ rendered into both document types on demand.
   - Modify `src/components/projects/SwmsBuilderForm.tsx`.
 - [x] **A-5** — `swms/new/page.tsx` reads `?type=` and derives docType (plan Task 5).
   - Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx`.
-- [ ] **A-6** — API route accepts `doc_type` (plan Task 6).
+- [x] **A-6** — API route accepts `doc_type` (plan Task 6).
   - Modify `src/app/api/projects/[projectId]/swms/route.ts`.
 - [ ] **A-7** — `SwmsDocumentPdf.tsx` branches on docType, adds signatures section (plan Task 7).
   - Modify `src/components/projects/SwmsDocumentPdf.tsx`.
