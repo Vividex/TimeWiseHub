@@ -46,7 +46,7 @@ and surface it on their Dashboard under "Today."
 
 ---
 
-- [ ] **SS-1** — Database migration: `projects.site_id`, `site_sign_ins`, supplemental RLS on 3
+- [x] **SS-1** — Database migration: `projects.site_id`, `site_sign_ins`, supplemental RLS on 3
   existing policies (plan Task 1). *Conductor-only, pure SQL.*
   - Write `supabase/schema-111-site-sign-ins.sql`, apply via Supabase MCP (name: `site_sign_ins`),
     verify column/table/policies exist, commit.
