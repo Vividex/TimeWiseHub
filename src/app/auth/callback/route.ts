@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const nextParam = searchParams.get('next')
+  const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : null
 
   if (code) {
     const cookieStore = await cookies()
@@ -26,6 +28,10 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       const accountType = user?.user_metadata?.account_type
 
