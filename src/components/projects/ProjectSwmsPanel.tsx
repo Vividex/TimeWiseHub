@@ -64,14 +64,22 @@ export default function ProjectSwmsPanel({
     router.refresh()
   }
 
-  async function handleView(doc: SwmsDocument) {
+  function handleView(doc: SwmsDocument) {
     if (doc.source === 'authored') {
       window.open(`/api/projects/${projectId}/swms/${doc.id}/pdf`, '_blank')
       return
     }
-    const supabase = createClient()
-    const { data } = await supabase.storage.from('project-swms').createSignedUrl(doc.storagePath, 60)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    // Open the tab synchronously (within the click's user gesture) and navigate it once the
+    // signed URL resolves — awaiting before window.open() loses the gesture in most browsers
+    // and gets silently blocked with no visible error.
+    const win = window.open('', '_blank')
+    void (async () => {
+      const supabase = createClient()
+      const { data } = await supabase.storage.from('project-swms').createSignedUrl(doc.storagePath, 60)
+      if (!win) return
+      if (data?.signedUrl) win.location.href = data.signedUrl
+      else win.close()
+    })()
   }
 
   async function handleAcknowledge(documentId: string) {
@@ -113,13 +121,13 @@ export default function ProjectSwmsPanel({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new`}
-              className="rounded-xl border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10"
+              className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold"
             >
               + Build SWMS
             </Link>
             <Link
               href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?type=jsa`}
-              className="rounded-xl border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10"
+              className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold"
             >
               + Build JSA
             </Link>
