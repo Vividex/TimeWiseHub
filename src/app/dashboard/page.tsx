@@ -10,6 +10,7 @@ import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardUpcoming from '@/components/dashboard/DashboardUpcoming'
 import PersonalTodos from '@/components/dashboard/PersonalTodos'
 import QuickActions from '@/components/dashboard/QuickActions'
+import SiteSignInWidget, { type SignInSite } from '@/components/dashboard/SiteSignInWidget'
 import type { UpcomingMeeting, UpcomingEvent, UpcomingSession, UpcomingTask, UpcomingApproval, UnreadClientMessage, UpcomingDueExpense, UpcomingVehicleDue, UpcomingCertDue, UpcomingIncidentReport } from '@/components/dashboard/DashboardUpcoming'
 import { getPendingApprovals } from '@/lib/pending-approvals'
 import { isOverdue } from '@/lib/invoices'
@@ -74,6 +75,48 @@ export default async function DashboardHome() {
 
   const workspaceProfile = await getWorkspaceProfileForUser(supabase, user.id)
   const isTutoring = workspaceProfile.key === 'tutoring'
+
+  let signInSites: SignInSite[] = []
+  if (workspaceProfile.supportsSwms) {
+    const clientQuery = orgId
+      ? supabase.from('clients').select('id').eq('org_id', orgId).eq('archived', false)
+      : supabase.from('clients').select('id').eq('owner_id', user.id).eq('archived', false)
+    const { data: myClients } = await clientQuery
+    const clientIds = (myClients ?? []).map(c => c.id)
+
+    if (clientIds.length > 0) {
+      const [{ data: sites }, { data: mySignIns }, { data: todaySignIns }] = await Promise.all([
+        supabase.from('client_sites').select('id, label, client_id, clients(name)').in('client_id', clientIds).eq('is_archived', false).order('created_at', { ascending: false }),
+        supabase.from('site_sign_ins').select('site_id, signed_in_at').eq('user_id', user.id).order('signed_in_at', { ascending: false }).limit(50),
+        supabase.from('site_sign_ins').select('site_id').eq('user_id', user.id).eq('sign_in_date', getTodaySydneyDateString()),
+      ])
+
+      const todaySignedInIds = new Set((todaySignIns ?? []).map(s => s.site_id as string))
+      const recentSiteIds: string[] = []
+      for (const s of mySignIns ?? []) {
+        if (!recentSiteIds.includes(s.site_id as string)) recentSiteIds.push(s.site_id as string)
+      }
+
+      type SiteRow = { id: string; label: string; client_id: string; clients: { name: string } | null }
+      const allSites = (sites ?? []) as unknown as SiteRow[]
+      const siteMap = new Map(allSites.map(s => [s.id, s]))
+
+      const orderedIds = [
+        ...recentSiteIds.filter(id => siteMap.has(id)),
+        ...allSites.map(s => s.id).filter(id => !recentSiteIds.includes(id)),
+      ]
+
+      signInSites = orderedIds.map(id => {
+        const s = siteMap.get(id)!
+        return {
+          id: s.id,
+          label: s.label,
+          clientName: s.clients?.name ?? 'Client',
+          signedInToday: todaySignedInIds.has(s.id),
+        }
+      })
+    }
+  }
 
   const { data: rawTasks } = await supabase
     .from('tasks')
@@ -393,6 +436,10 @@ export default async function DashboardHome() {
 
         {/* Quick actions */}
         <QuickActions rosterManaged={rosterManaged} showNewStudent={isTutoring} />
+
+        {signInSites.length > 0 && (
+          <SiteSignInWidget sites={signInSites} userId={user.id} />
+        )}
 
         {/* Today's agenda: meetings, sessions, calendar events, task deadlines, pending approvals */}
         <DashboardUpcoming meetings={meetings} events={events} sessions={todaySessions} tasks={todayTasks} approvals={approvals} unreadMessages={unreadMessages} dueExpenses={dueExpenses} dueBusinessExpenses={dueBusinessExpenses} vehiclesDue={vehiclesDue} certsDue={certsDue} incidentReportsDue={incidentReportsDue} currentUserId={user.id} />

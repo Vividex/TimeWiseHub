@@ -52,7 +52,7 @@ and surface it on their Dashboard under "Today."
     verify column/table/policies exist, commit.
 - [x] **SS-2** — SWMS/JSA access supplemented by site sign-in (plan Task 2).
   - Modify the project detail page and `src/components/projects/ProjectSwmsPanel.tsx`.
-- [ ] **SS-3** — Site sign-in widget on the Dashboard (plan Task 3).
+- [x] **SS-3** — Site sign-in widget on the Dashboard (plan Task 3).
   - Create `src/components/dashboard/SiteSignInWidget.tsx`, modify `src/app/dashboard/page.tsx`.
   - [ ] Manual smoke (deferred to user): widget shows up to 3 sites with working "show more",
     sign-in flips to "✓ Signed in", recently-used sites sort first next visit.
