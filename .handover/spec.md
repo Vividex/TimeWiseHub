@@ -117,15 +117,16 @@ upload path.
 ## C-5 — SWMS build page, form, and create API route
 
 *Codex edits:*
-- [ ] Create `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 5, Step 1)
-- [ ] Create `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
+- [x] Create `src/app/api/projects/[projectId]/swms/route.ts` (plan Task 5, Step 1)
+- [x] Create `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx` (plan Task
   5, Step 2)
-- [ ] Create `src/components/projects/SwmsBuilderForm.tsx` (plan Task 5, Step 3)
-- [ ] Report back — list files changed.
+- [x] Create `src/components/projects/SwmsBuilderForm.tsx` (plan Task 5, Step 3)
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
-- [ ] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx && git commit -m "handover: C-5 SWMS build page, form, and create API route"`
+- [x] `pnpm run build` — must pass clean. Confirmed both new routes appear in the build's route
+  table (`/api/projects/[projectId]/swms`, `/dashboard/clients/[id]/projects/[projectId]/swms/new`).
+- [x] Commit: `git add src/app/api/projects/[projectId]/swms/route.ts "src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx" src/components/projects/SwmsBuilderForm.tsx && git commit -m "handover: C-5 SWMS build page, form, and create API route"`
 
 ---
 
