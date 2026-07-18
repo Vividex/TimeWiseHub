@@ -161,6 +161,13 @@
 - The 18-category template module (`src/lib/swms-templates.ts`) is a static TypeScript file, not
   a database table — reference content maintained by the codebase, not tenant data, so changes go
   through real code review like any other reference constant in this repo.
+- **Real plan-sequencing gap found during C-2's build verification:** extending `SwmsDocument` to
+  require `category`/`source` (Task 2) broke the existing project detail page's SWMS
+  fetch/mapping, which wasn't due to be updated until Task 6, Step 1 — an intermediate broken
+  build between C-2 and C-6. Fixed by pulling that specific, already-fully-specified sub-step
+  forward into C-2 rather than leaving the build red until C-6, matching this project's standing
+  precedent (see Vehicle Tracking v1's C-2/C-4 bundling note below) that a task split should never
+  leave an intermediate broken build.
 - Codex handles text edits only; conductor runs all shell/build/git and the DB migration via
   Supabase MCP. C-1 (migration) is conductor-only.
 
