@@ -1474,3 +1474,17 @@ the new on-demand PDF route doesn't type-check against Buffer -- fixed with
 the new PDF route confirmed present in the build's route table. Manual smoke (building a JSA,
 drawing a signature, the acknowledgment-signature flow, viewing a signed PDF) deferred to the
 user -- same precedent as every prior phase.
+
+## Notes (Site Sign-In)
+- Source spec: docs/superpowers/specs/2026-07-19-site-sign-in-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-site-sign-in.md
+- Zero cost — pure code + one additive DB migration (projects.site_id, site_sign_ins table +
+  RLS, supplemental OR-clause on 3 existing SWMS/JSA policies). No new npm dependencies. No
+  external API calls at runtime.
+- Access-gate feature only, deliberately not attendance/payroll -- confirmed directly with the
+  user during brainstorming before any design work started.
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only; conductor
+  runs all shell/build/git and the one DB migration via Supabase MCP.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
+- Manual smoke tests (sign-in widget, notification delivery) require an authenticated browser
+  session the conductor doesn't have -- user follow-up, same precedent as every prior phase.
