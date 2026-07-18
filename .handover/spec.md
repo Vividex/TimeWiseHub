@@ -68,7 +68,7 @@ rendered into both document types on demand.
   - Modify `src/types/swms.ts`.
 - [x] **A-3** — JSA hazard template library, 11 templates (plan Task 3).
   - Create `src/lib/jsa-templates.ts`.
-- [ ] **A-4** — `SwmsBuilderForm.tsx` branches on docType (plan Task 4).
+- [x] **A-4** — `SwmsBuilderForm.tsx` branches on docType (plan Task 4).
   - Modify `src/components/projects/SwmsBuilderForm.tsx`.
 - [ ] **A-5** — `swms/new/page.tsx` reads `?type=` and derives docType (plan Task 5).
   - Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx`.
