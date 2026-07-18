@@ -9,6 +9,7 @@ import DangerZoneDeactivate from '@/components/settings/DangerZoneDeactivate'
 import { effectivePlan, getSubscription, isPaidPlan, isTeamPlan } from '@/lib/subscription'
 import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
+import SignaturePad from '@/components/settings/SignaturePad'
 import PushPermission from '@/components/PushPermission'
 import SettingsTabs from '@/components/SettingsTabs'
 import RestartTutorialButton from '@/components/tutorial/RestartTutorialButton'
@@ -21,7 +22,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: membership }, subscription] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, logo_url, invoice_payment_details, workspace_profile, username, nickname, avatar_url')
+      .select('id, full_name, timezone, au_state, notification_preferences, invoice_letterhead, logo_url, invoice_payment_details, workspace_profile, username, nickname, avatar_url, signature_path')
       .eq('id', user.id)
       .single(),
     supabase
@@ -65,6 +66,12 @@ export default async function SettingsPage() {
     ? (organisation?.name ?? 'your organisation')
     : (profile?.full_name || user.email || 'your account')
 
+  let signatureUrl: string | null = null
+  if (profile?.signature_path) {
+    const { data: signatureSignedUrl } = await supabase.storage.from('signatures').createSignedUrl(profile.signature_path, 3600)
+    signatureUrl = signatureSignedUrl?.signedUrl ?? null
+  }
+
   const profileTab = (
     <>
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -83,6 +90,17 @@ export default async function SettingsPage() {
           initialAvatarUrl={profile?.avatar_url ?? null}
           displayName={profile?.nickname ?? profile?.username ?? ''}
         />
+      </div>
+
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">My signature</h2>
+        <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-slate-400">
+          Draw a signature once — it's reused every time you acknowledge a SWMS or JSA document.
+          Redraw it here any time.
+        </p>
+        <div className="mt-4">
+          <SignaturePad userId={profile?.id ?? user.id} initialSignatureUrl={signatureUrl} />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">

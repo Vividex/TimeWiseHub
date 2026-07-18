@@ -89,9 +89,9 @@ rendered into both document types on demand.
     verify column/bucket/policies exist, commit.
 - [x] **B-2** — `SignaturePad` component, hand-rolled canvas capture (plan Task 10).
   - Create `src/components/settings/SignaturePad.tsx`.
-- [ ] **B-3** — Wire "My signature" card into Settings (plan Task 11).
+- [x] **B-3** — Wire "My signature" card into Settings (plan Task 11).
   - Modify `src/app/settings/page.tsx`.
-  - Manual smoke (deferred to user): draw and save a signature, confirm it persists and can be
+  - [ ] Manual smoke (deferred to user): draw and save a signature, confirm it persists and can be
     redrawn.
 - [ ] **B-4** — Require a saved signature before first acknowledgment (plan Task 12).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page.
