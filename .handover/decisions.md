@@ -1499,3 +1499,16 @@ this as a documented risk rather than silently deviating from the plan; fixed di
 conductor by threading the same condition through all six remaining categories. Full
 `pnpm run build` passes clean end to end. Manual smoke (sign-in widget, notification delivery)
 deferred to the user -- same precedent as every prior phase.
+
+## Notes (Project-Site Linking)
+- Source spec: docs/superpowers/specs/2026-07-19-project-site-linking-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-project-site-linking.md
+- Zero cost -- pure code, no migration (projects.site_id already exists from the Site Sign-In
+  phase). No new npm dependencies. No external API calls.
+- Deliberately narrow retrofit control rather than a general project-edit form, since no such
+  form exists in this codebase today and building one is out of scope for this phase.
+- Windows: Codex workspace-write sandbox cannot spawn subprocesses. Text edits only; conductor
+  runs all shell/build/git.
+- pnpm is the package manager. Verification gate = `pnpm run build`.
+- Manual smoke (site picker at creation, retrofit control) requires an authenticated browser
+  session the conductor doesn't have -- user follow-up, same precedent as every prior phase.
