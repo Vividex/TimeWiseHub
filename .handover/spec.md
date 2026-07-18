@@ -87,7 +87,7 @@ rendered into both document types on demand.
 - [x] **B-1** — Database migration: signatures (plan Task 9). *Conductor-only, pure SQL.*
   - Write `supabase/schema-109-signatures.sql`, apply via Supabase MCP (name: `jsa_signatures`),
     verify column/bucket/policies exist, commit.
-- [ ] **B-2** — `SignaturePad` component, hand-rolled canvas capture (plan Task 10).
+- [x] **B-2** — `SignaturePad` component, hand-rolled canvas capture (plan Task 10).
   - Create `src/components/settings/SignaturePad.tsx`.
 - [ ] **B-3** — Wire "My signature" card into Settings (plan Task 11).
   - Modify `src/app/settings/page.tsx`.
