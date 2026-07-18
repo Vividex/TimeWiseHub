@@ -66,7 +66,7 @@ export default async function ClientProjectPage({
 
     const { data: swmsRows } = await supabase
       .from('project_swms_documents')
-      .select('id, name, storage_path, category, source')
+      .select('id, name, storage_path, category, doc_type, source')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
 
@@ -80,6 +80,7 @@ export default async function ClientProjectPage({
       name: doc.name,
       storagePath: doc.storage_path,
       category: doc.category as SwmsDocument['category'],
+      docType: doc.doc_type as SwmsDocument['docType'],
       source: doc.source as SwmsDocument['source'],
       acknowledgments: (ackRows ?? [])
         .filter(a => a.swms_document_id === doc.id)

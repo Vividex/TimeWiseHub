@@ -7,6 +7,7 @@ import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
+import { JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
 import type { SwmsDocument } from '@/types/swms'
 
 export default function ProjectSwmsPanel({
@@ -88,15 +89,21 @@ export default function ProjectSwmsPanel({
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-slate-100">
           <ShieldCheck size={20} className="text-cyan-600" />
-          Safety (SWMS)
+          Safety
         </h2>
         {canManage && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new`}
               className="rounded-xl border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10"
             >
               + Build SWMS
+            </Link>
+            <Link
+              href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?type=jsa`}
+              className="rounded-xl border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10"
+            >
+              + Build JSA
             </Link>
             <label className={`cursor-pointer rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
               {uploading ? 'Uploading…' : '+ Upload SWMS'}
@@ -120,7 +127,9 @@ export default function ProjectSwmsPanel({
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{doc.name}</p>
                     {doc.source === 'authored' && doc.category && (
-                      <p className="truncate text-xs font-medium text-gray-500 dark:text-slate-400">{HRCW_CATEGORY_LABELS[doc.category]}</p>
+                      <p className="truncate text-xs font-medium text-gray-500 dark:text-slate-400">
+                        {doc.docType === 'jsa' ? JSA_HAZARD_LABELS[doc.category as keyof typeof JSA_HAZARD_LABELS] : HRCW_CATEGORY_LABELS[doc.category as keyof typeof HRCW_CATEGORY_LABELS]}
+                      </p>
                     )}
                     {canManage && (
                       <p className="text-xs font-medium text-gray-500 dark:text-slate-400">

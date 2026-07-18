@@ -76,10 +76,10 @@ rendered into both document types on demand.
   - Modify `src/app/api/projects/[projectId]/swms/route.ts`.
 - [x] **A-7** — `SwmsDocumentPdf.tsx` branches on docType, adds signatures section (plan Task 7).
   - Modify `src/components/projects/SwmsDocumentPdf.tsx`.
-- [ ] **A-8** — Wire "+ Build JSA" entry point + unified document list (plan Task 8).
+- [x] **A-8** — Wire "+ Build JSA" entry point + unified document list (plan Task 8).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page
     (`src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx`).
-  - Manual smoke (deferred to user): build a JSA from a few templates, confirm PDF title/fields,
+  - [ ] Manual smoke (deferred to user): build a JSA from a few templates, confirm PDF title/fields,
     confirm SWMS path unaffected, confirm both types list together correctly.
 
 ## Part B — Reusable signatures
