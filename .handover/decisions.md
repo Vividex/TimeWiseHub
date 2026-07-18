@@ -117,7 +117,29 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
-## Notes (SWMS Form Builder) [current phase]
+## Notes (SWMS Form Builder) [complete, kept for reference]
+- **All 7 implementation items (C-1 through C-7) complete and verified (2026-07-18).** Every turn
+  was verified directly by the conductor (Read the actual files/diffs + `pnpm run build`), not
+  taken on Codex's report alone. Two real issues were found and fixed this way: (1) a
+  plan-sequencing gap — extending `SwmsDocument` to require `category`/`source` in C-2 broke the
+  already-shipped project detail page's SWMS mapping, which wasn't due to update until C-6;
+  fixed by pulling that specific sub-step forward into C-2 rather than leaving an intermediate
+  broken build, matching this project's standing precedent against exactly that. (2) a real type
+  bug in C-4 — `getWorkspaceProfileForUser`'s `supportsSwms` is `boolean | undefined`, but
+  `TeamGrid`'s new `showLicenceClass` prop required plain `boolean`; fixed with `!!supportsSwms`
+  at the call site. No other discrepancies found across the remaining items — every file matched
+  the plan's exact code. Codex hit the known Windows `workspace-write` sandbox subprocess
+  limitation (`CreateProcessAsUserW failed: 5`) on the first call of most turns; recovered on its
+  own every time this phase (no repeat-blocked turns, unlike some prior phases), except C-2's
+  large template-file turn, which hit a genuine blocker and correctly reported it rather than
+  guess — a focused retry (types file already done, don't touch) completed it. Full
+  `pnpm run build` passes clean end-to-end, including confirming `/api/projects/[projectId]/swms`
+  and `/dashboard/clients/[id]/projects/[projectId]/swms/new` both appear in the build's route
+  table. Remaining: the manual smoke test (build a SWMS from a template, confirm the PDF matches
+  what was entered, confirm the licence warning behaves correctly with/without a matching crew
+  certification, confirm edit-before-ack vs edit-after-ack lifecycle, confirm a tutoring-profile
+  org's certification form shows no licence-class field) requires the user's own authenticated
+  session — same precedent as every prior phase.
 - Source spec: docs/superpowers/specs/2026-07-18-swms-form-builder-design.md
 - Source plan: docs/superpowers/plans/2026-07-18-swms-form-builder.md
 - Direct follow-up request right after the SWMS + Licence Tracking phase shipped: "should we have
