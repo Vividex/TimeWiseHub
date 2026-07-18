@@ -74,7 +74,7 @@ rendered into both document types on demand.
   - Modify `src/app/dashboard/clients/[id]/projects/[projectId]/swms/new/page.tsx`.
 - [x] **A-6** — API route accepts `doc_type` (plan Task 6).
   - Modify `src/app/api/projects/[projectId]/swms/route.ts`.
-- [ ] **A-7** — `SwmsDocumentPdf.tsx` branches on docType, adds signatures section (plan Task 7).
+- [x] **A-7** — `SwmsDocumentPdf.tsx` branches on docType, adds signatures section (plan Task 7).
   - Modify `src/components/projects/SwmsDocumentPdf.tsx`.
 - [ ] **A-8** — Wire "+ Build JSA" entry point + unified document list (plan Task 8).
   - Modify `src/components/projects/ProjectSwmsPanel.tsx` and the project detail page

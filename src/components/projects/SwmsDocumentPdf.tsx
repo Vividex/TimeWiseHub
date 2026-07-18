@@ -1,16 +1,28 @@
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
-import type { HrcwCategory, SwmsRow } from '@/types/swms'
+import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer'
+import type { HrcwCategory, JsaHazard, SwmsRow } from '@/types/swms'
 import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
+import { JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
+
+export type SwmsPdfSignature = {
+  name: string
+  acknowledgedAt: string
+  signatureDataUri: string | null
+}
 
 type Props = {
   projectName: string
-  category: HrcwCategory
+  docType: 'swms' | 'jsa'
+  category: HrcwCategory | JsaHazard
   supervisor: string
   preparedBy: string
   date: string
   rows: SwmsRow[]
   ppe: string[]
   consultedNames: string[]
+  whoAtRisk?: string
+  equipment?: string
+  emergencyProcedures?: string
+  signatures: SwmsPdfSignature[]
 }
 
 const styles = StyleSheet.create({
@@ -34,17 +46,26 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   chip: { backgroundColor: '#f1f5f9', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 3, fontSize: 8 },
   consultedList: { fontSize: 9, color: '#374151' },
+  signatureRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 0.5, borderBottomColor: '#f1f5f9', paddingVertical: 8 },
+  signatureImage: { width: 90, height: 32, objectFit: 'contain' },
+  signaturePlaceholder: { width: 90, height: 32, borderBottomWidth: 1, borderBottomColor: '#cbd5e1' },
+  signatureName: { fontSize: 9, fontWeight: 'bold', color: '#0f172a', minWidth: 120 },
+  signatureTimestamp: { fontSize: 8, color: '#64748b' },
 })
 
 export default function SwmsDocumentPdf({
-  projectName, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+  projectName, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+  whoAtRisk, equipment, emergencyProcedures, signatures,
 }: Props) {
+  const title = docType === 'jsa' ? 'Job Safety Analysis' : 'Safe Work Method Statement'
+  const categoryLabel = docType === 'jsa' ? JSA_HAZARD_LABELS[category as JsaHazard] : HRCW_CATEGORY_LABELS[category as HrcwCategory]
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.title}>Safe Work Method Statement</Text>
-          <Text style={styles.subtitle}>{HRCW_CATEGORY_LABELS[category]}</Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{categoryLabel}</Text>
         </View>
 
         <View style={styles.metaRow}>
@@ -65,6 +86,29 @@ export default function SwmsDocumentPdf({
             <Text style={styles.value}>{date}</Text>
           </View>
         </View>
+
+        {docType === 'jsa' && (whoAtRisk || equipment || emergencyProcedures) && (
+          <View style={styles.metaRow}>
+            {whoAtRisk && (
+              <View style={styles.metaBlock}>
+                <Text style={styles.label}>Who Is At Risk</Text>
+                <Text style={styles.value}>{whoAtRisk}</Text>
+              </View>
+            )}
+            {equipment && (
+              <View style={styles.metaBlock}>
+                <Text style={styles.label}>Plant / Equipment</Text>
+                <Text style={styles.value}>{equipment}</Text>
+              </View>
+            )}
+            {emergencyProcedures && (
+              <View style={styles.metaBlock}>
+                <Text style={styles.label}>Emergency Procedures</Text>
+                <Text style={styles.value}>{emergencyProcedures}</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Job Steps, Hazards &amp; Controls</Text>
         <View style={styles.tableHeader}>
@@ -89,8 +133,24 @@ export default function SwmsDocumentPdf({
 
         <Text style={styles.sectionTitle}>Consultation</Text>
         <Text style={styles.consultedList}>
-          {consultedNames.length > 0 ? `Consulted in developing this SWMS: ${consultedNames.join(', ')}` : 'No crew members recorded as consulted.'}
+          {consultedNames.length > 0 ? `Consulted in developing this ${docType === 'jsa' ? 'JSA' : 'SWMS'}: ${consultedNames.join(', ')}` : 'No crew members recorded as consulted.'}
         </Text>
+
+        <Text style={styles.sectionTitle}>Acknowledgments</Text>
+        {signatures.length === 0 && (
+          <Text style={styles.consultedList}>No crew members have acknowledged this document yet.</Text>
+        )}
+        {signatures.map((sig, i) => (
+          <View key={i} style={styles.signatureRow}>
+            <Text style={styles.signatureName}>{sig.name}</Text>
+            {sig.signatureDataUri ? (
+              <Image src={sig.signatureDataUri} style={styles.signatureImage} />
+            ) : (
+              <View style={styles.signaturePlaceholder} />
+            )}
+            <Text style={styles.signatureTimestamp}>{sig.acknowledgedAt}</Text>
+          </View>
+        ))}
       </Page>
     </Document>
   )
