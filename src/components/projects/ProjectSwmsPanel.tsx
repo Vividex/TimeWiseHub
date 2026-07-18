@@ -20,6 +20,7 @@ export default function ProjectSwmsPanel({
   isCrewMember,
   canManage,
   hasSignature,
+  hasSignedInToday,
 }: {
   clientId: string
   projectId: string
@@ -29,6 +30,7 @@ export default function ProjectSwmsPanel({
   isCrewMember: boolean
   canManage: boolean
   hasSignature: boolean
+  hasSignedInToday: boolean
 }) {
   const router = useRouter()
   const [uploading, setUploading] = useState(false)
@@ -168,7 +170,7 @@ export default function ProjectSwmsPanel({
                     {canManage && doc.source === 'authored' && (
                       <Link href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?documentId=${doc.id}`} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">Edit</Link>
                     )}
-                    {isCrewMember && !hasAcknowledged && (
+                    {(isCrewMember || hasSignedInToday) && !hasAcknowledged && (
                       <button
                         onClick={() => handleAcknowledgeClick(doc.id)}
                         disabled={ackingId === doc.id}
@@ -177,7 +179,7 @@ export default function ProjectSwmsPanel({
                         {ackingId === doc.id ? 'Saving…' : "I've read and understood this"}
                       </button>
                     )}
-                    {isCrewMember && hasAcknowledged && (
+                    {(isCrewMember || hasSignedInToday) && hasAcknowledged && (
                       <span className="text-xs font-bold text-green-600 dark:text-green-400">✓ Acknowledged</span>
                     )}
                     {canManage && (

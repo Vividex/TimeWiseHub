@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
+import { getTodaySydneyDateString } from '@/lib/today'
 import ProjectTaskGrid from '@/components/projects/ProjectTaskGrid'
 import ProjectExpensesPanel, { type ProjectExpense } from '@/components/projects/ProjectExpensesPanel'
 import DocumentPanel from '@/components/projects/DocumentPanel'
@@ -56,10 +57,22 @@ export default async function ClientProjectPage({
   let swmsDocuments: SwmsDocument[] = []
   let isCrewMember = false
   let hasSignature = false
+  let hasSignedInToday = false
 
   if (supportsSwms) {
     const { data: currentProfile } = await supabase.from('profiles').select('signature_path').eq('id', user.id).maybeSingle()
     hasSignature = !!currentProfile?.signature_path
+  }
+
+  if (supportsSwms && project.site_id) {
+    const { data: signIn } = await supabase
+      .from('site_sign_ins')
+      .select('id')
+      .eq('site_id', project.site_id)
+      .eq('user_id', user.id)
+      .eq('sign_in_date', getTodaySydneyDateString())
+      .maybeSingle()
+    hasSignedInToday = !!signIn
   }
 
   if (supportsSwms) {
@@ -150,6 +163,7 @@ export default async function ClientProjectPage({
               clientId={id}
               projectId={project.id}
               hasSignature={hasSignature}
+              hasSignedInToday={hasSignedInToday}
               documents={swmsDocuments}
               crewSize={crew.length}
               currentUserId={user.id}

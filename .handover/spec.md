@@ -50,7 +50,7 @@ and surface it on their Dashboard under "Today."
   existing policies (plan Task 1). *Conductor-only, pure SQL.*
   - Write `supabase/schema-111-site-sign-ins.sql`, apply via Supabase MCP (name: `site_sign_ins`),
     verify column/table/policies exist, commit.
-- [ ] **SS-2** — SWMS/JSA access supplemented by site sign-in (plan Task 2).
+- [x] **SS-2** — SWMS/JSA access supplemented by site sign-in (plan Task 2).
   - Modify the project detail page and `src/components/projects/ProjectSwmsPanel.tsx`.
 - [ ] **SS-3** — Site sign-in widget on the Dashboard (plan Task 3).
   - Create `src/components/dashboard/SiteSignInWidget.tsx`, modify `src/app/dashboard/page.tsx`.
