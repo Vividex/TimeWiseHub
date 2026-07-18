@@ -66,7 +66,7 @@ rendered into both document types on demand.
     verify column exists, commit.
 - [x] **A-2** — Types: discriminated `SwmsAuthoredContent` + `JsaHazard` (plan Task 2).
   - Modify `src/types/swms.ts`.
-- [ ] **A-3** — JSA hazard template library, 11 templates (plan Task 3).
+- [x] **A-3** — JSA hazard template library, 11 templates (plan Task 3).
   - Create `src/lib/jsa-templates.ts`.
 - [ ] **A-4** — `SwmsBuilderForm.tsx` branches on docType (plan Task 4).
   - Modify `src/components/projects/SwmsBuilderForm.tsx`.
