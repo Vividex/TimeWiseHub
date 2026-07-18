@@ -1464,3 +1464,13 @@
 - Manual smoke tests (building a JSA, drawing/saving a signature, the acknowledgment-signature
   flow, viewing a signed PDF) require an authenticated browser session the conductor doesn't have
   — user follow-up, same precedent as every prior phase.
+
+## Phase complete: JSA Document Type + Reusable Signatures (14/14 items, all verified)
+All items A-1 through A-8 (Part A, JSA document type) and B-1 through B-6 (Part B, reusable
+signatures) done, verified via git diff against the plan, and committed individually. One real
+bug found and fixed during verification, not present in the plan: `NextResponse(buffer, ...)` in
+the new on-demand PDF route doesn't type-check against Buffer -- fixed with
+`new NextResponse(new Uint8Array(buffer), ...)`. Full `pnpm run build` passes clean end to end;
+the new PDF route confirmed present in the build's route table. Manual smoke (building a JSA,
+drawing a signature, the acknowledgment-signature flow, viewing a signed PDF) deferred to the
+user -- same precedent as every prior phase.
