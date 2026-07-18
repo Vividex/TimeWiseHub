@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
 import type { SwmsDocument } from '@/types/swms'
 
 export default function ProjectSwmsPanel({
+  clientId,
   projectId,
   documents,
   crewSize,
@@ -15,6 +18,7 @@ export default function ProjectSwmsPanel({
   isCrewMember,
   canManage,
 }: {
+  clientId: string
   projectId: string
   documents: SwmsDocument[]
   crewSize: number
@@ -87,10 +91,18 @@ export default function ProjectSwmsPanel({
           Safety (SWMS)
         </h2>
         {canManage && (
-          <label className={`cursor-pointer rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
-            {uploading ? 'Uploading…' : '+ Upload SWMS'}
-            <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
-          </label>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new`}
+              className="rounded-xl border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-500/10"
+            >
+              + Build SWMS
+            </Link>
+            <label className={`cursor-pointer rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
+              {uploading ? 'Uploading…' : '+ Upload SWMS'}
+              <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
+            </label>
+          </div>
         )}
       </div>
 
@@ -107,6 +119,9 @@ export default function ProjectSwmsPanel({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{doc.name}</p>
+                    {doc.source === 'authored' && doc.category && (
+                      <p className="truncate text-xs font-medium text-gray-500 dark:text-slate-400">{HRCW_CATEGORY_LABELS[doc.category]}</p>
+                    )}
                     {canManage && (
                       <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
                         {doc.acknowledgments.length} of {crewSize} crew acknowledged

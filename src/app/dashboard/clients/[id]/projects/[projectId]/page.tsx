@@ -140,6 +140,7 @@ export default async function ClientProjectPage({
               canManage={canManageConfidential}
             />
             <ProjectSwmsPanel
+              clientId={id}
               projectId={project.id}
               documents={swmsDocuments}
               crewSize={crew.length}

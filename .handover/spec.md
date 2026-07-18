@@ -133,21 +133,19 @@ upload path.
 ## C-6 — Wire "+ Build SWMS" entry point into ProjectSwmsPanel
 
 *Codex edits:*
-- [ ] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Step 4
-  only — `clientId` prop passed to `ProjectSwmsPanel`. **Step 1 — the SWMS fetch adding
-  category/source — was already applied during C-2 to avoid an intermediate broken build; do not
-  redo it, the file already selects `category, source` and maps them.**)
-- [ ] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 6, Steps 2-3 — "+ Build
+- [x] Modify `src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx` (plan Task 6, Step 4
+  only — `clientId` prop passed to `ProjectSwmsPanel`)
+- [x] Modify `src/components/projects/ProjectSwmsPanel.tsx` (plan Task 6, Steps 2-3 — "+ Build
   SWMS" button, `clientId` prop, category label per authored document)
-- [ ] Report back — list files changed.
+- [x] Report back — list files changed.
 
 *Conductor:*
-- [ ] `pnpm run build` — must pass clean.
+- [x] `pnpm run build` — must pass clean.
 - [ ] Manual: as a trades/construction-profile org, click "+ Build SWMS" on a project, confirm the
   category picker pre-fills the table, confirm the licence warning appears/doesn't appear
   correctly, confirm the generated PDF opens via "View" and matches what was entered, confirm the
   category label shows on the authored document's row.
-- [ ] Commit: `git add src/components/projects/ProjectSwmsPanel.tsx "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Build SWMS entry point into ProjectSwmsPanel"`
+- [x] Commit: `git add src/components/projects/ProjectSwmsPanel.tsx "src/app/dashboard/clients/[id]/projects/[projectId]/page.tsx" && git commit -m "handover: C-6 wire Build SWMS entry point into ProjectSwmsPanel"`
 
 ---
 
