@@ -7,6 +7,7 @@ import type { DocumentProps } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase-server'
 import SwmsDocumentPdf from '@/components/projects/SwmsDocumentPdf'
 import type { SwmsAuthoredContent, HrcwCategory, JsaHazard, SwmsRow } from '@/types/swms'
+import { notifySwmsAwaitingSignature } from '@/lib/swms-notifications'
 
 // Flat shape for the raw, untrusted request body -- deliberately not
 // SwmsAuthoredContent's discriminated union. Destructuring docType into a
@@ -101,5 +102,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  await notifySwmsAwaitingSignature(data.id, projectId, docType, user.id)
+
   return NextResponse.json(data)
 }

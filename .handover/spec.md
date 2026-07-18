@@ -59,16 +59,17 @@ and surface it on their Dashboard under "Today."
 - [x] **SS-4** — Dashboard Today item for pending SWMS/JSA signatures (plan Task 4).
   - Create `src/lib/swms-awaiting-signature.ts`, modify `DashboardUpcoming.tsx` and
     `dashboard/page.tsx`.
-- [ ] **SS-5** — Notify crew + signed-in workers on new SWMS/JSA (plan Task 5).
+- [x] **SS-5** — Notify crew + signed-in workers on new SWMS/JSA (plan Task 5).
   - Create `src/lib/swms-notifications.ts`, modify the SWMS API route.
   - [ ] Manual smoke (deferred to user): generate a JSA, confirm both Project Crew and signed-in
     workers see it on Dashboard Today (and get a push if enabled); confirm in-place edits don't
     re-notify; confirm an unrelated worker still can't see/acknowledge it.
 
 ## Acceptance checklist
-- [ ] SS-1 through SS-5: site sign-in supplements Project Crew access; Dashboard widget and Today
-  item both work; notification fires correctly once per new document.
-- [ ] Full `pnpm run build` passes clean end-to-end.
+- [x] SS-1 through SS-5: site sign-in supplements Project Crew access; Dashboard widget and Today
+  item both work; notification fires correctly once per new document. *(compiles; manual smoke
+  deferred to user, see below)*
+- [x] Full `pnpm run build` passes clean end-to-end.
 - [ ] Manual smoke per SS-3 and SS-5's Manual steps above — user follow-up, not the conductor's to
   complete.
 
