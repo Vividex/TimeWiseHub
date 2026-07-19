@@ -13,7 +13,8 @@ type Props = {
   projectName: string
   projectLabel: string
   docType: 'swms' | 'jsa'
-  category: HrcwCategory | JsaHazard
+  category: HrcwCategory | null
+  categories: JsaHazard[]
   supervisor: string
   preparedBy: string
   date: string
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 7, color: '#64748b', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   value: { fontSize: 10, color: '#0f172a' },
   sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#0f172a', marginTop: 16, marginBottom: 6 },
+  groupTitle: { fontSize: 9, fontWeight: 'bold', color: '#334155', marginTop: 10, marginBottom: 4 },
   tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 4, marginBottom: 4 },
   colStep: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b' },
   colHazard: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b' },
@@ -54,12 +56,34 @@ const styles = StyleSheet.create({
   signatureTimestamp: { fontSize: 8, color: '#64748b' },
 })
 
+function RowsTable({ rows }: { rows: SwmsRow[] }) {
+  return (
+    <>
+      <View style={styles.tableHeader}>
+        <Text style={styles.colStep}>Job Step</Text>
+        <Text style={styles.colHazard}>Hazard</Text>
+        <Text style={styles.colControl}>Control Measure</Text>
+      </View>
+      {rows.map((row, i) => (
+        <View key={i} style={styles.row}>
+          <Text style={styles.cellStep}>{row.jobStep}</Text>
+          <Text style={styles.cellHazard}>{row.hazard}</Text>
+          <Text style={styles.cellControl}>{row.control}</Text>
+        </View>
+      ))}
+    </>
+  )
+}
+
 export default function SwmsDocumentPdf({
-  projectName, projectLabel, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+  projectName, projectLabel, docType, category, categories, supervisor, preparedBy, date, rows, ppe, consultedNames,
   whoAtRisk, equipment, emergencyProcedures, signatures,
 }: Props) {
   const title = docType === 'jsa' ? 'Job Safety Analysis' : 'Safe Work Method Statement'
-  const categoryLabel = docType === 'jsa' ? JSA_HAZARD_LABELS[category as JsaHazard] : HRCW_CATEGORY_LABELS[category as HrcwCategory]
+  const categoryLabel = docType === 'jsa'
+    ? categories.map(c => JSA_HAZARD_LABELS[c]).join(' + ')
+    : (category ? HRCW_CATEGORY_LABELS[category] : '')
+  const additionalRows = rows.filter(r => !r.category)
 
   return (
     <Document>
@@ -112,18 +136,28 @@ export default function SwmsDocumentPdf({
         )}
 
         <Text style={styles.sectionTitle}>Job Steps, Hazards &amp; Controls</Text>
-        <View style={styles.tableHeader}>
-          <Text style={styles.colStep}>Job Step</Text>
-          <Text style={styles.colHazard}>Hazard</Text>
-          <Text style={styles.colControl}>Control Measure</Text>
-        </View>
-        {rows.map((row, i) => (
-          <View key={i} style={styles.row}>
-            <Text style={styles.cellStep}>{row.jobStep}</Text>
-            <Text style={styles.cellHazard}>{row.hazard}</Text>
-            <Text style={styles.cellControl}>{row.control}</Text>
-          </View>
-        ))}
+        {docType === 'jsa' && categories.length > 0 ? (
+          <>
+            {categories.map(cat => {
+              const group = rows.filter(r => r.category === cat)
+              if (group.length === 0) return null
+              return (
+                <View key={cat}>
+                  <Text style={styles.groupTitle}>{JSA_HAZARD_LABELS[cat]}</Text>
+                  <RowsTable rows={group} />
+                </View>
+              )
+            })}
+            {additionalRows.length > 0 && (
+              <View>
+                <Text style={styles.groupTitle}>Additional Steps</Text>
+                <RowsTable rows={additionalRows} />
+              </View>
+            )}
+          </>
+        ) : (
+          <RowsTable rows={rows} />
+        )}
 
         <Text style={styles.sectionTitle}>PPE Required</Text>
         <View style={styles.chipRow}>

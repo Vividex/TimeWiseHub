@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
-import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
-import { JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
+import { resolveSwmsCategoryLabel } from '@/lib/swms-category-label'
 import { getTodaySydneyDateString } from '@/lib/today'
 import type { UpcomingSwmsAck } from '@/components/dashboard/DashboardUpcoming'
 
@@ -56,9 +55,7 @@ export async function getSwmsAwaitingSignature(userId: string): Promise<Upcoming
   return activeDocs
     .filter(d => !ackedIds.has(d.id))
     .map(d => {
-      const categoryLabel = d.doc_type === 'jsa'
-        ? JSA_HAZARD_LABELS[d.category as keyof typeof JSA_HAZARD_LABELS]
-        : HRCW_CATEGORY_LABELS[d.category as keyof typeof HRCW_CATEGORY_LABELS]
+      const categoryLabel = resolveSwmsCategoryLabel(d.category, d.doc_type) ?? ''
       return {
         id: d.id,
         projectId: d.project_id,

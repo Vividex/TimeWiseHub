@@ -7,8 +7,7 @@ import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import SignaturePad from '@/components/settings/SignaturePad'
-import { HRCW_CATEGORY_LABELS } from '@/lib/swms-templates'
-import { JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
+import { resolveSwmsCategoryLabel } from '@/lib/swms-category-label'
 import type { SwmsDocument } from '@/types/swms'
 
 export default function ProjectSwmsPanel({
@@ -156,7 +155,7 @@ export default function ProjectSwmsPanel({
                     <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{doc.name}</p>
                     {doc.source === 'authored' && doc.category && (
                       <p className="truncate text-xs font-medium text-gray-500 dark:text-slate-400">
-                        {doc.docType === 'jsa' ? JSA_HAZARD_LABELS[doc.category as keyof typeof JSA_HAZARD_LABELS] : HRCW_CATEGORY_LABELS[doc.category as keyof typeof HRCW_CATEGORY_LABELS]}
+                        {resolveSwmsCategoryLabel(doc.category, doc.docType)}
                       </p>
                     )}
                     {canManage && (

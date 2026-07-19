@@ -17,7 +17,8 @@ import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 // shape with the JSA-only fields optional avoids that entirely.
 type SwmsRoutePayload = {
   docType: 'swms' | 'jsa'
-  category: HrcwCategory | JsaHazard
+  category?: HrcwCategory
+  categories?: JsaHazard[]
   supervisor: string
   preparedBy: string
   date: string
@@ -39,15 +40,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json() as SwmsRoutePayload
-  const { docType, category, supervisor, preparedBy, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId, whoAtRisk, equipment, emergencyProcedures } = body
+  const { docType, category, categories, supervisor, preparedBy, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId, whoAtRisk, equipment, emergencyProcedures } = body
 
-  if (!category || !rows || rows.length === 0) {
+  const hasCategory = docType === 'jsa' ? !!categories && categories.length > 0 : !!category
+  if (!hasCategory || !rows || rows.length === 0) {
     return NextResponse.json({ error: 'A category and at least one job step are required' }, { status: 400 })
   }
 
   const content: SwmsAuthoredContent = docType === 'jsa'
-    ? { docType: 'jsa', category: category as JsaHazard, supervisor, preparedBy, date, rows, ppe, consultedUserIds, whoAtRisk: whoAtRisk ?? '', equipment: equipment ?? '', emergencyProcedures: emergencyProcedures ?? '' }
+    ? { docType: 'jsa', categories: categories ?? [], supervisor, preparedBy, date, rows, ppe, consultedUserIds, whoAtRisk: whoAtRisk ?? '', equipment: equipment ?? '', emergencyProcedures: emergencyProcedures ?? '' }
     : { docType: 'swms', category: category as HrcwCategory, supervisor, preparedBy, date, rows, ppe, consultedUserIds }
+
+  const categoryColumnValue = docType === 'jsa' ? (categories ?? []).join(',') : (category as string)
 
   const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
@@ -63,7 +67,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   }
 
   const element = React.createElement(SwmsDocumentPdf, {
-    projectName, projectLabel: terminology.project.singular, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+    projectName, projectLabel: terminology.project.singular, docType,
+    category: docType === 'swms' ? (category as HrcwCategory) : null,
+    categories: docType === 'jsa' ? (categories ?? []) : [],
+    supervisor, preparedBy, date, rows, ppe, consultedNames,
     whoAtRisk: docType === 'jsa' ? whoAtRisk : undefined,
     equipment: docType === 'jsa' ? equipment : undefined,
     emergencyProcedures: docType === 'jsa' ? emergencyProcedures : undefined,
@@ -71,7 +78,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   }) as unknown as React.ReactElement<DocumentProps>
 
   const buffer = await renderToBuffer(element)
-  const path = editableExistingPath ?? `${projectId}/${Date.now()}-${docType}-${category}.pdf`
+  const path = editableExistingPath ?? `${projectId}/${Date.now()}-${docType}-${categoryColumnValue}.pdf`
 
   const { error: uploadError } = await supabase.storage.from('project-swms').upload(path, buffer, { contentType: 'application/pdf', upsert: !!editableExistingPath })
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 400 })
@@ -81,7 +88,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   if (editableExistingPath) {
     const { data, error } = await supabase
       .from('project_swms_documents')
-      .update({ name: `${label} — ${category}`, category, doc_type: docType, content })
+      .update({ name: `${label} — ${categoryColumnValue}`, category: categoryColumnValue, doc_type: docType, content })
       .eq('id', documentId)
       .select()
       .single()
@@ -93,10 +100,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
     .from('project_swms_documents')
     .insert({
       project_id: projectId,
-      name: `${label} — ${category}`,
+      name: `${label} — ${categoryColumnValue}`,
       storage_path: path,
       uploaded_by: user.id,
-      category,
+      category: categoryColumnValue,
       doc_type: docType,
       content,
       source: 'authored',

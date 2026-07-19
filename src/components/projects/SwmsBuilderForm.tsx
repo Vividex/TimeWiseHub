@@ -9,6 +9,21 @@ import { JSA_TEMPLATES, JSA_HAZARD_LABELS } from '@/lib/jsa-templates'
 import type { HrcwCategory, JsaHazard, SwmsRow, SwmsAuthoredContent } from '@/types/swms'
 import type { CrewMemberOption } from '@/types/project-crew'
 
+function RowEditor({ row, onUpdate, onRemove }: {
+  row: SwmsRow
+  onUpdate: (field: keyof SwmsRow, value: string) => void
+  onRemove: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-gray-100 dark:border-slate-800 p-3 space-y-2">
+      <input value={row.jobStep} onChange={e => onUpdate('jobStep', e.target.value)} placeholder="Job step" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
+      <input value={row.hazard} onChange={e => onUpdate('hazard', e.target.value)} placeholder="Hazard" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
+      <input value={row.control} onChange={e => onUpdate('control', e.target.value)} placeholder="Control measure" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
+      <button onClick={onRemove} className="text-xs font-semibold text-red-500 hover:text-red-600">Remove row</button>
+    </div>
+  )
+}
+
 export default function SwmsBuilderForm({
   clientId, projectId, projectName, docType, crew, crewCertLicenceClasses, currentUserDisplayName, documentId, existingContent, projectLabel,
 }: {
@@ -24,7 +39,13 @@ export default function SwmsBuilderForm({
   projectLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
-  const [category, setCategory] = useState<HrcwCategory | JsaHazard | ''>(existingContent?.category ?? '')
+  const [category, setCategory] = useState<HrcwCategory | ''>(
+    existingContent?.docType === 'swms' ? existingContent.category : ''
+  )
+  const [jsaCategories, setJsaCategories] = useState<JsaHazard[]>(
+    existingContent?.docType === 'jsa' ? existingContent.categories : []
+  )
+  const [expandedCategories, setExpandedCategories] = useState<Set<JsaHazard>>(new Set())
   const [supervisor, setSupervisor] = useState(existingContent?.supervisor ?? '')
   const [date, setDate] = useState(existingContent?.date ?? new Date().toISOString().split('T')[0])
   const [rows, setRows] = useState<SwmsRow[]>(existingContent?.rows ?? [])
@@ -39,20 +60,36 @@ export default function SwmsBuilderForm({
   const isJsa = docType === 'jsa'
 
   const swmsTemplate = useMemo(() => (!isJsa ? SWMS_TEMPLATES.find(t => t.category === category) ?? null : null), [isJsa, category])
-  const jsaTemplate = useMemo(() => (isJsa ? JSA_TEMPLATES.find(t => t.hazard === category) ?? null : null), [isJsa, category])
-  const hasTemplate = isJsa ? !!jsaTemplate : !!swmsTemplate
+  const hasTemplate = isJsa ? jsaCategories.length > 0 : !!swmsTemplate
 
   function handleCategoryChange(next: string) {
-    setCategory(next as HrcwCategory | JsaHazard)
-    if (isJsa) {
-      const t = JSA_TEMPLATES.find(x => x.hazard === next)
-      setRows(t ? [...t.rows] : [])
-      setPpe(t ? [...t.ppe] : [])
-    } else {
-      const t = SWMS_TEMPLATES.find(x => x.category === next)
-      setRows(t ? [...t.rows] : [])
-      setPpe(t ? [...t.ppe] : [])
+    setCategory(next as HrcwCategory)
+    const t = SWMS_TEMPLATES.find(x => x.category === next)
+    setRows(t ? [...t.rows] : [])
+    setPpe(t ? [...t.ppe] : [])
+  }
+
+  function toggleJsaCategory(hazard: JsaHazard) {
+    if (jsaCategories.includes(hazard)) {
+      setJsaCategories(prev => prev.filter(c => c !== hazard))
+      setRows(prev => prev.filter(r => r.category !== hazard))
+      return
     }
+    setJsaCategories(prev => [...prev, hazard])
+    const t = JSA_TEMPLATES.find(x => x.hazard === hazard)
+    if (t) {
+      setRows(prev => [...prev, ...t.rows.map(r => ({ ...r, category: hazard }))])
+      setPpe(prev => [...prev, ...t.ppe.filter(item => !prev.includes(item))])
+    }
+    setExpandedCategories(prev => new Set(prev).add(hazard))
+  }
+
+  function toggleExpanded(hazard: JsaHazard) {
+    setExpandedCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(hazard)) next.delete(hazard); else next.add(hazard)
+      return next
+    })
   }
 
   function updateRow(index: number, field: keyof SwmsRow, value: string) {
@@ -71,12 +108,13 @@ export default function SwmsBuilderForm({
   const missingHrwl = !isJsa && swmsTemplate ? swmsTemplate.hrwlClasses.filter(cls => !heldClasses.has(cls)) : []
 
   async function handleSubmit() {
-    if (!category || rows.length === 0) return
+    const hasCategory = isJsa ? jsaCategories.length > 0 : !!category
+    if (!hasCategory || rows.length === 0) return
     setSaving(true)
     setError(null)
     const consultedNames = crew.filter(c => consultedUserIds.includes(c.userId)).map(c => c.displayName)
     const payload = isJsa
-      ? { docType, category, supervisor, preparedBy: currentUserDisplayName, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId, whoAtRisk, equipment, emergencyProcedures }
+      ? { docType, categories: jsaCategories, supervisor, preparedBy: currentUserDisplayName, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId, whoAtRisk, equipment, emergencyProcedures }
       : { docType, category, supervisor, preparedBy: currentUserDisplayName, date, rows, ppe, consultedUserIds, consultedNames, projectName, documentId }
     const res = await fetch(`/api/projects/${projectId}/swms`, {
       method: 'POST',
@@ -92,9 +130,9 @@ export default function SwmsBuilderForm({
     router.push(`/dashboard/clients/${clientId}/projects/${projectId}`)
   }
 
-  const categoryOptions = isJsa
-    ? JSA_TEMPLATES.map(t => ({ value: t.hazard, label: JSA_HAZARD_LABELS[t.hazard] }))
-    : SWMS_TEMPLATES.map(t => ({ value: t.category, label: HRCW_CATEGORY_LABELS[t.category] }))
+  const jsaCategoryOptions = JSA_TEMPLATES.map(t => ({ value: t.hazard, label: JSA_HAZARD_LABELS[t.hazard] }))
+  const swmsCategoryOptions = SWMS_TEMPLATES.map(t => ({ value: t.category, label: HRCW_CATEGORY_LABELS[t.category] }))
+  const additionalRows = rows.map((r, i) => ({ r, i })).filter(({ r }) => !r.category)
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -108,21 +146,36 @@ export default function SwmsBuilderForm({
             starting point, not a legal sign-off; review the content carefully before relying on it.
           </p>
 
-          <div className="mt-5 space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-              {isJsa ? 'Hazard category' : 'High Risk Construction Work category'}
-            </label>
-            <select
-              value={category}
-              onChange={e => handleCategoryChange(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-            >
-              <option value="">Select a category…</option>
-              {categoryOptions.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+          {isJsa ? (
+            <div className="mt-5 space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Hazard categories</label>
+              <div className="space-y-1">
+                {jsaCategoryOptions.map(o => (
+                  <label key={o.value} className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                    <input type="checkbox" checked={jsaCategories.includes(o.value)} onChange={() => toggleJsaCategory(o.value)} />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
+              {jsaCategories.length > 0 && (
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Removing a category deletes its rows below.</p>
+              )}
+            </div>
+          ) : (
+            <div className="mt-5 space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">High Risk Construction Work category</label>
+              <select
+                value={category}
+                onChange={e => handleCategoryChange(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              >
+                <option value="">Select a category…</option>
+                {swmsCategoryOptions.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {hasTemplate && (
             <>
@@ -173,17 +226,49 @@ export default function SwmsBuilderForm({
               )}
 
               <h2 className="mt-6 text-lg font-bold text-gray-900 dark:text-slate-100">Job steps, hazards &amp; controls</h2>
-              <div className="mt-2 space-y-3">
-                {rows.map((row, i) => (
-                  <div key={i} className="rounded-xl border border-gray-100 dark:border-slate-800 p-3 space-y-2">
-                    <input value={row.jobStep} onChange={e => updateRow(i, 'jobStep', e.target.value)} placeholder="Job step" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
-                    <input value={row.hazard} onChange={e => updateRow(i, 'hazard', e.target.value)} placeholder="Hazard" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
-                    <input value={row.control} onChange={e => updateRow(i, 'control', e.target.value)} placeholder="Control measure" className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm" />
-                    <button onClick={() => removeRow(i)} className="text-xs font-semibold text-red-500 hover:text-red-600">Remove row</button>
+
+              {isJsa ? (
+                <>
+                  {jsaCategories.map(hazard => {
+                    const group = rows.map((r, i) => ({ r, i })).filter(({ r }) => r.category === hazard)
+                    const expanded = expandedCategories.has(hazard)
+                    return (
+                      <div key={hazard} className="mt-3 rounded-xl border border-gray-100 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(hazard)}
+                          className="flex w-full items-center justify-between px-3 py-2 text-left text-sm font-bold text-gray-900 dark:text-slate-100"
+                        >
+                          <span>{expanded ? '▾' : '▸'} {JSA_HAZARD_LABELS[hazard]} ({group.length} step{group.length === 1 ? '' : 's'})</span>
+                        </button>
+                        {expanded && (
+                          <div className="space-y-3 border-t border-gray-100 p-3 dark:border-slate-800">
+                            {group.map(({ r, i }) => (
+                              <RowEditor key={i} row={r} onUpdate={(field, value) => updateRow(i, field, value)} onRemove={() => removeRow(i)} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div className="mt-4">
+                    <p className="text-sm font-bold text-gray-900 dark:text-slate-100">Additional steps</p>
+                    <div className="mt-2 space-y-3">
+                      {additionalRows.map(({ r, i }) => (
+                        <RowEditor key={i} row={r} onUpdate={(field, value) => updateRow(i, field, value)} onRemove={() => removeRow(i)} />
+                      ))}
+                      <button onClick={addRow} className="text-sm font-semibold text-cyan-600 hover:text-cyan-700">+ Add row</button>
+                    </div>
                   </div>
-                ))}
-                <button onClick={addRow} className="text-sm font-semibold text-cyan-600 hover:text-cyan-700">+ Add row</button>
-              </div>
+                </>
+              ) : (
+                <div className="mt-2 space-y-3">
+                  {rows.map((row, i) => (
+                    <RowEditor key={i} row={row} onUpdate={(field, value) => updateRow(i, field, value)} onRemove={() => removeRow(i)} />
+                  ))}
+                  <button onClick={addRow} className="text-sm font-semibold text-cyan-600 hover:text-cyan-700">+ Add row</button>
+                </div>
+              )}
 
               <h2 className="mt-6 text-lg font-bold text-gray-900 dark:text-slate-100">PPE required</h2>
               <div className="mt-2 space-y-2">

@@ -5,6 +5,8 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
+- Multi-category JSA (current phase): zero cost — pure code, no schema change (existing free-text
+  `category` column reused), no new npm dependencies, no external API calls.
 - Project-to-Job Terminology (current phase): zero cost — pure code, no schema change (the
   `project` terminology slot already existed in the registry/types), no new npm dependencies, no
   external API calls.

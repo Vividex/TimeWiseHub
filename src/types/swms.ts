@@ -50,6 +50,7 @@ export type SwmsRow = {
   jobStep: string
   hazard: string
   control: string
+  category?: JsaHazard
 }
 
 type SwmsAuthoredContentBase = {
@@ -65,7 +66,7 @@ export type SwmsAuthoredContent =
   | (SwmsAuthoredContentBase & { docType: 'swms'; category: HrcwCategory })
   | (SwmsAuthoredContentBase & {
       docType: 'jsa'
-      category: JsaHazard
+      categories: JsaHazard[]
       whoAtRisk: string
       equipment: string
       emergencyProcedures: string
@@ -75,7 +76,7 @@ export type SwmsDocument = {
   id: string
   name: string
   storagePath: string
-  category: HrcwCategory | JsaHazard | null
+  category: string | null
   docType: 'swms' | 'jsa'
   source: 'uploaded' | 'authored'
   acknowledgments: SwmsAcknowledgment[]
