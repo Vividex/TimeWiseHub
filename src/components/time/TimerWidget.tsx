@@ -39,7 +39,7 @@ function roundedEndTime(startIso: string, end: Date, roundingMinutes: number) {
   return new Date(start.getTime() + roundedMinutes * 60000).toISOString()
 }
 
-export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeEntry: Entry | null; onEntryCompleted?: (entry: CompletedEntry) => void }) {
+export default function TimerWidget({ activeEntry, onEntryCompleted, projectLabel }: { activeEntry: Entry | null; onEntryCompleted?: (entry: CompletedEntry) => void; projectLabel: { singular: string; plural: string } }) {
   const router = useRouter()
   const [running, setRunning] = useState(!!activeEntry)
   const [entryId, setEntryId] = useState(activeEntry?.id ?? null)
@@ -173,10 +173,10 @@ export default function TimerWidget({ activeEntry, onEntryCompleted }: { activeE
 
           {openProjects.length > 0 && (
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-500">Link to project (optional)</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-500">Link to {projectLabel.singular.toLowerCase()} (optional)</label>
               <select value={projectId} onChange={e => setProjectId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                <option value="">— No project —</option>
+                <option value="">— No {projectLabel.singular.toLowerCase()} —</option>
                 {openProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>

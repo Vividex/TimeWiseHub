@@ -30,11 +30,13 @@ export default function TimeSection({
   initialEntries,
   activeEntry,
   rosterManaged = false,
+  projectLabel,
 }: {
   userId: string
   initialEntries: TimeEntry[]
   activeEntry: ActiveEntry | null
   rosterManaged?: boolean
+  projectLabel: { singular: string; plural: string }
 }) {
   const [entries, setEntries] = useState(initialEntries)
 
@@ -43,12 +45,12 @@ export default function TimeSection({
   }
 
   if (rosterManaged) {
-    return <AdditionalHoursPanel />
+    return <AdditionalHoursPanel projectLabel={projectLabel} />
   }
 
   return (
     <>
-      <TimerWidget activeEntry={activeEntry} onEntryCompleted={handleAdd} />
+      <TimerWidget activeEntry={activeEntry} onEntryCompleted={handleAdd} projectLabel={projectLabel} />
       <ManualEntryForm onAdd={handleAdd} />
       <TimeEntryList initialEntries={entries} userId={userId} />
     </>

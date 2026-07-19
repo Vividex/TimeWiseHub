@@ -46,7 +46,7 @@ Real Estate says "Listing"/"Listings" everywhere the app currently hardcodes the
 - [x] **JT-2** — Page title: DashboardShell + dashboard/layout.tsx (plan Task JT-2).
 - [x] **JT-3** — Projects list & creation (plan Task JT-3).
 - [x] **JT-4** — Project detail back-link, delete button, generated PDF (plan Task JT-4).
-- [ ] **JT-5** — Time tracking (plan Task JT-5).
+- [x] **JT-5** — Time tracking (plan Task JT-5).
 - [ ] **JT-6** — Calendar (plan Task JT-6).
 - [ ] **JT-7** — Invoices/Quotes picker + AI assistant chip (plan Task JT-7).
 - [ ] **JT-8** — Video scheduling (plan Task JT-8).

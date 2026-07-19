@@ -28,7 +28,7 @@ function fmtDuration(sec: number) {
   return `${h}h ${m}m`
 }
 
-export default function AdditionalHoursPanel() {
+export default function AdditionalHoursPanel({ projectLabel }: { projectLabel: { singular: string; plural: string } }) {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [weekEntries, setWeekEntries] = useState<Entry[]>([])
@@ -118,14 +118,14 @@ export default function AdditionalHoursPanel() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
-              Project (optional)
+              {projectLabel.singular} (optional)
             </label>
             <select
               value={projectId}
               onChange={e => setProjectId(e.target.value)}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
-              <option value="">— Select project —</option>
+              <option value="">— Select {projectLabel.singular.toLowerCase()} —</option>
               {projects.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
