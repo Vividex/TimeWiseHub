@@ -1,6 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import SwmsBuilderForm from '@/components/projects/SwmsBuilderForm'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import type { CrewMemberOption } from '@/types/project-crew'
 import type { SwmsAuthoredContent } from '@/types/swms'
 
@@ -19,6 +20,8 @@ export default async function NewSwmsPage({
 
   const { data: project } = await supabase.from('projects').select('id, name, org_id').eq('id', projectId).single()
   if (!project) notFound()
+
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: crewRows }, { data: membership }] = await Promise.all([
     supabase.from('project_members').select('user_id').eq('project_id', projectId),
@@ -63,6 +66,7 @@ export default async function NewSwmsPage({
       currentUserDisplayName={user.email ?? 'You'}
       documentId={documentId ?? null}
       existingContent={existingContent}
+      projectLabel={terminology.project}
     />
   )
 }

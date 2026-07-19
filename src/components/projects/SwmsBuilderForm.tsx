@@ -10,7 +10,7 @@ import type { HrcwCategory, JsaHazard, SwmsRow, SwmsAuthoredContent } from '@/ty
 import type { CrewMemberOption } from '@/types/project-crew'
 
 export default function SwmsBuilderForm({
-  clientId, projectId, projectName, docType, crew, crewCertLicenceClasses, currentUserDisplayName, documentId, existingContent,
+  clientId, projectId, projectName, docType, crew, crewCertLicenceClasses, currentUserDisplayName, documentId, existingContent, projectLabel,
 }: {
   clientId: string
   projectId: string
@@ -21,6 +21,7 @@ export default function SwmsBuilderForm({
   currentUserDisplayName: string
   documentId: string | null
   existingContent: SwmsAuthoredContent | null
+  projectLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [category, setCategory] = useState<HrcwCategory | JsaHazard | ''>(existingContent?.category ?? '')
@@ -150,7 +151,7 @@ export default function SwmsBuilderForm({
               {!isJsa && missingHrwl.length > 0 && (
                 <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-3 text-xs font-semibold text-amber-700 dark:text-amber-400">
                   <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                  <span>This category typically requires: {missingHrwl.join(', ')}. No crew member on this project has a matching certification on file.</span>
+                  <span>This category typically requires: {missingHrwl.join(', ')}. No crew member on this {projectLabel.singular.toLowerCase()} has a matching certification on file.</span>
                 </div>
               )}
 
@@ -208,7 +209,7 @@ export default function SwmsBuilderForm({
                     {member.displayName}
                   </label>
                 ))}
-                {crew.length === 0 && <p className="text-xs font-medium text-gray-400">No crew assigned to this project yet.</p>}
+                {crew.length === 0 && <p className="text-xs font-medium text-gray-400">No crew assigned to this {projectLabel.singular.toLowerCase()} yet.</p>}
               </div>
 
               {error && <p className="mt-4 text-xs font-semibold text-red-600">{error}</p>}
