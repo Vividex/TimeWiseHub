@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import VideoCalendar from '@/components/video/VideoCalendar'
 import VideoPageClient from '@/components/video/VideoPageClient'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 type OrgMember = {
   userId: string
@@ -52,6 +53,7 @@ export default async function VideoPage() {
 
   const orgId = membership.org_id
   const canSchedule = ['owner', 'admin', 'manager'].includes(membership.role)
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: calls }, { data: projects }] = await Promise.all([
     supabase
@@ -95,12 +97,14 @@ export default async function VideoPage() {
           members={members}
           canSchedule={canSchedule}
           projects={(projects ?? []) as { id: string; name: string; colour: string }[]}
+          projectLabel={terminology.project}
         />
       </div>
       <VideoCalendar
         calls={(calls ?? []) as ScheduledCall[]}
         canManage={canSchedule}
         projects={(projects ?? []) as { id: string; name: string; colour: string }[]}
+        projectLabel={terminology.project}
       />
     </div>
   )

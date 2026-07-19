@@ -21,6 +21,7 @@ type Props = {
   calls: ScheduledCall[]
   canManage?: boolean
   projects?: { id: string; name: string; colour: string }[]
+  projectLabel: { singular: string; plural: string }
 }
 
 function startOfWeek(date: Date): Date {
@@ -69,7 +70,7 @@ function agendaDateLabel(date: Date, now: Date): string {
   return date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-export default function VideoCalendar({ calls: initialCalls, canManage = false, projects = [] }: Props) {
+export default function VideoCalendar({ calls: initialCalls, canManage = false, projects = [], projectLabel }: Props) {
   const [calls, setCalls] = useState(initialCalls)
   const [view, setView] = useState<'week' | 'month'>('week')
   const [anchor, setAnchor] = useState(() => new Date())
@@ -250,7 +251,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
             <div className="flex items-start gap-3">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 shrink-0 text-cyan-500"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Project</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">{projectLabel.singular}</p>
                 <select
                   value={selectedProjectId}
                   disabled={savingProject}
@@ -267,7 +268,7 @@ export default function VideoCalendar({ calls: initialCalls, canManage = false, 
                   }}
                   className="w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
                 >
-                  <option value="">No project</option>
+                  <option value="">No {projectLabel.singular.toLowerCase()}</option>
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}

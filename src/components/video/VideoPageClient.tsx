@@ -22,9 +22,10 @@ type Props = {
   members: OrgMember[]
   canSchedule: boolean
   projects?: Project[]
+  projectLabel: { singular: string; plural: string }
 }
 
-export default function VideoPageClient({ orgId, members, canSchedule, projects = [] }: Props) {
+export default function VideoPageClient({ orgId, members, canSchedule, projects = [], projectLabel }: Props) {
   const [showSchedule, setShowSchedule] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -70,6 +71,7 @@ export default function VideoPageClient({ orgId, members, canSchedule, projects 
           orgId={orgId}
           members={members}
           projects={projects}
+          projectLabel={projectLabel}
           onClose={() => setShowSchedule(false)}
         />
       )}

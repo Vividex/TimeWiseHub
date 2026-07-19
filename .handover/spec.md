@@ -49,7 +49,7 @@ Real Estate says "Listing"/"Listings" everywhere the app currently hardcodes the
 - [x] **JT-5** — Time tracking (plan Task JT-5).
 - [x] **JT-6** — Calendar (plan Task JT-6).
 - [x] **JT-7** — Invoices/Quotes picker + AI assistant chip (plan Task JT-7).
-- [ ] **JT-8** — Video scheduling (plan Task JT-8).
+- [x] **JT-8** — Video scheduling (plan Task JT-8).
 - [ ] **JT-9** — Dashboard tile & Insights (plan Task JT-9).
 - [ ] **JT-10** — Reports export, client detail tile, billing page (plan Task JT-10).
   - [ ] Final grep sweep (plan Task JT-10 Step 7) — conductor-only, no code change expected.

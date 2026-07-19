@@ -16,11 +16,12 @@ type Props = {
   members: OrgMember[]
   onClose: () => void
   projects?: { id: string; name: string; colour: string }[]
+  projectLabel: { singular: string; plural: string }
 }
 
 type ExternalGuest = { email: string; displayName: string }
 
-export default function ScheduleCallDialog({ orgId, members, onClose, projects = [] }: Props) {
+export default function ScheduleCallDialog({ orgId, members, onClose, projects = [], projectLabel }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
@@ -156,13 +157,13 @@ export default function ScheduleCallDialog({ orgId, members, onClose, projects =
 
           {projects.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Project (optional)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{projectLabel.singular} (optional)</label>
               <select
                 value={projectId}
                 onChange={e => setProjectId(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">No project</option>
+                <option value="">No {projectLabel.singular.toLowerCase()}</option>
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
