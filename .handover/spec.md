@@ -52,16 +52,18 @@ Real Estate says "Listing"/"Listings" everywhere the app currently hardcodes the
 - [x] **JT-8** — Video scheduling (plan Task JT-8).
 - [x] **JT-9** — Dashboard tile & Insights (plan Task JT-9).
 - [x] **JT-10** — Reports export, client detail tile, billing page (plan Task JT-10).
-  - [ ] Final grep sweep (plan Task JT-10 Step 7) — conductor-only, no code change expected.
+  - [x] Final grep sweep (plan Task JT-10 Step 7) — found and fixed one real gap
+    (`SwmsBuilderForm.tsx`, never in the original file scan).
   - [ ] Manual smoke (deferred to user): construction/trades org shows "Job"/"Jobs" everywhere;
     real estate org shows "Listing"/"Listings"; an unaffected profile (Consulting, or Tutoring
     which shows "Learning Plan") is unchanged.
 
 ## Acceptance checklist
-- [ ] JT-1 through JT-10: every in-scope area reads from `terminology.project` instead of a
+- [x] JT-1 through JT-10: every in-scope area reads from `terminology.project` instead of a
   hardcoded "Project" string.
-- [ ] Full `pnpm run build` passes clean end-to-end.
-- [ ] Final grep sweep turns up nothing but variable names, URLs, and expected non-matches.
+- [x] Full `pnpm run build` passes clean end-to-end.
+- [x] Final grep sweep turns up nothing but variable names, URLs, and expected non-matches (one
+  real gap found and fixed — see JT-10 note above).
 - [ ] Manual smoke per JT-10's manual-smoke item — user follow-up, not the conductor's to complete.
 
 ## Verification

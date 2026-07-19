@@ -120,6 +120,69 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
+## Notes (Project-to-Job Terminology) [complete, kept for reference]
+- **All 10 implementation items (JT-1 through JT-10) complete and verified (2026-07-19).** Every
+  turn was verified directly by the conductor (`git diff` against the plan + `pnpm run build`),
+  not taken on Codex's report alone. This was the highest-defect-rate plan of any phase this
+  session — three real, distinct research errors surfaced during execution, all caught by Codex
+  correctly refusing to guess (its established good pattern all session) rather than silently
+  deviating, plus one gap the final grep sweep itself caught:
+  1. **JT-4**: the plan only updated `swms/[documentId]/pdf/route.ts`'s `SwmsDocumentPdf` call
+     site, missing that `swms/route.ts` (the actual document-creation POST, not just the read-only
+     PDF endpoint) also constructs the same component with the same newly-required prop — a build
+     break, fixed directly.
+  2. **JT-7 and JT-8**: the plan's `NewInvoiceForm.tsx` Find block (JT-7) and
+     `ScheduleCallDialog.tsx` Find block (JT-8) were both accidentally written with text that
+     actually belongs to *different* files — a single research-time conflation between several
+     near-identical "Project (optional)" picker patterns across the codebase during the plan's
+     original batched-grep research pass, not two independent mistakes. Both files do have real
+     user-facing "project" text, just not the text the plan specified. Codex correctly reported
+     the mismatch rather than guessing (JT-8 held off on ALL four files in that turn rather than
+     leave a partial/broken prop chain); the conductor applied the correct edits directly in both
+     cases after re-reading the actual files.
+  3. **JT-10's own Step 7 final grep sweep** (part of the plan by design) caught a genuine gap:
+     `SwmsBuilderForm.tsx` was never in the original 44-file discovery scan at all and had two
+     literal "this project" strings — fixed directly, confirming the sweep step earns its place in
+     future large terminology-style phases.
+  Also self-caught before dispatch: JT-2's plan draft assumed `SidebarNav`/`MobileSidebar` needed
+  a new prop; direct inspection during plan-writing found there is no "Projects" nav link in this
+  app at all (Projects are reached via a client's own tab), so that assumption was corrected
+  before the turn was ever dispatched, not after a broken build. Two files flagged in the spec's
+  "Project detail sub-panels" area (`ProjectSwmsPanel.tsx`, `ProjectCrewPanel.tsx`,
+  `ProjectExpensesPanel.tsx`, `DocumentPanel.tsx`, `ProjectTaskGrid.tsx`, `ArchiveButton.tsx`)
+  turned out to contain zero literal "Project" text on direct inspection — correctly excluded
+  from every task rather than padded with no-op edits.
+  Full `pnpm run build` passes clean end-to-end after every turn. Remaining: the manual smoke test
+  (construction/trades org shows "Job"/"Jobs" everywhere; real estate org shows "Listing"/
+  "Listings"; an unaffected profile is unchanged) requires the user's own authenticated sessions
+  across multiple workspace profiles — same precedent as every prior phase.
+- Source spec: docs/superpowers/specs/2026-07-19-project-to-job-terminology-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-project-to-job-terminology.md
+- Direct follow-up to the same user message that started Project-Site Linking: "also for all
+  construction/trade/field businesses i would like to change 'project' for 'job'." User explicitly
+  sequenced this to come after site-linking ("Site→project link first"), so it queued for a full
+  session before being picked up.
+- **Real pre-existing finding, confirmed before any design work**: the `TerminologyKey` type and
+  `WORKSPACE_PROFILES` registry already had a `project` slot — Tutoring already mapped it to
+  "Learning Plan," Personal Training to "Package" — but it was consumed in exactly one file
+  (`src/lib/tutorial/steps/generic.ts`) across the whole codebase. This phase's wiring work
+  silently activates those two already-configured-but-dead values as a side effect, not just the
+  four newly-added profiles.
+- **Two real dead-code findings from the plan's own research, deliberately untouched**:
+  `ProjectCard.tsx`/`ProjectsGrid.tsx` and `TasksHub.tsx` are never imported anywhere in the live
+  app (`/dashboard/tasks` is a plain `redirect('/dashboard')` stub) — confirmed via grep before
+  excluding them, not assumed.
+- Scope explicitly excludes the AI assistant's own reasoning/system-prompt text, notification
+  emails, the help page, and public marketing pages — user chose "Core UI only" when asked how far
+  this pass should reach, after being shown the full breadth (44 files across several distinct
+  layers) up front.
+- Real estate gets its own word ("Listing"/"Listings") rather than sharing "Job" with the other
+  three profiles — user's own choice when offered the option, matching the existing
+  per-profile-terminology precedent (Tutoring/Personal Training already have their own words for
+  this same slot).
+- Codex handles text edits only; conductor runs all shell/build/git. No migration this phase — the
+  `project` terminology slot already existed, no conductor-only DB item.
+
 ## Notes (Project-Site Linking) [complete, kept for reference]
 - **Both implementation items (PS-1, PS-2) complete and verified (2026-07-19).** Every turn was
   verified directly by the conductor (Read the actual diffs + `pnpm run build`), not taken on
