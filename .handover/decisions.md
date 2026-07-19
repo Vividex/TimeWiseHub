@@ -5,7 +5,10 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- Multi-category JSA (current phase): zero cost — pure code, no schema change (existing free-text
+- SWMS/JSA In-App Reader Page (current phase): zero cost — pure code, no schema change (reuses the
+  existing `project_swms_documents` table/columns as-is), no new npm dependencies, no external API
+  calls.
+- Multi-category JSA (prior phase, complete): zero cost — pure code, no schema change (existing free-text
   `category` column reused), no new npm dependencies, no external API calls.
 - Project-to-Job Terminology (current phase): zero cost — pure code, no schema change (the
   `project` terminology slot already existed in the registry/types), no new npm dependencies, no
@@ -121,6 +124,69 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (SWMS/JSA In-App Reader Page) [complete, kept for reference]
+- **All 3 implementation items (R-1 through R-3) complete and verified (2026-07-19).** Every turn
+  was verified directly by the conductor (Read the actual new/changed files + `git diff` +
+  `pnpm run build`), not taken on Codex's report alone. Codex transcribed all 10 files across the
+  3 tasks with zero content discrepancies — the only real defect this phase was in the conductor's
+  own plan draft, caught by `pnpm run build` after R-1: the `normalizeSwmsContent` helper's first
+  draft typed its internal cast as `raw as (SwmsAuthoredContent & { category?: JsaHazard })`,
+  which `tsc` rejects — intersecting the union's `swms` branch (`category: HrcwCategory`,
+  required) with an added `{ category?: JsaHazard }` collapses that branch to `never`, which then
+  poisons the `docType === 'jsa'` narrowing later in the function. Fixed directly by the conductor
+  (not re-dispatched — a plan/design defect, not a file-content mismatch): dropped to an
+  `any`-based runtime check, matching the exact reasoning the original inline check (which this
+  helper replaced) already used — legacy DB rows don't conform to the current type by definition,
+  that's the whole reason the function exists. The plan file was updated to match reality with an
+  explanatory note, so a future re-read of the plan doesn't repeat the same mistake. Full
+  `pnpm run build` passes clean end-to-end after every turn; confirmed the new route
+  `/dashboard/clients/[id]/projects/[projectId]/swms/[documentId]` appears in the build's route
+  table. Remaining: the manual smoke test (open an authored SWMS/JSA from the Dashboard widget,
+  confirm content renders and Sign/Edit/Delete/Download PDF all work; open an uploaded document
+  and confirm "Open document" + Sign both work; confirm the project list no longer shows an inline
+  Sign button; confirm a pre-multi-category JSA, if one exists, still views/edits/PDFs correctly)
+  requires the user's own authenticated sessions across roles — same precedent as every prior
+  phase.
+- Source spec: docs/superpowers/specs/2026-07-19-swms-jsa-reader-page-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-swms-jsa-reader-page.md
+- Direct follow-up to a bug report: "when a jsa is created. it lands on my dashboard which is
+  good. i click on it and it opens up the project screen and the jsa is all the way down the
+  bottom. i also cant open it to read it. clicking does nothing, clicking view returns a web page
+  not available." The immediate crash (an em dash in `doc.name` breaking the `Content-Disposition`
+  header's Latin-1/ByteString encoding) was found via real Vercel production runtime error logs
+  and fixed separately, same day, before this phase started — this phase is the larger follow-up
+  feature request ("clicking it from the dashboard should take you directly to the jsa or swms
+  read file with the ability to sign down the bottom of that"), not a re-fix of that crash.
+- **Real architecture precedent confirmed before designing, per the user's own direct question**
+  ("is there a problem with the system currently in use to view invoices and quotes etc?"):
+  investigation confirmed invoices/quotes already use a real in-app HTML detail page
+  (`/dashboard/invoices/[id]/page.tsx`) as the primary view, with a separate `/print` route and
+  the `@react-pdf/renderer` component wired to exactly one consumer — a download-only
+  `/api/invoices/[id]/pdf` route reached via a "Print / PDF" link. SWMS/JSA had been PDF-only this
+  whole time (the entire viewing mechanism was one `NextResponse` from a react-pdf render, no HTML
+  fallback) — this phase brings it in line with the already-proven invoice pattern rather than
+  inventing something new.
+- **Real gap found via code tracing, not the original bug report, surfaced to the user before
+  building anything:** the PDF route had no backward-compat conversion for pre-multi-category JSA
+  documents (only the edit form's loader did) — meaning View was likely ALREADY broken again for
+  any JSA authored before the Multi-Category JSA phase shipped, independent of the em-dash bug.
+  Folded into this phase as Task 1 rather than opened as a separate phase, since the new reader
+  page would otherwise have inherited the exact same crash risk.
+- **Real platform risk flagged before finalizing the design:** an inline `<iframe>` embed for
+  uploaded (non-authored) documents was the original design, but Android WebView (used by the
+  Tauri Android build) generally has no built-in PDF renderer — an iframe pointed at a PDF signed
+  URL commonly renders blank there rather than erroring visibly. User chose to drop the iframe in
+  favour of an "Open document" link (same signed-URL-in-new-tab behaviour as before) plus the Sign
+  section on the same page, rather than risk an untestable-without-a-real-device regression.
+- **Deliberate behaviour change, confirmed with the user before implementing:** the project list's
+  (`ProjectSwmsPanel.tsx`) inline "I've read and understood this" acknowledge button is REMOVED,
+  not kept alongside the new page. Signing now only happens on the document page — consolidates
+  what were two acknowledge code paths (list + page) into one, and matches the original bug
+  report's own phrasing ("...with the ability to sign down the bottom of that").
+- No database migration — reuses the existing `project_swms_documents` table/columns as-is.
+- Codex handles text edits only; conductor runs all shell/build/git. No migration this phase, so
+  no conductor-only DB item.
 
 ## Notes (Multi-Category JSA) [complete, kept for reference]
 - **The single implementation item (MJ-1, 9 files) complete and verified (2026-07-19).** Every
