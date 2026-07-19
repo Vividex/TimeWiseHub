@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
-export default function DeleteProjectButton({ projectId, clientId }: { projectId: string; clientId: string }) {
+export default function DeleteProjectButton({ projectId, clientId, projectLabel }: { projectId: string; clientId: string; projectLabel: { singular: string; plural: string } }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -25,12 +25,12 @@ export default function DeleteProjectButton({ projectId, clientId }: { projectId
         disabled={loading}
         className="rounded-xl border border-red-300 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 active:scale-[0.965] disabled:opacity-50 dark:border-red-400/40 dark:text-red-400 dark:hover:bg-red-500/10"
       >
-        Delete project
+        Delete {projectLabel.singular.toLowerCase()}
       </button>
       <ConfirmDialog
         open={open}
-        title="Delete project?"
-        message="This will permanently delete the project and cannot be undone."
+        title={`Delete ${projectLabel.singular.toLowerCase()}?`}
+        message={`This will permanently delete the ${projectLabel.singular.toLowerCase()} and cannot be undone.`}
         confirmLabel="Delete"
         onConfirm={handleDelete}
         onCancel={() => setOpen(false)}

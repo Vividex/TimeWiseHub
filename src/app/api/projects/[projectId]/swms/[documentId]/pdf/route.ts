@@ -6,6 +6,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import type { DocumentProps } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import SwmsDocumentPdf, { type SwmsPdfSignature } from '@/components/projects/SwmsDocumentPdf'
 import type { SwmsAuthoredContent } from '@/types/swms'
 
@@ -30,6 +31,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ projectI
   }
 
   const { data: projectRow } = await supabase.from('projects').select('name').eq('id', projectId).single()
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const { data: acks } = await supabase
     .from('project_swms_acknowledgments')
@@ -73,6 +75,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ projectI
 
   const element = React.createElement(SwmsDocumentPdf, {
     projectName: projectRow?.name ?? '',
+    projectLabel: terminology.project.singular,
     docType: content.docType,
     category: content.category,
     supervisor: content.supervisor,

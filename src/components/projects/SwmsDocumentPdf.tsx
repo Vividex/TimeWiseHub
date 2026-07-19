@@ -11,6 +11,7 @@ export type SwmsPdfSignature = {
 
 type Props = {
   projectName: string
+  projectLabel: string
   docType: 'swms' | 'jsa'
   category: HrcwCategory | JsaHazard
   supervisor: string
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
 })
 
 export default function SwmsDocumentPdf({
-  projectName, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+  projectName, projectLabel, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
   whoAtRisk, equipment, emergencyProcedures, signatures,
 }: Props) {
   const title = docType === 'jsa' ? 'Job Safety Analysis' : 'Safe Work Method Statement'
@@ -70,7 +71,7 @@ export default function SwmsDocumentPdf({
 
         <View style={styles.metaRow}>
           <View style={styles.metaBlock}>
-            <Text style={styles.label}>Project</Text>
+            <Text style={styles.label}>{projectLabel}</Text>
             <Text style={styles.value}>{projectName}</Text>
           </View>
           <View style={styles.metaBlock}>

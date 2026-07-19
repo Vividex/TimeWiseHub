@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-server'
 import SwmsDocumentPdf from '@/components/projects/SwmsDocumentPdf'
 import type { SwmsAuthoredContent, HrcwCategory, JsaHazard, SwmsRow } from '@/types/swms'
 import { notifySwmsAwaitingSignature } from '@/lib/swms-notifications'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 // Flat shape for the raw, untrusted request body -- deliberately not
 // SwmsAuthoredContent's discriminated union. Destructuring docType into a
@@ -48,6 +49,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
     ? { docType: 'jsa', category: category as JsaHazard, supervisor, preparedBy, date, rows, ppe, consultedUserIds, whoAtRisk: whoAtRisk ?? '', equipment: equipment ?? '', emergencyProcedures: emergencyProcedures ?? '' }
     : { docType: 'swms', category: category as HrcwCategory, supervisor, preparedBy, date, rows, ppe, consultedUserIds }
 
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
+
   let editableExistingPath: string | null = null
   if (documentId) {
     const [{ data: existing }, { count: ackCount }] = await Promise.all([
@@ -60,7 +63,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   }
 
   const element = React.createElement(SwmsDocumentPdf, {
-    projectName, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
+    projectName, projectLabel: terminology.project.singular, docType, category, supervisor, preparedBy, date, rows, ppe, consultedNames,
     whoAtRisk: docType === 'jsa' ? whoAtRisk : undefined,
     equipment: docType === 'jsa' ? equipment : undefined,
     emergencyProcedures: docType === 'jsa' ? emergencyProcedures : undefined,

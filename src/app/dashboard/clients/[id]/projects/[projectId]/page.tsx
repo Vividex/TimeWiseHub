@@ -25,7 +25,7 @@ export default async function ClientProjectPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { supportsSwms, supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { supportsSwms, supportsMultiSite, terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const [{ data: project }, { data: tasks }, { data: documents }, { data: membership }, { data: expenses }] = await Promise.all([
     supabase.from('projects').select('*, clients(name), client_sites(address)').eq('id', projectId).single(),
@@ -111,7 +111,7 @@ export default async function ClientProjectPage({
   return (
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        <Link href={`/dashboard/clients/${id}/projects`} className="text-sm font-semibold text-cyan-600 hover:underline">← Projects</Link>
+        <Link href={`/dashboard/clients/${id}/projects`} className="text-sm font-semibold text-cyan-600 hover:underline">← {terminology.project.plural}</Link>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -134,7 +134,7 @@ export default async function ClientProjectPage({
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
               <ArchiveButton projectId={project.id} currentStatus={project.status} />
-              <DeleteProjectButton projectId={project.id} clientId={id} />
+              <DeleteProjectButton projectId={project.id} clientId={id} projectLabel={terminology.project} />
             </div>
           </div>
         </div>
