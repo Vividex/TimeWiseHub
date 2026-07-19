@@ -91,7 +91,7 @@ export default function ProjectCrewPanel({
             onChange={e => setAddingId(e.target.value)}
             className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
           >
-            <option value="">Add to crew…</option>
+            <option value="">Add team member</option>
             {availableMembers.map(m => <option key={m.userId} value={m.userId}>{m.displayName}</option>)}
           </select>
           <button
@@ -110,7 +110,7 @@ export default function ProjectCrewPanel({
             onChange={e => setAddingCrewId(e.target.value)}
             className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
           >
-            <option value="">Add a crew…</option>
+            <option value="">Add crew</option>
             {addableCrewGroups.map(g => (
               <option key={g.id} value={g.id}>{g.name} ({g.toAdd.length} to add)</option>
             ))}
