@@ -16,9 +16,11 @@ const COLOURS = [
 export default function NewClientProjectButton({
   clientId,
   orgId,
+  projectLabel,
 }: {
   clientId: string
   orgId: string | null
+  projectLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -45,7 +47,7 @@ export default function NewClientProjectButton({
     })
     const result = await res.json() as { error?: string }
     setLoading(false)
-    if (!res.ok) { setError(result.error ?? 'Could not create project'); return }
+    if (!res.ok) { setError(result.error ?? `Could not create ${projectLabel.singular.toLowerCase()}`); return }
     setName(''); setColour('#2563eb'); setDueDate('')
     setOpen(false)
     router.refresh()
@@ -58,13 +60,13 @@ export default function NewClientProjectButton({
         onClick={() => setOpen(o => !o)}
         className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold"
       >
-        {open ? 'Cancel' : '+ New project'}
+        {open ? 'Cancel' : `+ New ${projectLabel.singular.toLowerCase()}`}
       </button>
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Project name</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">{projectLabel.singular} name</label>
             <input
               type="text"
               required
@@ -110,7 +112,7 @@ export default function NewClientProjectButton({
             disabled={loading || !name.trim()}
             className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50"
           >
-            {loading ? 'Creating…' : 'Create project'}
+            {loading ? 'Creating…' : `Create ${projectLabel.singular.toLowerCase()}`}
           </button>
         </form>
       )}

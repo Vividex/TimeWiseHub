@@ -44,7 +44,7 @@ Real Estate says "Listing"/"Listings" everywhere the app currently hardcodes the
 
 - [x] **JT-1** — Registry: add Job/Listing terminology values (plan Task JT-1).
 - [x] **JT-2** — Page title: DashboardShell + dashboard/layout.tsx (plan Task JT-2).
-- [ ] **JT-3** — Projects list & creation (plan Task JT-3).
+- [x] **JT-3** — Projects list & creation (plan Task JT-3).
 - [ ] **JT-4** — Project detail back-link, delete button, generated PDF (plan Task JT-4).
 - [ ] **JT-5** — Time tracking (plan Task JT-5).
 - [ ] **JT-6** — Calendar (plan Task JT-6).

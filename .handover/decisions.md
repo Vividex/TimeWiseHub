@@ -5,6 +5,9 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
+- Project-to-Job Terminology (current phase): zero cost — pure code, no schema change (the
+  `project` terminology slot already existed in the registry/types), no new npm dependencies, no
+  external API calls.
 - SWMS Form Builder (current phase): zero cost — pure code + one additive DB migration
   (`category`/`content`/`source` on `project_swms_documents`, `licence_class` on
   `certifications`, plus a storage RLS fix). No new npm dependencies — `@react-pdf/renderer` is

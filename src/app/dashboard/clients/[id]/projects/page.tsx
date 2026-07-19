@@ -43,11 +43,11 @@ export default async function ClientProjectsPage({ params }: { params: Promise<{
     <div className="px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <Link href={`/dashboard/clients/${id}`} className="text-sm font-semibold text-cyan-600 hover:underline">← {client.name}</Link>
-        <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Projects</h1>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">{terminology.project.plural}</h1>
 
-        <NewClientProjectButton clientId={id} orgId={orgId} />
+        <NewClientProjectButton clientId={id} orgId={orgId} projectLabel={terminology.project} />
 
-        <TileGrid empty={`No projects yet for this ${terminology.client.singular.toLowerCase()}.`}>
+        <TileGrid empty={`No ${terminology.project.plural.toLowerCase()} yet for this ${terminology.client.singular.toLowerCase()}.`}>
           {items.map(p => (
             <Tile
               key={p.id}

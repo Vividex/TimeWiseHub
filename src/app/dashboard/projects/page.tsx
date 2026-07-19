@@ -18,7 +18,7 @@ export default async function ProjectsPage() {
   const subscription = await getSubscription(user.id)
   const limitRaw = maxActiveProjects(subscription)
   const limit = isFinite(limitRaw) ? limitRaw : null
-  const { supportsMultiSite } = await getWorkspaceProfileForUser(supabase, user.id)
+  const { supportsMultiSite, terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const projectQuery = orgId
     ? supabase.from('projects').select('id, name, colour, due_date, status, clients(name), tasks(id, status)', { count: 'exact' }).eq('org_id', orgId).eq('status', 'active').order('name')
@@ -49,7 +49,7 @@ export default async function ProjectsPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Active projects</h1>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Active {terminology.project.plural.toLowerCase()}</h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {activeCount} active{limit !== null ? ` / ${limit} max` : ''}
             </p>
@@ -59,7 +59,7 @@ export default async function ProjectsPage() {
           </Link>
         </div>
 
-        <ProjectForm userId={user.id} orgId={orgId} activeProjectCount={activeCount} activeProjectLimit={limit} supportsMultiSite={!!supportsMultiSite} />
+        <ProjectForm userId={user.id} orgId={orgId} activeProjectCount={activeCount} activeProjectLimit={limit} supportsMultiSite={!!supportsMultiSite} projectLabel={terminology.project} />
 
         {projectsError && (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 dark:bg-red-950 dark:text-red-400">
@@ -67,7 +67,7 @@ export default async function ProjectsPage() {
           </p>
         )}
 
-        <TileGrid empty="No active projects yet. Create one above or start from a client.">
+        <TileGrid empty={`No active ${terminology.project.plural.toLowerCase()} yet. Create one above or start from a client.`}>
           {projects.map(p => (
             <Tile
               key={p.id}

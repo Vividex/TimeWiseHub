@@ -24,12 +24,14 @@ export default function ProjectForm({
   activeProjectCount,
   activeProjectLimit,
   supportsMultiSite,
+  projectLabel,
 }: {
   userId: string
   orgId: string | null
   activeProjectCount: number
   activeProjectLimit: number | null
   supportsMultiSite: boolean
+  projectLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -72,7 +74,7 @@ export default function ProjectForm({
     setError(null)
 
     if (blocked) {
-      setError(`Free plan is limited to ${activeProjectLimit} active projects.`)
+      setError(`Free plan is limited to ${activeProjectLimit} active ${projectLabel.plural.toLowerCase()}.`)
       setLoading(false)
       return
     }
@@ -94,7 +96,7 @@ export default function ProjectForm({
     })
     const result = await res.json() as { error?: string }
 
-    if (!res.ok) { setError(result.error ?? 'Could not create project'); setLoading(false); return }
+    if (!res.ok) { setError(result.error ?? `Could not create ${projectLabel.singular.toLowerCase()}`); setLoading(false); return }
 
     setName(''); setDescription(''); setDueDate('')
     setClientId(''); setSiteId(''); setBudgetHours(''); setBudgetDollars('')
@@ -106,11 +108,11 @@ export default function ProjectForm({
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <button onClick={() => setOpen(o => !o)} disabled={blocked} className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50">
-        {open ? 'Cancel' : '+ New project'}
+        {open ? 'Cancel' : `+ New ${projectLabel.singular.toLowerCase()}`}
       </button>
       {atProjectLimit && (
         <p className="mt-3 text-sm font-semibold text-amber-600">
-          Free plan limit reached: {activeProjectLimit} active projects. Archive a project or upgrade to Pro.
+          Free plan limit reached: {activeProjectLimit} active {projectLabel.plural.toLowerCase()}. Archive a {projectLabel.singular.toLowerCase()} or upgrade to Pro.
         </p>
       )}
 
@@ -139,7 +141,7 @@ export default function ProjectForm({
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500">Project name</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-500">{projectLabel.singular} name</label>
             <input type="text" required value={name} onChange={e => setName(e.target.value)}
               placeholder="e.g. Website Redesign"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
@@ -148,7 +150,7 @@ export default function ProjectForm({
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">Description (optional)</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)}
-              rows={2} placeholder="What is this project about?"
+              rows={2} placeholder={`What is this ${projectLabel.singular.toLowerCase()} about?`}
               className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
           </div>
 
@@ -212,7 +214,7 @@ export default function ProjectForm({
 
           <button type="submit" disabled={loading}
             className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 px-4 py-2 text-sm font-semibold disabled:opacity-50">
-            {loading ? 'Creating…' : 'Create project'}
+            {loading ? 'Creating…' : `Create ${projectLabel.singular.toLowerCase()}`}
           </button>
         </form>
       )}
