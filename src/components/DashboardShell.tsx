@@ -25,10 +25,11 @@ function getTitle(
   pathname: string,
   clientLabel: { singular: string; plural: string },
   programLabel: { singular: string; plural: string },
+  projectLabel: { singular: string; plural: string },
 ) {
-  if (pathname.includes('/projects/')) return 'Project'
+  if (pathname.includes('/projects/')) return projectLabel.singular
   if (pathname.includes('/sessions/')) return 'Session'
-  if (pathname.endsWith('/projects')) return 'Projects'
+  if (pathname.endsWith('/projects')) return projectLabel.plural
   if (pathname.endsWith('/sessions')) return 'Sessions'
   if (pathname.endsWith('/notes')) return 'Progress notes'
   if (pathname === '/dashboard/clients') return clientLabel.plural
@@ -47,16 +48,18 @@ export default function DashboardShell({
   email,
   clientLabel,
   programLabel,
+  projectLabel,
   navOverrides,
 }: {
   children: React.ReactNode
   email: string
   clientLabel: { singular: string; plural: string }
   programLabel: { singular: string; plural: string }
+  projectLabel: { singular: string; plural: string }
   navOverrides?: NavOverrides
 }) {
   const pathname = usePathname()
-  const title = getTitle(pathname, clientLabel, programLabel)
+  const title = getTitle(pathname, clientLabel, programLabel, projectLabel)
   const isPrintRoute = (pathname.startsWith('/dashboard/invoices/') || pathname.startsWith('/dashboard/incident-reports/')) && pathname.endsWith('/print')
   const isVideoRoom = /^\/dashboard\/video\/[^/]+/.test(pathname)
 
