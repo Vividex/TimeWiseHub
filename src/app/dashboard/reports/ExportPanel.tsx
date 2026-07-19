@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import ReportsClient from '@/components/reports/ReportsClient'
 import { canExportReports, getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export async function ExportPanel() {
   const supabase = await createClient()
@@ -16,6 +17,7 @@ export async function ExportPanel() {
 
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '')
   const subscription = await getSubscription(user.id)
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   if (!canExportReports(subscription)) {
     return (
@@ -38,6 +40,7 @@ export async function ExportPanel() {
         userId={user.id}
         orgId={membership?.org_id ?? null}
         isManager={isManager && isTeamPlan(subscription)}
+        projectLabel={terminology.project}
       />
     </div>
   )

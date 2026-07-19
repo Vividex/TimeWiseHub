@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getSubscription, isActive } from '@/lib/subscription'
 import { PLANS } from '@/lib/stripe'
 import { UpgradeButton, ManageButton } from '@/components/billing/BillingClient'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 function PlanBadge({ plan }: { plan: string }) {
   const colours: Record<string, string> = {
@@ -29,6 +30,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const sub = await getSubscription(user.id)
   const { success } = await searchParams
   const active = isActive(sub)
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   return (
     <div className="px-4 py-8 sm:px-8 dark:bg-slate-950">
@@ -93,7 +95,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
               <p className="mb-1 text-3xl font-black text-gray-900">${PLANS.pro.priceAud}<span className="text-sm font-semibold text-gray-400">/mo</span></p>
               <p className="mb-6 text-xs font-semibold uppercase tracking-wide text-gray-400">AUD · Individual</p>
               <ul className="mb-6 space-y-2 text-sm font-semibold text-gray-600">
-                <li>✓ Unlimited projects</li>
+                <li>✓ Unlimited {terminology.project.plural.toLowerCase()}</li>
                 <li>✓ Full time history</li>
                 <li>✓ All features</li>
                 <li>✓ Export reports</li>
@@ -127,7 +129,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Free tier limits</p>
             <ul className="mt-2 space-y-1 text-sm font-semibold text-gray-600">
-              <li>· Up to {PLANS.free.projects} active projects</li>
+              <li>· Up to {PLANS.free.projects} active {terminology.project.plural.toLowerCase()}</li>
               <li>· {PLANS.free.historyDays} days time history</li>
               <li>· Individual use only</li>
             </ul>

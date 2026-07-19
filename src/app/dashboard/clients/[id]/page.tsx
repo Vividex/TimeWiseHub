@@ -123,7 +123,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Activity</p>
           <TileGrid>
-            <Tile title="Projects" icon={FolderKanban} accent="#2563eb" stat={projectCount ?? 0} href={`/dashboard/clients/${id}/projects`} />
+            <Tile title={terminology.project.plural} icon={FolderKanban} accent="#2563eb" stat={projectCount ?? 0} href={`/dashboard/clients/${id}/projects`} />
             <Tile title="Sessions" icon={CalendarClock} accent="#0891b2" stat={sessionCount ?? 0} href={`/dashboard/clients/${id}/sessions`} />
             <Tile title="Progress notes" icon={NotebookPen} accent="#7c3aed" stat={noteCount ?? 0} href={`/dashboard/clients/${id}/notes`} />
             {profileKey === 'tutoring' && (

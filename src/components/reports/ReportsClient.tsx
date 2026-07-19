@@ -135,10 +135,11 @@ function DownloadBtn({ onClick, loading, label }: { onClick: () => void; loading
 
 // ── Main component ────────────────────────────────────────────
 
-export default function ReportsClient({ userId, orgId, isManager }: {
+export default function ReportsClient({ userId, orgId, isManager, projectLabel }: {
   userId: string
   orgId: string | null
   isManager: boolean
+  projectLabel: { singular: string; plural: string }
 }) {
   const [timeFrom, setTimeFrom] = useState(monthStart)
   const [timeTo, setTimeTo]     = useState(today)
@@ -188,7 +189,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
     })
 
     const rows: (string | number | null)[][] = [
-      ['Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Hours (hm)', 'Award Flags', 'Task', 'Project', 'Description'],
+      ['Date', 'Day', 'Start', 'End', 'Hours (decimal)', 'Hours (hm)', 'Award Flags', 'Task', projectLabel.singular, 'Description'],
     ]
     const weeklyTotals: Record<string, number> = {}
     ;(data ?? []).forEach(e => {
@@ -503,7 +504,7 @@ export default function ReportsClient({ userId, orgId, isManager }: {
 
           <ReportCard
             title="Time Log"
-            description="All time entries for the selected period — includes decimal hours, task, project, and payroll flags for overtime, weekends, and public holidays.">
+            description={`All time entries for the selected period — includes decimal hours, task, ${projectLabel.singular.toLowerCase()}, and payroll flags for overtime, weekends, and public holidays.`}>
             <DateRange from={timeFrom} to={timeTo} onFrom={setTimeFrom} onTo={setTimeTo} />
             <DownloadBtn onClick={downloadTimeLog} loading={loading === 'time'} label="Download Time Log CSV" />
           </ReportCard>
