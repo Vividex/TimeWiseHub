@@ -1,53 +1,69 @@
-# Multi-Category JSA
+# SWMS/JSA In-App Reader Page
 
 ## Goal
-Let a JSA cover multiple hazard categories in one document (e.g. ladder work + power tools),
-grouped and collapsible on screen and in the generated PDF. SWMS stays single-category.
+Give SWMS/JSA documents a real in-app HTML page (mirroring the existing invoice detail page
+pattern) reachable directly from the Dashboard and push notifications, with sign-in-place at the
+bottom — replacing the current PDF-in-new-tab-only "View" flow. Also closes a real gap found while
+tracing this code path: pre-multi-category JSA documents can crash wherever `content` is read
+without the backward-compat conversion that today only exists in the edit form's loader.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-19-multi-category-jsa-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-19-multi-category-jsa.md` — one task, the exact
+- Source spec: `docs/superpowers/specs/2026-07-19-swms-jsa-reader-page-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-19-swms-jsa-reader-page.md` — 3 tasks, the exact
   code to transcribe for every file is in that plan. This checklist is the tracker; the plan file
   is the source of truth for content.
-- No database migration — the existing free-text `category` column on `project_swms_documents`
-  stores a comma-joined list of hazard keys for multi-category JSA (no filtering query anywhere
-  reads that column, so no schema change needed).
-- SWMS is entirely unaffected — single category, unchanged dropdown, unchanged licence-class
-  cross-check.
-- Unchecking a JSA category deletes its rows (including edits) from the form — intentional,
-  flagged directly in the UI, not a bug to "fix" during implementation.
-- This is one cohesive item, not several — `types/swms.ts`'s field rename (`category` →
-  `categories` on the JSA branch) cascades to every other file simultaneously under TypeScript
-  strict mode, so there is no way to split it into independently-buildable pieces.
+- No database migration — reuses the existing `project_swms_documents` table/columns as-is.
+- Uploaded (non-authored) documents do NOT get an inline `<iframe>` embed — Android WebView (the
+  Tauri Android build) generally has no built-in PDF renderer, so embedding risked a blank page.
+  They get an "Open document" link (same signed-URL-in-new-tab behaviour as today) plus the Sign
+  section below it, on the same new page.
+- The project list's (`ProjectSwmsPanel.tsx`) inline "I've read and understood this" button is
+  REMOVED as part of this phase, not kept as a shortcut — signing now only happens on the new
+  document page, consolidating what were two acknowledge code paths into one. This is a deliberate
+  behaviour change, not a bug if a returning user doesn't see it on the list anymore.
+- Task order matters: Task 1's normalization fix must land before Task 2, since the new reader
+  page (Task 2) reads the same `content` shape and would otherwise inherit the same crash risk for
+  pre-multi-category JSA documents.
 
 ## Rules for Codex
 - Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP) — the conductor
   handles those.
 - Transcribe the plan's code exactly — every step's Find/Replace (or full-file Create/Replace)
-  block in `docs/superpowers/plans/2026-07-19-multi-category-jsa.md` Task 1 is complete, real
-  content, across all 9 files it lists.
-- If any Find block doesn't match a file's actual current content, report it as a blocker with
-  the exact text searched for and what the file actually contains nearby — do not guess.
+  block in `docs/superpowers/plans/2026-07-19-swms-jsa-reader-page.md` is complete, real content.
+- If any Find block doesn't match a file's actual current content, report it as a blocker with the
+  exact text searched for and what the file actually contains nearby — do not guess.
 
 ## Rules for conductor (Claude)
-- `pnpm run build` after the turn — must pass before ticking the box and committing.
+- `pnpm run build` after every turn — must pass before ticking the box and committing.
 - No migration this phase — no conductor-only SQL item.
 
 ---
 
-- [x] **MJ-1** — Multi-category JSA (plan Task 1, all 9 files).
-  - [ ] Manual smoke (deferred to user): build a new JSA with 2 categories checked, confirm
-    grouped/collapsible rows and deduplicated PPE; uncheck one and confirm only its rows go;
-    generate the PDF and confirm matching grouping; open an existing single-category JSA and
-    confirm it loads correctly.
+- [x] **R-1** — Fix the multi-category JSA backward-compat gap (plan Task 1, 3 files:
+  `src/lib/normalize-swms-content.ts` new, `pdf/route.ts` + `swms/new/page.tsx` edited).
+- [ ] **R-2** — Build the reader page and its components (plan Task 2, 5 files: 3 new components,
+  new `[documentId]/page.tsx`, `ProjectSwmsPanel.tsx` full-file replacement).
+- [ ] **R-3** — Point the three entry points at the new page (plan Task 3, 2 files:
+  `DashboardUpcoming.tsx`, `swms-notifications.ts`).
+  - [ ] Manual smoke (deferred to user): open an authored SWMS/JSA from the Dashboard widget and
+    confirm it lands on the document page (not the project page), content renders, Sign works,
+    Edit/Delete/Download PDF work for a manager; open an uploaded document and confirm "Open
+    document" + Sign both work; confirm the project list no longer shows an inline Sign button;
+    if a pre-multi-category JSA still exists, confirm its View/Edit/PDF all still work.
 
 ## Acceptance checklist
-- [x] SWMS documents are completely unaffected.
-- [x] Checking multiple JSA categories merges rows (grouped) and PPE (flat, deduplicated).
-- [x] Unchecking a category removes its rows only.
-- [x] Generated PDF groups rows the same way the screen does.
-- [x] Editing a pre-existing single-category JSA loads correctly with rows retroactively tagged.
-- [x] Full `pnpm run build` passes clean.
+- [ ] Pre-multi-category JSA content is normalized wherever `content` is read (PDF route, edit
+  form, new reader page) — not just in the edit form as before.
+- [ ] New route `/dashboard/clients/[id]/projects/[projectId]/swms/[documentId]` renders authored
+  SWMS/JSA content as HTML, grouped by category for JSA.
+- [ ] Uploaded documents show an "Open document" link (no iframe embed) on the same page shape.
+- [ ] Sign section works on the new page for both authored and uploaded documents.
+- [ ] Manager header actions (Edit, Delete, Download PDF) appear correctly gated by `canManage`
+  and document source.
+- [ ] Project list (`ProjectSwmsPanel.tsx`) no longer has an inline Sign button; View navigates to
+  the new page.
+- [ ] Dashboard "Today" widget and the push notification both link directly to the document page.
+- [ ] Full `pnpm run build` passes clean.
 - [ ] Manual smoke — user follow-up, not the conductor's to complete.
 
 ## Verification

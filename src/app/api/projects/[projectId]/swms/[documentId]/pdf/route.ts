@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase-service'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 import SwmsDocumentPdf, { type SwmsPdfSignature } from '@/components/projects/SwmsDocumentPdf'
+import { normalizeSwmsContent } from '@/lib/normalize-swms-content'
 import type { SwmsAuthoredContent } from '@/types/swms'
 
 export async function GET(req: Request, { params }: { params: Promise<{ projectId: string; documentId: string }> }) {
@@ -39,7 +40,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ projectI
     .eq('swms_document_id', documentId)
     .order('acknowledged_at', { ascending: true })
 
-  const content = doc.content as SwmsAuthoredContent
+  const content = normalizeSwmsContent(doc.content as SwmsAuthoredContent)
   const consultedUserIds = content.consultedUserIds ?? []
   const ackUserIds = (acks ?? []).map(a => a.user_id)
   const allUserIds = Array.from(new Set([...ackUserIds, ...consultedUserIds]))

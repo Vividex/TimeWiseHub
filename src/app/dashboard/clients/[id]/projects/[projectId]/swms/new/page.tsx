@@ -2,8 +2,9 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import SwmsBuilderForm from '@/components/projects/SwmsBuilderForm'
 import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
+import { normalizeSwmsContent } from '@/lib/normalize-swms-content'
 import type { CrewMemberOption } from '@/types/project-crew'
-import type { SwmsAuthoredContent, SwmsRow } from '@/types/swms'
+import type { SwmsAuthoredContent } from '@/types/swms'
 
 export default async function NewSwmsPage({
   params,
@@ -50,19 +51,7 @@ export default async function NewSwmsPage({
   let existingContent: SwmsAuthoredContent | null = null
   if (documentId) {
     const { data: doc } = await supabase.from('project_swms_documents').select('content').eq('id', documentId).eq('project_id', projectId).single()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const raw = (doc?.content as any) ?? null
-    if (raw && raw.docType === 'jsa' && !raw.categories && raw.category) {
-      // Pre-multi-category JSA: the whole document was for exactly one hazard, so every row can
-      // be unambiguously tagged with it.
-      existingContent = {
-        ...raw,
-        categories: [raw.category],
-        rows: (raw.rows ?? []).map((r: SwmsRow) => ({ ...r, category: raw.category })),
-      } as SwmsAuthoredContent
-    } else {
-      existingContent = raw as SwmsAuthoredContent | null
-    }
+    existingContent = doc?.content ? normalizeSwmsContent(doc.content as SwmsAuthoredContent) : null
   }
 
   const docType: 'swms' | 'jsa' = existingContent?.docType ?? (type === 'jsa' ? 'jsa' : 'swms')
