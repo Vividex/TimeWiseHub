@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import CalendarView from '@/components/calendar/CalendarView'
 import NudgeBanner from '@/components/NudgeBanner'
 import { getAustralianPublicHolidays, type AustralianState } from '@/lib/australian-public-holidays'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 export default async function CalendarPage() {
   const supabase = await createClient()
@@ -45,6 +46,8 @@ export default async function CalendarPage() {
       .neq('status', 'completed'),
   ])
 
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
+
   const holidays = profile?.au_state
     ? [year - 1, year, year + 1].flatMap(holidayYear =>
       getAustralianPublicHolidays(holidayYear, profile.au_state as AustralianState).map(holiday => ({
@@ -71,6 +74,7 @@ export default async function CalendarPage() {
           tasks={tasks ?? []}
           leaveRequests={[...(leave ?? []), ...holidays]}
           sessions={sessions ?? []}
+          projectLabel={terminology.project}
         />
       </div>
     </div>

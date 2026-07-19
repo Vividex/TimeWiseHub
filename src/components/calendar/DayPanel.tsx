@@ -3,18 +3,18 @@
 import Link from 'next/link'
 import type { CalendarItem } from './CalendarView'
 
-const TYPE_LABELS: Record<string, string> = { event: 'Event', project: 'Project deadline', task: 'Task due', leave: 'Approved leave', session: 'Session' }
-
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function DayPanel({ date, items, onAddEvent, onClose }: {
+export default function DayPanel({ date, items, onAddEvent, onClose, projectLabel }: {
   date: string
   items: CalendarItem[]
   onAddEvent: () => void
   onClose: () => void
+  projectLabel: { singular: string; plural: string }
 }) {
+  const TYPE_LABELS: Record<string, string> = { event: 'Event', project: `${projectLabel.singular} deadline`, task: 'Task due', leave: 'Approved leave', session: 'Session' }
   const formatted = new Date(date + 'T00:00:00').toLocaleDateString('default', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (

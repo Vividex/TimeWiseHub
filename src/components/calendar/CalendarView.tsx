@@ -33,10 +33,6 @@ const LEAVE_LABELS: Record<string, string> = {
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const PRIORITY_COLOURS: Record<string, string> = { urgent: '#dc2626', high: '#ea580c', normal: '#2563eb', low: '#6b7280' }
 
-const TYPE_LABELS: Record<CalendarItem['type'], string> = {
-  event: 'Event', project: 'Project', task: 'Task', leave: 'Leave', session: 'Session',
-}
-
 function toDateStr(d: Date) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -107,7 +103,7 @@ function buildItems(events: CalEvent[], projects: Project[], tasks: Task[], leav
   return items
 }
 
-export default function CalendarView({ userId, orgId, initialEvents, projects, tasks, leaveRequests = [], sessions = [] }: {
+export default function CalendarView({ userId, orgId, initialEvents, projects, tasks, leaveRequests = [], sessions = [], projectLabel }: {
   userId: string
   orgId: string | null
   initialEvents: CalEvent[]
@@ -115,7 +111,11 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
   tasks: Task[]
   leaveRequests?: LeaveRequest[]
   sessions?: Session[]
+  projectLabel: { singular: string; plural: string }
 }) {
+  const TYPE_LABELS: Record<CalendarItem['type'], string> = {
+    event: 'Event', project: projectLabel.singular, task: 'Task', leave: 'Leave', session: 'Session',
+  }
   const [events, setEvents] = useState(initialEvents)
   const [current, setCurrent] = useState(new Date())
   const [selected, setSelected] = useState<string | null>(null)
@@ -279,6 +279,7 @@ export default function CalendarView({ userId, orgId, initialEvents, projects, t
           items={byDate[selected] ?? []}
           onAddEvent={() => openNewEvent(selected)}
           onClose={() => setSelected(null)}
+          projectLabel={projectLabel}
         />
       )}
 
