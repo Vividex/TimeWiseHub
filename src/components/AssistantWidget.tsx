@@ -41,11 +41,13 @@ export default function AssistantWidget({
   open,
   onClose,
   onHeaderPointerDown,
+  projectLabel,
 }: {
   userEmail: string
   open: boolean
   onClose: () => void
   onHeaderPointerDown?: (e: React.PointerEvent) => void
+  projectLabel: { singular: string; plural: string }
 }) {
   const [view, setView] = useState<View>('chat')
   const [input, setInput] = useState('')
@@ -293,7 +295,7 @@ export default function AssistantWidget({
     'Check outstanding invoices',
     'What tasks are overdue?',
     'Log time for today',
-    'Show active projects',
+    `Show active ${projectLabel.plural.toLowerCase()}`,
   ]
 
   return (

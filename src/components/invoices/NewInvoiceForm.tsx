@@ -16,12 +16,14 @@ export default function NewInvoiceForm({
   initialClientId,
   isQuote = false,
   clientLabel,
+  projectLabel,
 }: {
   orgId: string | null
   userId: string
   initialClientId?: string
   isQuote?: boolean
   clientLabel: { singular: string; plural: string }
+  projectLabel: { singular: string; plural: string }
 }) {
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
@@ -71,7 +73,7 @@ export default function NewInvoiceForm({
     const projectMap = Object.fromEntries((projects ?? []).map(p => [p.id, p.name]))
 
     if (!projectIds.length) {
-      setError('This client has no projects. Assign projects to this client first.')
+      setError(`This client has no ${projectLabel.plural.toLowerCase()}. Assign ${projectLabel.plural.toLowerCase()} to this client first.`)
       setLoadingEntries(false)
       return
     }
@@ -112,7 +114,7 @@ export default function NewInvoiceForm({
       const projectId = e.task_id ? taskProjectMap[e.task_id] : (e.project_id ?? null)
       if (!projectId || !projectMap[projectId]) return
       const key = projectId
-      if (!byProject[key]) byProject[key] = { name: projectMap[projectId] ?? 'Unknown project', hours: 0, rate: e.billable_rate ?? defaultRate, ids: [] }
+      if (!byProject[key]) byProject[key] = { name: projectMap[projectId] ?? `Unknown ${projectLabel.singular.toLowerCase()}`, hours: 0, rate: e.billable_rate ?? defaultRate, ids: [] }
       byProject[key].hours += (e.duration_seconds ?? 0) / 3600
       byProject[key].ids.push(e.id)
     })

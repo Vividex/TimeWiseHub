@@ -33,6 +33,7 @@ export default async function NewQuotePage({
           initialClientId={clientId}
           isQuote={true}
           clientLabel={terminology.client}
+          projectLabel={terminology.project}
         />
       </div>
     </div>

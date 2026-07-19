@@ -82,7 +82,7 @@ export default async function DashboardLayout({
       <ChatRealtimeProvider userId={user.id} orgId={orgId ?? ''}>
         <DashboardShell email={user.email ?? ''} clientLabel={terminology.client} programLabel={terminology.program} projectLabel={terminology.project} navOverrides={navOverrides}>
           {children}
-          <FloatingWidgets userEmail={user.email ?? ''} />
+          <FloatingWidgets userEmail={user.email ?? ''} projectLabel={terminology.project} />
         </DashboardShell>
       </ChatRealtimeProvider>
       <WelcomeModal />

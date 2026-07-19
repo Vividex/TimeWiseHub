@@ -36,7 +36,7 @@ function makeDragHandler(
   }
 }
 
-export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
+export default function FloatingWidgets({ userEmail, projectLabel }: { userEmail: string; projectLabel: { singular: string; plural: string } }) {
   const [open, setOpen] = useState<OpenWidget>(null)
   const [chatPos, setChatPos] = useState<{ x: number; y: number } | null>(null)
   const [assistantPos, setAssistantPos] = useState<{ x: number; y: number } | null>(null)
@@ -106,6 +106,7 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
               userEmail={userEmail}
               open={true}
               onClose={() => setOpen(null)}
+              projectLabel={projectLabel}
             />
           </div>
         ) : (
@@ -115,6 +116,7 @@ export default function FloatingWidgets({ userEmail }: { userEmail: string }) {
               open={true}
               onClose={() => setOpen(null)}
               onHeaderPointerDown={handleAssistantHeaderPointerDown}
+              projectLabel={projectLabel}
             />
           </div>
         )
