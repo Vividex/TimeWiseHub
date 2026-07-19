@@ -41,7 +41,7 @@ without the backward-compat conversion that today only exists in the edit form's
 
 - [x] **R-1** — Fix the multi-category JSA backward-compat gap (plan Task 1, 3 files:
   `src/lib/normalize-swms-content.ts` new, `pdf/route.ts` + `swms/new/page.tsx` edited).
-- [ ] **R-2** — Build the reader page and its components (plan Task 2, 5 files: 3 new components,
+- [x] **R-2** — Build the reader page and its components (plan Task 2, 5 files: 3 new components,
   new `[documentId]/page.tsx`, `ProjectSwmsPanel.tsx` full-file replacement).
 - [ ] **R-3** — Point the three entry points at the new page (plan Task 3, 2 files:
   `DashboardUpcoming.tsx`, `swms-notifications.ts`).

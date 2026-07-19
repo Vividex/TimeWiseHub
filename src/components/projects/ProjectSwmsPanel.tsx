@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import SignaturePad from '@/components/settings/SignaturePad'
 import { resolveSwmsCategoryLabel } from '@/lib/swms-category-label'
 import type { SwmsDocument } from '@/types/swms'
 
@@ -35,9 +34,6 @@ export default function ProjectSwmsPanel({
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<SwmsDocument | null>(null)
-  const [ackingId, setAckingId] = useState<string | null>(null)
-  const [signaturePromptDocId, setSignaturePromptDocId] = useState<string | null>(null)
-  const [localHasSignature, setLocalHasSignature] = useState(hasSignature)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -66,41 +62,7 @@ export default function ProjectSwmsPanel({
   }
 
   function handleView(doc: SwmsDocument) {
-    if (doc.source === 'authored') {
-      window.open(`/api/projects/${projectId}/swms/${doc.id}/pdf`, '_blank')
-      return
-    }
-    // Open the tab synchronously (within the click's user gesture) and navigate it once the
-    // signed URL resolves — awaiting before window.open() loses the gesture in most browsers
-    // and gets silently blocked with no visible error.
-    const win = window.open('', '_blank')
-    void (async () => {
-      const supabase = createClient()
-      const { data } = await supabase.storage.from('project-swms').createSignedUrl(doc.storagePath, 60)
-      if (!win) return
-      if (data?.signedUrl) win.location.href = data.signedUrl
-      else win.close()
-    })()
-  }
-
-  async function handleAcknowledge(documentId: string) {
-    setAckingId(documentId)
-    const supabase = createClient()
-    await supabase.from('project_swms_acknowledgments').insert({
-      swms_document_id: documentId,
-      user_id: currentUserId,
-    })
-    setAckingId(null)
-    setSignaturePromptDocId(null)
-    router.refresh()
-  }
-
-  function handleAcknowledgeClick(documentId: string) {
-    if (!localHasSignature) {
-      setSignaturePromptDocId(documentId)
-      return
-    }
-    handleAcknowledge(documentId)
+    router.push(`/dashboard/clients/${clientId}/projects/${projectId}/swms/${doc.id}`)
   }
 
   async function handleDelete(doc: SwmsDocument) {
@@ -169,15 +131,6 @@ export default function ProjectSwmsPanel({
                     {canManage && doc.source === 'authored' && (
                       <Link href={`/dashboard/clients/${clientId}/projects/${projectId}/swms/new?documentId=${doc.id}`} className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400">Edit</Link>
                     )}
-                    {(isCrewMember || hasSignedInToday) && !hasAcknowledged && (
-                      <button
-                        onClick={() => handleAcknowledgeClick(doc.id)}
-                        disabled={ackingId === doc.id}
-                        className="rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-cyan-500/25 transition-all hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.95] disabled:opacity-50"
-                      >
-                        {ackingId === doc.id ? 'Saving…' : "I've read and understood this"}
-                      </button>
-                    )}
                     {(isCrewMember || hasSignedInToday) && hasAcknowledged && (
                       <span className="text-xs font-bold text-green-600 dark:text-green-400">✓ Acknowledged</span>
                     )}
@@ -186,21 +139,6 @@ export default function ProjectSwmsPanel({
                     )}
                   </div>
                 </div>
-                {signaturePromptDocId === doc.id && (
-                  <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50/50 p-4 dark:border-cyan-500/30 dark:bg-cyan-500/10">
-                    <p className="mb-2 text-xs font-semibold text-gray-700 dark:text-slate-300">
-                      Draw your signature to confirm you&apos;ve read and understood this document. It&apos;s saved to your profile and reused next time.
-                    </p>
-                    <SignaturePad
-                      userId={currentUserId}
-                      initialSignatureUrl={null}
-                      onSaved={() => {
-                        setLocalHasSignature(true)
-                        handleAcknowledge(doc.id)
-                      }}
-                    />
-                  </div>
-                )}
               </li>
             )
           })}
