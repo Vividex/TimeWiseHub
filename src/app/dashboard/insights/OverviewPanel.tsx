@@ -7,6 +7,7 @@ import ProjectBreakdown, { type ProjectBar } from '@/components/insights/Project
 import ProjectHealthTable, { type ProjectHealth } from '@/components/insights/ProjectHealthTable'
 import OrgStatsPanel, { type MemberStat } from '@/components/insights/OrgStatsPanel'
 import { getSubscription, isTeamPlan } from '@/lib/subscription'
+import { getWorkspaceProfileForUser } from '@/lib/workspace-profiles/resolve'
 
 function fmtHours(h: number) {
   if (h < 1) return `${Math.round(h * 60)}m`
@@ -47,6 +48,7 @@ export async function OverviewPanel() {
   const orgId = membership?.org_id ?? null
   const subscription = await getSubscription(user.id)
   const isManager = ['owner', 'admin', 'manager'].includes(membership?.role ?? '') && isTeamPlan(subscription)
+  const { terminology } = await getWorkspaceProfileForUser(supabase, user.id)
 
   const sevenDaysAgoDate = sevenDaysAgo.toISOString().slice(0, 10)
 
@@ -252,8 +254,8 @@ export async function OverviewPanel() {
         <ActivityRatio hoursThisWeek={hoursThisWeek} activeDays={activeDays} />
       </div>
 
-      <ProjectBreakdown projects={projectBars} totalHours={totalProjectHours} />
-      <ProjectHealthTable projects={projectHealth} />
+      <ProjectBreakdown projects={projectBars} totalHours={totalProjectHours} projectLabel={terminology.project} />
+      <ProjectHealthTable projects={projectHealth} projectLabel={terminology.project} />
       {isManager && <OrgStatsPanel members={memberStats} />}
     </div>
   )

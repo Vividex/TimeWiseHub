@@ -12,6 +12,7 @@ type Props = {
   activeClients: number
   overdueTotal: number
   overdueCurrency: string
+  projectLabel: { singular: string; plural: string }
 }
 
 type CardProps = {
@@ -47,7 +48,7 @@ function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-export default function DashboardMetrics({ sessionsCompleted, sessionsTotal, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency }: Props) {
+export default function DashboardMetrics({ sessionsCompleted, sessionsTotal, activeProjects, tasksCompleted, tasksTotal, activeClients, overdueTotal, overdueCurrency, projectLabel }: Props) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       <MetricCard
@@ -61,7 +62,7 @@ export default function DashboardMetrics({ sessionsCompleted, sessionsTotal, act
       <MetricCard
         icon={FolderOpen}
         value={String(activeProjects)}
-        label="Active projects"
+        label={`Active ${projectLabel.plural.toLowerCase()}`}
         iconClass="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400"
         glowClass="bg-cyan-500"
         href="/dashboard/projects"

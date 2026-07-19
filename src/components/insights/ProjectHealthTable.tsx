@@ -14,17 +14,17 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((new Date(dateStr).getTime() - today.getTime()) / 86400000)
 }
 
-export default function ProjectHealthTable({ projects }: { projects: ProjectHealth[] }) {
+export default function ProjectHealthTable({ projects, projectLabel }: { projects: ProjectHealth[]; projectLabel: { singular: string; plural: string } }) {
   if (projects.length === 0) return null
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Project health</h3>
+      <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">{projectLabel.singular} health</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="pb-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Project</th>
+              <th className="pb-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">{projectLabel.singular}</th>
               <th className="pb-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Tasks</th>
               <th className="pb-3 px-4 text-left text-xs font-bold uppercase tracking-wide text-gray-400">Progress</th>
               <th className="pb-3 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Hours</th>

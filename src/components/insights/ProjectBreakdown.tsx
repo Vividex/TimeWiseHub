@@ -1,15 +1,16 @@
 export type ProjectBar = { name: string; colour: string; hours: number }
 
-export default function ProjectBreakdown({ projects, totalHours }: {
+export default function ProjectBreakdown({ projects, totalHours, projectLabel }: {
   projects: ProjectBar[]
   totalHours: number
+  projectLabel: { singular: string; plural: string }
 }) {
   if (projects.length === 0) {
     return (
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Time by project</h3>
+        <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Time by {projectLabel.singular.toLowerCase()}</h3>
         <p className="text-sm font-semibold text-gray-400">
-          No project-linked entries yet. Link tasks to time entries to see this breakdown.
+          No {projectLabel.singular.toLowerCase()}-linked entries yet. Link tasks to time entries to see this breakdown.
         </p>
       </div>
     )
@@ -17,7 +18,7 @@ export default function ProjectBreakdown({ projects, totalHours }: {
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Time by project</h3>
+      <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-gray-500">Time by {projectLabel.singular.toLowerCase()}</h3>
       <div className="space-y-4">
         {projects.map(p => {
           const pct = totalHours > 0 ? (p.hours / totalHours) * 100 : 0

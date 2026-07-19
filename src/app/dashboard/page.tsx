@@ -436,6 +436,7 @@ export default async function DashboardHome() {
           activeClients={activeClients}
           overdueTotal={overdueTotal}
           overdueCurrency={overdueCurrency}
+          projectLabel={workspaceProfile.terminology.project}
         />
 
         {/* Quick actions */}
