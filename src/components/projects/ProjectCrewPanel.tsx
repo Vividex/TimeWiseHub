@@ -3,23 +3,32 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import type { CrewMemberOption } from '@/types/project-crew'
+import type { CrewMemberOption, CrewGroupOption } from '@/types/project-crew'
 
 export default function ProjectCrewPanel({
   projectId,
   crew,
   availableMembers,
+  crewGroups,
   canManage,
 }: {
   projectId: string
   crew: CrewMemberOption[]
   availableMembers: CrewMemberOption[]
+  crewGroups: CrewGroupOption[]
   canManage: boolean
 }) {
   const router = useRouter()
   const [addingId, setAddingId] = useState('')
+  const [addingCrewId, setAddingCrewId] = useState('')
   const [saving, setSaving] = useState(false)
+  const [savingCrew, setSavingCrew] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const crewUserIds = new Set(crew.map(m => m.userId))
+  const addableCrewGroups = crewGroups
+    .map(g => ({ ...g, toAdd: g.members.filter(m => !crewUserIds.has(m.userId)) }))
+    .filter(g => g.toAdd.length > 0)
 
   async function addMember() {
     if (!addingId) return
@@ -33,6 +42,22 @@ export default function ProjectCrewPanel({
     setSaving(false)
     if (insertError) { setError(insertError.message); return }
     setAddingId('')
+    router.refresh()
+  }
+
+  async function addCrewGroup() {
+    if (!addingCrewId) return
+    const group = addableCrewGroups.find(g => g.id === addingCrewId)
+    if (!group || group.toAdd.length === 0) return
+    setSavingCrew(true)
+    setError(null)
+    const supabase = createClient()
+    const { error: insertError } = await supabase.from('project_members').insert(
+      group.toAdd.map(m => ({ project_id: projectId, user_id: m.userId }))
+    )
+    setSavingCrew(false)
+    if (insertError) { setError(insertError.message); return }
+    setAddingCrewId('')
     router.refresh()
   }
 
@@ -75,6 +100,27 @@ export default function ProjectCrewPanel({
             className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/25 transition-all duration-150 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-[0.965] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:opacity-50 disabled:pointer-events-none"
           >
             {saving ? 'Adding…' : 'Add'}
+          </button>
+        </div>
+      )}
+      {canManage && addableCrewGroups.length > 0 && (
+        <div className="mt-2 flex items-center gap-2">
+          <select
+            value={addingCrewId}
+            onChange={e => setAddingCrewId(e.target.value)}
+            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="">Add a crew…</option>
+            {addableCrewGroups.map(g => (
+              <option key={g.id} value={g.id}>{g.name} ({g.toAdd.length} to add)</option>
+            ))}
+          </select>
+          <button
+            onClick={addCrewGroup}
+            disabled={!addingCrewId || savingCrew}
+            className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-all hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 active:scale-[0.965] disabled:opacity-50 disabled:pointer-events-none dark:border-slate-700 dark:text-slate-300 dark:hover:border-cyan-400/40 dark:hover:bg-cyan-500/10"
+          >
+            {savingCrew ? 'Adding…' : 'Add'}
           </button>
         </div>
       )}

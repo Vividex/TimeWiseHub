@@ -12,7 +12,7 @@ import ProjectSwmsPanel from '@/components/projects/ProjectSwmsPanel'
 import ProjectSiteControl from '@/components/projects/ProjectSiteControl'
 import ArchiveButton from '@/components/projects/ArchiveButton'
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton'
-import type { CrewMemberOption } from '@/types/project-crew'
+import type { CrewMemberOption, CrewGroupOption } from '@/types/project-crew'
 import type { SwmsDocument } from '@/types/swms'
 
 export default async function ClientProjectPage({
@@ -55,6 +55,7 @@ export default async function ClientProjectPage({
 
   let crew: CrewMemberOption[] = []
   let availableMembers: CrewMemberOption[] = []
+  let crewGroups: CrewGroupOption[] = []
   let swmsDocuments: SwmsDocument[] = []
   let isCrewMember = false
   let hasSignature = false
@@ -83,6 +84,26 @@ export default async function ClientProjectPage({
     crew = allOrgMembers.filter(m => crewUserIds.has(m.userId))
     availableMembers = allOrgMembers.filter(m => !crewUserIds.has(m.userId))
     isCrewMember = crewUserIds.has(user.id)
+
+    if (orgId) {
+      const memberLookup = new Map(allOrgMembers.map(m => [m.userId, m.displayName]))
+      const { data: savedCrews } = await supabase.from('crews').select('id, name').eq('org_id', orgId).order('name')
+      const savedCrewIds = (savedCrews ?? []).map(c => c.id)
+      const { data: savedCrewMembers } = savedCrewIds.length > 0
+        ? await supabase.from('crew_members').select('crew_id, user_id').in('crew_id', savedCrewIds)
+        : { data: [] as { crew_id: string; user_id: string }[] }
+      const membersByCrew = new Map<string, CrewMemberOption[]>()
+      for (const cm of savedCrewMembers ?? []) {
+        const arr = membersByCrew.get(cm.crew_id) ?? []
+        arr.push({ userId: cm.user_id, displayName: memberLookup.get(cm.user_id) ?? cm.user_id })
+        membersByCrew.set(cm.crew_id, arr)
+      }
+      crewGroups = (savedCrews ?? []).map(c => ({
+        id: c.id,
+        name: c.name,
+        members: membersByCrew.get(c.id) ?? [],
+      }))
+    }
 
     const { data: swmsRows } = await supabase
       .from('project_swms_documents')
@@ -168,6 +189,7 @@ export default async function ClientProjectPage({
               projectId={project.id}
               crew={crew}
               availableMembers={availableMembers}
+              crewGroups={crewGroups}
               canManage={canManageConfidential}
             />
             <ProjectSwmsPanel
