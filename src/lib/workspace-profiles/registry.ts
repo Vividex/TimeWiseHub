@@ -7,6 +7,9 @@ const GENERIC_TERMINOLOGY: Terminology = {
   project: { singular: 'Project', plural: 'Projects' },
 }
 
+const TRADES_TERMINOLOGY: Terminology = { ...GENERIC_TERMINOLOGY, project: { singular: 'Job', plural: 'Jobs' } }
+const REAL_ESTATE_TERMINOLOGY: Terminology = { ...GENERIC_TERMINOLOGY, project: { singular: 'Listing', plural: 'Listings' } }
+
 const HIDE_SUBJECTS_NAV = { hiddenHrefs: ['/dashboard/subjects', '/dashboard/students'] }
 
 export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileConfig> = {
@@ -37,12 +40,12 @@ export const WORKSPACE_PROFILES: Record<WorkspaceProfileKey, WorkspaceProfileCon
     },
     navOverrides: HIDE_SUBJECTS_NAV,
   },
-  builder_construction: { key: 'builder_construction', label: 'Builder & Construction', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true, supportsSwms: true },
-  trades_field_services: { key: 'trades_field_services', label: 'Trades & Field Services', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true, supportsSwms: true },
+  builder_construction: { key: 'builder_construction', label: 'Builder & Construction', terminology: TRADES_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true, supportsSwms: true },
+  trades_field_services: { key: 'trades_field_services', label: 'Trades & Field Services', terminology: TRADES_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true, supportsSwms: true },
   consulting: { key: 'consulting', label: 'Consulting & Professional Services', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV },
   healthcare: { key: 'healthcare', label: 'Healthcare & Allied Health', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV },
-  real_estate: { key: 'real_estate', label: 'Real Estate & Property', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true },
-  cleaning_maintenance: { key: 'cleaning_maintenance', label: 'Cleaning & Maintenance', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true },
+  real_estate: { key: 'real_estate', label: 'Real Estate & Property', terminology: REAL_ESTATE_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true },
+  cleaning_maintenance: { key: 'cleaning_maintenance', label: 'Cleaning & Maintenance', terminology: TRADES_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV, supportsMultiSite: true },
   creative_agencies: { key: 'creative_agencies', label: 'Creative Agencies & Marketing', terminology: GENERIC_TERMINOLOGY, navOverrides: HIDE_SUBJECTS_NAV },
 }
 
