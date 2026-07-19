@@ -28,7 +28,13 @@ export default function SignaturePad({
   function pointFromEvent(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current!
     const rect = canvas.getBoundingClientRect()
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    // The canvas's CSS-rendered size (rect) can be smaller than its pixel-buffer
+    // size (canvas.width/height) on narrow screens, since it's responsive but the
+    // buffer isn't -- without this scale factor, touch points land at the wrong
+    // spot on the buffer (often off the visible drawing area entirely).
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
   }
 
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -122,7 +128,7 @@ export default function SignaturePad({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          className="touch-none rounded-xl border border-gray-200 bg-white dark:border-slate-700"
+          className="touch-none w-full max-w-[400px] rounded-xl border border-gray-200 bg-white dark:border-slate-700"
         />
       </div>
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
