@@ -122,6 +122,51 @@
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
 
+## Notes (Multi-Category JSA) [complete, kept for reference]
+- **The single implementation item (MJ-1, 9 files) complete and verified (2026-07-19).** Every
+  file was verified directly by the conductor (`git diff` against the plan + `pnpm run build`),
+  not taken on Codex's report alone — every file matched the plan's exact code with zero
+  discrepancies. `pnpm run build` passed clean on the first attempt (unlike the Project-to-Job
+  Terminology phase, which had three real plan errors) — the difference this time was writing the
+  plan with full-file replacements for the three heavily-restructured files
+  (`SwmsBuilderForm.tsx`, the POST route, `SwmsDocumentPdf.tsx`) rather than Find/Replace against
+  remembered content, removing the "did I misremember which file had this text" failure mode
+  entirely for the riskiest files. Codex hit the Windows sandbox subprocess limitation once
+  (`CreateProcessAsUserW failed: 5`), self-recovered on the very next identical retry.
+- Source spec: docs/superpowers/specs/2026-07-19-multi-category-jsa-design.md
+- Source plan: docs/superpowers/plans/2026-07-19-multi-category-jsa.md
+- Direct follow-up to the same 2026-07-18 batch feedback that produced Site Sign-In and the
+  Crew-Groups Picker: "jsa should be able to select multiple categories per jsa... should be able
+  to check each one you want on the jsa with the option to expand the view to see the more in
+  depth details." This was the last of the three items from that original message.
+- **Real scope clarification during brainstorming:** the user's own words scoped this to JSA only
+  ("jsa should be able to select multiple categories"), confirmed directly rather than assumed —
+  SWMS keeps its single-category dropdown and licence-class cross-check entirely unchanged, since
+  HRCW work types are legislated discrete categories and mixing them would complicate that check
+  for no requested benefit.
+- **Real design-fork resolved via a clarifying question:** "the option to expand the view to see
+  the more in depth details" was genuinely ambiguous between (a) a preview-before-checking
+  affordance in the category picker, or (b) collapsible grouping of the already-merged rows. User
+  picked (b), which set the whole data-model direction (rows needed a `category` tag for grouping
+  to be possible at all) — asked before writing the spec rather than guessed.
+- Unchecking a category deletes its rows (including any edits) — a deliberate trade-off stated
+  plainly in the spec/plan and surfaced in the UI itself ("Removing a category deletes its rows
+  below"), not something to silently soften during implementation.
+- No database migration — `project_swms_documents.category` (existing free-text column, already
+  used only for display lookups, never filtered on by any query) stores a comma-joined list of
+  hazard keys for multi-category JSA. A new shared `resolveSwmsCategoryLabel()` helper
+  (`src/lib/swms-category-label.ts`) centralizes the split/label-lookup/join logic used by the two
+  flat-label display sites (document list, Dashboard "Today" card); the PDF needed the raw keys
+  directly for row-grouping, so it kept its own `HRCW_CATEGORY_LABELS`/`JSA_HAZARD_LABELS`
+  lookups rather than using the shared helper.
+- Backward compatibility: editing a pre-existing single-category JSA normalizes its old `category`
+  field into a one-item `categories` array on load, and — since the entire historical document was
+  unambiguously for that one category — retroactively tags every one of its rows with it too, so
+  the document behaves consistently in the new grouped/removable-by-category model rather than
+  landing entirely in the ungrouped "Additional steps" section.
+- Codex handles text edits only; conductor runs all shell/build/git. No migration this phase, so
+  no conductor-only DB item.
+
 ## Notes (Project-to-Job Terminology) [complete, kept for reference]
 - **All 10 implementation items (JT-1 through JT-10) complete and verified (2026-07-19).** Every
   turn was verified directly by the conductor (`git diff` against the plan + `pnpm run build`),
