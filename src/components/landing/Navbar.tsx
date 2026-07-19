@@ -3,7 +3,10 @@ import Link from 'next/link'
 
 export default function Navbar() {
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
+    <nav
+      className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 px-4 pb-3 backdrop-blur-xl sm:px-6"
+      style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-3" aria-label="TimeWiseHub home">
           <Image src="/logo.png" alt="TimeWiseHub" width={36} height={36} className="h-9 w-9 object-contain" />
