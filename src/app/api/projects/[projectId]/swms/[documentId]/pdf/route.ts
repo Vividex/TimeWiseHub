@@ -92,10 +92,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ projectI
   }) as unknown as React.ReactElement<DocumentProps>
 
   const buffer = await renderToBuffer(element)
+  // Content-Disposition is an HTTP header -- Latin-1 only. doc.name legitimately contains an
+  // em dash ("JSA — ladder_step,..."), which throws a ByteString conversion error if used
+  // as-is here. Sanitize just the header value; the stored/displayed name is untouched.
+  const safeFilename = doc.name.replace(/[^\x00-\xFF]/g, '-')
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${doc.name}.pdf"`,
+      'Content-Disposition': `inline; filename="${safeFilename}.pdf"`,
     },
   })
 }
