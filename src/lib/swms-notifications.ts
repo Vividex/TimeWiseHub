@@ -32,7 +32,7 @@ export async function notifySwmsAwaitingSignature(
   if (recipientIds.size === 0) return
 
   const label = docType === 'jsa' ? 'JSA' : 'SWMS'
-  const url = `/dashboard/clients/${project.client_id}/projects/${projectId}`
+  const url = `/dashboard/clients/${project.client_id}/projects/${projectId}/swms/${documentId}`
 
   await Promise.allSettled(
     Array.from(recipientIds).map(userId =>

@@ -43,7 +43,7 @@ without the backward-compat conversion that today only exists in the edit form's
   `src/lib/normalize-swms-content.ts` new, `pdf/route.ts` + `swms/new/page.tsx` edited).
 - [x] **R-2** — Build the reader page and its components (plan Task 2, 5 files: 3 new components,
   new `[documentId]/page.tsx`, `ProjectSwmsPanel.tsx` full-file replacement).
-- [ ] **R-3** — Point the three entry points at the new page (plan Task 3, 2 files:
+- [x] **R-3** — Point the three entry points at the new page (plan Task 3, 2 files:
   `DashboardUpcoming.tsx`, `swms-notifications.ts`).
   - [ ] Manual smoke (deferred to user): open an authored SWMS/JSA from the Dashboard widget and
     confirm it lands on the document page (not the project page), content renders, Sign works,
@@ -52,18 +52,18 @@ without the backward-compat conversion that today only exists in the edit form's
     if a pre-multi-category JSA still exists, confirm its View/Edit/PDF all still work.
 
 ## Acceptance checklist
-- [ ] Pre-multi-category JSA content is normalized wherever `content` is read (PDF route, edit
+- [x] Pre-multi-category JSA content is normalized wherever `content` is read (PDF route, edit
   form, new reader page) — not just in the edit form as before.
-- [ ] New route `/dashboard/clients/[id]/projects/[projectId]/swms/[documentId]` renders authored
+- [x] New route `/dashboard/clients/[id]/projects/[projectId]/swms/[documentId]` renders authored
   SWMS/JSA content as HTML, grouped by category for JSA.
-- [ ] Uploaded documents show an "Open document" link (no iframe embed) on the same page shape.
-- [ ] Sign section works on the new page for both authored and uploaded documents.
-- [ ] Manager header actions (Edit, Delete, Download PDF) appear correctly gated by `canManage`
+- [x] Uploaded documents show an "Open document" link (no iframe embed) on the same page shape.
+- [x] Sign section works on the new page for both authored and uploaded documents.
+- [x] Manager header actions (Edit, Delete, Download PDF) appear correctly gated by `canManage`
   and document source.
-- [ ] Project list (`ProjectSwmsPanel.tsx`) no longer has an inline Sign button; View navigates to
+- [x] Project list (`ProjectSwmsPanel.tsx`) no longer has an inline Sign button; View navigates to
   the new page.
-- [ ] Dashboard "Today" widget and the push notification both link directly to the document page.
-- [ ] Full `pnpm run build` passes clean.
+- [x] Dashboard "Today" widget and the push notification both link directly to the document page.
+- [x] Full `pnpm run build` passes clean.
 - [ ] Manual smoke — user follow-up, not the conductor's to complete.
 
 ## Verification
