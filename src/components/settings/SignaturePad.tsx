@@ -118,8 +118,12 @@ export default function SignaturePad({
 
   return (
     <div className="space-y-3">
-      {signatureUrl && !hasDrawn && (
+      {signatureUrl && (
         <div>
+          {/* Stays visible while hasDrawn is true (mid-draw of a replacement), not just
+              before -- hiding it the instant a stroke starts would shift the canvas up to
+              fill the gap mid-gesture, moving it out from under whatever's already touching
+              it. Only swaps out once signatureUrl itself changes, after an actual save. */}
           <p className="mb-1 text-xs font-semibold text-gray-500 dark:text-slate-400">Current signature</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={signatureUrl} alt="Your saved signature" className="h-16 rounded-lg border border-gray-200 bg-white dark:border-slate-700 px-2" />
