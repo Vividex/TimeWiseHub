@@ -15,6 +15,7 @@
     "@daily-co/daily-js": "^0.91.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/poppins": "^5.2.7",
+    "firebase-admin": "^13.0.0",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",

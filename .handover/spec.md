@@ -48,7 +48,7 @@ plugin choice from the completed spike phase, now becoming a real shipped featur
 
 - [x] **F-1** — Database migration: `push_device_tokens` table (plan Task 1, conductor-only via
   Supabase MCP, 1 file).
-- [ ] **F-2** — Server-side FCM sending + registration endpoint (plan Task 2, 3 files: `push.ts`
+- [x] **F-2** — Server-side FCM sending + registration endpoint (plan Task 2, 3 files: `push.ts`
   full rewrite, new `fcm-subscribe` route, `firebase-admin` dependency).
 - [ ] **F-3** — Client-side native registration, deep-linking, debug cleanup (plan Task 3, 6
   files: `PushPermission.tsx`/`PushAutoPrompt.tsx` full rewrites, new tap-handler component,
