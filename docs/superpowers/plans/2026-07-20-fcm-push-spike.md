@@ -350,12 +350,28 @@ Replace the whole file with:
   "description": "Android-specific plugin permissions",
   "platforms": ["android"],
   "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://timewisehub.com.au",
+      "https://www.timewisehub.com.au"
+    ]
+  },
   "permissions": [
     "core:default",
     "notifications:default"
   ]
 }
 ```
+
+**Real finding during real-device testing, not caught by build verification:** the first version of
+this file (without the `remote` block above) built and deployed fine, but every plugin command
+failed at runtime with `Command plugin:notifications|is_permission_granted not allowed by ACL`.
+Tauri capabilities without a `remote` block only apply to bundled/local content — since this app's
+window loads the remote `https://timewisehub.com.au` URL (`src-tauri/tauri.conf.json`'s
+`windows[0].url`), a capability needs its own explicit `remote` block to apply to that window's
+content at all. `default.json` already had one (why Task 1's `os:default` permission worked
+without issue); `android.json` didn't. `pnpm run build` can't catch this — it's a runtime-only ACL
+check on the real device.
 
 ### Step 4: Add the JS package
 
