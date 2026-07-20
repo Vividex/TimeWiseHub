@@ -22,15 +22,18 @@ export default function SwmsDocumentSignSection({
   const [showSignaturePrompt, setShowSignaturePrompt] = useState(false)
   const [acking, setAcking] = useState(false)
   const [localHasSignature, setLocalHasSignature] = useState(hasSignature)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleAcknowledge() {
     setAcking(true)
+    setError(null)
     const supabase = createClient()
-    await supabase.from('project_swms_acknowledgments').insert({
+    const { error: insertError } = await supabase.from('project_swms_acknowledgments').insert({
       swms_document_id: documentId,
       user_id: currentUserId,
     })
     setAcking(false)
+    if (insertError) { setError(insertError.message); return }
     setShowSignaturePrompt(false)
     router.refresh()
   }
@@ -62,6 +65,7 @@ export default function SwmsDocumentSignSection({
           >
             {acking ? 'Saving…' : "I've read and understood this"}
           </button>
+          {error && <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
           {showSignaturePrompt && (
             <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50/50 p-4 dark:border-cyan-500/30 dark:bg-cyan-500/10">
               <p className="mb-2 text-xs font-semibold text-gray-700 dark:text-slate-300">

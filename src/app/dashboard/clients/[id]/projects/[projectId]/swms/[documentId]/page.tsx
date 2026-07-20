@@ -79,8 +79,6 @@ export default async function SwmsDocumentPage({
         {doc.source === 'authored' && (
           <a
             href={`/api/projects/${projectId}/swms/${doc.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Download PDF
