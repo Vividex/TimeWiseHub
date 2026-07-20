@@ -5,7 +5,13 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- SWMS/JSA In-App Reader Page (current phase): zero cost — pure code, no schema change (reuses the
+- FCM/Native Push Validation Spike (current phase): zero direct cost — pure code + a new free-tier
+  Firebase project (Cloud Messaging has no cost at this volume; no Admin SDK/paid API calls in this
+  spike, Firebase Console's own "send test message" tool is used instead), one new native Rust/JS
+  plugin dependency (`tauri-plugin-notifications` + `@choochmeque/tauri-plugin-notifications-api`,
+  both open-source), no other new npm dependencies besides `@tauri-apps/plugin-os` (official Tauri
+  plugin, free).
+- SWMS/JSA In-App Reader Page (prior phase, complete): zero cost — pure code, no schema change (reuses the
   existing `project_swms_documents` table/columns as-is), no new npm dependencies, no external API
   calls.
 - Multi-category JSA (prior phase, complete): zero cost — pure code, no schema change (existing free-text
@@ -124,6 +130,74 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+
+## Notes (FCM/Native Push Validation Spike) [complete, kept for reference]
+- **Both items (P-1, P-2) complete with real, verified device results (2026-07-20).** This phase
+  existed specifically to de-risk an uncertain technical approach before committing to a full
+  feature design — both real questions it was built to answer got definitive answers:
+  - **P-1 (desktop): negative.** `pnpm tauri:dev` + devtools console on the real Tauri desktop app
+    confirmed `typeof Notification === 'undefined'` and `typeof navigator.serviceWorker ===
+    'undefined'` in the WebView2 environment. Standard web push cannot work on desktop Tauri at
+    all — not a stale-build issue, not a platform-check bug, a genuine engine limitation. Desktop
+    needs the same native-plugin treatment as Android for the follow-up feature, not a two-line
+    fix. The narrowed android/ios-only gate (from Task 1's code) is kept regardless — still more
+    correct than the old blanket-Tauri exclusion, just not sufficient alone.
+  - **P-2 (Android): positive, full success.** After fixing a real capability/ACL gap found
+    on-device (`Command plugin:notifications|is_permission_granted not allowed by ACL` —
+    `capabilities/android.json` needed its own `remote` block, since capabilities without one only
+    apply to bundled/local content and this app's window loads the remote timewisehub.com.au URL;
+    `default.json` already had one, which is why Task 1's OS-detection permission worked fine),
+    confirmed on a real installed Android build: FCM delivers correctly in all three app states
+    (foreground — correctly silent/JS-only, since nothing told the plugin to show a banner while
+    already open; background — system notification appears; fully closed — system notification
+    appears). Tapping the notification from a fully-closed cold start launches the app and fires
+    `onNotificationClicked` with the real custom-data payload intact
+    (`{"data":{"testRoute":"/dashboard"},"id":-1}`) — the plugin's actual working tap-to-deep-link
+    mechanism.
+  - **Real research correction, found only by inspecting the plugin's actual shipped `.d.ts`
+    during build verification, not from its README:** the design-stage research (AI-summarized
+    GitHub README fetches) concluded this plugin had no distinct "notification tapped" event
+    separate from action-button taps — the real shipped TypeScript API has a dedicated
+    `onNotificationClicked(data: { id, data })` listener the README never surfaced clearly. Also
+    caught a real type error the plan's own drafted code had: `PluginListener`'s cleanup method is
+    `.unregister()`, not `.unlisten()` as first written. Both fixed directly by the conductor
+    during `pnpm run build` verification, not re-dispatched to Codex (plan/research defects, not
+    file-content mismatches).
+  - Codex hit the Windows sandbox subprocess limitation once (P-2's first dispatch,
+    `CreateProcessAsUserW failed: 5`, before it could even read the turn instruction) —
+    self-recovered on the immediate identical retry, zero content discrepancies across both tasks'
+    file transcriptions.
+- Source spec: docs/superpowers/specs/2026-07-20-fcm-push-spike-design.md
+- Source plan: docs/superpowers/plans/2026-07-20-fcm-push-spike.md
+- Direct follow-up to queued backlog: "web push won't work in Tauri Android WebView; FCM needed
+  for background/closed-app notifications." User chose to expand scope mid-brainstorm to cover
+  desktop Tauri too, since it turned out to have the exact same "push completely disabled" gap as
+  Android (a blanket `'__TAURI_INTERNALS__'` exclusion covered both, discovered via code reading
+  before any design work started).
+- **This spike existed because of a real, specific risk surfaced by research, not caution for its
+  own sake:** the leading plugin candidate's README (AI-summarized fetch) appeared to lack the
+  tap-to-deep-link event this whole feature needs, and every candidate plugin in this space was
+  small/young — building a full schema/send-logic/UI architecture on that unverified assumption
+  risked the exact "worked in theory, broke on the real Android build" pattern this project has
+  hit before with Tauri. The spike resolved it directly with real evidence instead of continued
+  speculation, and the actual shipped `.d.ts` turned out to be more capable than its own README
+  documented.
+- **What this unblocks:** the follow-up full-feature spec can now be designed with confidence
+  around `tauri-plugin-notifications` (Choochmeque) for BOTH Android and desktop (rather than a
+  mixed web-push/native split), including real tap-to-deep-link via `onNotificationClicked`. Not
+  yet designed: the device-token schema (current `push_subscriptions` table is web-push-shaped —
+  endpoint/p256dh/auth — incompatible with FCM's single-token model), server-side dual-send logic
+  (`src/lib/push.ts` needs to fan out to FCM alongside existing web push, since browser tabs still
+  use web push unaffected by any of this), and wiring every existing notification call site
+  (`notifySwmsAwaitingSignature`, chat, etc.) to send through both paths depending on registered
+  device type.
+- The temporary debug scaffolding (`FcmTokenDebug.tsx`, its call site in `settings/page.tsx`, the
+  amber "Spike debug" UI) is still live in the app — explicitly flagged in this phase's own spec as
+  not a shipped feature. Should be removed (or hard-gated to a real dev-only condition) as part of
+  the follow-up full-feature work, not left indefinitely.
+- No database migration this phase. Codex handled text edits only; conductor ran all shell/build/
+  git — plus two direct fixes for real defects found during device testing that weren't file-
+  content mismatches (the ACL/remote-block gap, the `.unregister()` type error).
 
 ## Notes (SWMS/JSA In-App Reader Page) [complete, kept for reference]
 - **All 3 implementation items (R-1 through R-3) complete and verified (2026-07-19).** Every turn
