@@ -50,7 +50,7 @@ plugin choice from the completed spike phase, now becoming a real shipped featur
   Supabase MCP, 1 file).
 - [x] **F-2** — Server-side FCM sending + registration endpoint (plan Task 2, 3 files: `push.ts`
   full rewrite, new `fcm-subscribe` route, `firebase-admin` dependency).
-- [ ] **F-3** — Client-side native registration, deep-linking, debug cleanup (plan Task 3, 6
+- [x] **F-3** — Client-side native registration, deep-linking, debug cleanup (plan Task 3, 6
   files: `PushPermission.tsx`/`PushAutoPrompt.tsx` full rewrites, new tap-handler component,
   `dashboard/layout.tsx` wiring, `FcmTokenDebug.tsx` deletion + its `settings/page.tsx` call site
   removed).

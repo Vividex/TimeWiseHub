@@ -9,6 +9,7 @@ import WelcomeModal from '@/components/tutorial/WelcomeModal'
 import TutorialTracker from '@/components/tutorial/TutorialTracker'
 import TutorialComplete from '@/components/tutorial/TutorialComplete'
 import PushAutoPrompt from '@/components/PushAutoPrompt'
+import PushNotificationTapHandler from '@/components/PushNotificationTapHandler'
 import { getWorkspaceProfile } from '@/lib/workspace-profiles/registry'
 
 export default async function DashboardLayout({
@@ -85,6 +86,7 @@ export default async function DashboardLayout({
       <TutorialTracker />
       <TutorialComplete />
       <PushAutoPrompt />
+      <PushNotificationTapHandler />
     </TutorialProvider>
   )
 }

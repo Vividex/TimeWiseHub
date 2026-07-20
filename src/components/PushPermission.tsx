@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { type as osType } from '@tauri-apps/plugin-os'
+import {
+  isPermissionGranted as isNativePermissionGranted,
+  requestPermission as requestNativePermission,
+  registerForPushNotifications,
+  unregisterForPushNotifications,
+} from '@choochmeque/tauri-plugin-notifications-api'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -10,17 +16,19 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
 }
 
+const isNative = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+
 export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
   const [loading, setLoading] = useState(false)
   const [deniedHint, setDeniedHint] = useState(false)
 
   useEffect(() => {
-    // SPIKE: only Android/iOS are known-unsupported for standard web push. Desktop Tauri's
-    // embedded WebView2/WKWebView may already support it -- this spike is testing that
-    // assumption instead of blocking all Tauri uniformly like before.
-    if ('__TAURI_INTERNALS__' in window && ['android', 'ios'].includes(osType())) {
-      setState('unsupported')
+    if (isNative) {
+      // Standard web push doesn't work in any Tauri context (confirmed via real desktop and
+      // Android device testing during the validation spike) -- native push via FCM is the only
+      // path here, for both platforms.
+      isNativePermissionGranted().then(granted => setState(granted ? 'subscribed' : 'unknown'))
       return
     }
     if (!('Notification' in window) || !('serviceWorker' in navigator)) { setState('unsupported'); return }
@@ -33,13 +41,30 @@ export default function PushPermission() {
   }, [])
 
   async function enable() {
-    if (Notification.permission === 'denied') {
-      setDeniedHint(true)
-      return
-    }
     setLoading(true)
     setDeniedHint(false)
     try {
+      if (isNative) {
+        let granted = await isNativePermissionGranted()
+        if (!granted) {
+          const permission = await requestNativePermission()
+          granted = permission === 'granted'
+        }
+        if (!granted) { setState('denied'); return }
+        const token = await registerForPushNotifications()
+        await fetch('/api/push/fcm-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, platform: osType() }),
+        })
+        setState('subscribed')
+        return
+      }
+
+      if (Notification.permission === 'denied') {
+        setDeniedHint(true)
+        return
+      }
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') { setState('denied'); return }
 
@@ -64,6 +89,13 @@ export default function PushPermission() {
     setLoading(true)
     setDeniedHint(false)
     try {
+      if (isNative) {
+        await unregisterForPushNotifications()
+        await fetch('/api/push/fcm-subscribe', { method: 'DELETE' })
+        setState('unknown')
+        return
+      }
+
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) {
