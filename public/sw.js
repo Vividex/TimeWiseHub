@@ -10,9 +10,14 @@ self.addEventListener('activate', event => {
   self.clients.claim()
 })
 
-// Network-first with cache fallback
+// Network-first with cache fallback -- same-origin only. Cross-origin GETs (e.g. signed
+// Supabase Storage URLs for images/PDFs) are left to the browser's own handling: this SW's
+// caching adds no benefit for third-party resources, and intercepting a no-cors image
+// request as an opaque response is a real, hard-to-diagnose way for that image to silently
+// fail to render if the intercepted fetch itself has any hiccup.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return
+  if (new URL(event.request.url).origin !== self.location.origin) return
   event.respondWith(
     fetch(event.request)
       .then(response => {

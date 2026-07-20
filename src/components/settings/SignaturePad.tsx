@@ -15,6 +15,7 @@ export default function SignaturePad({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawingRef = useRef(false)
   const lastPointRef = useRef<{ x: number; y: number } | null>(null)
+  const rectRef = useRef<DOMRect | null>(null)
   const [hasDrawn, setHasDrawn] = useState(false)
   const [signatureUrl, setSignatureUrl] = useState(initialSignatureUrl)
   const [saving, setSaving] = useState(false)
@@ -25,31 +26,38 @@ export default function SignaturePad({
     return canvasRef.current?.getContext('2d') ?? null
   }
 
-  function pointFromEvent(e: React.PointerEvent<HTMLCanvasElement>) {
+  function pointFromEvent(e: React.PointerEvent<HTMLCanvasElement>, rect: DOMRect) {
     const canvas = canvasRef.current!
-    const rect = canvas.getBoundingClientRect()
     // The canvas's CSS-rendered size (rect) can be smaller than its pixel-buffer
     // size (canvas.width/height) on narrow screens, since it's responsive but the
     // buffer isn't -- without this scale factor, touch points land at the wrong
     // spot on the buffer (often off the visible drawing area entirely).
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
+    const scaleX = rect.width > 0 ? canvas.width / rect.width : 1
+    const scaleY = rect.height > 0 ? canvas.height / rect.height : 1
     return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
   }
 
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     const ctx = getCtx()
-    if (!ctx) return
+    const canvas = canvasRef.current
+    if (!ctx || !canvas) return
+    // Measure the rect once per stroke and reuse it for every move in that stroke.
+    // Re-measuring on each event (the old behaviour) could pick up a mid-stroke
+    // layout shift -- e.g. a focus outline appearing once setPointerCapture below
+    // moves focus to the canvas -- producing a visibly different rect between the
+    // down point and the first move point, which draws as a stray line jumping
+    // from the wrong spot to the cursor instead of a smooth stroke.
+    rectRef.current = canvas.getBoundingClientRect()
     drawingRef.current = true
-    lastPointRef.current = pointFromEvent(e)
-    canvasRef.current?.setPointerCapture(e.pointerId)
+    lastPointRef.current = pointFromEvent(e, rectRef.current)
+    canvas.setPointerCapture(e.pointerId)
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current) return
+    if (!drawingRef.current || !rectRef.current) return
     const ctx = getCtx()
     if (!ctx || !lastPointRef.current) return
-    const point = pointFromEvent(e)
+    const point = pointFromEvent(e, rectRef.current)
     ctx.strokeStyle = '#0f172a'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
@@ -65,6 +73,7 @@ export default function SignaturePad({
   function handlePointerUp() {
     drawingRef.current = false
     lastPointRef.current = null
+    rectRef.current = null
   }
 
   function handleClear() {
