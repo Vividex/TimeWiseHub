@@ -58,13 +58,23 @@ export default function SwmsDocumentSignSection({
           <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
             Confirm you&apos;ve read and understood this document before starting work.
           </p>
-          <button
-            onClick={handleAcknowledgeClick}
-            disabled={acking}
-            className="mt-4 rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-cyan-500/25 transition-all hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.95] disabled:opacity-50"
-          >
-            {acking ? 'Saving…' : "I've read and understood this"}
-          </button>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={handleAcknowledgeClick}
+              disabled={acking}
+              className="rounded-xl bg-gradient-to-b from-cyan-500 to-cyan-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-cyan-500/25 transition-all hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.95] disabled:opacity-50"
+            >
+              {acking ? 'Saving…' : "I've read and understood this"}
+            </button>
+            {localHasSignature && !showSignaturePrompt && (
+              <button
+                onClick={() => setShowSignaturePrompt(true)}
+                className="text-xs font-semibold text-cyan-600 transition-colors hover:text-cyan-700 dark:text-cyan-400"
+              >
+                Redraw signature
+              </button>
+            )}
+          </div>
           {error && <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
           {showSignaturePrompt && (
             <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50/50 p-4 dark:border-cyan-500/30 dark:bg-cyan-500/10">
