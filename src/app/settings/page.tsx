@@ -11,6 +11,7 @@ import NicknameForm from '@/components/NicknameForm'
 import AvatarPicker from '@/components/AvatarPicker'
 import SignaturePad from '@/components/settings/SignaturePad'
 import PushPermission from '@/components/PushPermission'
+import FcmTokenDebug from '@/components/debug/FcmTokenDebug'
 import SettingsTabs from '@/components/SettingsTabs'
 import RestartTutorialButton from '@/components/tutorial/RestartTutorialButton'
 
@@ -120,6 +121,7 @@ export default async function SettingsPage() {
           Receive browser notifications even when TimeWiseHub is in the background.
         </p>
         <div className="mt-4"><PushPermission /></div>
+        <div className="mt-4"><FcmTokenDebug /></div>
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">

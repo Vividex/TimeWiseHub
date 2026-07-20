@@ -50,9 +50,14 @@ not a shipped feature.
 
 ---
 
-- [ ] **P-1** — Desktop webview push test: code (plan Task 1, Steps 1-7, 6 files) + PAUSE for the
+- [x] **P-1** — Desktop webview push test: code (plan Task 1, Steps 1-7, 6 files) + PAUSE for the
   user's real desktop build + manual test (Step 8) + finalize with the real result (Step 9,
   commit message adjusted per the override above; record the actual finding in decisions.md).
+  **Result: negative.** Confirmed via real device console (`pnpm tauri:dev` + devtools):
+  `typeof Notification === 'undefined'` and `typeof navigator.serviceWorker === 'undefined'` in
+  the Tauri WebView2 environment. Desktop cannot use standard web push at all — it needs the same
+  native-plugin treatment as Android, not a two-line gate fix. Code from Steps 1-6 is kept as-is
+  (correctly narrows the unsupported gate to android/ios; harmless and more accurate either way).
 - [ ] **P-2** — Android FCM scaffold + device validation: code (plan Task 2, Steps 2-4 + 6-7, 5
   files/1 new file) + PAUSE for the user's Firebase project creation (Step 1), Gradle file
   presence is already confirmed so Step 5's edits can be done in the same code turn as the rest,
@@ -62,7 +67,9 @@ not a shipped feature.
 ## Acceptance checklist
 - [ ] Desktop: `@tauri-apps/plugin-os` wired in, gate narrowed to android/ios only, code builds
   clean.
-- [ ] Desktop: real-device result recorded (does WebView2 support push while minimized, yes/no).
+- [x] Desktop: real-device result recorded (does WebView2 support push while minimized, yes/no) —
+  **no**: `Notification`/`navigator.serviceWorker` are both undefined in the Tauri WebView2
+  environment.
 - [ ] Android: `tauri-plugin-notification` (singular, unused) fully swapped for
   `tauri-plugin-notifications` (plural, FCM-capable) in Cargo.toml, lib.rs, and
   capabilities/android.json.
