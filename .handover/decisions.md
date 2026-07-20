@@ -5,7 +5,11 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- FCM/Native Push Validation Spike (current phase): zero direct cost — pure code + a new free-tier
+- FCM/Native Push Full Feature (current phase): zero direct cost — pure code + one additive DB
+  migration (new table, no changes to existing tables), one new npm dependency (`firebase-admin`,
+  free/open-source), reuses the already-approved-free Firebase project and plugin from the spike
+  phase. FCM sending itself has no cost at this volume, same as confirmed for the spike.
+- FCM/Native Push Validation Spike (prior phase, complete): zero direct cost — pure code + a new free-tier
   Firebase project (Cloud Messaging has no cost at this volume; no Admin SDK/paid API calls in this
   spike, Firebase Console's own "send test message" tool is used instead), one new native Rust/JS
   plugin dependency (`tauri-plugin-notifications` + `@choochmeque/tauri-plugin-notifications-api`,
