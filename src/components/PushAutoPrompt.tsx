@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { type as osType } from '@tauri-apps/plugin-os'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -13,7 +14,7 @@ function urlBase64ToUint8Array(base64String: string) {
 // If the user allows, subscribes immediately. Renders nothing.
 export default function PushAutoPrompt() {
   useEffect(() => {
-    if ('__TAURI_INTERNALS__' in window) return
+    if ('__TAURI_INTERNALS__' in window && ['android', 'ios'].includes(osType())) return
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return
     if (Notification.permission !== 'default') return
 

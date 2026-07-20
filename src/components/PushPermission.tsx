@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { type as osType } from '@tauri-apps/plugin-os'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -15,7 +16,13 @@ export default function PushPermission() {
   const [deniedHint, setDeniedHint] = useState(false)
 
   useEffect(() => {
-    if ('__TAURI_INTERNALS__' in window) { setState('unsupported'); return }
+    // SPIKE: only Android/iOS are known-unsupported for standard web push. Desktop Tauri's
+    // embedded WebView2/WKWebView may already support it -- this spike is testing that
+    // assumption instead of blocking all Tauri uniformly like before.
+    if ('__TAURI_INTERNALS__' in window && ['android', 'ios'].includes(osType())) {
+      setState('unsupported')
+      return
+    }
     if (!('Notification' in window) || !('serviceWorker' in navigator)) { setState('unsupported'); return }
     if (Notification.permission === 'denied') { setState('denied'); return }
     navigator.serviceWorker.ready.then(reg =>

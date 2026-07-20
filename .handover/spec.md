@@ -1,71 +1,78 @@
-# SWMS/JSA In-App Reader Page
+# FCM / Native Push Validation Spike
 
 ## Goal
-Give SWMS/JSA documents a real in-app HTML page (mirroring the existing invoice detail page
-pattern) reachable directly from the Dashboard and push notifications, with sign-in-place at the
-bottom — replacing the current PDF-in-new-tab-only "View" flow. Also closes a real gap found while
-tracing this code path: pre-multi-category JSA documents can crash wherever `content` is read
-without the backward-compat conversion that today only exists in the edit form's loader.
+Answer, on real devices, whether desktop Tauri already supports standard web push and whether the
+leading Android native-push plugin (`tauri-plugin-notifications`, Choochmeque) can deliver a
+notification to a fully-closed app and give the app enough information on tap to eventually
+deep-link — before designing the full FCM feature. Produces scaffolding + a recorded observation,
+not a shipped feature.
 
 ## Key decisions
-- Source spec: `docs/superpowers/specs/2026-07-19-swms-jsa-reader-page-design.md`
-- Source plan: `docs/superpowers/plans/2026-07-19-swms-jsa-reader-page.md` — 3 tasks, the exact
-  code to transcribe for every file is in that plan. This checklist is the tracker; the plan file
-  is the source of truth for content.
-- No database migration — reuses the existing `project_swms_documents` table/columns as-is.
-- Uploaded (non-authored) documents do NOT get an inline `<iframe>` embed — Android WebView (the
-  Tauri Android build) generally has no built-in PDF renderer, so embedding risked a blank page.
-  They get an "Open document" link (same signed-URL-in-new-tab behaviour as today) plus the Sign
-  section below it, on the same new page.
-- The project list's (`ProjectSwmsPanel.tsx`) inline "I've read and understood this" button is
-  REMOVED as part of this phase, not kept as a shortcut — signing now only happens on the new
-  document page, consolidating what were two acknowledge code paths into one. This is a deliberate
-  behaviour change, not a bug if a returning user doesn't see it on the list anymore.
-- Task order matters: Task 1's normalization fix must land before Task 2, since the new reader
-  page (Task 2) reads the same `content` shape and would otherwise inherit the same crash risk for
-  pre-multi-category JSA documents.
+- Source spec: `docs/superpowers/specs/2026-07-20-fcm-push-spike-design.md`
+- Source plan: `docs/superpowers/plans/2026-07-20-fcm-push-spike.md` — 2 tasks, the exact code to
+  transcribe for every file is in that plan. This checklist is the tracker; the plan file is the
+  source of truth for content.
+- **Both tasks have a real manual-only step neither Codex nor the conductor can perform**: a real
+  desktop build + manual test (P-1), and Firebase Console project creation + a real Android build
+  + on-device test (P-2). The loop does the code scaffolding for each task, verifies it builds,
+  commits it, then PAUSES cleanly for the user to do that task's manual step and report back what
+  they observed — this is an expected, planned pause, not an error blocker.
+- **Commit message convention override**: the plan's own Step 9 templates include a
+  "<fill in what was actually observed>" placeholder. Per this project's established pattern (every
+  prior phase), don't bake unconfirmed results into a commit message — commit the code with a
+  clean, factual message ("scaffolding only, pending manual device validation"), then record the
+  real observed result in `decisions.md`'s phase-complete Notes section once the user reports back,
+  same as every other phase's manual-smoke-test write-up in this project.
+- No database migration. No production notification call sites touched. The debug token UI
+  (`FcmTokenDebug.tsx`) is temporary scaffolding, not a shipped feature.
+- Do NOT commit `src-tauri/gen/android/app/google-services.json` — add it to `.gitignore` in the
+  same commit that adds the Gradle changes referencing it (plan Task 2 Step 9 has the exact line).
 
 ## Rules for Codex
-- Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP) — the conductor
-  handles those.
-- Transcribe the plan's code exactly — every step's Find/Replace (or full-file Create/Replace)
-  block in `docs/superpowers/plans/2026-07-19-swms-jsa-reader-page.md` is complete, real content.
+- Text edits only. Do NOT run shell commands (pnpm, git, node, Supabase MCP, Firebase CLI) — the
+  conductor handles those. Do NOT attempt the manual Firebase Console / real-device steps — those
+  are explicitly the user's to do, not yours or the conductor's.
+- Transcribe the plan's code exactly — every step's Find/Replace (or full-file Create) block in
+  `docs/superpowers/plans/2026-07-20-fcm-push-spike.md` is complete, real content, verified against
+  the actual plugin's current docs during plan-writing.
 - If any Find block doesn't match a file's actual current content, report it as a blocker with the
   exact text searched for and what the file actually contains nearby — do not guess.
+- Plan Task 2 Step 5 (Gradle file edits under `src-tauri/gen/android/`) are plain text edits to
+  already-existing generated files (confirmed present before this phase started) — transcribe them
+  the same as any other file, no special handling needed.
 
 ## Rules for conductor (Claude)
-- `pnpm run build` after every turn — must pass before ticking the box and committing.
+- `pnpm run build` after each code turn — must pass before ticking the box and committing. This
+  verifies the JS/TS side only; the Rust/Android side can only be verified by the user's real build.
 - No migration this phase — no conductor-only SQL item.
+- After each task's code is committed, PAUSE (not a normal `continue`) with clear, complete
+  instructions for that task's manual step, and wait for the user's report before resuming.
 
 ---
 
-- [x] **R-1** — Fix the multi-category JSA backward-compat gap (plan Task 1, 3 files:
-  `src/lib/normalize-swms-content.ts` new, `pdf/route.ts` + `swms/new/page.tsx` edited).
-- [x] **R-2** — Build the reader page and its components (plan Task 2, 5 files: 3 new components,
-  new `[documentId]/page.tsx`, `ProjectSwmsPanel.tsx` full-file replacement).
-- [x] **R-3** — Point the three entry points at the new page (plan Task 3, 2 files:
-  `DashboardUpcoming.tsx`, `swms-notifications.ts`).
-  - [ ] Manual smoke (deferred to user): open an authored SWMS/JSA from the Dashboard widget and
-    confirm it lands on the document page (not the project page), content renders, Sign works,
-    Edit/Delete/Download PDF work for a manager; open an uploaded document and confirm "Open
-    document" + Sign both work; confirm the project list no longer shows an inline Sign button;
-    if a pre-multi-category JSA still exists, confirm its View/Edit/PDF all still work.
+- [ ] **P-1** — Desktop webview push test: code (plan Task 1, Steps 1-7, 6 files) + PAUSE for the
+  user's real desktop build + manual test (Step 8) + finalize with the real result (Step 9,
+  commit message adjusted per the override above; record the actual finding in decisions.md).
+- [ ] **P-2** — Android FCM scaffold + device validation: code (plan Task 2, Steps 2-4 + 6-7, 5
+  files/1 new file) + PAUSE for the user's Firebase project creation (Step 1), Gradle file
+  presence is already confirmed so Step 5's edits can be done in the same code turn as the rest,
+  and the user's real Android build + on-device test (Step 8) + finalize with the real result
+  (Step 9, same commit-message override; record the actual finding in decisions.md).
 
 ## Acceptance checklist
-- [x] Pre-multi-category JSA content is normalized wherever `content` is read (PDF route, edit
-  form, new reader page) — not just in the edit form as before.
-- [x] New route `/dashboard/clients/[id]/projects/[projectId]/swms/[documentId]` renders authored
-  SWMS/JSA content as HTML, grouped by category for JSA.
-- [x] Uploaded documents show an "Open document" link (no iframe embed) on the same page shape.
-- [x] Sign section works on the new page for both authored and uploaded documents.
-- [x] Manager header actions (Edit, Delete, Download PDF) appear correctly gated by `canManage`
-  and document source.
-- [x] Project list (`ProjectSwmsPanel.tsx`) no longer has an inline Sign button; View navigates to
-  the new page.
-- [x] Dashboard "Today" widget and the push notification both link directly to the document page.
-- [x] Full `pnpm run build` passes clean.
-- [ ] Manual smoke — user follow-up, not the conductor's to complete.
+- [ ] Desktop: `@tauri-apps/plugin-os` wired in, gate narrowed to android/ios only, code builds
+  clean.
+- [ ] Desktop: real-device result recorded (does WebView2 support push while minimized, yes/no).
+- [ ] Android: `tauri-plugin-notification` (singular, unused) fully swapped for
+  `tauri-plugin-notifications` (plural, FCM-capable) in Cargo.toml, lib.rs, and
+  capabilities/android.json.
+- [ ] Android: temporary debug token + event-log UI added to Settings, code builds clean.
+- [ ] Android: real-device result recorded for all three app states (foreground/background/fully
+  closed) and the cold-start tap/payload-access question.
+- [ ] `google-services.json` never committed; `.gitignore` updated instead.
+- [ ] Full `pnpm run build` passes clean after every code turn.
 
 ## Verification
-No test runner in this project — verification is `pnpm run build` (tsc + eslint), plus the
-manual-smoke notes above.
+No test runner in this project — verification is `pnpm run build` (tsc + eslint) for code turns.
+The actual deliverable of this phase (device-test results) can only be verified by the user on
+real hardware — that's the whole point of the spike, not a gap to work around.
