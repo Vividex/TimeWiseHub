@@ -1,21 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import dashboardImage from '../../../promo/pc dashboard.png'
+import type { IndustryContent } from '@/lib/landing-industries'
 
-const VALUE_ITEMS = [
-  'Australian business focused',
-  'Secure data',
-  'Built for small teams',
-  'All tools in one place',
-]
-
-const STATS = [
-  { label: 'Core tools unified', value: '12+' },
-  { label: 'Setup path', value: 'Free' },
-  { label: 'Business view', value: '360' },
-]
-
-export default function HeroSection() {
+export default function HeroSection({ industry }: { industry: IndustryContent }) {
   return (
     <>
       <section className="relative isolate overflow-hidden bg-[radial-gradient(circle_at_20%_15%,rgba(34,211,238,0.18),transparent_32%),linear-gradient(145deg,#020617_0%,#07111f_45%,#020617_100%)] px-4 pb-20 pt-32 sm:px-6 lg:pb-28 lg:pt-40">
@@ -25,14 +12,13 @@ export default function HeroSection() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-100 shadow-lg shadow-cyan-950/30">
-              All-in-one business management platform
+              {industry.heroBadge}
             </div>
             <h1 className="max-w-4xl text-5xl font-black leading-[1.02] text-white sm:text-6xl lg:text-7xl">
-              Everything your team needs, in one place.
+              {industry.heroHeadline}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
-              Manage projects, time, invoices, rosters, vehicles, expenses, team
-              communication and AI-powered workflows from one platform.
+              {industry.heroSubheading}
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -51,7 +37,7 @@ export default function HeroSection() {
             </div>
 
             <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
-              {STATS.map((stat) => (
+              {industry.heroStats.map((stat) => (
                 <div key={stat.label} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
                   <p className="text-2xl font-black text-white">{stat.value}</p>
                   <p className="mt-1 text-xs font-medium leading-5 text-slate-400">{stat.label}</p>
@@ -70,8 +56,8 @@ export default function HeroSection() {
                 <span className="ml-3 text-xs font-semibold text-slate-400">timewisehub.app/dashboard</span>
               </div>
               <Image
-                src={dashboardImage}
-                alt="TimeWiseHub dashboard overview"
+                src={industry.heroImage}
+                alt={industry.heroImageAlt}
                 priority
                 sizes="(min-width: 1024px) 56vw, 100vw"
                 className="h-auto w-full rounded-xl border border-white/10 object-cover"
@@ -83,7 +69,7 @@ export default function HeroSection() {
 
       <section className="border-y border-white/10 bg-slate-950 px-4 py-5 sm:px-6">
         <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {VALUE_ITEMS.map((item) => (
+          {industry.heroValueItems.map((item) => (
             <div
               key={item}
               className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center text-sm font-semibold text-slate-200"

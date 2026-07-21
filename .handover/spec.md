@@ -49,23 +49,37 @@ added per the Workspace Profile roadmap.
 
 - [x] **L-1** — Industry content config module (plan Task 1, Codex, 1 new file:
   `src/lib/landing-industries.ts`).
-- [ ] **L-2** — Consolidate Hero/FeatureCarousel/Navbar into config-driven, dropdown-switchable
+- [x] **L-2** — Consolidate Hero/FeatureCarousel/Navbar into config-driven, dropdown-switchable
   `LandingExperience` (plan Task 2, Codex, 5 files: `HeroSection.tsx`/`FeatureCarousel.tsx`/
   `Navbar.tsx` rewrites, new `LandingExperience.tsx`, `src/app/page.tsx` edit).
-- [ ] **L-3** — Remove old tutors route, redirect to `/`, sitemap cleanup (plan Task 3; file
-  deletions conductor-only via `git rm`, `next.config.ts` + `sitemap.ts` edits are Codex).
+  - Plan gap found during this turn's build verification: `src/app/solutions/tutors/page.tsx` also
+    rendered the shared `Navbar` component (not just the Tutor-specific ones), so it broke once
+    `Navbar` gained required props. Rather than leave the build red between turns, the conductor
+    pulled L-3's file deletions (`src/app/solutions/tutors/page.tsx`,
+    `TutorHeroSection.tsx`, `TutorFeatureCarousel.tsx`) forward into this turn's commit — that work
+    was always conductor-only anyway, just resequenced. L-3 below is now scoped down to only the
+    `next.config.ts` redirect + `sitemap.ts` edit.
+- [ ] **L-3** — Add the `/solutions/tutors` → `/` redirect and remove the sitemap entry (plan
+  Task 3, Codex, 2 files: `next.config.ts`, `sitemap.ts` — the file deletions this task originally
+  covered are already done, see L-2 note above).
 
 ## Acceptance checklist
-- [ ] `/` renders the general landing content by default (unchanged headline/copy from before this
-  phase).
-- [ ] The Navbar dropdown switches to "Tutors & tutoring businesses" and the Hero + FeatureCarousel
+- [x] `/` renders the general landing content by default (unchanged headline/copy from before this
+  phase). Verified via Playwright browser snapshot.
+- [x] The Navbar dropdown switches to "Tutors & tutoring businesses" and the Hero + FeatureCarousel
   content updates client-side (headline, value chips, stats, dashboard image, feature cards,
-  showcase screens) while Pricing/Footer stay constant.
-- [ ] `src/app/solutions/tutors/page.tsx` no longer exists; requesting `/solutions/tutors` returns
-  a 301 redirect to `/`.
+  showcase screens) while Pricing/Footer stay constant. Verified via Playwright browser snapshot,
+  zero console errors.
+- [x] `src/app/solutions/tutors/page.tsx` no longer exists (deleted during L-2, see note above).
+  - [ ] Requesting `/solutions/tutors` returns a 301 redirect to `/` — NOT yet true; the redirect
+    doesn't exist until L-3 lands, so it currently 404s. `Footer.tsx`'s "For tutors" link still
+    points at this URL and will 404 until L-3's redirect is added — don't leave this mailbox
+    paused with L-2 as the last completed item for long.
 - [ ] `src/app/sitemap.ts` no longer lists `/solutions/tutors`.
-- [ ] Full `pnpm run build` passes clean after every code turn.
-- [ ] Manual: dropdown switch (general ↔ tutors) verified in a real browser.
+- [x] Full `pnpm run build` passes clean after every code turn (required a `.next` cache clear
+  once, after deleting the old route, to clear a stale generated type-validator file — not a code
+  issue).
+- [x] Manual: dropdown switch (general ↔ tutors) verified in a real browser.
 - [ ] Manual: `/solutions/tutors` → `/` redirect verified in a real browser.
 
 ## Verification

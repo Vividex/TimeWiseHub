@@ -1,7 +1,16 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { INDUSTRIES, type IndustryId } from '@/lib/landing-industries'
 
-export default function Navbar() {
+export default function Navbar({
+  selectedIndustry,
+  onIndustryChange,
+}: {
+  selectedIndustry: IndustryId
+  onIndustryChange: (id: IndustryId) => void
+}) {
   return (
     <nav
       className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 px-4 pb-3 backdrop-blur-xl sm:px-6"
@@ -24,6 +33,18 @@ export default function Navbar() {
           </a>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
+          <select
+            value={selectedIndustry}
+            onChange={(event) => onIndustryChange(event.target.value as IndustryId)}
+            aria-label="Select your business type"
+            className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs font-medium text-white transition hover:border-cyan-300/50 focus:outline-none focus:ring-2 focus:ring-cyan-300 sm:px-3 sm:text-sm"
+          >
+            {Object.values(INDUSTRIES).map((industry) => (
+              <option key={industry.id} value={industry.id} className="bg-slate-950 text-white">
+                {industry.dropdownLabel}
+              </option>
+            ))}
+          </select>
           <Link
             href="/login"
             className="text-sm font-medium text-slate-300 transition-colors hover:text-white"

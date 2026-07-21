@@ -5,7 +5,11 @@
 ## Spending
 - spend-budget-usd: 2 (this figure covers per-turn API/build costs; the recurring Resend Pro
   subscription below is a separate, explicitly-approved ongoing cost, not drawn from this budget)
-- FCM/Native Push Full Feature (current phase): zero direct cost — pure code + one additive DB
+- Unified Landing Page (current phase): zero cost — pure code + a `next.config.ts` redirect and a
+  `sitemap.ts` edit, no schema change, no new npm dependencies, no external API calls, no infra
+  changes.
+- FCM/Native Push Full Feature (prior phase, code complete, manual follow-up still pending with the
+  user — see its own memory entry): zero direct cost — pure code + one additive DB
   migration (new table, no changes to existing tables), one new npm dependency (`firebase-admin`,
   free/open-source), reuses the already-approved-free Firebase project and plugin from the spike
   phase. FCM sending itself has no cost at this volume, same as confirmed for the spike.
