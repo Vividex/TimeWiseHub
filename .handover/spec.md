@@ -47,7 +47,7 @@ added per the Workspace Profile roadmap.
 
 ---
 
-- [ ] **L-1** — Industry content config module (plan Task 1, Codex, 1 new file:
+- [x] **L-1** — Industry content config module (plan Task 1, Codex, 1 new file:
   `src/lib/landing-industries.ts`).
 - [ ] **L-2** — Consolidate Hero/FeatureCarousel/Navbar into config-driven, dropdown-switchable
   `LandingExperience` (plan Task 2, Codex, 5 files: `HeroSection.tsx`/`FeatureCarousel.tsx`/
