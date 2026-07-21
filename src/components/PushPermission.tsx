@@ -16,7 +16,13 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
 }
 
-const isNative = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+// tauri-plugin-notifications' push-notifications feature is Android/iOS (FCM) and iOS (APNs)
+// only -- confirmed on a real desktop build, which throws "not supported on desktop platforms"
+// for registerForPushNotifications(). Desktop Tauri has no working push mechanism at all right
+// now (standard web push also confirmed non-functional in its WebView2), so it's treated the
+// same as the plain "unsupported" browser case rather than offering a toggle that would fail.
+const isNative = isTauri && ['android', 'ios'].includes(osType())
 
 export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
@@ -25,10 +31,8 @@ export default function PushPermission() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isTauri && !isNative) { setState('unsupported'); return } // desktop Tauri: no working mechanism
     if (isNative) {
-      // Standard web push doesn't work in any Tauri context (confirmed via real desktop and
-      // Android device testing during the validation spike) -- native push via FCM is the only
-      // path here, for both platforms.
       isNativePermissionGranted().then(granted => setState(granted ? 'subscribed' : 'unknown'))
       return
     }

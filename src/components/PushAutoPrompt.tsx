@@ -29,10 +29,14 @@ export default function PushAutoPrompt() {
     }
 
     async function trySubscribe() {
-      if ('__TAURI_INTERNALS__' in window) {
-        // Standard web push doesn't work in any Tauri context (confirmed via real desktop and
-        // Android device testing during the validation spike) -- native push via FCM is the only
-        // path here, for both platforms.
+      const isTauri = '__TAURI_INTERNALS__' in window
+      // tauri-plugin-notifications' push-notifications feature is Android/iOS only (confirmed on
+      // a real desktop build -- it throws "not supported on desktop platforms"). Desktop Tauri
+      // has no working push mechanism at all right now (standard web push also confirmed
+      // non-functional in its WebView2), so there's nothing to silently attempt there.
+      if (isTauri && !['android', 'ios'].includes(osType())) return
+
+      if (isTauri) {
         const granted = await isNativePermissionGranted()
         if (granted) { await registerNative(); return }
 
