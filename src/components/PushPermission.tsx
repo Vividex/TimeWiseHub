@@ -22,6 +22,7 @@ export default function PushPermission() {
   const [state, setState] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown')
   const [loading, setLoading] = useState(false)
   const [deniedHint, setDeniedHint] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isNative) {
@@ -43,6 +44,7 @@ export default function PushPermission() {
   async function enable() {
     setLoading(true)
     setDeniedHint(false)
+    setError(null)
     try {
       if (isNative) {
         let granted = await isNativePermissionGranted()
@@ -80,6 +82,10 @@ export default function PushPermission() {
         body: JSON.stringify(sub.toJSON()),
       })
       setState('subscribed')
+    } catch (err) {
+      // A silent failure here (e.g. a Tauri capability/ACL error) previously looked identical
+      // to the toggle doing nothing at all -- surface whatever actually went wrong instead.
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -88,6 +94,7 @@ export default function PushPermission() {
   async function disable() {
     setLoading(true)
     setDeniedHint(false)
+    setError(null)
     try {
       if (isNative) {
         await unregisterForPushNotifications()
@@ -107,6 +114,8 @@ export default function PushPermission() {
         await sub.unsubscribe()
       }
       setState('unknown')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -155,6 +164,7 @@ export default function PushPermission() {
           Notifications are blocked in your browser. Click the padlock icon in the address bar, set Notifications to &quot;Allow&quot;, then try again.
         </p>
       )}
+      {error && <p className="px-1 text-xs font-semibold text-red-600">{error}</p>}
     </div>
   )
 }

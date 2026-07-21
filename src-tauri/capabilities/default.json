@@ -16,6 +16,7 @@
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",
     "core:window:allow-close",
-    "os:default"
+    "os:default",
+    "notifications:default"
   ]
 }
