@@ -138,6 +138,17 @@
 - Programs Phase 2 (prior phase, complete): Real Claude Haiku API calls happened during its C-6
   manual smoke test only — user approved 2026-07-01, same accepted cost pattern as session-notes/
   AI assistant.
+- VividexRevenue internal user-stats endpoint (current task): zero cost — pure code, no schema
+  change, no new npm dependencies, no external API calls. Reuses the existing
+  `SUPABASE_SERVICE_ROLE_KEY` already in this project's env.
+
+## Current task (VividexRevenue internal user-stats endpoint)
+- Adding `src/app/api/internal/user-stats/route.ts` -- a net-new, isolated read-only route for a
+  separate private tool (VividexRevenue, a desktop widget tracking JetFit/TimeWiseHub subscription
+  revenue). Does not touch existing Stripe/billing/auth code.
+- Reuse the existing `SUPABASE_SERVICE_ROLE_KEY` -- do not create a new privileged credential.
+- Do NOT `git push` -- conductor stops and confirms with the user first (pushing to master
+  auto-deploys to production).
 
 ## Notes (FCM/Native Push Validation Spike) [complete, kept for reference]
 - **Both items (P-1, P-2) complete with real, verified device results (2026-07-20).** This phase
